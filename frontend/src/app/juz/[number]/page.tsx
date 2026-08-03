@@ -1,0 +1,166 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { quranApi, type AyahWithRelations } from '@/lib/api';
+import { Header } from '@/components/Header';
+import { AyahBlock } from '@/components/reader/AyahBlock';
+import { ChevronLeft, ArrowRight } from 'lucide-react';
+
+interface Props {
+  params: Promise<{ number: string }>;
+  searchParams: Promise<{ page?: string; trans?: string }>;
+}
+
+export async function generateStaticParams() {
+  return Array.from({ length: 30 }, (_, i) => ({ number: String(i + 1) }));
+}
+
+export async function generateMetadata({ params }: Props) {
+  const { number } = await params;
+  const n = parseInt(number, 10);
+  if (Number.isNaN(n) || n < 1 || n > 30) return {};
+  return {
+    title: `Juz ${n}`,
+    description: `Read Juz ${n} of the Holy Quran with translation and audio.`,
+  };
+}
+
+export const revalidate = 3600;
+
+interface SurahGroup {
+  surahId: number;
+  surahName: string;
+  surahNumber: number;
+  ayahs: AyahWithRelations[];
+}
+
+export default async function JuzPage({ params, searchParams }: Props) {
+  const { number } = await params;
+  const { page: pageStr, trans } = await searchParams;
+  const juzNumber = parseInt(number, 10);
+  if (Number.isNaN(juzNumber) || juzNumber < 1 || juzNumber > 30) notFound();
+
+  const page = Math.max(1, parseInt(pageStr || '1', 10));
+  const limit = 50;
+
+  const rawAyahs = await quranApi
+    .ayahsByJuz(juzNumber, { page, limit, translations: trans || undefined, words: true })
+    .catch(() => [] as AyahWithRelations[]);
+
+  const ayahs: AyahWithRelations[] = Array.isArray(rawAyahs) ? rawAyahs : [];
+
+  if (ayahs.length === 0) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="mx-auto max-w-4xl px-4 py-24 text-center">
+          <p className="text-[var(--muted)]">No verses found for Juz {juzNumber}.</p>
+          <Link href="/" className="mt-4 inline-block text-[var(--accent)] hover:underline">Go home</Link>
+        </main>
+      </div>
+    );
+  }
+
+  const hasMore = ayahs.length === limit;
+
+  // Group by surah for section headers
+  const groupedBySurah: SurahGroup[] = [];
+  for (const ayah of ayahs) {
+    const last = groupedBySurah[groupedBySurah.length - 1];
+    const surahNum = ayah.surah?.number ?? ayah.surahId;
+    const surahName = ayah.surah?.nameSimple ?? `Surah ${surahNum}`;
+    if (!last || last.surahId !== ayah.surahId) {
+      groupedBySurah.push({ surahId: ayah.surahId, surahName, surahNumber: surahNum, ayahs: [ayah] });
+    } else {
+      last.ayahs.push(ayah);
+    }
+  }
+
+  return (
+    <div className="min-h-screen pb-32">
+      <Header />
+
+      {/* Sub-header */}
+      <div className="sticky top-[57px] z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+          <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] hover:text-[var(--accent-gold)] transition-colors">
+            <ChevronLeft className="h-4 w-4" />
+            Home
+          </Link>
+          <div className="flex items-center gap-2 text-sm">
+            {juzNumber > 1 && (
+              <Link href={`/juz/${juzNumber - 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-[var(--muted)] hover:bg-[var(--ayah-highlight)] transition-colors">←</Link>
+            )}
+            <span className="font-semibold text-[var(--fg)]">Juz {juzNumber}</span>
+            {juzNumber < 30 && (
+              <Link href={`/juz/${juzNumber + 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-[var(--muted)] hover:bg-[var(--ayah-highlight)] transition-colors">→</Link>
+            )}
+          </div>
+          <span className="text-xs text-[var(--muted)]">of 30</span>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-4xl px-4 py-8">
+        {/* Juz heading */}
+        <div className="mb-10 text-center">
+          <h1 className="font-arabic text-3xl font-bold text-[var(--fg)]">الجزء {juzNumber}</h1>
+          <p className="mt-2 text-[var(--muted)]">Part {juzNumber} of 30</p>
+        </div>
+
+        {/* Ayahs grouped by surah */}
+        {groupedBySurah.map((group) => (
+          <section key={group.surahId} className="mb-10">
+            {/* Surah section divider */}
+            <div className="mb-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-[var(--border)]" />
+              <Link
+                href={`/surah/${group.surahNumber}`}
+                className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-sm font-medium text-[var(--fg)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+              >
+                <span className="font-arabic">{group.ayahs[0]?.surah?.nameArabic ?? ''}</span>
+                <span>{group.surahName}</span>
+                <ArrowRight className="h-3 w-3" />
+              </Link>
+              <div className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+
+            <div className="divide-y divide-[var(--border)]">
+              {group.ayahs.map((ayah) => (
+                <AyahBlock
+                  key={ayah.id}
+                  ayah={ayah}
+                  surahNumber={group.surahNumber}
+                  surahName={group.surahName}
+                  showTranslation={!!trans}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* Pagination */}
+        <nav className="mt-8 flex items-center justify-center gap-3" aria-label="Pagination">
+          {page > 1 && (
+            <Link href={`/juz/${juzNumber}?page=${page - 1}${trans ? `&trans=${trans}` : ''}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
+              ← Previous
+            </Link>
+          )}
+          {hasMore && (
+            <Link href={`/juz/${juzNumber}?page=${page + 1}${trans ? `&trans=${trans}` : ''}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
+              Next →
+            </Link>
+          )}
+        </nav>
+
+        {/* Next juz */}
+        {!hasMore && juzNumber < 30 && (
+          <div className="mt-8 text-center">
+            <Link href={`/juz/${juzNumber + 1}`} className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm font-medium text-[var(--fg)] hover:border-[var(--accent)] hover:bg-[var(--ayah-highlight)] transition-all">
+              Continue to Juz {juzNumber + 1}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

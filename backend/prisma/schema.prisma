@@ -1,0 +1,262 @@
+// Al-Tarteel Quran API — Production schema
+// PostgreSQL + Prisma ORM
+// Indexing for: surah/ayah lookup, page/juz/hizb/ruku, search, user data
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ——— Core Quran ———
+
+model Surah {
+  id            Int      @id @default(autoincrement())
+  number        Int      @unique // 1–114
+  nameArabic    String   @map("name_arabic")
+  nameSimple    String   @map("name_simple")
+  nameComplex   String?  @map("name_complex")
+  revelationPlace String @map("revelation_place") // meccan / medinan
+  revelationOrder Int?   @map("revelation_order")
+  numberOfAyahs Int      @map("number_of_ayahs")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  ayahs         Ayah[]
+  usersLastRead User[]  @relation("UserLastRead")
+  @@index([number])
+  @@index([revelationPlace])
+  @@map("surahs")
+}
+
+model Ayah {
+  id          Int    @id @default(autoincrement())
+  surahId     Int    @map("surah_id")
+  number      Int    // ayah number in surah (1-based)
+  numberInQuran Int? @map("number_in_quran") // global 1–6236
+  juz         Int?
+  hizb        Int?
+  manzil      Int?
+  ruku        Int?
+  page        Int?   // Madani page 1–604
+  textUthmani String @map("text_uthmani") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  surah       Surah   @relation(fields: [surahId], references: [id], onDelete: Cascade)
+  words       Word[]
+  translations AyahTranslation[]
+  tafsirs     Tafsir[]
+  audioFiles  AudioFile[]
+  bookmarks   Bookmark[]
+  readingHistory ReadingHistory[]
+
+  @@unique([surahId, number])
+  @@index([surahId])
+  @@index([page])
+  @@index([juz])
+  @@index([hizb])
+  @@index([ruku])
+  @@index([numberInQuran])
+  @@map("ayahs")
+}
+
+model Word {
+  id          Int    @id @default(autoincrement())
+  ayahId      Int    @map("ayah_id")
+  position    Int    // 1-based in ayah
+  textArabic  String @map("text_arabic") @db.VarChar(50)
+  textUthmani String @map("text_uthmani") @db.VarChar(50)
+  rootArabic  String? @map("root_arabic") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  ayah        Ayah   @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+  translations WordTranslation[]
+
+  @@unique([ayahId, position])
+  @@index([ayahId])
+  @@map("words")
+}
+
+// ——— Translations ———
+
+model Translator {
+  id          Int    @id @default(autoincrement())
+  name        String @db.VarChar(255)
+  languageCode String @map("language_code") @db.VarChar(10) // en, ur, ps, etc.
+  slug        String @unique @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  ayahTranslations AyahTranslation[]
+
+  @@index([languageCode])
+  @@index([slug])
+  @@map("translators")
+}
+
+model AyahTranslation {
+  id           Int    @id @default(autoincrement())
+  ayahId       Int    @map("ayah_id")
+  translatorId Int    @map("translator_id")
+  text         String @map("text") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  ayah         Ayah       @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+  translator   Translator @relation(fields: [translatorId], references: [id], onDelete: Cascade)
+
+  @@unique([ayahId, translatorId])
+  @@index([ayahId])
+  @@index([translatorId])
+  @@map("ayah_translations")
+}
+
+model WordTranslation {
+  id          Int    @id @default(autoincrement())
+  wordId      Int    @map("word_id")
+  languageCode String @map("language_code") @db.VarChar(10)
+  text        String @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  word        Word   @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, languageCode])
+  @@index([wordId])
+  @@index([languageCode])
+  @@map("word_translations")
+}
+
+// ——— Tafsir ———
+
+model TafsirSource {
+  id          Int    @id @default(autoincrement())
+  name        String @db.VarChar(255)
+  languageCode String @map("language_code") @db.VarChar(10)
+  slug        String @unique @db.VarChar(100)
+  author      String? @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tafsirs     Tafsir[]
+
+  @@index([languageCode])
+  @@map("tafsir_sources")
+}
+
+model Tafsir {
+  id        Int    @id @default(autoincrement())
+  ayahId    Int    @map("ayah_id")
+  sourceId  Int    @map("source_id")
+  text      String @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ayah      Ayah         @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+  source    TafsirSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([ayahId, sourceId])
+  @@index([ayahId])
+  @@index([sourceId])
+  @@map("tafsirs")
+}
+
+// ——— Audio ———
+
+model Reciter {
+  id          Int    @id @default(autoincrement())
+  name        String @db.VarChar(255)
+  nameArabic  String? @map("name_arabic") @db.VarChar(255)
+  slug        String @unique @db.VarChar(100)
+  style       String? @db.VarChar(50) // murattal, mujawwad, etc.
+  baseUrl     String? @map("base_url") @db.VarChar(500) // CDN base for verse files
+  isDefault   Boolean @default(false) @map("is_default")
+  sortOrder   Int     @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  audioFiles  AudioFile[]
+
+  @@index([slug])
+  @@index([isDefault])
+  @@map("reciters")
+}
+
+model AudioFile {
+  id        Int    @id @default(autoincrement())
+  ayahId    Int    @map("ayah_id")
+  reciterId Int    @map("reciter_id")
+  url       String @db.VarChar(1000)
+  duration  Int?   // seconds
+  format    String @default("mp3") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ayah      Ayah    @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+  reciter   Reciter @relation(fields: [reciterId], references: [id], onDelete: Cascade)
+
+  @@unique([ayahId, reciterId])
+  @@index([ayahId])
+  @@index([reciterId])
+  @@map("audio_files")
+}
+
+// ——— Users & Preferences ———
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String?  @unique @db.VarChar(255)
+  passwordHash String? @map("password_hash") @db.VarChar(255)
+  name      String?  @db.VarChar(255)
+  theme     String   @default("light") @db.VarChar(20) // light, dark, system
+  lastReadSurahId Int? @map("last_read_surah_id")
+  lastReadAyahNumber Int? @map("last_read_ayah_number")
+  lastReadPage Int?  @map("last_read_page")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  bookmarks       Bookmark[]
+  readingHistory  ReadingHistory[]
+  lastReadSurah   Surah? @relation("UserLastRead", fields: [lastReadSurahId], references: [id])
+
+  @@map("users")
+}
+
+// Allow unauthenticated users to have local-only state; for persisted we use userId
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id") // null = anonymous/local
+  ayahId    Int      @map("ayah_id")
+  note      String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ayah      Ayah    @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ayahId])
+  @@index([userId])
+  @@index([ayahId])
+  @@map("bookmarks")
+}
+
+model ReadingHistory {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  ayahId    Int      @map("ayah_id")
+  readAt    DateTime @default(now()) @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ayah      Ayah   @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, readAt(sort: Desc)])
+  @@index([ayahId])
+  @@map("reading_history")
+}
