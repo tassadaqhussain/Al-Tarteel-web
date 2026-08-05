@@ -14,13 +14,18 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+  const configuredOrigins = process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean) || [];
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()) || ['http://localhost:3000'],
+    origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+      const isLocalDev = !!origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      const isConfigured = !!origin && configuredOrigins.includes(origin);
+      callback(null, !origin || isLocalDev || isConfigured);
+    },
     credentials: true,
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Al-Tarteel Quran API')
+    .setTitle('QuranPilot API')
     .setDescription('REST API for Quran content, audio, translations, and user features')
     .setVersion('1.0')
     .addBearerAuth()
@@ -30,7 +35,7 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT || '4000', 10);
   await app.listen(port);
-  console.log(`Al-Tarteel API running at http://localhost:${port}/${prefix}`);
+  console.log(`QuranPilot API running at http://localhost:${port}/${prefix}`);
 }
 
 bootstrap().catch((err) => {

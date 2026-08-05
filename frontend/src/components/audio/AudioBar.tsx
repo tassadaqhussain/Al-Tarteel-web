@@ -1,8 +1,7 @@
 'use client';
 
 import { useAudioStore } from '@/stores/audioStore';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   SkipBack,
   SkipForward,
@@ -14,7 +13,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
-import { audioApi, type Reciter } from '@/lib/api';
+import { useReciterPicker } from '@/hooks/useReciterPicker';
 import { cn } from '@/lib/utils';
 
 export function AudioBar() {
@@ -30,23 +29,24 @@ export function AudioBar() {
     setPlaying,
     setPlaybackRate,
     setContinuous,
-    setReciter,
-    setPlaylist,
-    setCurrentIndex,
     next,
     prev,
     reset,
   } = useAudioStore();
 
-  const { reciterSlug: settingsReciter, setReciterSlug } = useSettingsStore();
-
   const current = getCurrentAyah();
   const hasPlaylist = playlist.length > 0;
 
-  const [reciters, setReciters] = useState<Reciter[]>([]);
-  const [reciterOpen, setReciterOpen] = useState(false);
-  const [reciterLoading, setReciterLoading] = useState(false);
-  const reciterRef = useRef<HTMLDivElement>(null);
+  const {
+    reciters,
+    reciterOpen,
+    setReciterOpen,
+    reciterLoading,
+    reciterRef,
+    activeReciter,
+    activeReciterName,
+    changeReciter,
+  } = useReciterPicker();
   const [expanded, setExpanded] = useState(false);
 
   const formatTime = (s: number) => {
@@ -65,59 +65,6 @@ export function AudioBar() {
     [duration]
   );
 
-  const changeReciter = useCallback(
-    async (slug: string) => {
-      setReciter(slug);
-      setReciterSlug(slug);
-      setReciterOpen(false);
-      if (!current) return;
-
-      try {
-        const list = await audioApi.surah(current.surahNumber, slug);
-        const items = list
-          .filter((a) => a.url)
-          .map((a) => ({
-            ayahId: a.ayahId,
-            surahNumber: a.surahNumber,
-            ayahNumber: a.ayahNumber,
-            url: a.url!,
-            duration: a.duration ?? undefined,
-          }));
-        const idx = items.findIndex((a) => a.ayahNumber === current.ayahNumber);
-        setPlaylist(items);
-        if (idx >= 0) setCurrentIndex(idx);
-        setPlaying(isPlaying);
-      } catch {
-        setPlaying(false);
-      }
-    },
-    [current, isPlaying, setCurrentIndex, setPlaying, setPlaylist, setReciter, setReciterSlug]
-  );
-
-
-  useEffect(() => {
-    if (!reciterOpen || reciters.length > 0) return;
-    setReciterLoading(true);
-    audioApi.reciters()
-      .then((data) => setReciters(Array.isArray(data) ? data : []))
-      .catch(() => setReciters([]))
-      .finally(() => setReciterLoading(false));
-  }, [reciterOpen, reciters.length]);
-
-  useEffect(() => {
-    if (!reciterOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (reciterRef.current && !reciterRef.current.contains(e.target as Node)) {
-        setReciterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [reciterOpen]);
-
-  const activeReciter = useAudioStore((s) => s.reciterSlug) ?? settingsReciter;
-  const activeReciterName =
-    reciters.find((r) => r.slug === activeReciter)?.name ?? activeReciter ?? 'Reciter';
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (!hasPlaylist) return null;

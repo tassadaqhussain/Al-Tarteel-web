@@ -47,6 +47,15 @@ export const quranApi = {
   tafsir: (ayahId: number, source?: string) =>
     api<TafsirItem[]>(`/quran/ayahs/${ayahId}/tafsir`, { params: { source } }),
   tafsirSources: () => api<TafsirSource[]>(`/quran/tafsir/sources`),
+  officialTafsirResources: (language = 'en') => api<OfficialTafsirResource[]>(`/quran/tafsir/resources`, { params: { language } }),
+  officialTafsir: (surahNumber: number, ayahNumber: number, resourceId: number) =>
+    api<OfficialTafsir>(`/quran/surahs/${surahNumber}/ayahs/${ayahNumber}/tafsirs/${resourceId}`),
+  hadiths: (surahNumber: number, ayahNumber: number, q?: { language?: 'en' | 'ar'; page?: number; limit?: number }) =>
+    api<HadithResponse>(`/quran/surahs/${surahNumber}/ayahs/${ayahNumber}/hadiths`, { params: q as Record<string, string | number | boolean | undefined> }),
+  lessons: (surahNumber: number, ayahNumber: number, q?: { languageId?: number; page?: number; limit?: number }) =>
+    api<LessonResponse>(`/quran/surahs/${surahNumber}/ayahs/${ayahNumber}/lessons`, { params: q as Record<string, string | number | boolean | undefined> }),
+  relatedContent: (surahNumber: number, ayahNumber: number, q?: { language?: 'en' | 'ar'; page?: number; limit?: number }) =>
+    api<RelatedContentResponse>(`/quran/surahs/${surahNumber}/ayahs/${ayahNumber}/related-content`, { params: q as Record<string, string | number | boolean | undefined> }),
 };
 
 export const audioApi = {
@@ -86,8 +95,9 @@ export interface AyahWithRelations {
   ruku: number | null;
   page: number | null;
   textUthmani: string;
-  words?: { id: number; position: number; textArabic: string; textUthmani: string; translation?: string; audioUrl?: string }[];
-  translations?: { translatorId: number; translatorSlug: string; text: string }[];
+  textTajweed?: string | null;
+  words?: { id: number; position: number; textArabic: string; textUthmani: string; transliteration?: string | null; translation?: string; translations?: Record<string, string>; audioUrl?: string }[];
+  translations?: { translatorId: number; translatorSlug: string; translatorName?: string; text: string }[];
   surah?: { id: number; number: number; nameArabic: string; nameSimple: string };
 }
 
@@ -115,6 +125,81 @@ export interface TafsirItem {
   text: string;
   source: TafsirSource;
 }
+
+export interface OfficialTafsirResource {
+  id: number;
+  name: string;
+  author_name: string | null;
+  slug: string | null;
+  language_name: string;
+  translated_name?: { name: string; language_name: string };
+}
+
+export interface OfficialTafsir {
+  verses: Record<string, { id: number }>;
+  resource_id: number;
+  resource_name: string;
+  language_id: number;
+  slug: string;
+  text: string;
+}
+
+export interface HadithText {
+  lang: 'en' | 'ar';
+  chapterNumber: string;
+  chapterTitle: string;
+  urn: number;
+  body: string;
+  grades: { graded_by: string | null; grade: string }[];
+}
+
+export interface HadithItem {
+  collection: string;
+  bookNumber: string;
+  chapterId: string;
+  hadithNumber: string;
+  name: string;
+  hadith: HadithText[];
+}
+
+export interface HadithResponse {
+  hadiths: HadithItem[];
+  page: number;
+  limit: number;
+  has_more: boolean;
+  language: string;
+  direction: 'ltr' | 'rtl';
+}
+
+export interface LessonPost {
+  id: number;
+  body: string;
+  createdAt: string;
+  publishedAt: string;
+  postTypeId: number;
+  postTypeName: string;
+  languageId: number;
+  languageName: string;
+  estimatedReadingTime?: number;
+  author?: { firstName?: string; lastName?: string; username?: string; verified?: boolean; avatarUrls?: { small?: string; medium?: string; large?: string } };
+  references?: { id: string; from: number; to: number; chapterId: number }[];
+  tags?: { id: number; name: string; language: string }[];
+}
+
+export interface LessonResponse {
+  total: number;
+  currentPage: number;
+  limit: number;
+  pages: number;
+  data: LessonPost[];
+}
+
+export interface RelatedAnswer { id: string; body: string; answeredBy?: string | null; status: string; language?: string | null; }
+export interface RelatedQuestion {
+  id: string; body: string; type: 'CLARIFICATION' | 'TAFSIR' | 'COMMUNITY'; ranges: string[]; surah?: number | null;
+  theme?: string[] | null; summary?: string | null; references?: string[] | null; language?: string | null; status: string; answers: RelatedAnswer[];
+}
+export interface RelatedContentResponse { questions: RelatedQuestion[]; totalCount: number; }
 
 export interface Reciter {
   id: number;

@@ -46,17 +46,17 @@ export default function BookmarksPage() {
   };
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen bg-[#f7f7f7] pb-16">
       <Header />
 
-      <div className="sticky top-[57px] z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur">
+      <div className="sticky top-[57px] z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] hover:text-[var(--accent-gold)] transition-colors">
+          <Link href="/my-quran" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />
-            Home
+            My Quran
           </Link>
-          <h1 className="text-sm font-semibold text-[var(--fg)]">
-            Bookmarks {bookmarks.length > 0 && <span className="ml-1 text-[var(--muted)]">({bookmarks.length})</span>}
+          <h1 className="text-sm font-semibold text-slate-800">
+            Bookmarks {bookmarks.length > 0 && <span className="ml-1 text-slate-400">({bookmarks.length})</span>}
           </h1>
           <div className="w-16" />
         </div>

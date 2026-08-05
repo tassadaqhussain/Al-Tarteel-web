@@ -1,18 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { Check, Loader2, Languages } from 'lucide-react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { ArrowLeft, Check, Info, Loader2, Search, X } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { quranApi, type Translator } from '@/lib/api';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
@@ -21,6 +17,11 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }
+
+const DEFAULT_TRANSLATION = 'en-sahih-international';
+const FALLBACK_TRANSLATORS: Translator[] = [
+  { id: -1, name: 'Sahih International', languageCode: 'en', slug: DEFAULT_TRANSLATION },
+];
 
 // Language display names
 const LANG_NAMES: Record<string, string> = {
@@ -42,32 +43,42 @@ const LANG_NAMES: Record<string, string> = {
 };
 
 function getLangName(code: string) {
-  return LANG_NAMES[code] ?? code.toUpperCase();
+  return LANG_NAMES[code] ?? code.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 export function TranslationSheet({ open, onOpenChange }: Props) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { translationSlugs, setTranslationSlugs } = useSettingsStore();
+  const { translationSlugs, setTranslationSlugs, setShowTranslation } = useSettingsStore();
 
-  const [translators, setTranslators] = useState<Translator[]>([]);
+  const [translators, setTranslators] = useState<Translator[]>(FALLBACK_TRANSLATORS);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set(translationSlugs));
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(translationSlugs.length ? translationSlugs : [DEFAULT_TRANSLATION])
+  );
 
-  // Fetch translators on first open
+  // Refresh the built-in option with the complete list from the API.
   useEffect(() => {
-    if (!open || translators.length > 0) return;
+    if (!open) return;
     setLoading(true);
     quranApi.translators()
-      .then((data) => setTranslators(Array.isArray(data) ? data : []))
-      .catch(() => setTranslators([]))
+      .then((data) => {
+        const available = Array.isArray(data) && data.length ? data : FALLBACK_TRANSLATORS;
+        setTranslators(available);
+        const availableSlugs = new Set(available.map((translator) => translator.slug));
+        setSelected((current) => {
+          const valid = Array.from(current).filter((slug) => availableSlugs.has(slug));
+          return new Set(valid.length ? valid : [DEFAULT_TRANSLATION]);
+        });
+      })
+      .catch(() => setTranslators(FALLBACK_TRANSLATORS))
       .finally(() => setLoading(false));
-  }, [open, translators.length]);
+  }, [open]);
 
   // Sync selected state when sheet opens
   useEffect(() => {
-    if (open) setSelected(new Set(translationSlugs));
+    if (open) setSelected(new Set(translationSlugs.length ? translationSlugs : [DEFAULT_TRANSLATION]));
   }, [open, translationSlugs]);
 
   const toggle = useCallback((slug: string) => {
@@ -82,6 +93,7 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
   const apply = useCallback(() => {
     const slugs = Array.from(selected);
     setTranslationSlugs(slugs);
+    if (slugs.length > 0) setShowTranslation(true);
 
     // Update URL so the server fetches the correct translations
     const params = new URLSearchParams(searchParams.toString());
@@ -90,14 +102,26 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
     } else {
       params.delete('trans');
     }
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    const query = params.toString();
+    const target = query ? `${pathname}?${query}` : pathname;
     onOpenChange(false);
-  }, [selected, setTranslationSlugs, searchParams, pathname, router, onOpenChange]);
+    // Verse data is rendered on the server. A full same-origin navigation makes
+    // the selected resource IDs take effect immediately and avoids a stale RSC
+    // payload when many translation options have recently been imported.
+    window.location.assign(target);
+  }, [selected, setTranslationSlugs, setShowTranslation, searchParams, pathname, onOpenChange]);
 
   const clearAll = useCallback(() => setSelected(new Set()), []);
 
   // Group translators by language
-  const byLang = translators.reduce<Record<string, Translator[]>>((acc, t) => {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const visibleTranslators = normalizedQuery
+    ? translators.filter((translator) =>
+        translator.name.toLocaleLowerCase().includes(normalizedQuery)
+        || getLangName(translator.languageCode).toLocaleLowerCase().includes(normalizedQuery)
+      )
+    : translators;
+  const byLang = visibleTranslators.reduce<Record<string, Translator[]>>((acc, t) => {
     const lang = t.languageCode;
     if (!acc[lang]) acc[lang] = [];
     acc[lang].push(t);
@@ -115,43 +139,39 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col bg-[var(--surface)] p-0 sm:max-w-md"
+        className="flex w-full flex-col bg-white p-0 text-slate-900 [&>button]:hidden sm:max-w-[560px]"
       >
-        <SheetHeader className="border-b border-[var(--border)] px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
-              <Languages className="h-5 w-5" />
-            </div>
-            <div>
-              <SheetTitle className="text-[var(--fg)]">Translations</SheetTitle>
-              <SheetDescription className="text-xs text-[var(--muted)]">
-                {selected.size === 0
-                  ? 'No translation selected'
-                  : `${selected.size} selected`}
-              </SheetDescription>
-            </div>
-          </div>
-        </SheetHeader>
+        <div className="flex h-[92px] shrink-0 items-center border-b border-slate-200 px-5 sm:px-7">
+          <button type="button" onClick={() => onOpenChange(false)} className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-slate-100" aria-label="Back"><ArrowLeft className="h-7 w-7" /></button>
+          <div className="ml-2 min-w-0"><SheetTitle className="text-2xl font-medium tracking-tight sm:text-3xl">Translations</SheetTitle><SheetDescription className="sr-only">Choose one or more Quran translations</SheetDescription></div>
+          <button type="button" onClick={() => onOpenChange(false)} className="ml-auto flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-slate-100" aria-label="Close"><X className="h-7 w-7" /></button>
+        </div>
+
+        <div className="shrink-0 px-5 pb-3 pt-7 sm:px-7">
+          <label className="flex h-[68px] items-center rounded-[28px] border border-slate-200 bg-white px-5 shadow-sm transition focus-within:border-slate-400">
+            <Search className="h-8 w-8 shrink-0 text-slate-600" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Search Translations" className="ml-4 min-w-0 flex-1 bg-transparent text-xl outline-none placeholder:text-slate-500 sm:text-2xl" />
+          </label>
+        </div>
 
         {/* Translator list */}
-        <ScrollArea className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-0 pb-6 [scrollbar-color:#cbd5e1_transparent] [scrollbar-width:thin]">
           {loading ? (
             <div className="flex h-40 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-[var(--muted)]" />
+              <Loader2 className="h-7 w-7 animate-spin text-slate-500" />
             </div>
-          ) : translators.length === 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-[var(--muted)]">
-              No translations available
+          ) : visibleTranslators.length === 0 ? (
+            <div className="flex h-40 items-center justify-center px-6 text-center text-base text-slate-500">
+              No translations match “{query.trim()}”
             </div>
           ) : (
-            <div className="px-4 py-3">
-              {langOrder.map((lang, i) => (
-                <div key={lang}>
-                  {i > 0 && <Separator className="my-3 bg-[var(--border)]" />}
-                  <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+            <div className="px-5 py-2 sm:px-7">
+              {langOrder.map((lang) => (
+                <section key={lang} className="pt-5">
+                  <h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-[28px]">
                     {getLangName(lang)}
-                  </p>
-                  <div className="space-y-1">
+                  </h2>
+                  <div>
                     {byLang[lang].map((t) => {
                       const isSelected = selected.has(t.slug);
                       return (
@@ -159,48 +179,35 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
                           key={t.slug}
                           type="button"
                           onClick={() => toggle(t.slug)}
-                          className={cn(
-                            'group flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-all',
-                            isSelected
-                              ? 'bg-[var(--accent)]/10 text-[var(--fg)]'
-                              : 'text-[var(--fg)] hover:bg-[var(--ayah-highlight)]'
-                          )}
+                          className="group flex min-h-[68px] w-full items-center py-2 text-left"
                         >
-                          <span className="text-sm font-medium">{t.name}</span>
-                          <div
+                          <span
                             className={cn(
-                              'flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors',
+                              'mr-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors',
                               isSelected
-                                ? 'border-[var(--accent)] bg-[var(--accent)]'
-                                : 'border-[var(--border)] group-hover:border-[var(--accent)]/50'
+                                ? 'border-black bg-black text-white'
+                                : 'border-slate-200 bg-slate-100 group-hover:border-slate-400'
                             )}
                           >
-                            {isSelected && <Check className="h-3 w-3 text-white" />}
-                          </div>
+                            {isSelected && <Check className="h-6 w-6" strokeWidth={3} />}
+                          </span>
+                          <span className="min-w-0 text-xl leading-snug sm:text-2xl">{t.name}</span>
+                          {(t.slug.includes('sahih') || t.slug.includes('hilali') || t.languageCode !== 'en') && <Info className="ml-3 h-6 w-6 shrink-0 text-slate-300" />}
                         </button>
                       );
                     })}
                   </div>
-                </div>
+                </section>
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Actions */}
-        <div className="border-t border-[var(--border)] px-6 py-4">
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={clearAll}
-              disabled={selected.size === 0}
-            >
-              Clear All
-            </Button>
-            <Button className="flex-1" onClick={apply}>
-              Apply{selected.size > 0 ? ` (${selected.size})` : ''}
-            </Button>
+        <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4 sm:px-7">
+          <div className="flex gap-4">
+            <button type="button" className="h-14 flex-1 rounded-2xl border-2 border-slate-300 text-lg font-semibold transition hover:bg-slate-50 disabled:opacity-40" onClick={clearAll} disabled={selected.size === 0}>Clear All</button>
+            <button type="button" className="h-14 flex-1 rounded-2xl bg-black text-lg font-semibold text-white transition hover:bg-slate-800" onClick={apply}>Apply{selected.size > 0 ? ` (${selected.size})` : ''}</button>
           </div>
         </div>
       </SheetContent>

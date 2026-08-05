@@ -13,4 +13,16 @@ done
 echo "Running schema sync..."
 npx prisma db push --skip-generate
 echo "Database ready."
+
+# Download full Quran when missing (runs in background so API can start)
+if [ "${SKIP_QURAN_DOWNLOAD:-0}" != "1" ]; then
+  echo "Checking Quran completeness (auto-download if missing)..."
+  (
+    npx ts-node prisma/download-quran.ts \
+      && echo "Quran download finished." \
+      && (command -v redis-cli >/dev/null 2>&1 && redis-cli -h redis DEL quran:surahs:all >/dev/null 2>&1 || true) \
+      || echo "Warning: Quran download failed."
+  ) &
+fi
+
 exec "$@"

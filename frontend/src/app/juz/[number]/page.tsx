@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { quranApi, type AyahWithRelations } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { AyahBlock } from '@/components/reader/AyahBlock';
+import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 
 interface Props {
@@ -41,19 +42,20 @@ export default async function JuzPage({ params, searchParams }: Props) {
 
   const page = Math.max(1, parseInt(pageStr || '1', 10));
   const limit = 50;
+  const effectiveTranslations = trans || 'en-sahih-international';
 
   const rawAyahs = await quranApi
-    .ayahsByJuz(juzNumber, { page, limit, translations: trans || undefined, words: true })
+    .ayahsByJuz(juzNumber, { page, limit, translations: effectiveTranslations, words: true })
     .catch(() => [] as AyahWithRelations[]);
 
   const ayahs: AyahWithRelations[] = Array.isArray(rawAyahs) ? rawAyahs : [];
 
   if (ayahs.length === 0) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-[#f7f7f7]">
         <Header />
         <main className="mx-auto max-w-4xl px-4 py-24 text-center">
-          <p className="text-[var(--muted)]">No verses found for Juz {juzNumber}.</p>
+          <p className="text-slate-500">No verses found for Juz {juzNumber}.</p>
           <Link href="/" className="mt-4 inline-block text-[var(--accent)] hover:underline">Go home</Link>
         </main>
       </div>
@@ -61,6 +63,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
   }
 
   const hasMore = ayahs.length === limit;
+  const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
 
   // Group by surah for section headers
   const groupedBySurah: SurahGroup[] = [];
@@ -76,34 +79,40 @@ export default async function JuzPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="min-h-screen pb-32">
+    <div className="min-h-screen bg-[#f7f7f7] pb-32">
       <Header />
 
       {/* Sub-header */}
-      <div className="sticky top-[57px] z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] hover:text-[var(--accent-gold)] transition-colors">
+      <div className="sticky top-[57px] z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />
             Home
           </Link>
           <div className="flex items-center gap-2 text-sm">
             {juzNumber > 1 && (
-              <Link href={`/juz/${juzNumber - 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-[var(--muted)] hover:bg-[var(--ayah-highlight)] transition-colors">←</Link>
+              <Link href={`/juz/${juzNumber - 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">←</Link>
             )}
-            <span className="font-semibold text-[var(--fg)]">Juz {juzNumber}</span>
+            <span className="font-semibold text-slate-800">Juz {juzNumber}</span>
             {juzNumber < 30 && (
-              <Link href={`/juz/${juzNumber + 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-[var(--muted)] hover:bg-[var(--ayah-highlight)] transition-colors">→</Link>
+              <Link href={`/juz/${juzNumber + 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">→</Link>
             )}
           </div>
-          <span className="text-xs text-[var(--muted)]">of 30</span>
+          <span className="text-xs text-slate-500">of 30</span>
         </div>
+
+        <ReaderToolbar
+          activeTranslationCount={translationCount}
+          urlHasTranslations={Boolean(trans)}
+          surahNumber={groupedBySurah[0]?.surahNumber ?? 1}
+        />
       </div>
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* Juz heading */}
-        <div className="mb-10 text-center">
-          <h1 className="font-arabic text-3xl font-bold text-[var(--fg)]">الجزء {juzNumber}</h1>
-          <p className="mt-2 text-[var(--muted)]">Part {juzNumber} of 30</p>
+        <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm">
+          <h1 className="font-arabic text-4xl font-bold text-[var(--fg)]">الجزء {juzNumber}</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">Juz {juzNumber} · Part {juzNumber} of 30</p>
         </div>
 
         {/* Ayahs grouped by surah */}
@@ -123,14 +132,14 @@ export default async function JuzPage({ params, searchParams }: Props) {
               <div className="h-px flex-1 bg-[var(--border)]" />
             </div>
 
-            <div className="divide-y divide-[var(--border)]">
+            <div className="divide-y divide-slate-200 border-t border-slate-200">
               {group.ayahs.map((ayah) => (
                 <AyahBlock
                   key={ayah.id}
                   ayah={ayah}
                   surahNumber={group.surahNumber}
                   surahName={group.surahName}
-                  showTranslation={!!trans}
+                  hasTranslations={translationCount > 0}
                 />
               ))}
             </div>

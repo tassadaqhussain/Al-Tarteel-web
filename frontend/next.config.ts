@@ -1,6 +1,13 @@
 import type { NextConfig } from 'next';
+import { getSurahSlug } from './src/lib/surah-meta';
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return Array.from({ length: 114 }, (_, index) => {
+      const number = index + 1;
+      return { source: `/surah/${number}`, destination: `/${getSurahSlug(number)}`, permanent: true };
+    });
+  },
   output: 'standalone',
   reactStrictMode: true,
   env: {

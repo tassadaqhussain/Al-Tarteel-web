@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 const CACHE_TTL = 86400; // 24h for reciters
 
@@ -10,6 +12,24 @@ export class AudioService {
     private readonly prisma: PrismaService,
     private readonly cache: CacheService,
   ) {}
+
+  private getVerifiedAyahAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
+    const file = `${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
+    // The legacy AbdulBasitAbdulSamad path now returns 404. Quran CDN's current
+    // catalog uses AbdulBaset, so keep this mapping server-side and testable.
+    if (reciterSlug === 'abdul-basit-murattal') {
+      return `https://audio.qurancdn.com/AbdulBaset/Murattal/mp3/${file}`;
+    }
+    return null;
+  }
+
+  private getLocalAyahAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
+    const file = `${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
+    const storageRoot = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
+    if (!existsSync(join(storageRoot, reciterSlug, file))) return null;
+    const publicBase = process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files';
+    return `${publicBase.replace(/\/$/, '')}/${encodeURIComponent(reciterSlug)}/${file}`;
+  }
 
   async getReciters() {
     const key = 'audio:reciters';
@@ -40,10 +60,18 @@ export class AudioService {
     }
     const files = await this.prisma.audioFile.findMany({
       where,
-      include: { reciter: { select: { id: true, name: true, slug: true } } },
+      include: {
+        reciter: { select: { id: true, name: true, slug: true } },
+        ayah: { select: { number: true, surah: { select: { number: true } } } },
+      },
     });
     if (files.length === 0) throw new NotFoundException('No audio found for this ayah');
-    return files;
+    return files.map((file) => ({
+      ...file,
+      url: this.getLocalAyahAudioUrl(file.reciter.slug, file.ayah.surah.number, file.ayah.number)
+        ?? this.getVerifiedAyahAudioUrl(file.reciter.slug, file.ayah.surah.number, file.ayah.number)
+        ?? file.url,
+    }));
   }
 
   async getAudioForSurah(surahNumber: number, reciterSlug: string) {
@@ -66,12 +94,14 @@ export class AudioService {
     const byAyah = new Map(audioFiles.map((f) => [f.ayah.id, f]));
     return ayahs.map((a) => {
       const stored = byAyah.get(a.id);
-      // Fall back to constructing URL from reciter baseUrl (everyayah.com format)
-      let url: string | null = stored?.url ?? null;
+      // Prefer a verified current CDN route over stale imported URLs.
+      let url: string | null = this.getLocalAyahAudioUrl(reciter.slug, surahNumber, a.number)
+        ?? this.getVerifiedAyahAudioUrl(reciter.slug, surahNumber, a.number);
+      if (!url) url = stored?.url ?? null;
       if (!url && reciter.baseUrl) {
         const s = String(surahNumber).padStart(3, '0');
         const v = String(a.number).padStart(3, '0');
-        url = `${reciter.baseUrl}${s}${v}.mp3`;
+        url = `${reciter.baseUrl.replace(/\/?$/, '/')}${s}${v}.mp3`;
       }
       return {
         ayahId: a.id,

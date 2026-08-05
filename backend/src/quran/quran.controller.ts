@@ -90,4 +90,65 @@ export class QuranController {
   getTafsirSources() {
     return this.quran.getTafsirSources();
   }
+
+  @Get('tafsir/resources')
+  @ApiOperation({ summary: 'List official Quran Foundation Tafsir resources' })
+  getOfficialTafsirResources(@Query('language') language = 'en') {
+    return this.quran.getOfficialTafsirResources(language);
+  }
+
+  @Get('surahs/:surahNumber/ayahs/:ayahNumber/tafsirs/:resourceId')
+  @ApiOperation({ summary: 'Get an official Tafsir for a verse' })
+  getOfficialTafsir(
+    @Param('surahNumber', ParseIntPipe) surahNumber: number,
+    @Param('ayahNumber', ParseIntPipe) ayahNumber: number,
+    @Param('resourceId', ParseIntPipe) resourceId: number,
+  ) {
+    return this.quran.getOfficialTafsir(surahNumber, ayahNumber, resourceId);
+  }
+
+  @Get('surahs/:surahNumber/ayahs/:ayahNumber/hadiths')
+  @ApiOperation({ summary: 'Get verified Hadith references linked to an ayah' })
+  @ApiResponse({ status: 200 })
+  getHadiths(
+    @Param('surahNumber', ParseIntPipe) surahNumber: number,
+    @Param('ayahNumber', ParseIntPipe) ayahNumber: number,
+    @Query('language') language = 'en',
+    @Query('page') page = '1',
+    @Query('limit') limit = '4',
+  ) {
+    return this.quran.getHadiths(
+      surahNumber,
+      ayahNumber,
+      language,
+      Number(page),
+      Number(limit),
+    );
+  }
+
+  @Get('surahs/:surahNumber/ayahs/:ayahNumber/lessons')
+  @ApiOperation({ summary: 'Get verified Quran Reflect lessons linked to an ayah' })
+  @ApiResponse({ status: 200 })
+  getLessons(
+    @Param('surahNumber', ParseIntPipe) surahNumber: number,
+    @Param('ayahNumber', ParseIntPipe) ayahNumber: number,
+    @Query('languageId') languageId = '2',
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    return this.quran.getLessons(surahNumber, ayahNumber, Number(languageId), Number(page), Number(limit));
+  }
+
+  @Get('surahs/:surahNumber/ayahs/:ayahNumber/related-content')
+  @ApiOperation({ summary: 'Get published questions and answers linked to an ayah' })
+  @ApiResponse({ status: 200 })
+  getRelatedContent(
+    @Param('surahNumber', ParseIntPipe) surahNumber: number,
+    @Param('ayahNumber', ParseIntPipe) ayahNumber: number,
+    @Query('language') language = 'en',
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    return this.quran.getRelatedContent(surahNumber, ayahNumber, language, Number(page), Number(limit));
+  }
 }

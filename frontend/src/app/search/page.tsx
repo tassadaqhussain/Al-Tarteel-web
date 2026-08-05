@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { Suspense, useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Search,
   X,
@@ -38,7 +38,23 @@ function clearRecent() {
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#f7f7f7] text-slate-500">
+          Loading search…
+        </div>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
+  );
+}
+
+function SearchPageContent() {
+  const searchParams = useSearchParams();
+  const initialQ = searchParams.get('q') ?? '';
+  const [query, setQuery] = useState(initialQ);
   const [committed, setCommitted] = useState('');
   const [tab, setTab] = useState<Tab>('all');
   const [loading, setLoading] = useState(false);
@@ -51,6 +67,12 @@ export default function SearchPage() {
 
   // Load recent searches on mount
   useEffect(() => { setRecent(getRecent()); }, []);
+
+  // Sync when landing from homepage topic / search links
+  useEffect(() => {
+    const q = searchParams.get('q') ?? '';
+    if (q && q !== query) setQuery(q);
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced search — fires 400ms after user stops typing
   useEffect(() => {
@@ -106,7 +128,7 @@ export default function SearchPage() {
   const visibleTranslations = tab === 'arabic' ? [] : translations;
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen bg-[#f7f7f7] pb-16">
       <Header />
 
       <main className="mx-auto max-w-3xl px-4 py-8">
@@ -226,7 +248,7 @@ export default function SearchPage() {
                     key={p}
                     type="button"
                     onClick={() => setQuery(p)}
-                    className="rounded-full border border-emerald-900/30 bg-emerald-900/10 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-gold-500/50 hover:text-gold-500"
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                   >
                     {p}
                   </button>

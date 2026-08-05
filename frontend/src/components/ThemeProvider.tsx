@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -11,7 +12,8 @@ const ThemeContext = createContext<{
 } | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const uiLocale = useSettingsStore((state) => state.uiLocale);
+  const [theme, setThemeState] = useState<Theme>('light');
   const [resolved, setResolved] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -24,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = (localStorage.getItem('theme') as Theme) || 'system';
+    const stored = (localStorage.getItem('theme') as Theme) || 'light';
     setThemeState(stored);
   }, []);
 
@@ -45,6 +47,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     m.addEventListener('change', on);
     return () => m.removeEventListener('change', on);
   }, [mounted, theme]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const root = document.documentElement;
+    root.lang = uiLocale;
+    root.dir = ['ar', 'fa', 'ur'].includes(uiLocale) ? 'rtl' : 'ltr';
+  }, [mounted, uiLocale]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolved }}>

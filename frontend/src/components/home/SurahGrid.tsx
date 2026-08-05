@@ -1,81 +1,139 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+import type { Surah } from '@/lib/api';
+import { getSurahMeaning } from '@/lib/surah-meta';
+import { cn } from '@/lib/utils';
 
-interface Surah {
-    number: number;
-    nameSimple: string;
-    nameArabic: string;
-    numberOfAyahs: number;
-}
+type Tab = 'surah' | 'juz' | 'revelation';
+type SortDir = 'asc' | 'desc';
+
+const JUZ_START_SURAHS = [
+  1, 2, 2, 3, 4, 4, 5, 6, 7, 8, 9, 11, 12, 15, 17, 18, 21, 23, 25, 27, 29, 33, 36, 39, 41, 46, 51, 58, 67, 78,
+];
 
 export function SurahGrid({ surahs }: { surahs: Surah[] }) {
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.05,
-            },
-        },
-    };
+  const [tab, setTab] = useState<Tab>('surah');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
-    const item = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 },
-    };
+  const sortedSurahs = useMemo(() => {
+    const list = [...surahs];
+    if (tab === 'revelation') {
+      list.sort((a, b) => {
+        const ao = a.revelationOrder ?? a.number;
+        const bo = b.revelationOrder ?? b.number;
+        return sortDir === 'asc' ? ao - bo : bo - ao;
+      });
+    } else {
+      list.sort((a, b) => (sortDir === 'asc' ? a.number - b.number : b.number - a.number));
+    }
+    return list;
+  }, [surahs, tab, sortDir]);
 
-    return (
-        <div className="mx-auto max-w-6xl px-4 py-12">
-            <div className="mb-10 flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-100">Surahs</h2>
-                    <p className="text-slate-500">Explore all 114 surahs of the Holy Quran</p>
-                </div>
-                <button className="text-sm font-medium text-gold-500 hover:text-gold-600">
-                    View All →
-                </button>
-            </div>
-
-            <motion.div
-                variants={container}
-                initial="hidden"
-                animate="show"
-                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+  return (
+    <section className="w-full px-3 py-4 sm:px-4 sm:py-5 md:px-6">
+      <div className="mb-3 flex flex-col gap-3 border-b border-slate-200 sm:mb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex gap-4 overflow-x-auto sm:gap-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {(
+            [
+              ['surah', 'Surah'],
+              ['juz', 'Juz'],
+              ['revelation', 'Revelation Order'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className={cn(
+                'shrink-0 pb-3 text-sm font-semibold transition',
+                tab === id
+                  ? 'border-b-2 border-slate-800 text-slate-800'
+                  : 'border-b-2 border-transparent text-slate-400 hover:text-slate-600'
+              )}
             >
-                {surahs.map((surah) => (
-                    <motion.div key={surah.number} variants={item}>
-                        <Link
-                            href={`/surah/${surah.number}`}
-                            className="group relative flex items-center gap-5 rounded-2xl border border-emerald-900/30 bg-emerald-900/10 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-gold-500/50 hover:bg-emerald-900/20"
-                        >
-                            <div className="relative flex h-12 w-12 flex-none items-center justify-center">
-                                <div className="absolute inset-0 rotate-45 rounded-lg border border-gold-500/20 bg-gold-500/5 transition-colors group-hover:bg-gold-500/10" />
-                                <span className="relative text-sm font-bold text-gold-500">
-                                    {surah.number}
-                                </span>
-                            </div>
-
-                            <div className="flex flex-1 items-center justify-between overflow-hidden">
-                                <div className="overflow-hidden">
-                                    <h3 className="truncate font-bold text-slate-200 group-hover:text-gold-500">
-                                        {surah.nameSimple}
-                                    </h3>
-                                    <p className="text-xs text-slate-500">
-                                        {surah.numberOfAyahs} Ayahs
-                                    </p>
-                                </div>
-                                <div className="font-arabic text-xl text-slate-400 transition-colors group-hover:text-slate-100">
-                                    {surah.nameArabic}
-                                </div>
-                            </div>
-
-                            <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-gold-500/0 to-gold-500/0 opacity-0 transition-opacity duration-500 group-hover:from-gold-500/5 group-hover:to-transparent group-hover:opacity-100" />
-                        </Link>
-                    </motion.div>
-                ))}
-            </motion.div>
+              {label}
+            </button>
+          ))}
         </div>
-    );
+
+        <button
+          type="button"
+          onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+          className="mb-1 inline-flex items-center gap-1 self-start text-xs font-semibold uppercase tracking-wide text-slate-500 transition hover:text-[var(--accent)] sm:mb-3 sm:self-auto"
+        >
+          Sort by: {sortDir === 'asc' ? 'Ascending' : 'Descending'}
+          <ChevronDown
+            className={cn('h-3.5 w-3.5 transition', sortDir === 'desc' && 'rotate-180')}
+          />
+        </button>
+      </div>
+
+      {tab === 'juz' ? (
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 xl:grid-cols-3 2xl:grid-cols-4">
+          {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => {
+            const startSurah = JUZ_START_SURAHS[juz - 1];
+            const surah = surahs.find((s) => s.number === startSurah);
+            return (
+              <Link
+                key={juz}
+                href={`/juz/${juz}`}
+                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3.5 transition-colors duration-150 hover:border-[var(--accent)] sm:gap-4 sm:px-4 sm:py-4"
+              >
+                <DiamondNumber n={juz} />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-slate-900">Juz {juz}</h3>
+                  <p className="truncate text-xs text-slate-500 transition-colors group-hover:text-[var(--accent)]">
+                    Starts at {surah?.nameSimple || `Surah ${startSurah}`}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 xl:grid-cols-3 2xl:grid-cols-4">
+          {sortedSurahs.map((surah) => {
+            const meaning = getSurahMeaning(surah.number);
+            return (
+              <Link
+                key={surah.number}
+                href={`/surah/${surah.number}`}
+                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3.5 transition-colors duration-150 hover:border-[var(--accent)] sm:px-4 sm:py-4"
+              >
+                <DiamondNumber n={surah.number} />
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-semibold text-slate-900">{surah.nameSimple}</h3>
+                  <p className="truncate text-xs text-slate-500 transition-colors group-hover:text-[var(--accent)]">
+                    {meaning || surah.revelationPlace}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-arabic text-lg leading-none text-slate-700 sm:text-xl" dir="rtl" lang="ar">
+                    {surah.nameArabic}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400 transition-colors group-hover:text-[var(--accent)]">
+                    {surah.numberOfAyahs} Ayahs
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DiamondNumber({ n }: { n: number }) {
+  return (
+    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+      <div className="absolute inset-1 rotate-45 rounded-[3px] border border-slate-200 bg-slate-50 transition-colors duration-150 group-hover:border-[var(--accent)] group-hover:bg-[var(--accent)]" />
+      <span className="relative text-sm font-semibold text-slate-700 transition-colors duration-150 group-hover:text-white">
+        {n}
+      </span>
+    </div>
+  );
 }

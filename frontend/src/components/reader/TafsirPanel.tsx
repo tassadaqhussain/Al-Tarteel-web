@@ -105,7 +105,7 @@ export function TafsirPanel({
         <SheetHeader className="border-b border-[var(--border)] px-6 py-4">
           <div className="flex items-center gap-3 pr-10">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold-500/10 text-gold-500">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-[var(--accent)]">
                 <BookMarked className="h-5 w-5" />
               </div>
               <div>
@@ -184,7 +184,7 @@ export function TafsirPanel({
             ) : (
               <div>
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1 text-xs font-medium text-gold-500">
+                  <span className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-3 py-1 text-xs font-medium text-[var(--accent)]">
                     {displayTafsir.source.name}
                   </span>
                   {displayTafsir.source.languageCode && (

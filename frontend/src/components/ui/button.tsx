@@ -11,10 +11,10 @@ const buttonVariants = cva(
         default: 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         outline: 'border border-[var(--border)] bg-transparent hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]',
-        secondary: 'bg-emerald-900/30 text-slate-200 hover:bg-emerald-900/50',
+        secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
         ghost: 'hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]',
         link: 'text-[var(--accent)] underline-offset-4 hover:underline',
-        gold: 'bg-gold-500 text-emerald-950 hover:bg-gold-600 font-semibold',
+        gold: 'bg-[var(--accent-gold)] text-white hover:bg-[var(--accent-gold)]/90 font-semibold',
       },
       size: {
         default: 'h-10 px-4 py-2',

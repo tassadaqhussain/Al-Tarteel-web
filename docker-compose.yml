@@ -37,6 +37,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4010:4000"
+    env_file:
+      - ./backend/.env
     environment:
       NODE_ENV: production
       PORT: 4000
@@ -45,6 +47,10 @@ services:
       REDIS_URL: redis://redis:6379
       JWT_SECRET: change-me-in-production
       CORS_ORIGINS: http://localhost:3010,http://127.0.0.1:3010
+      AUDIO_STORAGE_PATH: /app/storage/audio
+      AUDIO_PUBLIC_BASE_URL: http://localhost:4010/api/v1/audio/files
+    volumes:
+      - ./backend/storage/audio:/app/storage/audio:ro
     depends_on:
       postgres:
         condition: service_healthy

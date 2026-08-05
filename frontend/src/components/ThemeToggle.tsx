@@ -16,7 +16,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={cycle}
-      className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-900/50 text-slate-300 transition-colors hover:text-gold-500"
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
       aria-label={`Theme: ${theme}. Current: ${resolved}. Click to cycle.`}
     >
       {theme === 'light' && <Sun className="h-5 w-5" />}

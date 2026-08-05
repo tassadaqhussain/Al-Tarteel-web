@@ -43,6 +43,7 @@ model Ayah {
   ruku        Int?
   page        Int?   // Madani page 1–604
   textUthmani String @map("text_uthmani") @db.Text
+  textTajweed String? @map("text_tajweed") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -70,6 +71,8 @@ model Word {
   position    Int    // 1-based in ayah
   textArabic  String @map("text_arabic") @db.VarChar(50)
   textUthmani String @map("text_uthmani") @db.VarChar(50)
+  transliteration String? @db.VarChar(100)
+  audioUrl    String? @map("audio_url") @db.VarChar(500)
   rootArabic  String? @map("root_arabic") @db.VarChar(50)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

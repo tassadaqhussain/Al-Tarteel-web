@@ -6,6 +6,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 interface Props {
   surahNumber: number;
   surahName: string;
+  surahNameArabic?: string;
   firstAyahNumber: number;
 }
 
@@ -13,7 +14,12 @@ interface Props {
  * Invisible client component mounted inside the surah page.
  * Persists reading position to settingsStore (localStorage) on every visit.
  */
-export function ReadingTracker({ surahNumber, surahName, firstAyahNumber }: Props) {
+export function ReadingTracker({
+  surahNumber,
+  surahName,
+  surahNameArabic,
+  firstAyahNumber,
+}: Props) {
   const setLastRead = useSettingsStore((s) => s.setLastRead);
   const addRecentSurah = useSettingsStore((s) => s.addRecentSurah);
 
@@ -21,11 +27,12 @@ export function ReadingTracker({ surahNumber, surahName, firstAyahNumber }: Prop
     setLastRead({
       surahNumber,
       surahName,
+      surahNameArabic,
       ayahNumber: firstAyahNumber,
       timestamp: Date.now(),
     });
     addRecentSurah(surahNumber);
-  }, [surahNumber, surahName, firstAyahNumber, setLastRead, addRecentSurah]);
+  }, [surahNumber, surahName, surahNameArabic, firstAyahNumber, setLastRead, addRecentSurah]);
 
   return null;
 }

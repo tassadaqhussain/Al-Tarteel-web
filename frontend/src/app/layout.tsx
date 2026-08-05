@@ -20,21 +20,21 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'Al-Tarteel — Quran Reader', template: '%s | Al-Tarteel' },
+  title: { default: 'QuranPilot — Quran Reader', template: '%s | QuranPilot' },
   description: 'Read the Holy Quran with translations, tafsir, and verse-by-verse audio. Uthmani script, multiple languages.',
   keywords: ['Quran', 'recitation', 'translation', 'tafsir', 'Arabic'],
-  authors: [{ name: 'Al-Tarteel' }],
+  authors: [{ name: 'QuranPilot' }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'Al-Tarteel',
+    siteName: 'QuranPilot',
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#faf9f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#040b0a' },
+    { media: '(prefers-color-scheme: light)', color: '#f7f7f7' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b1214' },
   ],
 };
 
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${amiri.variable} ${outfit.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <ThemeProvider>
           <AudioPlayerProvider>

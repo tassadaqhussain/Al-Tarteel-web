@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import {
   ChevronLeft,
@@ -15,10 +15,10 @@ import {
   Eye,
   AlignJustify,
   Check,
-  X,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { TranslationSheet } from '@/components/reader/TranslationSheet';
 import { useSettingsStore, type FontSize, type MushafType, type ReadingMode } from '@/stores/settingsStore';
 import { useTheme } from '@/components/ThemeProvider';
 import { quranApi, audioApi, type TafsirSource, type Reciter, type Translator } from '@/lib/api';
@@ -29,7 +29,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
   return (
     <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
       <div className="flex items-center gap-3 border-b border-[var(--border)] px-5 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-500/10 text-gold-500">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-[var(--accent)]">
           {icon}
         </div>
         <h2 className="text-sm font-semibold text-[var(--fg)]">{title}</h2>
@@ -40,7 +40,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 }
 
 // ── Row ────────────────────────────────────────────────────────────────────────
-function Row({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
+function Row({ label, description, children }: { label: string; description?: string; children?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 px-5 py-4">
       <div className="min-w-0">
@@ -123,7 +123,6 @@ export default function SettingsPage() {
     showWordByWord,
     setShowWordByWord,
     translationSlugs,
-    setTranslationSlugs,
     tafsirSlug,
     setTafsirSlug,
     reciterSlug,
@@ -133,16 +132,13 @@ export default function SettingsPage() {
   const [translators, setTranslators] = useState<Translator[]>([]);
   const [tafsirSources, setTafsirSources] = useState<TafsirSource[]>([]);
   const [reciters, setReciters] = useState<Reciter[]>([]);
+  const [translationSheetOpen, setTranslationSheetOpen] = useState(false);
 
   useEffect(() => {
     quranApi.translators().then(setTranslators).catch(() => {});
     quranApi.tafsirSources().then(setTafsirSources).catch(() => {});
     audioApi.reciters().then(setReciters).catch(() => {});
   }, []);
-
-  const removeTranslation = (slug: string) => {
-    setTranslationSlugs(translationSlugs.filter((s) => s !== slug));
-  };
 
   const activeTranslators = translationSlugs
     .map((slug) => translators.find((t) => t.slug === slug))
@@ -152,20 +148,20 @@ export default function SettingsPage() {
   const activeTafsir = tafsirSources.find((s) => s.slug === tafsirSlug);
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen bg-[#f7f7f7] pb-16">
       <Header />
 
       {/* Sub-header */}
-      <div className="sticky top-[57px] z-40 border-b border-[var(--border)] bg-[var(--bg)]/95 backdrop-blur">
+      <div className="sticky top-[57px] z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <Link
             href="/"
-            className="flex items-center gap-1 text-sm text-[var(--accent)] hover:text-[var(--accent-gold)] transition-colors"
+            className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]"
           >
             <ChevronLeft className="h-4 w-4" />
             Home
           </Link>
-          <h1 className="text-sm font-semibold text-[var(--fg)]">Settings</h1>
+          <h1 className="text-sm font-semibold text-slate-800">Settings</h1>
           <div className="w-16" />
         </div>
       </div>
@@ -257,24 +253,17 @@ export default function SettingsPage() {
           {activeTranslators.length === 0 ? (
             <div className="px-5 py-6 text-center">
               <p className="text-sm text-[var(--muted)]">No translations selected.</p>
-              <p className="mt-1 text-xs text-[var(--muted)]">
-                Open any Surah and use the translations button to add one.
-              </p>
             </div>
           ) : (
             activeTranslators.map((t) => (
-              <Row key={t.slug} label={t.name} description={t.languageCode ? `Language: ${t.languageCode}` : undefined}>
-                <button
-                  type="button"
-                  onClick={() => removeTranslation(t.slug)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] hover:bg-red-500/10 hover:text-red-400 transition-colors"
-                  aria-label={`Remove ${t.name}`}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </Row>
+              <Row key={t.slug} label={t.name} description={t.languageCode ? `Language: ${t.languageCode}` : undefined} />
             ))
           )}
+          <div className="px-5 py-4">
+            <Button variant="outline" size="sm" onClick={() => setTranslationSheetOpen(true)}>
+              Manage Translations
+            </Button>
+          </div>
         </Section>
 
         {/* ── Tafsir ──────────────────────────────────────────────────────── */}
@@ -287,7 +276,7 @@ export default function SettingsPage() {
             <>
               {activeTafsir && (
                 <Row label="Active Source" description={activeTafsir.author ?? undefined}>
-                  <span className="rounded-full bg-gold-500/10 px-3 py-1 text-xs font-medium text-gold-500">
+                  <span className="rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-medium text-[var(--accent)]">
                     {activeTafsir.name}
                   </span>
                 </Row>
@@ -334,7 +323,7 @@ export default function SettingsPage() {
             <>
               {activeReciter && (
                 <Row label="Active Reciter" description="Used when playing audio">
-                  <span className="rounded-full bg-gold-500/10 px-3 py-1 text-xs font-medium text-gold-500">
+                  <span className="rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-medium text-[var(--accent)]">
                     {activeReciter.name}
                   </span>
                 </Row>
@@ -373,10 +362,14 @@ export default function SettingsPage() {
 
         {/* ── About ───────────────────────────────────────────────────────── */}
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-4 text-center">
-          <p className="text-xs text-[var(--muted)]">Al-Tarteel · Quran Reader</p>
+          <p className="text-xs text-[var(--muted)]">QuranPilot · Quran Reader</p>
           <p className="mt-0.5 text-[10px] text-[var(--muted)]/60">All data sourced from authenticated Islamic texts</p>
         </div>
       </main>
+
+      <Suspense fallback={null}>
+        <TranslationSheet open={translationSheetOpen} onOpenChange={setTranslationSheetOpen} />
+      </Suspense>
     </div>
   );
 }

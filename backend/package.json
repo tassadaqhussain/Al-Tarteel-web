@@ -18,7 +18,9 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "ts-node prisma/seed.ts",
-    "words:import": "ts-node prisma/import-words.ts"
+    "quran:download": "ts-node prisma/download-quran.ts",
+    "words:import": "ts-node prisma/import-words.ts",
+    "translations:import": "ts-node prisma/import-reader-translations.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

@@ -61,8 +61,23 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     if (!el) return;
     const onTimeUpdate = () => setCurrentTime(el.currentTime);
     const onDurationChange = () => setDuration(Number.isFinite(el.duration) ? el.duration : 0);
-    const onEnded = () => next();
-    const onError = () => setPlaying(false);
+    const onEnded = () => {
+      const { playlist, continuous } = useAudioStore.getState();
+      // Single-ayah playlists must restart in-place; next() is a no-op when index stays 0.
+      if (continuous && playlist.length === 1 && el.src) {
+        el.currentTime = 0;
+        void el.play().catch(() => setPlaying(false));
+        return;
+      }
+      next();
+    };
+    const onError = () => {
+      // Do not leave the interface showing a silent playing state if a remote
+      // recitation URL becomes unavailable.
+      setCurrentTime(0);
+      setDuration(0);
+      setPlaying(false);
+    };
     el.addEventListener('timeupdate', onTimeUpdate);
     el.addEventListener('durationchange', onDurationChange);
     el.addEventListener('loadedmetadata', onDurationChange);

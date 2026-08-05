@@ -41,3 +41,6 @@ backend/prisma/*.db-journal
 # Misc
 *.pem
 .cache/
+
+# Downloaded recitation media (large, reproducible assets)
+backend/storage/audio/

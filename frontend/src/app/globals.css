@@ -2,77 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Al-Tarteel design tokens ──────────────────────────────────────────── */
+/* ── QuranPilot design tokens (light Quran.com-style by default) ────── */
 :root {
-  /* Brand tokens (used directly via var()) */
-  --bg: #faf9f7;
-  --fg: #0f1715;
+  --bg: #f7f7f7;
+  --fg: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;
-  --accent: #0f5a4e;
-  --accent-gold: #b4944b;
+  --accent: #b45309;
+  --accent-gold: #c08829;
   --surface: #ffffff;
-  --ayah-highlight: rgba(15, 90, 78, 0.1);
-  --header-bg: rgba(250, 249, 247, 0.8);
-  --radius: 0.5rem;
+  --ayah-highlight: rgba(180, 83, 9, 0.1);
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --radius: 0.75rem;
 
-  /* shadcn/ui HSL tokens (light) */
-  --background: 40 20% 98%;
-  --foreground: 160 28% 8%;
+  --background: 0 0% 97%;
+  --foreground: 222 47% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 160 28% 8%;
+  --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
-  --popover-foreground: 160 28% 8%;
-  --primary: 163 72% 21%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 40 30% 94%;
-  --secondary-foreground: 160 28% 8%;
-  --muted-hsl: 40 20% 93%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 26 90% 37%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+  --muted-hsl: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
-  --accent-hsl: 163 72% 21%;
-  --accent-foreground: 0 0% 98%;
+  --accent-hsl: 26 90% 37%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 214 32% 91%;
   --input: 214 32% 91%;
-  --ring: 163 72% 21%;
+  --ring: 26 90% 37%;
 }
+
+.control-button {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: rgb(241 245 249);
+}
+.control-button svg { width: 1.125rem; height: 1.125rem; }
+.nav-button {
+  display: inline-flex;
+  height: 2.75rem;
+  align-items: center;
+  gap: .5rem;
+  border: 1px solid rgb(226 232 240);
+  border-radius: .75rem;
+  padding: 0 1rem;
+  font-size: .875rem;
+  white-space: nowrap;
+}
+.nav-button:disabled { opacity: .4; cursor: not-allowed; }
+.nav-button:not(:disabled):hover { border-color: var(--accent); color: var(--accent); }
+.nav-button svg { width: 1rem; height: 1rem; }
+.tafsir-study-content h1,
+.tafsir-study-content h2,
+.tafsir-study-content h3 { color: rgb(15 23 42); font-weight: 700; line-height: 1.3; margin: 1.5rem 0 .75rem; }
+.tafsir-study-content h2 { font-size: 1.75em; }
+.tafsir-study-content h3 { font-size: 1.35em; }
+.tafsir-study-content p { margin: .8rem 0; }
+.tafsir-study-content blockquote { border-inline-start: 3px solid var(--accent); margin: 1rem 0; padding-inline-start: 1rem; }
+
+/* Quran.com Tajweed markup colors */
+.tajweed-text tajweed.ham_wasl { color: #9ca3af; }
+.tajweed-text tajweed.laam_shamsiyah { color: #9ca3af; }
+.tajweed-text tajweed.madda_normal { color: #537fff; }
+.tajweed-text tajweed.madda_permissible { color: #4050ff; }
+.tajweed-text tajweed.madda_necessary { color: #000ebc; }
+.tajweed-text tajweed.ghunnah { color: #ff5aa5; }
+.tajweed-text tajweed.qalqalah { color: #2aa9df; }
+.tajweed-text tajweed.ikhafa { color: #22a06b; }
+.tajweed-text tajweed.ikhafa_shafawi { color: #22a06b; }
+.tajweed-text tajweed.idgham_shafawi { color: #ff6f61; }
+.tajweed-text tajweed.iqlab { color: #26a6a1; }
+.tajweed-text tajweed.idgham_with_ghunnah { color: #16a34a; }
+.tajweed-text tajweed.idgham_without_ghunnah { color: #16a34a; }
+.tajweed-text tajweed.idgham_mutajanisayn { color: #f59e0b; }
+.tajweed-text tajweed.idgham_mutaqaribayn { color: #f59e0b; }
+.tajweed-text tajweed.silent { color: #9ca3af; }
+.tajweed-text.tajweed-disabled tajweed { color: inherit; }
 
 .dark {
-  /* Brand tokens */
-  --bg: #040b0a;
+  --bg: #0b1214;
   --fg: #f1f5f9;
   --muted: #94a3b8;
-  --border: #1a2e2a;
-  --accent: #1e8d7d;
-  --accent-gold: #c2a15e;
-  --surface: #0a1a18;
-  --ayah-highlight: rgba(30, 141, 125, 0.15);
-  --header-bg: rgba(4, 11, 10, 0.8);
+  --border: #1e2d32;
+  --accent: #d9a64b;
+  --accent-gold: #f0b656;
+  --surface: #111b1e;
+  --ayah-highlight: rgba(217, 166, 75, 0.15);
+  --header-bg: rgba(11, 18, 20, 0.9);
 
-  /* shadcn/ui HSL tokens (dark) */
-  --background: 160 50% 3%;
-  --foreground: 210 40% 95%;
-  --card: 160 50% 4%;
-  --card-foreground: 210 40% 95%;
-  --popover: 160 50% 4%;
-  --popover-foreground: 210 40% 95%;
-  --primary: 163 60% 34%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 163 30% 10%;
-  --secondary-foreground: 210 40% 95%;
-  --muted-hsl: 163 20% 12%;
+  --background: 195 30% 6%;
+  --foreground: 210 40% 96%;
+  --card: 195 25% 8%;
+  --card-foreground: 210 40% 96%;
+  --popover: 195 25% 8%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 38 65% 57%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 195 20% 14%;
+  --secondary-foreground: 210 40% 96%;
+  --muted-hsl: 195 15% 14%;
   --muted-foreground: 215 20% 55%;
-  --accent-hsl: 163 60% 34%;
-  --accent-foreground: 0 0% 98%;
+  --accent-hsl: 38 65% 57%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 62% 50%;
   --destructive-foreground: 0 0% 98%;
-  --border: 163 30% 14%;
-  --input: 163 30% 14%;
-  --ring: 163 60% 34%;
+  --input: 195 20% 16%;
+  --ring: 38 65% 57%;
 }
 
-/* ── Base ──────────────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
@@ -90,7 +134,6 @@
   }
 }
 
-/* ── Arabic / Mushaf typography ────────────────────────────────────────── */
 .font-arabic {
   font-family: var(--font-amiri), 'Amiri Quran', serif;
   line-height: 2;
@@ -103,19 +146,16 @@
   word-spacing: 0.2em;
 }
 
-/* Font-size classes (controlled by settingsStore) */
 .ayah-font-sm  .ayah-arabic { font-size: 1.125rem; }
 .ayah-font-md  .ayah-arabic { font-size: 1.375rem; }
 .ayah-font-lg  .ayah-arabic { font-size: 1.75rem;  }
 .ayah-font-xl  .ayah-arabic { font-size: 2.25rem;  }
 
-/* ── Reader states ─────────────────────────────────────────────────────── */
 .ayah-current {
   background-color: var(--ayah-highlight);
   border-radius: 0.375rem;
 }
 
-/* ── Tafsir content ────────────────────────────────────────────────────── */
 .tafsir-content {
   font-size: 0.95rem;
   line-height: 1.8;
@@ -156,7 +196,7 @@
 .tafsir-content ol { list-style: decimal; }
 
 .tafsir-content blockquote {
-  border-inline-start: 3px solid var(--accent-gold);
+  border-inline-start: 3px solid var(--accent);
   color: var(--muted);
   padding-inline-start: 1rem;
 }
@@ -168,22 +208,20 @@
   line-height: 2;
 }
 
-/* ── Glassmorphism ─────────────────────────────────────────────────────── */
 .glass {
-  background: rgba(10, 26, 24, 0.7);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(194, 161, 94, 0.1);
+  border: 1px solid rgba(180, 83, 9, 0.12);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(15, 90, 78, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-/* ── Utility animations ────────────────────────────────────────────────── */
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -193,11 +231,9 @@
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
-/* ── Scrollbar ─────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-/* ── Safe area (AudioBar padding) ──────────────────────────────────────── */
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0); }
