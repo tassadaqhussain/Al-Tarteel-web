@@ -18,7 +18,9 @@ import {
   TrendingUp,
   X,
   ChevronRight,
+  Smile,
 } from 'lucide-react';
+import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useSettingsStore, type LastRead } from '@/stores/settingsStore';
@@ -43,9 +45,17 @@ export function Header() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [popularOpen, setPopularOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [query, setQuery] = useState('');
   const lastRead = useSettingsStore((s) => s.lastRead);
+  const experienceMode = useSettingsStore((s) => s.experienceMode);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const onClickOutside = () => setProfileOpen(false);
+    window.addEventListener('click', onClickOutside);
+    return () => window.removeEventListener('click', onClickOutside);
+  }, [profileOpen]);
 
   useEffect(() => {
     setOpen(false);
@@ -53,13 +63,8 @@ export function Header() {
     setNavigateOpen(false);
     setLanguageOpen(false);
     setSearchOpen(false);
+    setProfileOpen(false);
   }, [pathname]);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -109,57 +114,64 @@ export function Header() {
 
   return (
     <>
-      <header
-        className={cn(
-          'sticky top-0 z-50 w-full transition-all duration-300',
-          scrolled
-            ? 'border-b border-slate-200/80 bg-white/95 py-2.5 shadow-sm backdrop-blur-md'
-            : cn(
-                'border-b border-transparent py-2.5 backdrop-blur-md sm:py-3',
-                isHome ? 'bg-[#f7f7f7]/95' : 'bg-white/95'
-              )
-        )}
-      >
-        <div className="flex w-full items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 md:px-6">
-          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-            <Link
-              href="/"
-              className="truncate font-serif text-lg font-bold tracking-tight text-slate-800 sm:text-xl md:text-2xl"
-            >
-              QuranPilot
-            </Link>
-          </div>
+      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+        <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-3 px-4 sm:h-[57px] sm:px-6">
+          <Link
+            href="/"
+            className="truncate font-serif text-[1.35rem] font-bold tracking-tight text-slate-900 sm:text-2xl"
+          >
+            QuranPilot
+          </Link>
 
-          <div className="flex items-center gap-0.5 sm:gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-2.5">
             <Link
               href="/settings"
-              className="hidden rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-[var(--accent)] sm:inline-flex"
+              className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--accent)] px-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4"
             >
               Sign in
             </Link>
+            <div className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setProfileOpen((v) => !v); }}
+                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100"
+                aria-label="Look Profile Selector"
+              >
+                <Smile className="h-5 w-5" strokeWidth={1.75} />
+              </button>
+              {profileOpen && (
+                <div 
+                  className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="px-3 py-1.5 text-xs font-semibold text-slate-400">Select Age/Look Style</div>
+                  <AgeModeSelector variant="dropdown" onSelect={() => setProfileOpen(false)} />
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => setLanguageOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[var(--accent)]"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 sm:flex"
               aria-label="Language"
             >
-              <Globe className="h-4 w-4" />
+              <Globe className="h-5 w-5" strokeWidth={1.75} />
             </button>
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[var(--accent)]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-10"
               aria-label="Search"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" strokeWidth={1.75} />
             </button>
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[var(--accent)]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-10"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" strokeWidth={1.75} />
             </button>
           </div>
         </div>
@@ -183,7 +195,7 @@ export function Header() {
                   type="search"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search the Quran..."
+                  placeholder={experienceMode === 'kids' ? "Search for a surah or verse! 🌟🔍" : "Search the Quran..."}
                   className="w-full min-w-0 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none sm:text-base"
                   aria-label="Search the Quran"
                 />
@@ -205,7 +217,7 @@ export function Header() {
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--accent)]/90 sm:px-5 sm:py-2.5"
               >
                 <List className="h-4 w-4" />
-                Navigate Quran
+                {experienceMode === 'kids' ? 'Choose a Surah! 🚀' : 'Navigate Quran'}
               </button>
               <div className="relative">
                 <button
@@ -214,7 +226,7 @@ export function Header() {
                   className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-[var(--accent)]/50 hover:text-[var(--accent)] sm:px-5 sm:py-2.5"
                 >
                   <TrendingUp className="h-4 w-4 text-[var(--accent)]" />
-                  Popular
+                  {experienceMode === 'kids' ? 'Super Popular! 🔥' : 'Popular'}
                   <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-sky-500" />
                 </button>
                 {popularOpen && (
@@ -275,43 +287,44 @@ function MobileNav({
   lastRead: LastRead | null;
   isActive: (href: string) => boolean;
 }) {
+  const experienceMode = useSettingsStore((s) => s.experienceMode);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-none flex-col bg-white p-0 text-slate-800 [&>button]:hidden sm:w-[460px] sm:max-w-[460px]">
-        <div className="flex h-[88px] items-center justify-between border-b border-slate-200 px-6">
-          <SheetTitle className="font-serif text-3xl font-bold tracking-tight text-slate-900">QuranPilot</SheetTitle>
-          <div className="flex items-center gap-3">
+      <SheetContent side="right" showClose={false} className="flex w-[min(100vw,460px)] max-w-none flex-col bg-white p-0 text-slate-800 sm:w-[460px] sm:max-w-[460px]">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4 sm:h-[88px] sm:px-6">
+          <SheetTitle className="font-serif text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">QuranPilot</SheetTitle>
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/settings"
               onClick={() => onOpenChange(false)}
-              className="rounded-full border-2 border-[var(--accent)] px-4 py-2 text-base font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+              className="rounded-full border border-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4 sm:py-2 sm:text-base"
             >
               Sign in
             </Link>
             <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label="Close menu">
-              <X className="h-7 w-7" />
+              <X className="h-6 w-6 sm:h-7 sm:w-7" />
             </button>
           </div>
         </div>
 
         {lastRead && (
-          <div className="mx-7 mt-5">
+          <div className="mx-4 mt-4 sm:mx-7 sm:mt-5">
             <Link
               href={`/surah/${lastRead.surahNumber}`}
               onClick={() => onOpenChange(false)}
               className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-[var(--accent)]"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs font-medium text-[var(--accent)]">Continue Reading</p>
-                <p className="mt-0.5 text-sm font-semibold text-slate-800">{lastRead.surahName}</p>
+                <p className="mt-0.5 truncate text-sm font-semibold text-slate-800">{lastRead.surahName}</p>
                 <p className="text-xs text-slate-500">Ayah {lastRead.ayahNumber}</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
         )}
 
-        <nav className="flex-1 overflow-auto px-7 py-5" aria-label="Main navigation">
+        <nav className="flex-1 overflow-auto px-4 py-4 sm:px-7 sm:py-5" aria-label="Main navigation">
           {[
             { label: 'Read', href: '/surahs', icon: Home, id: 'read' },
             { label: 'Learn', href: '/learning-plans', icon: GraduationCap, id: 'learn' },
@@ -325,38 +338,40 @@ function MobileNav({
               href={item.href}
               onClick={() => onOpenChange(false)}
               className={cn(
-                'flex items-center gap-6 rounded-xl px-3 py-4 text-xl font-semibold transition',
+                'flex items-center gap-4 rounded-xl px-3 py-3 text-lg font-semibold transition sm:gap-6 sm:py-4 sm:text-xl',
                 isActive(item.href)
                   ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
                   : 'text-slate-800 hover:bg-slate-50'
               )}
             >
-              <item.icon className="h-6 w-6 text-slate-300" />
+              <item.icon className="h-5 w-5 shrink-0 text-slate-300 sm:h-6 sm:w-6" />
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="border-t border-slate-100 px-7 py-5">
-          <div className="flex gap-3">
+        <div className="shrink-0 border-t border-slate-100 px-4 py-4 sm:px-7 sm:py-5">
+          <div className="mb-4 sm:mb-5">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Choose Profile Style</p>
+            <AgeModeSelector variant="list" onSelect={() => onOpenChange(false)} />
+          </div>
+          <div className="flex flex-col gap-3">
             <button
               type="button"
               onClick={onLanguageOpen}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-slate-200 text-base font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              className="flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 px-4 text-base font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
-              <Globe className="h-5 w-5" /> English
+              <Globe className="h-5 w-5 shrink-0" />
+              <span>English</span>
             </button>
-            <div className="flex flex-1 items-center justify-center gap-2 rounded-full border border-slate-200 pr-4 text-base font-medium">
-              <ThemeToggle />
-              Change Theme
-            </div>
+            <ThemeToggle variant="labeled" />
           </div>
           <Link
             href="/quran-in-year"
             onClick={() => onOpenChange(false)}
-            className="mt-4 flex w-full items-center justify-center rounded-full bg-[var(--accent)] px-5 py-3 text-base font-bold text-white transition hover:opacity-90"
+            className="mt-4 flex w-full items-center justify-center rounded-full bg-[var(--accent)] px-5 py-3 text-center text-sm font-bold text-white transition hover:opacity-90 sm:text-base"
           >
-            ✦ Start Your Quran Journey
+            {experienceMode === 'kids' ? '✦ Start Your Quran Adventure! 🚀' : '✦ Start Your Quran Journey'}
           </Link>
         </div>
       </SheetContent>

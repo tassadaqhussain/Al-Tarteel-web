@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,8 +11,10 @@
   --border: #e2e8f0;
   --accent: #b45309;
   --accent-gold: #c08829;
+  /* Primary action / highlight — keep in sync with --accent app-wide */
+  --recite-highlight: var(--accent);
   --surface: #ffffff;
-  --ayah-highlight: rgba(180, 83, 9, 0.1);
+  --ayah-highlight: rgba(180, 83, 9, 0.12);
   --header-bg: rgba(255, 255, 255, 0.92);
   --radius: 0.75rem;
 
@@ -93,6 +96,7 @@
   --border: #1e2d32;
   --accent: #d9a64b;
   --accent-gold: #f0b656;
+  --recite-highlight: var(--accent);
   --surface: #111b1e;
   --ayah-highlight: rgba(217, 166, 75, 0.15);
   --header-bg: rgba(11, 18, 20, 0.9);
@@ -124,18 +128,21 @@
 
   html {
     scroll-behavior: smooth;
+    /* clip avoids creating a scroll container (hidden breaks position:sticky) */
+    overflow-x: clip;
   }
 
   body {
     background-color: var(--bg);
     color: var(--fg);
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: clip;
     @apply antialiased;
   }
 }
 
 .font-arabic {
-  font-family: var(--font-amiri), 'Amiri Quran', serif;
+  font-family: var(--font-amiri-quran), var(--font-amiri), 'Amiri Quran', serif;
   line-height: 2;
   font-size: clamp(1.25rem, 4vw, 1.75rem);
 }
@@ -154,6 +161,54 @@
 .ayah-current {
   background-color: var(--ayah-highlight);
   border-radius: 0.375rem;
+}
+
+/* Keep recited ayah clear of sticky header + audio bar during auto-scroll */
+[data-ayah-id] {
+  scroll-margin-top: 8.5rem;
+  scroll-margin-bottom: 6.5rem;
+}
+
+/* Translation mode: soft teal fill behind the active verse */
+.ayah-current-teal {
+  background-color: var(--ayah-highlight);
+  border-radius: 0.25rem;
+}
+
+/* Arabic mushaf mode: soft teal fill of the recited ayah */
+.ayah-current-arabic {
+  background-color: var(--ayah-highlight);
+  border-radius: 0.375rem;
+}
+
+/* Ornate-ish circular ayah end marker (Quran.com) */
+.ayah-verse-marker {
+  display: inline-flex;
+  height: 1.75rem;
+  width: 1.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-inline: 0.35rem;
+  border-radius: 9999px;
+  border: 1.5px solid color-mix(in srgb, var(--recite-highlight) 55%, #64748b);
+  background:
+    radial-gradient(circle at center, transparent 55%, color-mix(in srgb, var(--recite-highlight) 12%, transparent) 56%),
+    #fff;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #334155;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* Active word while audio is reciting — match player accent color */
+.word-reciting {
+  color: var(--accent);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .tafsir-content {
@@ -203,7 +258,7 @@
 
 .tafsir-content [dir='rtl'],
 .tafsir-content .arabic {
-  font-family: var(--font-amiri), 'Amiri Quran', serif;
+  font-family: var(--font-amiri-quran), var(--font-amiri), 'Amiri Quran', serif;
   font-size: 1.25rem;
   line-height: 2;
 }
@@ -237,3 +292,346 @@
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* ── Kids Mode Styling ── */
+.experience-kids {
+  --bg: #f0fdfa;
+  --surface: #ffffff;
+  --border: #bae6fd; /* sky-200 */
+  --accent: #0ea5e9; /* sky-500 */
+  --accent-gold: #f59e0b;
+  --radius: 1.5rem;
+}
+
+.experience-kids body,
+.experience-kids main,
+.experience-kids header,
+.experience-kids footer,
+.experience-kids .font-sans,
+.experience-kids h1,
+.experience-kids h2,
+.experience-kids h3,
+.experience-kids h4,
+.experience-kids p,
+.experience-kids span,
+.experience-kids button,
+.experience-kids a,
+.experience-kids input,
+.experience-kids label {
+  font-family: 'Fredoka', 'Quicksand', 'Comic Sans MS', cursive, sans-serif !important;
+}
+
+/* Fredoka has no Quranic glyphs — restore Amiri Quran for Arabic text */
+.experience-kids .font-arabic,
+.experience-kids .ayah-arabic,
+.experience-kids [lang='ar'],
+.experience-kids .tafsir-content [dir='rtl'],
+.experience-kids .tafsir-content .arabic {
+  font-family: var(--font-amiri-quran), var(--font-amiri), 'Amiri Quran', serif !important;
+}
+
+.experience-kids .rounded-2xl,
+.experience-kids .rounded-xl,
+.experience-kids .rounded-lg {
+  border-radius: 1.5rem !important;
+}
+
+.experience-kids .border-slate-200,
+.experience-kids .border-slate-200\/80,
+.experience-kids .border-slate-100 {
+  border-width: 2px !important;
+  border-color: var(--border) !important;
+}
+
+.experience-kids .bg-white,
+.experience-kids .bg-\[var\(--surface\)\] {
+  border: 2px solid #e0f2fe !important; /* sky-100 */
+  box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.12), 0 8px 16px -6px rgba(236, 72, 153, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+}
+
+.experience-kids .bg-white:hover,
+.experience-kids .bg-\[var\(--surface\)\]:hover {
+  transform: translateY(-4px) scale(1.008);
+  border-color: #bae6fd !important;
+  box-shadow: 0 20px 35px -10px rgba(14, 165, 233, 0.22), 0 12px 20px -8px rgba(236, 72, 153, 0.15) !important;
+}
+
+/* Kids mode background adjustments with a stunning pastel gradient */
+.experience-kids,
+.experience-kids .bg-\[\#f7f7f7\],
+.experience-kids .bg-\[\#f7f7f7\]\/95 {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%) !important;
+}
+
+/* Kids headings color adjustment for readability and theme matching */
+.experience-kids h1,
+.experience-kids h2,
+.experience-kids h3 {
+  color: #0369a1 !important; /* sky-700 */
+}
+
+/* Large playful button hover effects - cartoon capsule style */
+.experience-kids button.bg-\[var\(--accent\)\],
+.experience-kids button.bg-slate-100,
+.experience-kids button.bg-white,
+.experience-kids button.bg-slate-800,
+.experience-kids button.inline-flex.h-9,
+.experience-kids a.bg-\[var\(--accent\)\] {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important; /* sky-400 to sky-600 */
+  border-radius: 9999px !important; /* capsule */
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 6px 16px 0 rgba(14, 165, 233, 0.35) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  transition: all 0.2s ease;
+}
+
+.experience-kids button.bg-\[var\(--accent\)\]:hover,
+.experience-kids button.bg-slate-100:hover,
+.experience-kids button.bg-white:hover,
+.experience-kids button.bg-slate-800:hover,
+.experience-kids button.inline-flex.h-9:hover,
+.experience-kids a.bg-\[var\(--accent\)\]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px 0 rgba(14, 165, 233, 0.45) !important;
+}
+
+.experience-kids button.bg-\[var\(--accent\)\]:active,
+.experience-kids button.bg-slate-100:active,
+.experience-kids button.bg-white:active,
+.experience-kids button.bg-slate-800:active,
+.experience-kids button.inline-flex.h-9:active,
+.experience-kids a.bg-\[var\(--accent\)\]:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px 0 rgba(14, 165, 233, 0.3) !important;
+}
+
+/* Reset reader buttons in Kids Mode to prevent capsule overrides on words */
+.experience-kids article button {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  border-radius: 0.375rem !important;
+  transform: none !important;
+  color: inherit !important;
+}
+
+.experience-kids article button:hover {
+  background-color: var(--ayah-highlight) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.experience-kids article button.word-reciting {
+  background-color: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* ── Elderly / Easy Read Mode Styling ── */
+.experience-elderly {
+  --bg: #fdfbf7; /* warm high contrast cream */
+  --fg: #000000;
+  --muted: #27272a;
+  --border: #71717a;
+  --accent: #09090b;
+  --surface: #ffffff;
+  --radius: 0.5rem;
+}
+
+.experience-elderly body,
+.experience-elderly main,
+.experience-elderly header,
+.experience-elderly footer,
+.experience-elderly .bg-\[\#f7f7f7\] {
+  background-color: var(--bg) !important;
+  color: var(--fg) !important;
+}
+
+/* Force global text scaling */
+.experience-elderly p,
+.experience-elderly span,
+.experience-elderly a,
+.experience-elderly button,
+.experience-elderly input,
+.experience-elderly h1,
+.experience-elderly h2,
+.experience-elderly h3,
+.experience-elderly h4,
+.experience-elderly li {
+  line-height: 1.7 !important;
+}
+
+.experience-elderly .text-xs { font-size: 1rem !important; }
+.experience-elderly .text-sm { font-size: 1.15rem !important; }
+.experience-elderly .text-base { font-size: 1.3rem !important; }
+.experience-elderly .text-lg { font-size: 1.45rem !important; }
+.experience-elderly .text-xl { font-size: 1.6rem !important; }
+.experience-elderly .text-2xl { font-size: 1.85rem !important; }
+.experience-elderly .text-3xl { font-size: 2.1rem !important; }
+.experience-elderly .text-4xl { font-size: 2.4rem !important; }
+.experience-elderly .text-5xl { font-size: 2.8rem !important; }
+
+/* Scale Arabic fonts for Elderly mode */
+.experience-elderly .font-arabic,
+.experience-elderly .ayah-arabic {
+  font-size: 2.75rem !important;
+  line-height: 2.3 !important;
+}
+
+/* Scale translation font sizes specifically */
+.experience-elderly .tafsir-content,
+.experience-elderly .tafsir-study-content {
+  font-size: 1.25rem !important;
+  line-height: 1.8 !important;
+}
+
+/* Enlarge touch targets to avoid misclicks */
+.experience-elderly button,
+.experience-elderly a,
+.experience-elderly input,
+.experience-elderly select {
+  min-height: 3.25rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+}
+
+/* Don't resurrect intentionally hidden controls (e.g. sheet close) */
+.experience-elderly button.hidden,
+.experience-elderly a.hidden,
+.experience-elderly [hidden] {
+  display: none !important;
+}
+
+/* Icon-only controls: keep square hit area without crushing the glyph */
+.experience-elderly button.w-7,
+.experience-elderly button.w-8,
+.experience-elderly button.w-9,
+.experience-elderly button.w-10,
+.experience-elderly a.w-7,
+.experience-elderly a.w-8,
+.experience-elderly a.w-9,
+.experience-elderly a.w-10 {
+  width: 3.25rem !important;
+  min-width: 3.25rem !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/*
+ * Forcing inline-flex on every button/link makes Lucide SVGs shrink to 0
+ * unless they have an explicit min size / flex-shrink: 0.
+ */
+.experience-elderly svg,
+.experience-elderly .lucide {
+  flex-shrink: 0 !important;
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+  min-width: 1.35rem !important;
+  min-height: 1.35rem !important;
+  max-width: none !important;
+  max-height: none !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.experience-elderly .control-button {
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  padding: 0 !important;
+}
+
+/* Menu/sheet action rows — don't force huge horizontal padding that wraps labels */
+.experience-elderly .border-t button {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  min-height: 3rem !important;
+  white-space: nowrap !important;
+}
+
+/* ── Arabic View Mode (Quran.com continuous mushaf) ── */
+.view-mode-arabic .arabic-mushaf-feed {
+  direction: rtl;
+  text-align: center;
+  line-height: 2.85;
+}
+
+.view-mode-arabic .arabic-mushaf-feed > article {
+  display: inline;
+  border: none !important;
+  margin: 0;
+  padding: 0;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.view-mode-arabic .arabic-mushaf-feed > article > div {
+  display: inline;
+}
+
+.view-mode-arabic .arabic-mushaf-feed .font-arabic,
+.view-mode-arabic .arabic-mushaf-feed .ayah-arabic {
+  display: inline;
+}
+
+.view-mode-arabic .arabic-mushaf-feed button {
+  display: inline;
+  margin: 0 1px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  vertical-align: baseline;
+}
+
+.view-mode-arabic .ayah-current-arabic {
+  background-color: var(--ayah-highlight) !important;
+  border-radius: 0.375rem !important;
+  padding: 0.15rem 0.35rem !important;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ── Mobile + Easy Read: keep touch targets usable without breaking layout ── */
+@media (max-width: 640px) {
+  .experience-elderly button,
+  .experience-elderly a,
+  .experience-elderly input,
+  .experience-elderly select {
+    min-height: 2.75rem !important;
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
+  }
+
+  .experience-elderly article button {
+    min-height: 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+
+  .experience-elderly .font-arabic,
+  .experience-elderly .ayah-arabic {
+    font-size: 1.85rem !important;
+    line-height: 2.05 !important;
+  }
+
+  .experience-elderly .text-5xl {
+    font-size: 2rem !important;
+  }
+
+  .experience-elderly svg,
+  .experience-elderly .lucide {
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+    min-width: 1.15rem !important;
+    min-height: 1.15rem !important;
+  }
+}

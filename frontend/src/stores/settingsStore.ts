@@ -1,9 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { setTranslationCookie } from '@/lib/translation-preference';
 
 export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
 export type ReadingMode = 'paged' | 'continuous';
 export type MushafType = 'uthmani' | 'indopak' | 'simple';
+export type ExperienceMode = 'default' | 'kids' | 'elderly';
+/** Quran.com-style reading layout for the surah reader. */
+export type ReaderViewMode = 'verse' | 'arabic' | 'translation';
 
 export type ReadingGoalId = 'minutes-10' | 'days-30' | 'year' | 'custom';
 
@@ -18,6 +22,7 @@ export type UiLocale =
   | 'it'
   | 'nl'
   | 'pt'
+  | 'ps'
   | 'ru'
   | 'sq'
   | 'th'
@@ -61,6 +66,7 @@ export interface SettingsState {
   mushafLines: number;
   mushafType: MushafType;
   readingMode: ReadingMode;
+  readerViewMode: ReaderViewMode;
   showTranslation: boolean;
   showTransliteration: boolean;
   showWordByWord: boolean;
@@ -91,6 +97,9 @@ export interface SettingsState {
   // UI language (display preference)
   uiLocale: UiLocale;
 
+  // Experience Mode profile (Default, Kids, Elderly)
+  experienceMode: ExperienceMode;
+
   // Learning plans progress: planSlug -> completed day numbers
   learningProgress: Record<string, number[]>;
 
@@ -103,6 +112,7 @@ export interface SettingsState {
   setMushafLines: (lines: number) => void;
   setMushafType: (type: MushafType) => void;
   setReadingMode: (mode: ReadingMode) => void;
+  setReaderViewMode: (mode: ReaderViewMode) => void;
   setShowTranslation: (v: boolean) => void;
   setShowTransliteration: (v: boolean) => void;
   setShowWordByWord: (v: boolean) => void;
@@ -123,6 +133,7 @@ export interface SettingsState {
   addRecentSurah: (number: number) => void;
   setReadingGoal: (goal: ReadingGoal | null) => void;
   setUiLocale: (locale: UiLocale) => void;
+  setExperienceMode: (mode: ExperienceMode) => void;
   toggleLearningDay: (planSlug: string, day: number) => void;
   setQuranYearTracking: (v: boolean) => void;
   toggleQuranYearWeek: (week: number) => void;
@@ -135,16 +146,17 @@ export const useSettingsStore = create<SettingsState>()(
       mushafLines: 15,
       mushafType: 'uthmani',
       readingMode: 'paged',
+      readerViewMode: 'verse',
       showTranslation: true,
       showTransliteration: false,
-      showWordByWord: false,
+      showWordByWord: true,
       showTajweedRules: true,
       copyVerseAsGlyphs: false,
       translationFontSize: 'md',
       wordByWordFontSize: 'md',
       wordByWordDisplay: 'tooltip',
       wordByWordShowTranslation: true,
-      wordByWordShowTransliteration: false,
+      wordByWordShowTransliteration: true,
       wordByWordLocale: 'ur',
       wordClickPlayAudio: true,
       translationSlugs: [],
@@ -154,6 +166,7 @@ export const useSettingsStore = create<SettingsState>()(
       recentSurahs: [],
       readingGoal: null,
       uiLocale: 'en',
+      experienceMode: 'default',
       learningProgress: {},
       quranYearTracking: false,
       quranYearCompletedWeeks: [],
@@ -162,6 +175,7 @@ export const useSettingsStore = create<SettingsState>()(
       setMushafLines: (mushafLines) => set({ mushafLines }),
       setMushafType: (mushafType) => set({ mushafType }),
       setReadingMode: (readingMode) => set({ readingMode }),
+      setReaderViewMode: (readerViewMode) => set({ readerViewMode }),
       setShowTranslation: (showTranslation) => set({ showTranslation }),
       setShowTransliteration: (showTransliteration) => set({ showTransliteration }),
       setShowWordByWord: (showWordByWord) => set({ showWordByWord }),
@@ -175,15 +189,18 @@ export const useSettingsStore = create<SettingsState>()(
       setWordByWordLocale: (wordByWordLocale) => set({ wordByWordLocale }),
       setWordClickPlayAudio: (wordClickPlayAudio) => set({ wordClickPlayAudio }),
 
-      setTranslationSlugs: (translationSlugs) => set({ translationSlugs }),
+      setTranslationSlugs: (translationSlugs) => {
+        set({ translationSlugs });
+        setTranslationCookie(translationSlugs);
+      },
       toggleTranslationSlug: (slug) => {
         const { translationSlugs } = get();
         const has = translationSlugs.includes(slug);
-        set({
-          translationSlugs: has
-            ? translationSlugs.filter((s) => s !== slug)
-            : [...translationSlugs, slug],
-        });
+        const next = has
+          ? translationSlugs.filter((s) => s !== slug)
+          : [...translationSlugs, slug];
+        set({ translationSlugs: next });
+        setTranslationCookie(next);
       },
 
       setTafsirSlug: (tafsirSlug) => set({ tafsirSlug }),
@@ -197,6 +214,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
       setReadingGoal: (readingGoal) => set({ readingGoal }),
       setUiLocale: (uiLocale) => set({ uiLocale }),
+      setExperienceMode: (experienceMode) => set({ experienceMode }),
       toggleLearningDay: (planSlug, day) => {
         const current = get().learningProgress[planSlug] ?? [];
         const has = current.includes(day);

@@ -13,7 +13,6 @@ import {
   Share2,
   GraduationCap,
   MessageCircle,
-  ChevronRight,
   MoreHorizontal,
   Pencil,
   X,
@@ -23,6 +22,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
 import { audioApi, type AyahWithRelations } from '@/lib/api';
+import { loadWordTimings } from '@/lib/loadWordTimings';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { VerseResourcePanel, type VerseResource } from './VerseResourcePanel';
 import { HadithModal } from './HadithModal';
@@ -62,14 +62,17 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     setReciterSlug,
   } = useSettingsStore();
   const showTranslation = useSettingsStore((s) => s.showTranslation);
+  const readerViewMode = useSettingsStore((s) => s.readerViewMode);
   const { add: addBookmark, remove: removeBookmark, isBookmarked, get: getBookmark, updateNote } = useBookmarksStore();
-  const { pinned, pin, unpin, isPinned } = useComparePinStore();
+  const { pins, pin, unpin, isPinned } = useComparePinStore();
+  const pinned = pins[0] ?? null;
 
   const current = getCurrentAyah();
   const isCurrent = current?.ayahId === ayah.id;
   const isPlaying = useAudioStore((s) => s.isPlaying);
   const currentTime = useAudioStore((s) => s.currentTime);
   const duration = useAudioStore((s) => s.duration);
+  const wordTimingsByAyah = useAudioStore((s) => s.wordTimingsByAyah);
   const bookmarked = isBookmarked(ayah.id);
   const versePinned = isPinned(ayah.id);
 
@@ -87,14 +90,26 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
   const [noteDraft, setNoteDraft] = useState('');
   const [copied, setCopied] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [activeWordAudio, setActiveWordAudio] = useState<number | null>(null);
+  const [selectedWordPosition, setSelectedWordPosition] = useState<number | null>(null);
   const wordAudioRef = useRef<HTMLAudioElement | null>(null);
   const wordTooltipTimerRef = useRef<number | null>(null);
+  const wordsContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => () => {
     if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
     wordAudioRef.current?.pause();
   }, []);
+
+  useEffect(() => {
+    if (selectedWordPosition == null) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!wordsContainerRef.current?.contains(event.target as Node)) {
+        setSelectedWordPosition(null);
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [selectedWordPosition]);
 
   // ── Playback ─────────────────────────────────────────────────────────────
   const handlePlay = useCallback(async () => {
@@ -124,14 +139,16 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         }));
       const idx = items.findIndex((a) => a.ayahNumber === ayah.number);
       if (idx >= 0) {
+        setContinuous(false);
         setPlaylist(items);
         useAudioStore.setState({ currentIndex: idx });
         setPlaying(true);
+        void loadWordTimings(surahNumber, activeReciter);
       }
     } catch {
       // Audio is optional; fail silently
     }
-  }, [ayah.number, isCurrent, reciterSlug, settingsReciter, surahNumber, setPlaylist, setPlaying, setReciter, setReciterSlug]);
+  }, [ayah.number, isCurrent, reciterSlug, settingsReciter, surahNumber, setContinuous, setPlaylist, setPlaying, setReciter, setReciterSlug]);
 
   // ── Bookmark ──────────────────────────────────────────────────────────────
   const handleBookmark = useCallback(() => {
@@ -219,6 +236,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       }]);
       useAudioStore.setState({ currentIndex: 0 });
       setPlaying(true);
+      void loadWordTimings(surahNumber, activeReciter);
       if (repeat) showToast('Repeating this verse');
     } catch {
       // Audio is optional
@@ -229,7 +247,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     switch (action) {
       case 'pin': {
         if (versePinned) {
-          unpin();
+          unpin(ayah.id);
           showToast('Unpinned');
         } else {
           pin({
@@ -240,7 +258,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
             textUthmani: ayah.textUthmani,
             translation: ayah.translations?.[0]?.text,
           });
-          showToast(pinned ? 'Pinned (replaces previous)' : 'Pinned for compare');
+          showToast(pins.length ? 'Pinned for compare' : 'Pinned for compare');
         }
         break;
       }
@@ -276,53 +294,222 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         setSettingsOpen(true);
         break;
     }
-  }, [ayah, pin, pinned, playCurrentVerseOnly, setShowWordByWord, showToast, showWordByWord, surahName, surahNumber, unpin, versePinned]);
+  }, [ayah, pin, pins.length, playCurrentVerseOnly, setShowWordByWord, showToast, showWordByWord, surahName, surahNumber, unpin, versePinned]);
 
   const handleWordClick = useCallback(
-    (word: NonNullable<AyahWithRelations['words']>[number]) => {
-      setActiveWordAudio(word.position);
+    async (word: NonNullable<AyahWithRelations['words']>[number]) => {
+      setSelectedWordPosition(word.position);
       if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
+
+      // Pause continuous ayah playback so word audio is clear (Quran.com behaviour).
+      if (isPlaying) {
+        useAudioStore.setState({ isPlaying: false });
+      }
+
+      const dismissMs = wordClickPlayAudio && word.audioUrl ? 4500 : 3200;
       wordTooltipTimerRef.current = window.setTimeout(() => {
-        setActiveWordAudio((current) => current === word.position ? null : current);
-      }, 3500);
+        setSelectedWordPosition((current) => (current === word.position ? null : current));
+      }, dismissMs);
 
-      if (!wordClickPlayAudio) {
-        return;
-      }
+      if (!wordClickPlayAudio) return;
 
-      if (word.audioUrl) {
-        const audio = wordAudioRef.current;
-        if (!audio) return;
+      const audio = wordAudioRef.current;
+      const url =
+        word.audioUrl ||
+        `https://audio.qurancdn.com/wbw/${String(surahNumber).padStart(3, '0')}_${String(ayah.number).padStart(3, '0')}_${String(word.position).padStart(3, '0')}.mp3`;
+
+      if (!audio || !url) return;
+
+      try {
         audio.pause();
-        audio.src = word.audioUrl;
         audio.currentTime = 0;
-        void audio.play().catch(() => undefined);
-        return;
-      }
-
-      const wordCount = ayah.words?.length ?? 0;
-      void handlePlay();
-      window.setTimeout(() => {
-        const el = document.querySelector('audio');
-        if (el && el.duration > 0 && wordCount > 0) {
-          el.currentTime = ((word.position - 1) / wordCount) * el.duration;
+        if (audio.src !== url) {
+          audio.src = url;
+          audio.load();
         }
-      }, 250);
+        await audio.play();
+      } catch {
+        // Autoplay / network failures should not break the tooltip UX.
+      }
     },
-    [ayah.words?.length, handlePlay, wordClickPlayAudio]
+    [ayah.number, isPlaying, surahNumber, wordClickPlayAudio]
   );
 
-  const activeWordPosition =
-    isCurrent && isPlaying && duration > 0 && ayah.words?.length
-      ? Math.min(
-          ayah.words.length,
-          Math.max(1, Math.floor((currentTime / duration) * ayah.words.length) + 1)
-        )
-      : null;
+  const playingWordPosition = (() => {
+    if (!isCurrent || !isPlaying || !ayah.words?.length) return null;
+
+    const timed = wordTimingsByAyah?.[ayah.number];
+    if (timed?.length) {
+      const ms = currentTime * 1000;
+      const hit = timed.find((w) => ms >= w.startMs && ms < w.endMs);
+      if (hit) return hit.position;
+      const previous = [...timed].reverse().find((w) => ms >= w.startMs);
+      return previous?.position ?? timed[0].position;
+    }
+
+    if (duration > 0) {
+      return Math.min(
+        ayah.words.length,
+        Math.max(1, Math.floor((currentTime / duration) * ayah.words.length) + 1),
+      );
+    }
+    return null;
+  })();
+
+  // Keep the recited word in view horizontally without fighting ayah auto-scroll.
+  useEffect(() => {
+    if (playingWordPosition == null || !wordsContainerRef.current) return;
+    const el = wordsContainerRef.current.querySelector<HTMLElement>(
+      `[data-word-position="${playingWordPosition}"]`,
+    );
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const viewTop = 130;
+    const viewBottom = window.innerHeight - 96;
+    // Only nudge if the active word is clipped out of the reading band.
+    if (rect.top < viewTop || rect.bottom > viewBottom) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }, [playingWordPosition]);
 
   const fontSizeClass = { sm: 'text-xl', md: 'text-2xl', lg: 'text-3xl', xl: 'text-4xl' }[fontSize];
   const translationSizeClass = { sm: 'text-sm', md: 'text-[15px]', lg: 'text-lg', xl: 'text-xl' }[translationFontSize];
   const wordSizeClass = { sm: 'text-[10px]', md: 'text-xs', lg: 'text-sm', xl: 'text-base' }[wordByWordFontSize];
+
+  const arabicTextNode = ayah.words && ayah.words.length > 0 ? (
+    <div
+      ref={wordsContainerRef}
+      className={cn(
+        'min-w-0 max-w-full leading-[2.2]',
+        readerViewMode === 'arabic' ? 'inline text-center' : 'w-full text-right'
+      )}
+      dir="rtl"
+      lang="ar"
+    >
+      {ayah.words.map((word) => {
+        const isSelected = selectedWordPosition === word.position;
+        const isPlayingWord = playingWordPosition === word.position;
+        const meaning = word.translations?.[wordByWordLocale] || word.translation || word.translations?.en;
+        const rtlMeaning = ['ar', 'ur', 'fa', 'ps'].includes(wordByWordLocale);
+        const showInlineTranslation = readerViewMode === 'verse' && showWordByWord && wordByWordDisplay === 'inline' && wordByWordShowTranslation && meaning;
+        const showInlineTransliteration = readerViewMode === 'verse' && showWordByWord && wordByWordDisplay === 'inline' && wordByWordShowTransliteration && word.transliteration;
+        const showClickPopover = readerViewMode === 'verse' && isSelected && (meaning || word.transliteration);
+
+        return (
+          <button
+            key={word.id}
+            type="button"
+            data-word-position={word.position}
+            data-playing-word={isPlayingWord ? 'true' : undefined}
+            onClick={(event) => { event.stopPropagation(); void handleWordClick(word); }}
+            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); void handleWordClick(word); } }}
+            className={cn(
+              'relative mx-[1px] my-0.5 touch-manipulation select-none rounded-md border border-transparent bg-transparent transition-colors duration-150',
+              readerViewMode === 'arabic'
+                ? 'inline px-0.5 align-baseline'
+                : 'inline-flex flex-col items-center justify-center align-middle',
+              readerViewMode === 'verse' && showWordByWord ? 'min-w-[3.25rem] px-1.5 py-1' : readerViewMode !== 'arabic' && 'px-1 py-0.5',
+              isSelected
+                ? 'text-[var(--accent)]'
+                : isPlayingWord
+                  ? 'word-reciting text-[var(--accent)]'
+                  : 'text-[var(--fg)] hover:bg-[var(--ayah-highlight)]'
+            )}
+            aria-label={`Word ${word.position}${meaning ? `: ${meaning}` : ''}`}
+            aria-pressed={isSelected || isPlayingWord}
+            aria-current={isPlayingWord ? 'true' : undefined}
+          >
+            <span className={cn('font-arabic leading-loose', fontSizeClass)}>
+              {word.textUthmani || word.textArabic}
+            </span>
+            {showInlineTranslation && (
+              <span dir={rtlMeaning ? 'rtl' : 'ltr'} className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-500', wordSizeClass)}>
+                {meaning}
+              </span>
+            )}
+            {showInlineTransliteration && (
+              <span dir="ltr" className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-400', wordSizeClass)}>
+                {word.transliteration}
+              </span>
+            )}
+            {showClickPopover && (
+              <span className="absolute bottom-full left-1/2 z-20 mb-2 flex w-max max-w-[12rem] -translate-x-1/2 flex-col items-center gap-0.5 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg">
+                {meaning && (
+                  <span dir={rtlMeaning ? 'rtl' : 'ltr'} className="w-full text-center">
+                    {meaning}
+                  </span>
+                )}
+                {word.transliteration && (
+                  <span dir="ltr" className="w-full text-center text-xs font-normal text-white/85">
+                    {word.transliteration}
+                  </span>
+                )}
+              </span>
+            )}
+          </button>
+        );
+      })}
+      {readerViewMode === 'arabic' && (
+        <span className="ayah-verse-marker" aria-label={`Verse ${ayah.number}`}>
+          {ayah.number}
+        </span>
+      )}
+    </div>
+  ) : mushafType === 'simple' && ayah.textTajweed ? (
+    <span
+      className={cn(
+        'tajweed-text font-arabic ayah-arabic leading-loose text-[var(--fg)]',
+        fontSizeClass,
+        !showTajweedRules && 'tajweed-disabled',
+        readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right'
+      )}
+      lang="ar"
+      dir="rtl"
+      dangerouslySetInnerHTML={{ __html: ayah.textTajweed }}
+    />
+  ) : (
+    <span
+      className={cn(
+        'font-arabic ayah-arabic leading-loose text-[var(--fg)]',
+        fontSizeClass,
+        readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right'
+      )}
+      lang="ar"
+      dir="rtl"
+    >
+      {ayah.textUthmani}
+      {readerViewMode === 'arabic' && (
+        <span className="ayah-verse-marker" aria-label={`Verse ${ayah.number}`}>
+          {ayah.number}
+        </span>
+      )}
+    </span>
+  );
+
+  const translationBody = ayah.translations && ayah.translations.length > 0 ? (
+    <div className="space-y-3">
+      {ayah.translations.map((t) => {
+        const rtl = /^(ur|fa|ar|ps|sd)-/.test(t.translatorSlug) || t.translatorSlug.includes('bayan-ul-quran');
+        return (
+          <div key={t.translatorId} className="min-w-0 max-w-full" dir={rtl ? 'rtl' : 'ltr'}>
+            <p className={cn('max-w-full break-words leading-7 text-slate-700 [overflow-wrap:anywhere]', rtl && 'text-right', translationSizeClass)}>
+              {readerViewMode === 'translation' && (
+                <span className="me-1.5 font-semibold text-slate-900">{ayah.number}.</span>
+              )}
+              {t.text}
+            </p>
+            {readerViewMode === 'verse' && (
+              <p className={cn('mt-1 max-w-full break-words text-[10px] text-slate-400', rtl && 'text-right')}>
+                — {t.translatorName || t.translatorSlug.replaceAll('-', ' ')}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <p className="text-sm text-slate-400">Select a translation to read the meaning.</p>
+  );
 
   return (
     <>
@@ -332,268 +519,171 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         data-ayah-id={ayah.id}
         data-surah={surahNumber}
         data-ayah-number={ayah.number}
+        onClick={readerViewMode !== 'verse' ? () => void handlePlay() : undefined}
         className={cn(
-          'group relative py-9 transition-colors duration-200 lg:py-12',
-          isCurrent && 'ayah-current rounded-xl px-4 -mx-4',
-          versePinned && 'ring-1 ring-[var(--accent)]/30 bg-[var(--accent)]/[0.03] rounded-xl px-4 -mx-4'
+          'group relative transition-colors duration-200',
+          readerViewMode === 'verse' && 'py-9 lg:py-12',
+          readerViewMode === 'arabic' && 'inline',
+          readerViewMode === 'translation' && 'rounded-md px-2 py-2 sm:px-3',
+          readerViewMode === 'verse' && isCurrent && 'ayah-current rounded-xl px-4 -mx-4',
+          readerViewMode === 'translation' && isCurrent && 'ayah-current-teal',
+          readerViewMode === 'arabic' && isCurrent && 'ayah-current-arabic',
+          versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30 bg-[var(--accent)]/[0.03] rounded-xl px-4 -mx-4',
+          readerViewMode !== 'verse' && 'cursor-pointer'
         )}
       >
-        {pinned && versePinned && (
+        {pinned && versePinned && readerViewMode !== 'arabic' && (
           <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent)]">
             <span>Pinned for compare</span>
-            <button type="button" onClick={() => unpin()} className="font-medium underline-offset-2 hover:underline">Unpin</button>
+            <button type="button" onClick={() => unpin(ayah.id)} className="font-medium underline-offset-2 hover:underline">Unpin</button>
           </div>
         )}
-        {pinned && !versePinned && (
+        {pinned && !versePinned && readerViewMode !== 'arabic' && (
           <div className="mb-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
             Comparing with {pinned.surahName} {pinned.surahNumber}:{pinned.ayahNumber}
           </div>
         )}
 
-        {/* ── Top action row ─────────────────────────────────────────────── */}
-        <div className="mb-5 flex items-center justify-between gap-2">
-          {/* Left: verse ref + primary actions */}
-          <div className="flex items-center gap-2">
-            {/* Verse reference badge */}
-            <span className="flex h-8 min-w-[3.25rem] items-center justify-center text-base font-medium tabular-nums text-slate-400">
-              {surahNumber}:{ayah.number}
-            </span>
-
-            {/* Play button — always visible */}
-            <button
-              type="button"
-              onClick={handlePlay}
-              aria-label={isCurrent && isPlaying ? 'Pause verse' : `Play verse ${ayah.number}`}
-              aria-pressed={isCurrent}
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                isCurrent
-                  ? 'bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)]/25'
-                  : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]'
-              )}
-            >
-              {isCurrent && isPlaying
-                ? <Pause className="h-4 w-4" />
-                : <Play className="h-4 w-4" />}
-            </button>
-
-            {/* Bookmark button — always visible */}
-            <button
-              type="button"
-              onClick={handleBookmark}
-              aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark verse'}
-              aria-pressed={bookmarked}
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                bookmarked
-                  ? 'text-[var(--accent)] hover:bg-[var(--accent)]/10'
-                  : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]'
-              )}
-            >
-              {bookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
-            </button>
-
-            {/* Playing animation */}
-            {isCurrent && isPlaying && (
-              <div className="flex items-center gap-0.5">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="h-3 w-0.5 animate-bounce rounded-full bg-[var(--accent)]"
-                    style={{ animationDelay: `${i * 100}ms` }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Right: secondary actions — hover reveal on desktop */}
-          <div
-            className="relative flex items-center gap-1 text-slate-400"
-            role="toolbar"
-            aria-label={`More actions for verse ${ayah.number}`}
-          >
-            {(ayah.juz || ayah.page) && (
-              <div className="mr-1 hidden items-center gap-1.5 sm:flex">
-                {ayah.juz && (
-                  <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
-                    Juz {ayah.juz}
-                  </span>
-                )}
-                {ayah.page && (
-                  <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
-                    P.{ayah.page}
-                  </span>
-                )}
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleCopy}
-              aria-label={copied ? 'Copied!' : 'Copy verse'}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-            </button>
-            <button
-              type="button"
-              onClick={handleShare}
-              aria-label="Share verse"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenNote}
-              aria-label="Add note"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setMoreOpen((value) => !value)}
-              aria-label="More verse options"
-              aria-expanded={moreOpen}
-              className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]',
-                moreOpen ? 'bg-[var(--ayah-highlight)] text-[var(--fg)]' : 'text-[var(--muted)]'
-              )}
-            >
-              <MoreHorizontal className="h-3.5 w-3.5" />
-            </button>
-            <VerseMoreMenu
-              open={moreOpen}
-              onOpenChange={setMoreOpen}
-              onAction={(action) => void handleMoreAction(action)}
-              wordByWordEnabled={showWordByWord}
-              pinned={versePinned}
-            />
-          </div>
-        </div>
-
-        <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-14">
-          {/* ── Translations ─────────────────────────────────────────────── */}
-          <div className="order-2 flex min-h-20 min-w-0 max-w-full flex-col justify-center overflow-hidden lg:order-1">
-            {showTranslation && hasTranslations && ayah.translations && ayah.translations.length > 0 ? (
-              <div className="space-y-4">
-                {ayah.translations.map((t) => {
-                  const rtl = /^(ur|fa|ar|ps|sd)-/.test(t.translatorSlug) || t.translatorSlug.includes('bayan-ul-quran');
-                  return <div key={t.translatorId} className="min-w-0 max-w-full" dir={rtl ? 'rtl' : 'ltr'}>
-                    <p className={cn('max-w-full break-words leading-7 text-slate-700 [overflow-wrap:anywhere]', rtl && 'text-right', translationSizeClass)}>{t.text}</p>
-                    <p className={cn('mt-1 max-w-full break-words text-[10px] text-slate-400', rtl && 'text-right')}>— {t.translatorName || t.translatorSlug.replaceAll('-', ' ')}</p>
-                  </div>
-                })}
-              </div>
-            ) : (
-              <p className="hidden text-sm text-slate-400 lg:block">Select a translation to read the meaning.</p>
-            )}
-          </div>
-
-          {/* ── Arabic text ──────────────────────────────────────────────── */}
-          <div className="order-1 flex min-h-20 min-w-0 max-w-full items-center justify-end overflow-visible text-right lg:order-2">
-          {showWordByWord && ayah.words && ayah.words.length > 0 ? (
-          <div className="flex w-full min-w-0 max-w-full flex-row-reverse flex-wrap justify-start gap-x-2 gap-y-3" dir="rtl">
-            {ayah.words.map((word) => {
-              const isActiveWord = activeWordAudio === word.position || activeWordPosition === word.position;
-              return (
+        {readerViewMode === 'verse' ? (
+          <>
+            <div className="mb-5 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 min-w-[3.25rem] items-center justify-center text-base font-medium tabular-nums text-slate-400">
+                  {surahNumber}:{ayah.number}
+                </span>
                 <button
-                  key={word.id}
                   type="button"
-                  onClick={(event) => { event.stopPropagation(); handleWordClick(word); }}
-                  onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); void handleWordClick(word); } }}
-                  title={wordByWordDisplay === 'tooltip' && wordByWordShowTranslation ? (word.translations?.[wordByWordLocale] || word.translation) : undefined}
+                  onClick={handlePlay}
+                  aria-label={isCurrent && isPlaying ? 'Pause verse' : `Play verse ${ayah.number}`}
+                  aria-pressed={isCurrent}
                   className={cn(
-                    'group/word relative flex min-h-[5rem] min-w-[4.25rem] touch-manipulation select-none flex-col items-center justify-center rounded-lg border border-transparent px-2 py-2 text-center transition-colors',
-                    isActiveWord
-                      ? 'text-[var(--accent)]'
-                      : 'hover:border-[var(--border)] hover:bg-[var(--ayah-highlight)]'
+                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                    isCurrent
+                      ? 'bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)]/25'
+                      : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]'
                   )}
-                  aria-label={`Play from word ${word.position}`}
                 >
-                  <span className={cn('font-arabic leading-loose transition-colors', isActiveWord ? 'text-[var(--accent)]' : 'text-[var(--fg)]', fontSizeClass)}>
-                    {word.textUthmani || word.textArabic}
-                  </span>
-                  {(() => {
-                    const meaning = word.translations?.[wordByWordLocale] || word.translation;
-                    const rtlMeaning = ['ar', 'ur', 'fa', 'ps'].includes(wordByWordLocale);
-                    return <>
-                      {meaning && wordByWordShowTranslation && wordByWordDisplay === 'inline' && <span className={cn('mt-1 max-w-28 leading-snug text-[var(--muted)]', wordSizeClass)} dir={rtlMeaning ? 'rtl' : 'ltr'}>{meaning}</span>}
-                      {word.transliteration && wordByWordShowTransliteration && wordByWordDisplay === 'inline' && <span className={cn('mt-0.5 max-w-28 leading-snug text-[var(--accent)]', wordSizeClass)} dir="ltr">{word.transliteration}</span>}
-                      {isActiveWord && wordByWordDisplay === 'tooltip' && (meaning || word.transliteration) && (
-                        <span
-                          className="absolute bottom-full left-1/2 z-20 mb-3 flex w-max max-w-[min(15rem,calc(100vw-2rem))] -translate-x-1/2 items-center gap-1 whitespace-normal break-words rounded-lg bg-[var(--accent)] px-4 py-2.5 text-base font-medium leading-snug text-white shadow-lg ring-[3px] ring-slate-900 after:absolute after:left-1/2 after:top-full after:-translate-x-1/2 after:border-x-[9px] after:border-t-[10px] after:border-x-transparent after:border-t-[var(--accent)] after:content-[''] [overflow-wrap:anywhere]"
-                          dir={rtlMeaning ? 'rtl' : 'ltr'}
-                        >
-                          <span>
-                            {wordByWordShowTranslation && meaning}
-                            {wordByWordShowTranslation && meaning && wordByWordShowTransliteration && word.transliteration ? <br /> : null}
-                            {wordByWordShowTransliteration && word.transliteration}
-                          </span>
-                          <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />
-                        </span>
-                      )}
-                    </>;
-                  })()}
+                  {isCurrent && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </button>
-              );
-            })}
-          </div>
-        ) : mushafType === 'simple' && ayah.textTajweed ? (
-          <p
-            className={cn('tajweed-text font-arabic ayah-arabic leading-loose text-[var(--fg)]', fontSizeClass, !showTajweedRules && 'tajweed-disabled')}
-            lang="ar"
-            dir="rtl"
-            dangerouslySetInnerHTML={{ __html: ayah.textTajweed }}
-          />
-        ) : (
-          <p
-            className={cn('font-arabic ayah-arabic leading-loose text-[var(--fg)]', fontSizeClass)}
-            lang="ar"
-            dir="rtl"
-          >
-            {ayah.textUthmani}
-          </p>
-          )}
-          </div>
-        </div>
+                <button
+                  type="button"
+                  onClick={handleBookmark}
+                  aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark verse'}
+                  aria-pressed={bookmarked}
+                  className={cn(
+                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                    bookmarked
+                      ? 'text-[var(--accent)] hover:bg-[var(--accent)]/10'
+                      : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]'
+                  )}
+                >
+                  {bookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                </button>
+                {isCurrent && isPlaying && (
+                  <div className="flex items-center gap-0.5">
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="h-3 w-0.5 animate-bounce rounded-full bg-[var(--accent)]"
+                        style={{ animationDelay: `${i * 100}ms` }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div
+                className="relative flex items-center gap-1 text-slate-400"
+                role="toolbar"
+                aria-label={`More actions for verse ${ayah.number}`}
+              >
+                {(ayah.juz || ayah.page) && (
+                  <div className="mr-1 hidden items-center gap-1.5 sm:flex">
+                    {ayah.juz && (
+                      <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
+                        Juz {ayah.juz}
+                      </span>
+                    )}
+                    {ayah.page && (
+                      <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
+                        P.{ayah.page}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  aria-label={copied ? 'Copied!' : 'Copy verse'}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  aria-label="Share verse"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((v) => !v)}
+                  aria-label="More verse options"
+                  aria-expanded={moreOpen}
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]',
+                    moreOpen ? 'bg-[var(--ayah-highlight)] text-[var(--fg)]' : 'text-[var(--muted)]'
+                  )}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </button>
+                <VerseMoreMenu
+                  open={moreOpen}
+                  onOpenChange={setMoreOpen}
+                  onAction={(action) => void handleMoreAction(action)}
+                  wordByWordEnabled={showWordByWord}
+                  pinned={versePinned}
+                />
+              </div>
+            </div>
 
-        {/* ── Bottom row: always-visible secondary info ───────────────────── */}
-        <div className="mt-9 flex items-center gap-4 overflow-x-auto pb-1 text-slate-400 sm:gap-5">
-          <button
-            type="button"
-            onClick={() => setTafsirStudyOpen(true)}
-            className="flex shrink-0 items-center gap-2 text-sm transition-colors hover:text-[var(--accent)]"
-          >
-            <BookOpen className="h-4 w-4" />
-            Tafsirs
-          </button>
-          <span className="h-5 w-px shrink-0 bg-slate-200" />
-          <button type="button" onClick={() => setLessonsStudyOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><GraduationCap className="h-4 w-4" />Lessons</button>
-          <span className="h-5 w-px shrink-0 bg-slate-200" />
-          <button type="button" onClick={() => setResourceOpen('reflections')} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><MessageCircle className="h-4 w-4" />Reflections</button>
-          <span className="h-5 w-px shrink-0 bg-slate-200" />
-          <button type="button" onClick={() => setHadithOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><BookMarked className="h-4 w-4" />Hadith</button>
-          <span className="h-5 w-px shrink-0 bg-slate-200" />
-          <button type="button" onClick={() => setRelatedContentOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><Copy className="h-4 w-4" />Related Content</button>
+            <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-14">
+              <div className="order-2 flex min-h-20 min-w-0 max-w-full flex-col justify-center overflow-hidden lg:order-1">
+                {showTranslation && hasTranslations ? translationBody : (
+                  <p className="hidden text-sm text-slate-400 lg:block">Select a translation to read the meaning.</p>
+                )}
+              </div>
+              <div className="order-1 flex min-h-20 min-w-0 max-w-full items-center justify-end overflow-visible lg:order-2">
+                {arabicTextNode}
+              </div>
+            </div>
 
-          {/* Mobile: metadata shown inline here */}
-          {(ayah.juz || ayah.page) && (
-            <div className="ml-auto flex items-center gap-1.5 sm:hidden">
-              {ayah.juz && (
-                <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
-                  Juz {ayah.juz}
-                </span>
-              )}
-              {ayah.page && (
-                <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
-                  P.{ayah.page}
-                </span>
+            <div className="mt-9 flex items-center gap-3 overflow-x-auto pb-1 text-slate-400 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-5 [&::-webkit-scrollbar]:hidden">
+              <button type="button" onClick={() => setTafsirStudyOpen(true)} className="flex shrink-0 items-center gap-2 text-sm transition-colors hover:text-[var(--accent)]">
+                <BookOpen className="h-4 w-4" /> Tafsirs
+              </button>
+              <span className="h-5 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setLessonsStudyOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><GraduationCap className="h-4 w-4" />Lessons</button>
+              <span className="h-5 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setResourceOpen('reflections')} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><MessageCircle className="h-4 w-4" />Reflections</button>
+              <span className="h-5 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setHadithOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><BookMarked className="h-4 w-4" />Hadith</button>
+              <span className="h-5 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setRelatedContentOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><Copy className="h-4 w-4" />Related Content</button>
+              {(ayah.juz || ayah.page) && (
+                <div className="ml-auto flex items-center gap-1.5 sm:hidden">
+                  {ayah.juz && <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">Juz {ayah.juz}</span>}
+                  {ayah.page && <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">P.{ayah.page}</span>}
+                </div>
               )}
             </div>
-          )}
-        </div>
+          </>
+        ) : readerViewMode === 'arabic' ? (
+          arabicTextNode
+        ) : (
+          <div className="mx-auto max-w-3xl">{translationBody}</div>
+        )}
       </article>
 
       {resourceOpen && <VerseResourcePanel open={Boolean(resourceOpen)} onOpenChange={(value) => { if (!value) setResourceOpen(null); }} resource={resourceOpen} ayahId={ayah.id} surahNumber={surahNumber} surahName={surahName || `Surah ${surahNumber}`} ayahNumber={ayah.number} />}

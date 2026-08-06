@@ -32,7 +32,10 @@ function fallbackSurahs(): Surah[] {
 
 export default async function HomePage() {
   const surahs = await quranApi.surahs().catch(() => [] as Surah[]);
-  const list = Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs();
+  const list = (Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs()).map((surah) => ({
+    ...surah,
+    nameArabic: SURAH_ARABIC[surah.number] || surah.nameArabic,
+  }));
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f7f7f7] text-slate-800">

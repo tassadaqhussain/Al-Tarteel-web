@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { Bookmark, ChevronRight, Sparkles, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { getSurahMeta } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeta } from '@/lib/surah-meta';
 
 const DEFAULT_CONTINUE = {
   surahNumber: 1,
   surahName: 'Al-Fatihah',
-  surahNameArabic: 'الفاتحة',
+  surahNameArabic: 'الْفَاتِحَةُ',
   meaning: 'The Opening',
   ayahNumber: 1,
 };
@@ -21,7 +21,7 @@ export function ContinueReading() {
 
   const surahNumber = lastRead?.surahNumber ?? DEFAULT_CONTINUE.surahNumber;
   const surahName = lastRead?.surahName ?? meta.nameSimple;
-  const arabic = lastRead?.surahNameArabic || meta.nameArabic || DEFAULT_CONTINUE.surahNameArabic;
+  const arabic = getSurahArabicName(surahNumber, lastRead?.surahNameArabic || meta.nameArabic);
   const meaning = meta.meaning || DEFAULT_CONTINUE.meaning;
   const ayahNumber = lastRead?.ayahNumber ?? DEFAULT_CONTINUE.ayahNumber;
 

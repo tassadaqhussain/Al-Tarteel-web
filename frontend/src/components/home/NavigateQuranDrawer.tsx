@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import { ChevronUp, Search, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { quranApi, type Surah } from '@/lib/api';
 import { SURAH_ARABIC, SURAH_MEANINGS } from '@/lib/surah-meta';
@@ -43,7 +43,7 @@ const COMMON_NAMES: Record<number, string> = {
   18: 'Al-Kahf',
   19: 'Maryam',
   20: 'Ta-Ha',
-  21: "Al-Anbya",
+  21: 'Al-Anbya',
   22: 'Al-Hajj',
   23: "Al-Mu'minun",
   24: 'An-Nur',
@@ -156,9 +156,17 @@ const FALLBACK_SURAHS: Surah[] = Array.from({ length: 114 }, (_, i) => {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Highlight the currently open surah when known. */
+  currentSurahNumber?: number;
+  currentSurahName?: string;
 }
 
-export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
+export function NavigateQuranDrawer({
+  open,
+  onOpenChange,
+  currentSurahNumber,
+  currentSurahName,
+}: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<NavTab>('surah');
   const [filter, setFilter] = useState('');
@@ -187,6 +195,16 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
     }
   }, [open]);
 
+  const titleSurah =
+    (currentSurahNumber
+      ? surahs.find((s) => s.number === currentSurahNumber) ||
+        FALLBACK_SURAHS.find((s) => s.number === currentSurahNumber)
+      : null) ?? null;
+
+  const heading = titleSurah
+    ? `${titleSurah.number}. ${currentSurahName || titleSurah.nameSimple}`
+    : 'Navigate Quran';
+
   const filteredSurahs = useMemo(() => {
     const q = filter.trim().toLowerCase();
     if (!q) return surahs;
@@ -210,7 +228,7 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
 
   const filteredPages = useMemo(() => {
     const q = filter.trim();
-    if (!q) return Array.from({ length: 30 }, (_, i) => i + 1);
+    if (!q) return Array.from({ length: 40 }, (_, i) => i + 1);
     const n = parseInt(q, 10);
     if (!Number.isNaN(n) && n >= 1 && n <= 604) return [n];
     return Array.from({ length: 604 }, (_, i) => i + 1)
@@ -223,9 +241,11 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
     const match = raw.match(/^(\d+)[:.:](\d+)$/) || raw.match(/^(\d+)$/);
     if (!match) return;
     const surah = parseInt(match[1], 10);
+    const ayah = match[2] ? parseInt(match[2], 10) : 1;
     if (surah < 1 || surah > 114) return;
     onOpenChange(false);
-    router.push(`/surah/${surah}`);
+    const page = Math.max(1, Math.ceil(ayah / 20));
+    router.push(page > 1 ? `/surah/${surah}?page=${page}` : `/surah/${surah}`);
   };
 
   const placeholder =
@@ -234,19 +254,31 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
       : tab === 'juz'
         ? 'Search Juz'
         : tab === 'page'
-          ? 'Search Page (1–604)'
+          ? 'Search Page'
           : 'e.g. 2:255 or 36:1';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="flex w-full max-w-[360px] flex-col gap-0 border-r border-slate-200 bg-white p-0 text-slate-800 [&>button]:hidden sm:max-w-[380px]"
+        className="flex w-full max-w-[400px] flex-col gap-0 border-r border-slate-200 bg-white p-0 text-slate-900 [&>button]:hidden sm:max-w-[420px]"
       >
-        <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-5">
-          <div className="min-w-0 flex-1">
-            <SheetTitle className="font-serif text-xl font-bold text-slate-900">QuranPilot</SheetTitle>
-            <div className="mt-4 flex flex-wrap gap-1.5">
+        <div className="px-5 pb-2 pt-5">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="flex w-full items-center gap-2 text-left"
+          >
+            <SheetTitle className="text-xl font-semibold tracking-tight text-slate-900">
+              {heading}
+            </SheetTitle>
+            <ChevronUp className="h-5 w-5 text-slate-500" />
+          </button>
+        </div>
+
+        <div className="px-5 pb-4">
+          <div className="flex items-center gap-2 rounded-full bg-slate-100 p-1">
+            <div className="grid min-w-0 flex-1 grid-cols-4">
               {TABS.map((t) => (
                 <button
                   key={t.id}
@@ -256,31 +288,31 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
                     setFilter('');
                   }}
                   className={cn(
-                    'rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
+                    'rounded-full px-2 py-2 text-sm font-medium transition',
                     tab === t.id
-                      ? 'border-slate-800 bg-slate-50 text-slate-900'
-                      : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-800'
                   )}
                 >
                   {t.label}
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-white hover:text-slate-800"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         <div className="px-5 pb-3">
-          <p className="mb-2 text-xs text-slate-400">
+          <p className="mb-3 text-sm italic text-slate-400">
             Tip: try navigating with{' '}
-            <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-[11px] text-slate-600">
+            <kbd className="not-italic rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-xs text-slate-600">
               ⌘ K
             </kbd>
           </p>
@@ -290,47 +322,51 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
                 e.preventDefault();
                 goVerse();
               }}
-              className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5"
             >
-              <Search className="h-4 w-4 shrink-0 text-slate-400" />
-              <input
-                value={verseInput}
-                onChange={(e) => setVerseInput(e.target.value)}
-                placeholder={placeholder}
-                className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none"
-                autoFocus
-              />
+              <div className="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-3">
+                <Search className="h-4 w-4 shrink-0 text-slate-400" />
+                <input
+                  value={verseInput}
+                  onChange={(e) => setVerseInput(e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full bg-transparent text-base text-slate-800 placeholder:text-slate-400 outline-none"
+                  autoFocus
+                />
+              </div>
             </form>
           ) : (
-            <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5">
+            <div className="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-3">
               <Search className="h-4 w-4 shrink-0 text-slate-400" />
               <input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={placeholder}
-                className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+                className="w-full bg-transparent text-base text-slate-800 placeholder:text-slate-400 outline-none"
                 autoFocus
               />
             </div>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-8 [scrollbar-color:#d1d5db_transparent] [scrollbar-width:thin]">
           {tab === 'surah' &&
-            filteredSurahs.map((s) => (
-              <Link
-                key={s.number}
-                href={`/surah/${s.number}`}
-                onClick={() => onOpenChange(false)}
-                className="flex items-center gap-4 rounded-xl px-3 py-2.5 text-sm text-slate-800 transition hover:bg-slate-100"
-              >
-                <span className="w-7 shrink-0 tabular-nums text-slate-400">{s.number}</span>
-                <span className="min-w-0 flex-1 truncate font-medium">{s.nameSimple}</span>
-                <span className="font-arabic text-base text-slate-500" dir="rtl">
-                  {s.nameArabic}
-                </span>
-              </Link>
-            ))}
+            filteredSurahs.map((s) => {
+              const active = s.number === currentSurahNumber;
+              return (
+                <Link
+                  key={s.number}
+                  href={`/surah/${s.number}`}
+                  onClick={() => onOpenChange(false)}
+                  className={cn(
+                    'flex items-center gap-4 rounded-full px-4 py-3 text-[15px] transition',
+                    active ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-800 hover:bg-slate-50'
+                  )}
+                >
+                  <span className="w-7 shrink-0 tabular-nums text-slate-500">{s.number}</span>
+                  <span className="min-w-0 flex-1 truncate">{s.nameSimple}</span>
+                </Link>
+              );
+            })}
 
           {tab === 'juz' &&
             filteredJuz.map((j) => {
@@ -342,11 +378,11 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
                   key={j}
                   href={`/juz/${j}`}
                   onClick={() => onOpenChange(false)}
-                  className="flex items-center gap-4 rounded-xl px-3 py-2.5 text-sm text-slate-800 transition hover:bg-slate-100"
+                  className="flex items-center gap-4 rounded-full px-4 py-3 text-[15px] text-slate-800 transition hover:bg-slate-100"
                 >
-                  <span className="w-7 shrink-0 tabular-nums text-slate-400">{j}</span>
-                  <span className="min-w-0 flex-1 truncate font-medium">Juz {j}</span>
-                  <span className="truncate text-xs text-slate-400">{startName}</span>
+                  <span className="w-7 shrink-0 tabular-nums text-slate-500">{j}</span>
+                  <span className="min-w-0 flex-1 truncate">Juz {j}</span>
+                  <span className="truncate text-sm text-slate-400">{startName}</span>
                 </Link>
               );
             })}
@@ -357,20 +393,20 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
                 key={p}
                 href={`/juz/${Math.min(30, Math.max(1, Math.ceil((p / 604) * 30)))}`}
                 onClick={() => onOpenChange(false)}
-                className="flex items-center gap-4 rounded-xl px-3 py-2.5 text-sm text-slate-800 transition hover:bg-slate-100"
+                className="flex items-center gap-4 rounded-full px-4 py-3 text-[15px] text-slate-800 transition hover:bg-slate-100"
               >
-                <span className="w-10 shrink-0 tabular-nums text-slate-400">{p}</span>
-                <span className="font-medium">Page {p}</span>
+                <span className="w-10 shrink-0 tabular-nums text-slate-500">{p}</span>
+                <span>Page {p}</span>
               </Link>
             ))}
 
           {tab === 'verse' && (
-            <div className="px-3 py-4 text-sm text-slate-500">
+            <div className="px-3 py-2 text-sm text-slate-500">
               <p>
                 Enter a reference like <span className="font-medium text-slate-700">2:255</span> and
                 press Enter.
               </p>
-              <div className="mt-4 space-y-1">
+              <div className="mt-3 space-y-1">
                 {[
                   ['1:1', 'Al-Fatihah'],
                   ['2:255', 'Ayat al-Kursi'],
@@ -381,7 +417,7 @@ export function NavigateQuranDrawer({ open, onOpenChange }: Props) {
                     key={ref}
                     type="button"
                     onClick={() => goVerse(ref)}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition hover:bg-slate-100"
+                    className="flex w-full items-center justify-between rounded-full px-4 py-3 text-left transition hover:bg-slate-100"
                   >
                     <span className="font-medium text-slate-800">{ref}</span>
                     <span className="text-slate-500">{label}</span>

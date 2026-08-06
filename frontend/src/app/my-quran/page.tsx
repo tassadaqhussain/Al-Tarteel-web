@@ -7,7 +7,7 @@ import { ArrowLeft, Bookmark, Check, Clock, StickyNote } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { getSurahMeta } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeta } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 
 type Tab = 'saved' | 'recent' | 'notes';
@@ -99,8 +99,7 @@ export default function MyQuranPage() {
                     <p className="text-sm text-slate-500">Verse {lastRead.ayahNumber}</p>
                   </div>
                   <span className="font-arabic text-3xl text-slate-700" dir="rtl" lang="ar">
-                    {lastRead.surahNameArabic ||
-                      getSurahMeta(lastRead.surahNumber).nameArabic}
+                    {getSurahArabicName(lastRead.surahNumber, lastRead.surahNameArabic)}
                   </span>
                 </Link>
               ) : (

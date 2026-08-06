@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useReciterPicker } from '@/hooks/useReciterPicker';
+import { ReciterSheet } from '@/components/reader/ReciterSheet';
 import { cn } from '@/lib/utils';
 
 export function AudioBar() {
@@ -38,11 +39,8 @@ export function AudioBar() {
   const hasPlaylist = playlist.length > 0;
 
   const {
-    reciters,
     reciterOpen,
     setReciterOpen,
-    reciterLoading,
-    reciterRef,
     activeReciter,
     activeReciterName,
     changeReciter,
@@ -92,9 +90,9 @@ export function AudioBar() {
         />
       </div>
 
-      <div className="mx-auto max-w-4xl px-4">
+      <div className="mx-auto max-w-4xl px-3 sm:px-4">
         {/* Main row */}
-        <div className="flex items-center gap-3 py-3">
+        <div className="flex items-center gap-2 py-2.5 sm:gap-3 sm:py-3">
           <button
             type="button"
             onClick={prev}
@@ -173,42 +171,21 @@ export function AudioBar() {
             </select>
 
             {/* Reciter selector */}
-            <div className="relative" ref={reciterRef}>
-              <button
-                type="button"
-                onClick={() => setReciterOpen((v) => !v)}
-                className="flex max-w-[140px] items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--fg)] hover:border-[var(--accent)] transition-colors"
-                aria-label="Change reciter"
-              >
-                <Mic2 className="h-3 w-3 shrink-0 text-[var(--muted)]" />
-                <span className="truncate">{activeReciterName}</span>
-              </button>
-
-              {reciterOpen && (
-                <div className="absolute bottom-full right-0 mb-2 max-h-64 w-64 overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl">
-                  {reciterLoading ? (
-                    <div className="p-4 text-center text-sm text-[var(--muted)]">Loading…</div>
-                  ) : (
-                    reciters.map((r) => (
-                      <button
-                        key={r.slug}
-                        type="button"
-                        onClick={() => changeReciter(r.slug)}
-                        className={cn(
-                          'flex w-full flex-col px-4 py-2.5 text-left text-sm transition-colors hover:bg-[var(--ayah-highlight)]',
-                          r.slug === activeReciter && 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                        )}
-                      >
-                        <span className="font-medium">{r.name}</span>
-                        {r.style && (
-                          <span className="text-xs text-[var(--muted)] capitalize">{r.style}</span>
-                        )}
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setReciterOpen(true)}
+              className="flex max-w-[160px] items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--fg)] hover:border-[var(--accent)] transition-colors"
+              aria-label="Change reciter"
+            >
+              <Mic2 className="h-3 w-3 shrink-0 text-[var(--muted)]" />
+              <span className="truncate">{activeReciterName}</span>
+            </button>
+            <ReciterSheet
+              open={reciterOpen}
+              onOpenChange={setReciterOpen}
+              selectedSlug={activeReciter}
+              onSelect={(slug) => { void changeReciter(slug); }}
+            />
 
             <button
               type="button"
@@ -250,16 +227,14 @@ export function AudioBar() {
               ))}
             </select>
 
-            <select
-              value={activeReciter ?? ''}
-              onChange={(e) => changeReciter(e.target.value)}
-              className="flex-1 rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-xs text-[var(--fg)]"
+            <button
+              type="button"
+              onClick={() => setReciterOpen(true)}
+              className="flex-1 truncate rounded-lg border border-[var(--border)] px-2 py-1.5 text-left text-xs text-[var(--fg)]"
               aria-label="Reciter"
             >
-              {reciters.map((r) => (
-                <option key={r.slug} value={r.slug}>{r.name}</option>
-              ))}
-            </select>
+              {activeReciterName}
+            </button>
 
             <button
               type="button"

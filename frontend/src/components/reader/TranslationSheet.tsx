@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, Check, Info, Loader2, Search, X } from 'lucide-react';
 import {
   Sheet,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { quranApi, type Translator } from '@/lib/api';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { setTranslationCookie, DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -18,7 +19,6 @@ interface Props {
   onOpenChange: (v: boolean) => void;
 }
 
-const DEFAULT_TRANSLATION = 'en-sahih-international';
 const FALLBACK_TRANSLATORS: Translator[] = [
   { id: -1, name: 'Sahih International', languageCode: 'en', slug: DEFAULT_TRANSLATION },
 ];
@@ -35,7 +35,7 @@ const LANG_NAMES: Record<string, string> = {
   ms: 'Malay',
   ru: 'Russian',
   bn: 'Bengali',
-  ps: 'Pashto',
+  ps: 'Pashto (پښتو)',
   fa: 'Persian',
   es: 'Spanish',
   nl: 'Dutch',
@@ -48,7 +48,6 @@ function getLangName(code: string) {
 
 export function TranslationSheet({ open, onOpenChange }: Props) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { translationSlugs, setTranslationSlugs, setShowTranslation } = useSettingsStore();
 
   const [translators, setTranslators] = useState<Translator[]>(FALLBACK_TRANSLATORS);
@@ -93,23 +92,13 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
   const apply = useCallback(() => {
     const slugs = Array.from(selected);
     setTranslationSlugs(slugs);
+    setTranslationCookie(slugs);
     if (slugs.length > 0) setShowTranslation(true);
 
-    // Update URL so the server fetches the correct translations
-    const params = new URLSearchParams(searchParams.toString());
-    if (slugs.length > 0) {
-      params.set('trans', slugs.join(','));
-    } else {
-      params.delete('trans');
-    }
-    const query = params.toString();
-    const target = query ? `${pathname}?${query}` : pathname;
     onOpenChange(false);
-    // Verse data is rendered on the server. A full same-origin navigation makes
-    // the selected resource IDs take effect immediately and avoids a stale RSC
-    // payload when many translation options have recently been imported.
-    window.location.assign(target);
-  }, [selected, setTranslationSlugs, setShowTranslation, searchParams, pathname, onOpenChange]);
+    // Clean pathname only — translations live in cookie + settings
+    window.location.assign(pathname);
+  }, [selected, setTranslationSlugs, setShowTranslation, pathname, onOpenChange]);
 
   const clearAll = useCallback(() => setSelected(new Set()), []);
 
@@ -185,7 +174,7 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
                             className={cn(
                               'mr-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors',
                               isSelected
-                                ? 'border-black bg-black text-white'
+                                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                                 : 'border-slate-200 bg-slate-100 group-hover:border-slate-400'
                             )}
                           >
@@ -207,7 +196,7 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
         <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4 sm:px-7">
           <div className="flex gap-4">
             <button type="button" className="h-14 flex-1 rounded-2xl border-2 border-slate-300 text-lg font-semibold transition hover:bg-slate-50 disabled:opacity-40" onClick={clearAll} disabled={selected.size === 0}>Clear All</button>
-            <button type="button" className="h-14 flex-1 rounded-2xl bg-black text-lg font-semibold text-white transition hover:bg-slate-800" onClick={apply}>Apply{selected.size > 0 ? ` (${selected.size})` : ''}</button>
+            <button type="button" className="h-14 flex-1 rounded-2xl bg-[var(--accent)] text-lg font-semibold text-white transition hover:bg-[var(--accent)]/90" onClick={apply}>Apply{selected.size > 0 ? ` (${selected.size})` : ''}</button>
           </div>
         </div>
       </SheetContent>

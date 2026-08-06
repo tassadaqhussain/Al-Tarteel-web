@@ -1,10 +1,17 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { quranApi, type AyahWithRelations } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { AyahBlock } from '@/components/reader/AyahBlock';
 import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
+import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
+import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
+import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
+import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
+import { getSurahArabicName } from '@/lib/surah-meta';
+import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
 
 interface Props {
   params: Promise<{ number: string }>;
@@ -42,7 +49,11 @@ export default async function JuzPage({ params, searchParams }: Props) {
 
   const page = Math.max(1, parseInt(pageStr || '1', 10));
   const limit = 50;
-  const effectiveTranslations = trans || 'en-sahih-international';
+  const cookieStore = await cookies();
+  const effectiveTranslations = resolveTranslations({
+    cookieValue: cookieStore.get(TRANSLATION_COOKIE)?.value,
+    queryTrans: trans,
+  });
 
   const rawAyahs = await quranApi
     .ayahsByJuz(juzNumber, { page, limit, translations: effectiveTranslations, words: true })
@@ -83,7 +94,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
       <Header />
 
       {/* Sub-header */}
-      <div className="sticky top-[57px] z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="relative sticky top-14 z-40 border-b border-slate-200 bg-white/95 backdrop-blur sm:top-[57px]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />
@@ -91,22 +102,28 @@ export default async function JuzPage({ params, searchParams }: Props) {
           </Link>
           <div className="flex items-center gap-2 text-sm">
             {juzNumber > 1 && (
-              <Link href={`/juz/${juzNumber - 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">←</Link>
+              <Link href={`/juz/${juzNumber - 1}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">←</Link>
             )}
             <span className="font-semibold text-slate-800">Juz {juzNumber}</span>
             {juzNumber < 30 && (
-              <Link href={`/juz/${juzNumber + 1}${trans ? `?trans=${trans}` : ''}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">→</Link>
+              <Link href={`/juz/${juzNumber + 1}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">→</Link>
             )}
           </div>
           <span className="text-xs text-slate-500">of 30</span>
         </div>
 
-        <ReaderToolbar
-          activeTranslationCount={translationCount}
-          urlHasTranslations={Boolean(trans)}
-          surahNumber={groupedBySurah[0]?.surahNumber ?? 1}
-        />
+        <div className="px-4 pb-3 sm:px-6">
+          <ReaderToolbar
+            activeTranslationCount={translationCount}
+            surahNumber={groupedBySurah[0]?.surahNumber ?? 1}
+          />
+        </div>
+        <ReadingProgressBar />
       </div>
+
+      <PinnedVersesBar />
+      <CompareVerseModal />
+      <CleanTranslationUrl />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* Juz heading */}
@@ -125,7 +142,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
                 href={`/surah/${group.surahNumber}`}
                 className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-sm font-medium text-[var(--fg)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
               >
-                <span className="font-arabic">{group.ayahs[0]?.surah?.nameArabic ?? ''}</span>
+                <span className="font-arabic" dir="rtl" lang="ar">{getSurahArabicName(group.ayahs[0]?.surah?.number ?? 0, group.ayahs[0]?.surah?.nameArabic ?? '')}</span>
                 <span>{group.surahName}</span>
                 <ArrowRight className="h-3 w-3" />
               </Link>
@@ -149,12 +166,12 @@ export default async function JuzPage({ params, searchParams }: Props) {
         {/* Pagination */}
         <nav className="mt-8 flex items-center justify-center gap-3" aria-label="Pagination">
           {page > 1 && (
-            <Link href={`/juz/${juzNumber}?page=${page - 1}${trans ? `&trans=${trans}` : ''}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
+            <Link href={`/juz/${juzNumber}?page=${page - 1}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
               ← Previous
             </Link>
           )}
           {hasMore && (
-            <Link href={`/juz/${juzNumber}?page=${page + 1}${trans ? `&trans=${trans}` : ''}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
+            <Link href={`/juz/${juzNumber}?page=${page + 1}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
               Next →
             </Link>
           )}

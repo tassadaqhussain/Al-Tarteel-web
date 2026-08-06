@@ -4,7 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // rawBody required for Stripe webhook signature verification
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const prefix = process.env.API_PREFIX || 'api/v1';
   app.setGlobalPrefix(prefix);
   app.useGlobalPipes(

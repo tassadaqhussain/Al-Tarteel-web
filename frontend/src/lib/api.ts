@@ -24,7 +24,16 @@ export async function api<T>(
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
+    try {
+      const parsed = JSON.parse(text) as { message?: string | string[] };
+      const msg = Array.isArray(parsed.message)
+        ? parsed.message.join(', ')
+        : parsed.message;
+      throw new Error(msg || text || `HTTP ${res.status}`);
+    } catch (err) {
+      if (err instanceof Error && err.message && !err.message.startsWith('{')) throw err;
+      throw new Error(text || `HTTP ${res.status}`);
+    }
   }
   const contentType = res.headers.get('content-type');
   if (contentType?.includes('application/json')) return res.json() as Promise<T>;
@@ -64,6 +73,8 @@ export const audioApi = {
     api<AudioFile[]>(`/audio/ayah/${ayahId}`, { params: { reciter } }),
   surah: (surahNumber: number, reciter: string) =>
     api<AudioSurahItem[]>(`/audio/surah/${surahNumber}`, { params: { reciter } }),
+  wordTimings: (surahNumber: number, reciter: string) =>
+    api<WordTimingsResponse>(`/audio/surah/${surahNumber}/word-timings`, { params: { reciter } }),
 };
 
 export const searchApi = {
@@ -72,6 +83,94 @@ export const searchApi = {
   translations: (q: string, opts?: { limit?: number; translator?: string }) =>
     api<SearchTranslationResult[]>(`/search/translations`, { params: { q, ...opts } }),
 };
+
+export type DonationCurrency = 'usd' | 'pkr' | 'eur' | 'gbp';
+export type DonationInterval = 'month' | 'week' | 'year';
+
+export interface DonationConfig {
+  configured: boolean;
+  demoMode?: boolean;
+  publishableKey: string | null;
+  currencies: DonationCurrency[];
+  presets: Record<DonationCurrency, number[]>;
+  intervals: { id: DonationInterval; label: string }[];
+}
+
+export const donationsApi = {
+  config: () => api<DonationConfig>('/donations/config'),
+  checkout: (body: {
+    amount: number;
+    currency: DonationCurrency;
+    mode: 'once' | 'recurring';
+    interval?: DonationInterval;
+    dedicate?: boolean;
+    dedicationName?: string;
+    customerEmail?: string;
+    customerName?: string;
+    country?: string;
+    hideName?: boolean;
+    asOrganization?: boolean;
+    organizationName?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  }) =>
+    api<{ url: string; sessionId: string; demo?: boolean }>('/donations/checkout', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  paymentIntent: (body: {
+    amount: number;
+    currency: DonationCurrency;
+    mode: 'once' | 'recurring';
+    interval?: DonationInterval;
+    dedicate?: boolean;
+    dedicationName?: string;
+    customerEmail?: string;
+    customerName?: string;
+    country?: string;
+    hideName?: boolean;
+    asOrganization?: boolean;
+    organizationName?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  }) =>
+    api<{
+      clientSecret: string;
+      paymentIntentId: string;
+      amount: number;
+      currency: string;
+      mode?: 'once' | 'recurring';
+      subscriptionId?: string;
+      demo?: boolean;
+    }>('/donations/payment-intent', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  paymentIntentStatus: (paymentIntentId: string) =>
+    api<{
+      id: string;
+      status: string;
+      amount: number | null;
+      currency: string | null;
+      customerEmail: string | null;
+      demo?: boolean;
+    }>(`/donations/payment-intent/${paymentIntentId}`),
+  session: (sessionId: string) =>
+    api<{
+      id: string;
+      status: string | null;
+      paymentStatus: string;
+      mode: string | null;
+      amountTotal: number | null;
+      currency: string | null;
+      customerEmail: string | null;
+      demo?: boolean;
+    }>(`/donations/session/${sessionId}`),
+} as const;
 
 // Types (mirror API responses)
 export interface Surah {
@@ -226,6 +325,13 @@ export interface AudioSurahItem {
   surahNumber: number;
   url: string | null;
   duration: number | null;
+}
+
+export interface WordTimingsResponse {
+  surahNumber: number;
+  reciterSlug: string;
+  available: boolean;
+  ayahs: Record<number, Array<{ position: number; startMs: number; endMs: number }>>;
 }
 
 export interface SearchAyahResult {

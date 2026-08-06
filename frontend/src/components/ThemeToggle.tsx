@@ -2,8 +2,15 @@
 
 import { useTheme } from './ThemeProvider';
 import { Sun, Moon, Monitor } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export function ThemeToggle() {
+interface Props {
+  /** Icon-only control, or a full menu row with label. */
+  variant?: 'icon' | 'labeled';
+  className?: string;
+}
+
+export function ThemeToggle({ variant = 'icon', className }: Props) {
   const { theme, setTheme, resolved } = useTheme();
 
   const cycle = () => {
@@ -12,16 +19,36 @@ export function ThemeToggle() {
     else setTheme('light');
   };
 
+  const Icon = theme === 'dark' ? Moon : theme === 'system' ? Monitor : Sun;
+
+  if (variant === 'labeled') {
+    return (
+      <button
+        type="button"
+        onClick={cycle}
+        className={cn(
+          'inline-flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 px-4 text-base font-medium transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]',
+          className,
+        )}
+        aria-label={`Theme: ${theme}. Current: ${resolved}. Click to cycle.`}
+      >
+        <Icon className="h-5 w-5 shrink-0" />
+        <span>Change Theme</span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={cycle}
-      className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+      className={cn(
+        'flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:border-[var(--accent)]/40 hover:text-[var(--accent)]',
+        className,
+      )}
       aria-label={`Theme: ${theme}. Current: ${resolved}. Click to cycle.`}
     >
-      {theme === 'light' && <Sun className="h-5 w-5" />}
-      {theme === 'dark' && <Moon className="h-5 w-5" />}
-      {theme === 'system' && <Monitor className="h-5 w-5" />}
+      <Icon className="h-5 w-5" />
     </button>
   );
 }

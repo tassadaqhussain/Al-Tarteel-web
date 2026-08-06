@@ -15,7 +15,9 @@ import {
   Eye,
   AlignJustify,
   Check,
+  Smile,
 } from 'lucide-react';
+import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { TranslationSheet } from '@/components/reader/TranslationSheet';
@@ -167,6 +169,16 @@ export default function SettingsPage() {
       </div>
 
       <main className="mx-auto max-w-2xl space-y-5 px-4 py-8">
+        {/* ── Experience Profile ───────────────────────────────────────────── */}
+        <Section title="Experience Profile" icon={<Smile className="h-4 w-4" />}>
+          <div className="p-5">
+            <p className="mb-4 text-xs text-[var(--muted)]">
+              Tailor the reader's look, size, and layout to match your age or preference.
+            </p>
+            <AgeModeSelector variant="grid" />
+          </div>
+        </Section>
+
         {/* ── Appearance ──────────────────────────────────────────────────── */}
         <Section title="Appearance" icon={<Sun className="h-4 w-4" />}>
           <Row label="Theme" description="Choose your preferred color scheme">

@@ -8,6 +8,7 @@ import { useSettingsStore, type UiLocale } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { quranApi } from '@/lib/api';
 import { getSurahNumberFromSlug } from '@/lib/surah-meta';
+import { setTranslationCookie } from '@/lib/translation-preference';
 
 export const LANGUAGES: { code: UiLocale; label: string }[] = [
   { code: 'en', label: 'English' },
@@ -18,6 +19,7 @@ export const LANGUAGES: { code: UiLocale; label: string }[] = [
   { code: 'id', label: 'Indonesia' },
   { code: 'it', label: 'Italiano' },
   { code: 'nl', label: 'Dutch' },
+  { code: 'ps', label: 'پښتو' },
   { code: 'pt', label: 'Português' },
   { code: 'ru', label: 'русский' },
   { code: 'sq', label: 'Shqip' },
@@ -50,21 +52,23 @@ export function LanguagePanel({ open, onOpenChange }: Props) {
     try {
       const translators = await quranApi.translators(locale);
       const preferred: Partial<Record<UiLocale, string>> = {
-        en: 'en-sahih-international', ur: 'ur-bayan-ul-quran', fa: 'fr-hussein-taji',
+        en: 'en-sahih-international',
+        ur: 'ur-bayan-ul-quran',
+        fa: 'fr-hussein-taji',
+        ps: 'ps-zakaria-abulsalam',
       };
       const selected = translators.find((item) => item.slug === preferred[locale]) || translators[0];
       if (selected) {
         setTranslationSlugs([selected.slug]);
+        setTranslationCookie([selected.slug]);
         setShowTranslation(true);
       }
       onOpenChange(false);
 
       const cleanSlug = pathname.split('/').filter(Boolean)[0];
       const isReader = pathname.startsWith('/surah/') || pathname.startsWith('/juz/') || Boolean(cleanSlug && getSurahNumberFromSlug(cleanSlug));
-      if (isReader && selected) {
-        const params = new URLSearchParams(window.location.search);
-        params.set('trans', selected.slug);
-        window.location.assign(`${pathname}?${params.toString()}`);
+      if (isReader) {
+        window.location.assign(pathname);
       }
     } finally {
       setApplying(null);

@@ -99,7 +99,7 @@ export function HadithModal({ open, onOpenChange, surahNumber, surahName, ayahNu
               </div>
             </div>
 
-            <div className="rounded-md border border-cyan-200 bg-cyan-50 px-5 py-4 text-sm leading-6 sm:text-base">Only hadith that explicitly reference Quranic verses are included, and this selection is not exhaustive. Narrations are curated to match the chosen verses from <span className="font-medium text-[var(--accent)]">Sahih al-Bukhari</span> and <span className="font-medium text-[var(--accent)]">Sahih Muslim</span>, cited via Sunnah.com.</div>
+            <div className="rounded-md border border-[var(--accent)]/25 bg-[var(--accent)]/10 px-5 py-4 text-sm leading-6 sm:text-base">Only hadith that explicitly reference Quranic verses are included, and this selection is not exhaustive. Narrations are curated to match the chosen verses from <span className="font-medium text-[var(--accent)]">Sahih al-Bukhari</span> and <span className="font-medium text-[var(--accent)]">Sahih Muslim</span>, cited via Sunnah.com.</div>
 
             {!hadiths.length ? <State icon={<BookMarked />} title="No Hadith available" text="No verified Hadith reference is linked to this verse." /> : activeHadith && activeText && <article dir={language === 'ar' ? 'rtl' : 'ltr'} className={`py-8 ${language === 'ar' ? 'text-right font-arabic' : ''}`}>
               <h2 className="text-lg font-medium sm:text-xl">{title}</h2>

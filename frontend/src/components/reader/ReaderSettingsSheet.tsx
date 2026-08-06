@@ -7,6 +7,7 @@ import { audioApi, quranApi, type Reciter, type Translator } from '@/lib/api';
 import { useSettingsStore, WORD_BY_WORD_LOCALES, type FontSize, type MushafType } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { TranslationSheet } from './TranslationSheet';
+import { ReciterSheet } from './ReciterSheet';
 
 type SettingsTab = 'arabic' | 'translation' | 'word';
 const FONT_SIZES: FontSize[] = ['sm', 'md', 'lg', 'xl'];
@@ -127,12 +128,27 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
                 </div>
               </div>
 
-              <div className="relative">
-                <button type="button" onClick={() => setRecitersOpen((v) => !v)} className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left">
-                  <span><span className="block text-sm text-slate-500">Selected Reciter</span><span className="mt-1 block text-lg font-bold">{activeReciter?.name || 'Choose a reciter'}</span></span>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setRecitersOpen(true)}
+                  className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left ring-1 ring-transparent transition hover:bg-slate-100 focus-visible:ring-[var(--accent)]"
+                >
+                  <span>
+                    <span className="block text-sm text-slate-500">Selected Reciter</span>
+                    <span className="mt-1 block text-lg font-bold">
+                      {activeReciter?.name || 'Choose a reciter'}
+                      {activeReciter?.style ? ` · ${activeReciter.style}` : ''}
+                    </span>
+                  </span>
                   <ChevronRight className="text-slate-500" />
                 </button>
-                {recitersOpen && <div className="absolute inset-x-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">{reciters.map((r) => <button key={r.slug} type="button" onClick={() => { setReciterSlug(r.slug); setRecitersOpen(false); }} className="flex w-full items-center justify-between rounded-xl px-4 py-3 text-left hover:bg-slate-50"><span>{r.name}</span>{r.slug === activeReciter?.slug && <Check className="h-4 w-4 text-[var(--accent)]" />}</button>)}</div>}
+                <ReciterSheet
+                  open={recitersOpen}
+                  onOpenChange={setRecitersOpen}
+                  selectedSlug={activeReciter?.slug}
+                  onSelect={(slug) => setReciterSlug(slug)}
+                />
               </div>
             </div>
           )}

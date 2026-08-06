@@ -70,4 +70,14 @@ export class AudioController {
   ) {
     return this.audio.getAudioForSurah(surahNumber, reciterSlug);
   }
+
+  @Get('surah/:surahNumber/word-timings')
+  @ApiOperation({ summary: 'Word-level timing segments for surah recitation highlight sync' })
+  @ApiResponse({ status: 200 })
+  getWordTimings(
+    @Param('surahNumber', ParseIntPipe) surahNumber: number,
+    @Query('reciter') reciterSlug: string,
+  ) {
+    return this.audio.getWordTimingsForSurah(surahNumber, reciterSlug);
+  }
 }

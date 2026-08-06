@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
 import type { Surah } from '@/lib/api';
-import { getSurahMeaning } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeaning } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 
 type Tab = 'surah' | 'juz' | 'revelation';
@@ -112,7 +112,7 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="font-arabic text-lg leading-none text-slate-700 sm:text-xl" dir="rtl" lang="ar">
-                    {surah.nameArabic}
+                    {getSurahArabicName(surah.number, surah.nameArabic)}
                   </p>
                   <p className="mt-1 text-xs text-slate-400 transition-colors group-hover:text-[var(--accent)]">
                     {surah.numberOfAyahs} Ayahs

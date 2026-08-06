@@ -40,6 +40,13 @@ const headers = async () => ({
 });
 
 const stripHtml = (text: string) => text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48) || 'translation';
+
 const LANGUAGE_CODES: Record<string, string> = {
   english: 'en', arabic: 'ar', urdu: 'ur', persian: 'fa', french: 'fr', german: 'de',
   spanish: 'es', italian: 'it', dutch: 'nl', russian: 'ru', turkish: 'tr', indonesian: 'id',
@@ -57,6 +64,12 @@ const languageCode = (resource: TranslationResource) => {
   return LANGUAGE_CODES[name] || name.replace(/[^a-z]/g, '').slice(0, 10) || 'unknown';
 };
 
+const resourceSlug = (resource: TranslationResource) => {
+  if (resource.slug) return resource.slug;
+  const lang = languageCode(resource);
+  return `${lang}-${slugify(resource.name)}-${resource.id}`;
+};
+
 async function getResources() {
   const response = await axios.get<{ translations: TranslationResource[] }>(
     `${API_BASE}/content/api/v4/resources/translations`,
@@ -68,11 +81,17 @@ async function getResources() {
 async function main() {
   const resources = await getResources();
   if (!resources.length) throw new Error('No translation resources returned');
-  console.log(`Found ${resources.length} official translations.`);
+
+  const langFilter = process.argv.find((arg) => arg.startsWith('--lang='))?.slice('--lang='.length);
+  const selected = langFilter
+    ? resources.filter((resource) => languageCode(resource) === langFilter)
+    : resources;
+  if (!selected.length) throw new Error(langFilter ? `No translations for language "${langFilter}"` : 'No translation resources returned');
+  console.log(`Found ${resources.length} official translations${langFilter ? `; importing ${selected.length} for ${langFilter}` : ''}.`);
 
   const translatorByResource = new Map<number, number>();
-  for (const resource of resources) {
-    const slug = resource.slug || `qf-translation-${resource.id}`;
+  for (const resource of selected) {
+    const slug = resourceSlug(resource);
     const translator = await prisma.translator.upsert({
       where: { slug },
       update: { name: resource.name, languageCode: languageCode(resource) },
@@ -82,11 +101,11 @@ async function main() {
   }
 
   if (process.argv.includes('--catalog-only')) {
-    console.log(`Updated metadata for ${resources.length} translation resources.`);
+    console.log(`Updated metadata for ${selected.length} translation resources.`);
     return;
   }
 
-  const resourceIds = resources.map((resource) => resource.id).join(',');
+  const resourceIds = selected.map((resource) => resource.id).join(',');
   let processed = 0;
   for (let chapterNumber = 1; chapterNumber <= 114; chapterNumber += 1) {
     const surah = await prisma.surah.findUnique({ where: { number: chapterNumber }, select: { id: true } });
@@ -126,7 +145,7 @@ async function main() {
     processed += rows.length;
     console.log(`Surah ${chapterNumber}/114: ${rows.length} translations (${processed} processed)`);
   }
-  console.log(`Done. Processed ${processed} verse translations from ${resources.length} resources.`);
+  console.log(`Done. Processed ${processed} verse translations from ${selected.length} resources.`);
 }
 
 main()

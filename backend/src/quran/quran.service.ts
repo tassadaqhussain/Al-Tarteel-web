@@ -3,6 +3,7 @@ import axios from 'axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import type { AyahsBySurahQueryDto, AyahsByPageQueryDto } from './dto/query.dto';
+import { vocalizedSurahName } from './surah-arabic';
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_SECONDS || '3600', 10);
 
@@ -65,13 +66,22 @@ export class QuranService {
     }
   }
 
+  private withVocalizedArabic<T extends { number: number; nameArabic: string }>(surah: T): T {
+    return {
+      ...surah,
+      nameArabic: vocalizedSurahName(surah.number, surah.nameArabic),
+    };
+  }
+
   async findAllSurahs() {
     const key = 'quran:surahs:all';
     const cached = await this.cache.get(key);
     if (cached) {
-      const parsed = JSON.parse(cached) as unknown[];
+      const parsed = JSON.parse(cached) as Array<{ number: number; nameArabic: string }>;
       // Never trust empty caches (can happen if listed before seed completes)
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((surah) => this.withVocalizedArabic(surah));
+      }
     }
     const surahs = await this.prisma.surah.findMany({
       orderBy: { number: 'asc' },
@@ -86,16 +96,17 @@ export class QuranService {
         numberOfAyahs: true,
       },
     });
-    if (surahs.length > 0) {
-      await this.cache.set(key, JSON.stringify(surahs), CACHE_TTL);
+    const withArabic = surahs.map((surah) => this.withVocalizedArabic(surah));
+    if (withArabic.length > 0) {
+      await this.cache.set(key, JSON.stringify(withArabic), CACHE_TTL);
     }
-    return surahs;
+    return withArabic;
   }
 
   async findSurahByNumber(surahNumber: number) {
     const key = `quran:surah:${surahNumber}`;
     const cached = await this.cache.get(key);
-    if (cached) return JSON.parse(cached);
+    if (cached) return this.withVocalizedArabic(JSON.parse(cached));
     const surah = await this.prisma.surah.findUnique({
       where: { number: surahNumber },
       select: {
@@ -110,8 +121,9 @@ export class QuranService {
       },
     });
     if (!surah) throw new NotFoundException(`Surah ${surahNumber} not found`);
-    await this.cache.set(key, JSON.stringify(surah), CACHE_TTL);
-    return surah;
+    const withArabic = this.withVocalizedArabic(surah);
+    await this.cache.set(key, JSON.stringify(withArabic), CACHE_TTL);
+    return withArabic;
   }
 
   async findAyahsBySurah(

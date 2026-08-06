@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { getSurahArabicName } from '@/lib/surah-meta';
 
 interface Props {
   surahNumber: number;
@@ -27,7 +28,7 @@ export function ReadingTracker({
     setLastRead({
       surahNumber,
       surahName,
-      surahNameArabic,
+      surahNameArabic: getSurahArabicName(surahNumber, surahNameArabic),
       ayahNumber: firstAyahNumber,
       timestamp: Date.now(),
     });

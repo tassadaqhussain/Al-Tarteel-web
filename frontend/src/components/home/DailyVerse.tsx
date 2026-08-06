@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BookOpen, Star } from 'lucide-react';
 import { quranApi } from '@/lib/api';
+import { getSurahArabicName } from '@/lib/surah-meta';
 
 // Curated list of well-known ayah IDs (global ayah IDs from the database)
 // Each entry: [surahNumber, ayahNumber, globalId]
@@ -106,7 +107,7 @@ export async function DailyVerse() {
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1 text-xs font-medium text-gold-500">
-              {surah.nameArabic}
+              {getSurahArabicName(surah.number, surah.nameArabic)}
             </span>
             {ayah.juz && (
               <span className="rounded-full border border-emerald-800 bg-emerald-900/50 px-3 py-1 text-xs text-slate-400">

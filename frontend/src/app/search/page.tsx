@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { getSurahArabicName } from '@/lib/surah-meta';
 import { searchApi, type SearchAyahResult, type SearchTranslationResult } from '@/lib/api';
 import { highlightText } from '@/lib/highlight';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -316,7 +317,7 @@ function SearchPageContent() {
                         <span className="rounded border border-[var(--border)] px-2 py-0.5 text-xs font-medium text-[var(--muted)]">
                           {a.surah.nameSimple} · {a.number}
                         </span>
-                        <span className="font-arabic text-sm text-[var(--muted)]">{a.surah.nameArabic}</span>
+                        <span className="font-arabic text-sm text-[var(--muted)]" dir="rtl" lang="ar">{getSurahArabicName(a.surah.number, a.surah.nameArabic)}</span>
                       </div>
                       <p className="font-arabic ayah-arabic text-xl leading-loose text-[var(--fg)] group-hover:text-[var(--fg)]" lang="ar" dir="rtl">
                         {highlightText(a.textUthmani, committed)}

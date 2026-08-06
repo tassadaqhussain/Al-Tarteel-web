@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Amiri, Outfit } from 'next/font/google';
+import { Amiri, Amiri_Quran, Outfit } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
@@ -10,6 +10,14 @@ const amiri = Amiri({
   weight: ['400', '700'],
   subsets: ['arabic', 'latin'],
   variable: '--font-amiri',
+  display: 'swap',
+});
+
+/** Quran-specialized face — includes waqf / small annotation glyphs Amiri lacks. */
+const amiriQuran = Amiri_Quran({
+  weight: '400',
+  subsets: ['arabic', 'latin'],
+  variable: '--font-amiri-quran',
   display: 'swap',
 });
 
@@ -45,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${amiri.variable} ${outfit.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
+      <body className={`${amiri.variable} ${amiriQuran.variable} ${outfit.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <ThemeProvider>
           <AudioPlayerProvider>
             <ScrollToCurrentAyah />

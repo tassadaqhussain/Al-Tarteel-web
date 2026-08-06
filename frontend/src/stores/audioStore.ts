@@ -8,6 +8,12 @@ export interface AudioAyahRef {
   duration?: number;
 }
 
+export interface WordTiming {
+  position: number;
+  startMs: number;
+  endMs: number;
+}
+
 export interface AudioState {
   reciterSlug: string | null;
   playlist: AudioAyahRef[];
@@ -17,7 +23,10 @@ export interface AudioState {
   duration: number;
   playbackRate: number;
   continuous: boolean;
-  lastAyahKey: string | null; // surahNumber:ayahNumber for resume
+  lastAyahKey: string | null;
+  wordTimingsByAyah: Record<number, WordTiming[]> | null;
+  timingsSurahNumber: number | null;
+  timingsReciterSlug: string | null;
   setReciter: (slug: string | null) => void;
   setPlaylist: (list: AudioAyahRef[]) => void;
   setCurrentIndex: (i: number) => void;
@@ -27,6 +36,11 @@ export interface AudioState {
   setPlaybackRate: (r: number) => void;
   setContinuous: (v: boolean) => void;
   setLastAyah: (surah: number, ayah: number) => void;
+  setWordTimings: (
+    surahNumber: number,
+    reciterSlug: string,
+    timings: Record<number, WordTiming[]> | null,
+  ) => void;
   getCurrentAyah: () => AudioAyahRef | null;
   next: () => void;
   prev: () => void;
@@ -41,8 +55,11 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   currentTime: 0,
   duration: 0,
   playbackRate: 1,
-  continuous: true,
+  continuous: false,
   lastAyahKey: null,
+  wordTimingsByAyah: null,
+  timingsSurahNumber: null,
+  timingsReciterSlug: null,
   setReciter: (reciterSlug) => set({ reciterSlug }),
   setPlaylist: (playlist) => set({ playlist, currentIndex: 0 }),
   setCurrentIndex: (currentIndex) => set({ currentIndex }),
@@ -53,6 +70,8 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   setContinuous: (continuous) => set({ continuous }),
   setLastAyah: (surahNumber, ayahNumber) =>
     set({ lastAyahKey: `${surahNumber}:${ayahNumber}` }),
+  setWordTimings: (timingsSurahNumber, timingsReciterSlug, wordTimingsByAyah) =>
+    set({ timingsSurahNumber, timingsReciterSlug, wordTimingsByAyah }),
   getCurrentAyah: () => {
     const { playlist, currentIndex } = get();
     return playlist[currentIndex] ?? null;
@@ -78,5 +97,8 @@ export const useAudioStore = create<AudioState>((set, get) => ({
       isPlaying: false,
       currentTime: 0,
       duration: 0,
+      wordTimingsByAyah: null,
+      timingsSurahNumber: null,
+      timingsReciterSlug: null,
     }),
 }));

@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { audioApi, type Reciter } from '@/lib/api';
+import { loadWordTimings } from '@/lib/loadWordTimings';
 import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 
@@ -18,10 +19,13 @@ export function useReciterPicker() {
   const [reciters, setReciters] = useState<Reciter[]>([]);
   const [reciterOpen, setReciterOpen] = useState(false);
   const [reciterLoading, setReciterLoading] = useState(false);
-  const reciterRef = useRef<HTMLDivElement>(null);
 
-  const activeReciterName =
-    reciters.find((r) => r.slug === activeReciter)?.name ?? activeReciter ?? 'Reciter';
+  const active = reciters.find((r) => r.slug === activeReciter);
+  const activeReciterName = active
+    ? active.style
+      ? `${active.name} (${active.style})`
+      : active.name
+    : activeReciter ?? 'Reciter';
 
   const changeReciter = useCallback(
     async (slug: string) => {
@@ -47,6 +51,7 @@ export function useReciterPicker() {
         setPlaylist(items);
         if (idx >= 0) setCurrentIndex(idx);
         setPlaying(isPlaying);
+        void loadWordTimings(current.surahNumber, slug);
       } catch {
         setPlaying(false);
       }
@@ -55,32 +60,29 @@ export function useReciterPicker() {
   );
 
   useEffect(() => {
-    if (!reciterOpen || reciters.length > 0) return;
+    let cancelled = false;
     setReciterLoading(true);
     audioApi
       .reciters()
-      .then((data) => setReciters(Array.isArray(data) ? data : []))
-      .catch(() => setReciters([]))
-      .finally(() => setReciterLoading(false));
-  }, [reciterOpen, reciters.length]);
-
-  useEffect(() => {
-    if (!reciterOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (reciterRef.current && !reciterRef.current.contains(e.target as Node)) {
-        setReciterOpen(false);
-      }
+      .then((data) => {
+        if (!cancelled) setReciters(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setReciters([]);
+      })
+      .finally(() => {
+        if (!cancelled) setReciterLoading(false);
+      });
+    return () => {
+      cancelled = true;
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [reciterOpen]);
+  }, []);
 
   return {
     reciters,
     reciterOpen,
     setReciterOpen,
     reciterLoading,
-    reciterRef,
     activeReciter,
     activeReciterName,
     changeReciter,

@@ -1,7 +1,9 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
+import { useSettingsStore, type ExperienceMode } from '@/stores/settingsStore';
+import { getSurahNumberFromSlug } from '@/lib/surah-meta';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -11,11 +13,27 @@ const ThemeContext = createContext<{
   resolved: 'light' | 'dark';
 } | null>(null);
 
+/** Kids/elderly chrome stays on browse pages; reader uses calm default styling. */
+function experienceForPath(pathname: string, preferred: ExperienceMode): ExperienceMode {
+  if (pathname.startsWith('/surah/') || pathname.startsWith('/juz/')) return 'default';
+  const slug = pathname.replace(/^\//, '').split('/')[0] ?? '';
+  if (slug && !slug.includes('.') && getSurahNumberFromSlug(slug)) return 'default';
+  return preferred;
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const uiLocale = useSettingsStore((state) => state.uiLocale);
+  const experienceMode = useSettingsStore((state) => state.experienceMode);
+  const readerViewMode = useSettingsStore((state) => state.readerViewMode);
   const [theme, setThemeState] = useState<Theme>('light');
   const [resolved, setResolved] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
+
+  const activeExperience = useMemo(
+    () => experienceForPath(pathname, experienceMode),
+    [pathname, experienceMode],
+  );
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);
@@ -54,6 +72,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.lang = uiLocale;
     root.dir = ['ar', 'fa', 'ur'].includes(uiLocale) ? 'rtl' : 'ltr';
   }, [mounted, uiLocale]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const root = document.documentElement;
+    root.classList.remove('experience-default', 'experience-kids', 'experience-elderly');
+    root.classList.add(`experience-${activeExperience}`);
+  }, [mounted, activeExperience]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const root = document.documentElement;
+    root.classList.remove('view-mode-verse', 'view-mode-arabic', 'view-mode-translation');
+    root.classList.add(`view-mode-${readerViewMode}`);
+  }, [mounted, readerViewMode]);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolved }}>
