@@ -388,6 +388,33 @@ systemctl reload nginx || systemctl restart nginx
 ok "Nginx serving ${DOMAIN} → web:${WEB_PORT} api:${API_PORT}"
 
 # ---------------------------------------------------------------------------
+ensure_swap() {
+  # Parallel Next/Nest Docker builds often get SIGKILL (OOM) on modest VPSes
+  # when no swap exists. Create a 2G swapfile once if missing.
+  if swapon --show 2>/dev/null | grep -q .; then
+    ok "Swap already active"
+    return 0
+  fi
+  if [[ -f /swapfile ]]; then
+    log "Enabling existing /swapfile"
+    swapon /swapfile || true
+    swapon --show 2>/dev/null | grep -q . && ok "Swap enabled" && return 0
+  fi
+  log "Creating 2G swapfile (helps avoid Docker build OOM kills)"
+  if fallocate -l 2G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none; then
+    chmod 600 /swapfile
+    mkswap /swapfile >/dev/null
+    swapon /swapfile
+    if ! grep -q '^/swapfile ' /etc/fstab 2>/dev/null; then
+      echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    fi
+    ok "Swap ready (2G)"
+  else
+    warn "Could not create swap — building services one at a time instead"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 log "Sync public URLs into backend/.env"
 BACKEND_ENV="${APP_DIR}/backend/.env"
 upsert_env "FRONTEND_URL" "${FRONTEND_URL}" "${BACKEND_ENV}"
@@ -397,9 +424,15 @@ upsert_env "JWT_SECRET" "${JWT_SECRET}" "${BACKEND_ENV}"
 ok "backend/.env updated"
 
 # ---------------------------------------------------------------------------
-log "Docker Compose — build & start"
+log "Docker Compose — sequential build & start (avoids OOM on small VPSes)"
 cd "${APP_DIR}"
-docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+ensure_swap
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+# Build one image at a time — parallel api+web npm ci commonly gets signal:killed
+docker compose -f docker-compose.prod.yml build api
+docker compose -f docker-compose.prod.yml build web
+docker compose -f docker-compose.prod.yml up -d --remove-orphans
 ok "Containers up"
 
 log "Waiting for web/API"
