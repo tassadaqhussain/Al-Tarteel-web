@@ -47,7 +47,7 @@ export default async function HomePage() {
         <Hero />
         <ContinueReading />
         <SurahGrid surahs={list} />
-        <TranslationsPreview />
+        <TranslationsPreview surahs={list} />
         <RecitersSection />
         <StartLearning />
         <QuranInYear />

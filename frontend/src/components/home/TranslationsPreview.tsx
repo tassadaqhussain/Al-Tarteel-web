@@ -1,27 +1,250 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Play, Pause, SkipForward, SkipBack, Volume2, ArrowRight } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  Volume2,
+  ArrowRight,
+  Loader2,
+} from 'lucide-react';
+import { audioApi, quranApi, type AyahWithRelations, type Surah } from '@/lib/api';
+import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
+import { getSurahArabicName } from '@/lib/surah-meta';
+import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 
-const PREVIEW_SURAHS = [
-  { number: 1, nameSimple: 'Al-Fatihah', nameArabic: 'الفاتحة', verses: 7 },
-  { number: 2, nameSimple: 'Al-Baqarah', nameArabic: 'البقرة', verses: 286 },
-  { number: 3, nameSimple: 'Al-Imran', nameArabic: 'آل عمران', verses: 200 },
-  { number: 4, nameSimple: 'An-Nisa', nameArabic: 'النساء', verses: 176 },
-  { number: 5, nameSimple: 'Al-Ma\'idah', nameArabic: 'المائدة', verses: 120 },
-  { number: 6, nameSimple: 'Al-An\'am', nameArabic: 'الأنعام', verses: 165 },
+const PREVIEW_COUNT = 6;
+const PREVIEW_AYAHS = 5;
+const PREFERRED_RECITER = 'alafasy';
+const DEFAULT_RECITER_NAME = 'Mishary Rashid Alafasy';
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+
+const FALLBACK_SURAHS: Surah[] = [
+  { id: 1, number: 1, nameSimple: 'Al-Fatihah', nameArabic: 'الفاتحة', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 7 },
+  { id: 2, number: 2, nameSimple: 'Al-Baqarah', nameArabic: 'البقرة', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 286 },
+  { id: 3, number: 3, nameSimple: 'Al-Imran', nameArabic: 'آل عمران', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 200 },
+  { id: 4, number: 4, nameSimple: 'An-Nisa', nameArabic: 'النساء', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 176 },
+  { id: 5, number: 5, nameSimple: "Al-Ma'idah", nameArabic: 'المائدة', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 120 },
+  { id: 6, number: 6, nameSimple: "Al-An'am", nameArabic: 'الأنعام', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 165 },
 ];
 
-export function TranslationsPreview() {
-  const [activeSurah, setActiveSurah] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '00:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function toArabicNum(n: number) {
+  return String(n).replace(/\d/g, (d) => ARABIC_DIGITS[Number(d)] ?? d);
+}
+
+function toPlaylist(list: Awaited<ReturnType<typeof audioApi.surah>>): AudioAyahRef[] {
+  return list
+    .filter((a) => a.url)
+    .map((a) => ({
+      ayahId: a.ayahId,
+      surahNumber: a.surahNumber,
+      ayahNumber: a.ayahNumber,
+      url: a.url!,
+      duration: a.duration ?? undefined,
+    }));
+}
+
+function translationText(ayah: AyahWithRelations) {
+  const preferred =
+    ayah.translations?.find((t) => t.translatorSlug === DEFAULT_TRANSLATION)?.text ||
+    ayah.translations?.[0]?.text;
+  return preferred?.trim() || '';
+}
+
+export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
+  const list = useMemo(() => {
+    const source = surahs.length > 0 ? surahs : FALLBACK_SURAHS;
+    return source.slice(0, PREVIEW_COUNT).map((s) => ({
+      ...s,
+      nameArabic: getSurahArabicName(s.number, s.nameArabic),
+    }));
+  }, [surahs]);
+
+  const [activeSurah, setActiveSurah] = useState(list[0]?.number ?? 1);
+  const [ayahs, setAyahs] = useState<AyahWithRelations[]>([]);
+  const [loadingText, setLoadingText] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const [reciterName, setReciterName] = useState(DEFAULT_RECITER_NAME);
+  const [error, setError] = useState<string | null>(null);
+  const [volume, setVolume] = useState(0.8);
+
+  const settingsReciter = useSettingsStore((s) => s.reciterSlug);
+  const setReciterSlug = useSettingsStore((s) => s.setReciterSlug);
+
+  const {
+    playlist,
+    currentIndex,
+    isPlaying,
+    currentTime,
+    duration,
+    getCurrentAyah,
+    setPlaylist,
+    setPlaying,
+    setReciter,
+    setContinuous,
+    setCurrentIndex,
+    prev,
+    next,
+    reciterSlug,
+  } = useAudioStore();
+
+  const current = getCurrentAyah();
+  const activeMeta = list.find((s) => s.number === activeSurah) ?? list[0];
+  const isThisSurah =
+    current?.surahNumber === activeSurah && playlist.length > 0;
+  const showingPlay = isThisSurah && isPlaying;
+
+  const previewAyahs = useMemo(() => {
+    if (ayahs.length === 0) return [];
+    // Full short surahs; longer ones show a sample.
+    if (ayahs.length <= PREVIEW_AYAHS + 2) return ayahs;
+    return ayahs.slice(0, PREVIEW_AYAHS);
+  }, [ayahs]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingText(true);
+    setError(null);
+    quranApi
+      .ayahsBySurah(activeSurah, {
+        translations: DEFAULT_TRANSLATION,
+        limit: Math.max(PREVIEW_AYAHS + 2, 12),
+      })
+      .then((rows) => {
+        if (!cancelled) setAyahs(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAyahs([]);
+          setError('Could not load verses for this chapter.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingText(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSurah]);
+
+  useEffect(() => {
+    const el = document.querySelector('audio');
+    if (el) el.volume = volume;
+  }, [volume, isPlaying, current?.url]);
+
+  const resolveReciter = useCallback(async () => {
+    const reciters = await audioApi.reciters();
+    const preferred =
+      reciters.find((r) => r.slug === PREFERRED_RECITER) ??
+      reciters.find((r) => r.slug === (reciterSlug ?? settingsReciter ?? '')) ??
+      reciters.find((r) => r.isDefault) ??
+      reciters[0];
+    if (!preferred) throw new Error('No reciters available');
+    setReciterName(preferred.name || DEFAULT_RECITER_NAME);
+    return preferred.slug;
+  }, [reciterSlug, settingsReciter]);
+
+  const loadSurahAudio = useCallback(
+    async (surahNumber: number, startPlaying = true) => {
+      setLoadingAudio(true);
+      setError(null);
+      try {
+        const slug = await resolveReciter();
+        setReciter(slug);
+        setReciterSlug(slug);
+        const audioList = await audioApi.surah(surahNumber, slug);
+        const items = toPlaylist(audioList);
+        if (items.length === 0) {
+          setError('Audio is not available for this surah yet.');
+          setPlaying(false);
+          return false;
+        }
+        setContinuous(true);
+        setPlaylist(items);
+        setCurrentIndex(0);
+        if (startPlaying) setPlaying(true);
+        return true;
+      } catch {
+        setError('Could not start recitation. Please try again.');
+        setPlaying(false);
+        return false;
+      } finally {
+        setLoadingAudio(false);
+      }
+    },
+    [
+      resolveReciter,
+      setContinuous,
+      setCurrentIndex,
+      setPlaylist,
+      setPlaying,
+      setReciter,
+      setReciterSlug,
+    ]
+  );
+
+  const togglePlay = useCallback(async () => {
+    if (loadingAudio) return;
+    if (isThisSurah) {
+      setPlaying(!isPlaying);
+      return;
+    }
+    await loadSurahAudio(activeSurah, true);
+  }, [activeSurah, isPlaying, isThisSurah, loadSurahAudio, loadingAudio, setPlaying]);
+
+  const onPrev = useCallback(async () => {
+    if (!isThisSurah) {
+      await loadSurahAudio(activeSurah, true);
+      return;
+    }
+    if (currentTime > 2) {
+      const el = document.querySelector('audio');
+      if (el) el.currentTime = 0;
+      return;
+    }
+    prev();
+  }, [activeSurah, currentTime, isThisSurah, loadSurahAudio, prev]);
+
+  const onNext = useCallback(async () => {
+    if (!isThisSurah) {
+      await loadSurahAudio(activeSurah, true);
+      return;
+    }
+    next();
+  }, [activeSurah, isThisSurah, loadSurahAudio, next]);
+
+  const seek = useCallback(
+    (ratio: number) => {
+      if (!isThisSurah || duration <= 0) return;
+      const el = document.querySelector('audio');
+      if (el) el.currentTime = Math.max(0, Math.min(duration, ratio * duration));
+    },
+    [duration, isThisSurah]
+  );
+
+  const displayTime = isThisSurah ? currentTime : 0;
+  const displayDuration = isThisSurah ? duration : 0;
+  const progressPct =
+    displayDuration > 0 ? Math.min(100, (displayTime / displayDuration) * 100) : 0;
+  const verseLabel = isThisSurah && current
+    ? `Recitation - Verse ${current.ayahNumber}`
+    : 'Recitation - Verse 1';
 
   return (
-    <section className="w-full bg-[#f4fbf9] py-16 px-4 md:px-6">
+    <section className="w-full bg-[#f4fbf9] px-4 py-16 md:px-6">
       <div className="mx-auto max-w-[1200px]">
-        {/* Section Title */}
         <div className="mb-10 text-center lg:text-left">
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             Hear the Quran <br className="sm:hidden" />
@@ -29,33 +252,46 @@ export function TranslationsPreview() {
           </h2>
         </div>
 
-        {/* Reorganized Mockup Columns */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Left panel: Quick Surahs List */}
           <div className="flex flex-col gap-2 lg:col-span-4">
             <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-              {PREVIEW_SURAHS.map((s) => (
+              {list.map((s) => (
                 <button
                   key={s.number}
                   type="button"
-                  onClick={() => setActiveSurah(s.number)}
+                  onClick={() => {
+                    setActiveSurah(s.number);
+                    if (isPlaying && current?.surahNumber !== s.number) {
+                      setPlaying(false);
+                    }
+                  }}
                   className={cn(
                     'flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all duration-200',
                     activeSurah === s.number
-                      ? 'bg-emerald-800/10 text-emerald-850 font-bold'
+                      ? 'bg-emerald-800/10 font-bold text-emerald-900'
                       : 'text-slate-600 hover:bg-slate-50'
                   )}
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-400">0{s.number}</p>
-                    <p className={cn(
-                      'text-sm font-bold',
-                      activeSurah === s.number ? 'text-emerald-900' : 'text-slate-800'
-                    )}>{s.nameSimple}</p>
+                    <p className="text-xs font-semibold text-slate-400">
+                      {String(s.number).padStart(2, '0')}
+                    </p>
+                    <p
+                      className={cn(
+                        'text-sm font-bold',
+                        activeSurah === s.number ? 'text-emerald-900' : 'text-slate-800'
+                      )}
+                    >
+                      {s.nameSimple}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-arabic text-sm text-slate-800" dir="rtl">{s.nameArabic}</p>
-                    <p className="text-[10px] text-slate-400">{s.verses} Verses</p>
+                    <p className="font-arabic text-sm text-slate-800" dir="rtl">
+                      {s.nameArabic}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {s.numberOfAyahs || '—'} Verses
+                    </p>
                   </div>
                 </button>
               ))}
@@ -71,88 +307,158 @@ export function TranslationsPreview() {
             </div>
           </div>
 
-          {/* Right panel: Quran Reader Preview Frame */}
           <div className="lg:col-span-8">
-            <div className="flex h-full flex-col justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-lg md:p-8">
-              {/* Header inside the frame */}
+            <div className="flex h-full min-h-[420px] flex-col justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-lg md:p-8">
               <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-850">
-                    {PREVIEW_SURAHS.find((s) => s.number === activeSurah)?.nameSimple}
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {activeMeta?.nameSimple ?? 'Surah'}
                   </h3>
                   <p className="text-xs text-slate-400">English - Sahih International</p>
                 </div>
-                <Link 
-                  href={`/surah/${activeSurah}`} 
+                <Link
+                  href={`/surah/${activeSurah}`}
                   className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-emerald-800 transition hover:bg-emerald-800/20"
                 >
                   Open Reader
                 </Link>
               </div>
 
-              {/* Quran Text Content */}
-              <div className="my-auto flex flex-col items-center justify-center py-6 text-center">
-                <p className="mb-6 font-arabic text-2xl text-slate-800" dir="rtl" lang="ar">
-                  بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-                </p>
-
-                <div className="space-y-6 max-w-xl">
-                  <div>
-                    <p className="font-arabic text-2xl text-slate-800 leading-loose" dir="rtl" lang="ar">
-                      الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-800/30 text-[10px] align-middle font-sans font-bold text-emerald-800 ml-2">١</span>
-                    </p>
-                    <p className="mt-2 text-sm text-slate-500 italic">
-                      "All praise is due to Allah, Lord of all the worlds."
-                    </p>
+              <div className="my-auto flex min-h-[200px] flex-col items-center justify-center py-4 text-center">
+                {loadingText ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald-800" />
+                ) : previewAyahs.length === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    {error || 'No verses available for this chapter yet.'}
+                  </p>
+                ) : (
+                  <div className="w-full max-w-xl space-y-6">
+                    {previewAyahs.map((ayah) => {
+                      const en = translationText(ayah);
+                      const isActiveVerse =
+                        isThisSurah && current?.ayahNumber === ayah.number;
+                      return (
+                        <div
+                          key={ayah.id}
+                          className={cn(
+                            'rounded-2xl px-2 py-1 transition',
+                            isActiveVerse && 'bg-emerald-800/5'
+                          )}
+                        >
+                          <p
+                            className="font-arabic text-2xl leading-loose text-slate-800"
+                            dir="rtl"
+                            lang="ar"
+                          >
+                            {ayah.textUthmani}{' '}
+                            <span className="ml-2 inline-flex h-6 w-6 items-center justify-center align-middle rounded-full border border-emerald-800/30 font-sans text-[10px] font-bold text-emerald-800">
+                              {toArabicNum(ayah.number)}
+                            </span>
+                          </p>
+                          {en && (
+                            <p className="mt-2 text-sm italic text-slate-500">
+                              &ldquo;{en}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {(ayahs.length > previewAyahs.length ||
+                      (activeMeta?.numberOfAyahs ?? 0) > previewAyahs.length) && (
+                      <Link
+                        href={`/surah/${activeSurah}`}
+                        className="inline-flex text-xs font-bold text-emerald-800 hover:underline"
+                      >
+                        Continue in full reader →
+                      </Link>
+                    )}
                   </div>
-
-                  <div>
-                    <p className="font-arabic text-2xl text-slate-800 leading-loose" dir="rtl" lang="ar">
-                      الرَّحْمَٰنِ الرَّحِيمِ <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-emerald-800/30 text-[10px] align-middle font-sans font-bold text-emerald-800 ml-2">٢</span>
-                    </p>
-                    <p className="mt-2 text-sm text-slate-500 italic">
-                      "The Most Compassionate, Most Merciful."
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Bottom Embedded Audio Player bar */}
-              <div className="mt-8 rounded-2xl bg-slate-50 p-4 border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="mt-8 flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-sm transition hover:bg-emerald-900"
+                    onClick={() => void onPrev()}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-white hover:text-emerald-800"
+                    aria-label="Previous verse"
                   >
-                    {isPlaying ? <Pause className="h-4.5 w-4.5 fill-white" /> : <Play className="h-4.5 w-4.5 fill-white ml-0.5" />}
+                    <SkipBack className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void togglePlay()}
+                    disabled={loadingAudio}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-sm transition hover:bg-emerald-900 disabled:opacity-60"
+                    aria-label={showingPlay ? 'Pause' : 'Play'}
+                  >
+                    {loadingAudio ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : showingPlay ? (
+                      <Pause className="h-4 w-4 fill-white" />
+                    ) : (
+                      <Play className="ml-0.5 h-4 w-4 fill-white" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void onNext()}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-white hover:text-emerald-800"
+                    aria-label="Next verse"
+                  >
+                    <SkipForward className="h-4 w-4" />
                   </button>
                   <div>
-                    <p className="text-xs font-bold text-slate-800">Recitation - Verse 1</p>
-                    <p className="text-[10px] text-slate-400">Mishary Rashid Alafasy</p>
+                    <p className="text-xs font-bold text-slate-800">{verseLabel}</p>
+                    <p className="text-[10px] text-slate-400">{reciterName}</p>
                   </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="flex-1 flex items-center gap-3">
-                  <span className="text-[10px] font-medium text-slate-400">00:14</span>
-                  <div className="h-1.5 flex-1 rounded-full bg-slate-200 relative overflow-hidden">
-                    <div 
-                      className="h-full bg-emerald-800 transition-all duration-300"
-                      style={{ width: isPlaying ? '35%' : '0%' }}
+                <div className="flex flex-1 items-center gap-3">
+                  <span className="text-[10px] font-medium text-slate-400">
+                    {formatTime(displayTime)}
+                  </span>
+                  <button
+                    type="button"
+                    className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"
+                    aria-label="Seek"
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const ratio = (e.clientX - rect.left) / rect.width;
+                      seek(ratio);
+                    }}
+                  >
+                    <div
+                      className="h-full bg-emerald-800 transition-all duration-150"
+                      style={{ width: `${progressPct}%` }}
                     />
-                  </div>
-                  <span className="text-[10px] font-medium text-slate-400">00:38</span>
+                  </button>
+                  <span className="text-[10px] font-medium text-slate-400">
+                    {formatTime(displayDuration)}
+                  </span>
                 </div>
 
-                {/* Volume icon */}
                 <div className="hidden items-center gap-2 md:flex">
                   <Volume2 className="h-4 w-4 text-slate-400" />
-                  <div className="w-16 h-1 rounded-full bg-slate-200">
-                    <div className="h-full bg-slate-400 rounded-full" style={{ width: '80%' }} />
-                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={volume}
+                    onChange={(e) => setVolume(Number(e.target.value))}
+                    className="h-1 w-16 cursor-pointer accent-emerald-800"
+                    aria-label="Volume"
+                  />
                 </div>
               </div>
+
+              {error && !loadingText && (
+                <p className="mt-3 text-center text-xs text-red-600" role="alert">
+                  {error}
+                </p>
+              )}
             </div>
           </div>
         </div>

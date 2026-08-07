@@ -1,9 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
-  Search,
   Play,
   Pause,
   SkipForward,
@@ -19,6 +17,7 @@ import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
+import { SmartSearchBox } from '@/components/search/SmartSearchBox';
 
 const POPULAR = [
   { name: 'Surah Al-Mulk', number: 67 },
@@ -52,13 +51,11 @@ function toPlaylist(list: Awaited<ReturnType<typeof audioApi.surah>>): AudioAyah
 
 export function Hero() {
   const { t } = useT();
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [reciterName, setReciterName] = useState(DEFAULT_RECITER_NAME);
   const [error, setError] = useState<string | null>(null);
   const radioModeRef = useRef(false);
   const advancingRef = useRef(false);
-  const router = useRouter();
 
   const settingsReciter = useSettingsStore((s) => s.reciterSlug);
   const setReciterSlug = useSettingsStore((s) => s.setReciterSlug);
@@ -244,22 +241,15 @@ export function Hero() {
     }
   };
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = search.trim();
-    if (!q) return;
-    router.push(`/search?q=${encodeURIComponent(q)}`);
-  };
-
   return (
-    <section className="relative w-full overflow-hidden bg-gradient-to-br from-[#ecfdf5] via-[#f0fdfa] to-[#e0f2fe] px-4 py-16 md:py-24 lg:py-28">
+    <section className="relative w-full overflow-x-clip bg-gradient-to-br from-[#ecfdf5] via-[#f0fdfa] to-[#e0f2fe] px-4 py-16 md:py-24 lg:py-28">
       <div
-        className="absolute bottom-0 right-0 top-0 hidden w-1/2 bg-contain bg-right-bottom bg-no-repeat opacity-[0.22] lg:block"
+        className="absolute bottom-0 right-0 top-0 hidden w-1/2 overflow-hidden bg-contain bg-right-bottom bg-no-repeat opacity-[0.22] lg:block"
         style={{ backgroundImage: 'url("/images/hero_mosque.png")' }}
         aria-hidden
       />
 
-      <div className="relative z-10 mx-auto grid max-w-[1200px] grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
+      <div className="relative z-20 mx-auto grid max-w-[1200px] grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
         <div className="text-left lg:col-span-7">
           <h1 className="mb-6 font-sans text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
             {t('heroTitle')} <br />
@@ -291,25 +281,12 @@ export function Hero() {
 
           <p className="mb-8 max-w-xl text-base leading-relaxed text-slate-600">{t('heroBody')}</p>
 
-          <form onSubmit={onSubmit} className="group relative max-w-xl transform transition-all duration-300">
-            <div className="absolute inset-0 rounded-full bg-emerald-500/10 blur-lg transition-opacity group-hover:opacity-20" />
-            <div className="relative flex items-center overflow-hidden rounded-full border border-slate-200 bg-white/90 p-1.5 shadow-md backdrop-blur-sm focus-within:border-emerald-800/40 focus-within:ring-4 focus-within:ring-emerald-800/5">
-              <Search className="ml-4 h-5 w-5 text-emerald-800" />
-              <input
-                type="search"
-                placeholder={t('searchPlaceholder')}
-                className="w-full bg-transparent px-3 py-2.5 text-slate-800 placeholder-slate-400 outline-none"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-emerald-800 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-900"
-              >
-                {t('searchButton')}
-              </button>
-            </div>
-          </form>
+          <SmartSearchBox
+            className="max-w-xl"
+            variant="hero"
+            placeholder={t('searchPlaceholder')}
+            searchButtonLabel={t('searchButton')}
+          />
 
           <div className="mt-8 flex flex-wrap items-center gap-2 text-sm text-slate-500">
             <span className="font-medium text-slate-600">{t('popular')}</span>
