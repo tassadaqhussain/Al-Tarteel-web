@@ -1,12 +1,11 @@
 # Production stack — app ports bound to localhost; Nginx terminates TLS.
 # Deploy via: sudo bash scripts/deploy-production.sh
 #
-# Or manually:
-#   set -a && source deploy/production.env && set +a
-#   export FRONTEND_URL="https://${DOMAIN}" CORS_ORIGINS="https://${DOMAIN}" \
-#     NEXT_PUBLIC_API_URL="https://${DOMAIN}/api/v1" \
-#     AUDIO_PUBLIC_BASE_URL="https://${DOMAIN}/api/v1/audio/files"
-#   docker compose -f docker-compose.prod.yml up -d --build
+# Manual (loads deploy/production.env automatically):
+#   sudo bash scripts/sync-public-env.sh
+#   sudo docker compose --env-file deploy/production.env -f docker-compose.prod.yml up -d --build
+#
+# Defaults below prevent blank-string warnings if env file is missing keys.
 
 services:
   postgres:
@@ -55,10 +54,10 @@ services:
       DATABASE_URL: postgresql://quran:${POSTGRES_PASSWORD:-quran_secret}@postgres:5432/quran_app?schema=public
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      CORS_ORIGINS: ${CORS_ORIGINS}
-      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://quranpilot.com,https://www.quranpilot.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://quranpilot.com}
       AUDIO_STORAGE_PATH: /app/storage/audio
-      AUDIO_PUBLIC_BASE_URL: ${AUDIO_PUBLIC_BASE_URL}
+      AUDIO_PUBLIC_BASE_URL: ${AUDIO_PUBLIC_BASE_URL:-https://quranpilot.com/api/v1/audio/files}
       SKIP_QURAN_DOWNLOAD: ${SKIP_QURAN_DOWNLOAD:-0}
       # Temporary free Ask AI cap (0 = unlimited)
       AI_PROMPT_LIMIT: ${AI_PROMPT_LIMIT:-3}
@@ -77,7 +76,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://quranpilot.com/api/v1}
         NEXT_PUBLIC_SITE_URL: ${FRONTEND_URL:-https://quranpilot.com}
         NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:-}
         NEXT_PUBLIC_BING_SITE_VERIFICATION: ${NEXT_PUBLIC_BING_SITE_VERIFICATION:-}

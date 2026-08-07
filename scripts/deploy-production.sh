@@ -437,10 +437,11 @@ cd "${APP_DIR}"
 ensure_swap
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
+COMPOSE=(docker compose --env-file deploy/production.env -f docker-compose.prod.yml)
 # Build one image at a time — parallel api+web npm ci commonly gets signal:killed
-docker compose -f docker-compose.prod.yml build api
-docker compose -f docker-compose.prod.yml build web
-docker compose -f docker-compose.prod.yml up -d --remove-orphans
+"${COMPOSE[@]}" build api
+"${COMPOSE[@]}" build web
+"${COMPOSE[@]}" up -d --remove-orphans
 ok "Containers up"
 
 log "Waiting for web/API"

@@ -90,25 +90,26 @@ read -r CONFIRM
 [[ "${CONFIRM}" == "YES" ]] || die "Aborted (typed: ${CONFIRM:-empty})"
 
 log "Stopping stack and deleting volumes"
-docker compose -f docker-compose.prod.yml down -v
+COMPOSE=(docker compose --env-file "${ENV_FILE}" -f docker-compose.prod.yml)
+"${COMPOSE[@]}" down -v
 ok "Volumes removed"
 
 log "Building api"
-docker compose -f docker-compose.prod.yml build api
+"${COMPOSE[@]}" build api
 ok "api image ready"
 
 log "Building web"
-docker compose -f docker-compose.prod.yml build web
+"${COMPOSE[@]}" build web
 ok "web image ready"
 
 log "Starting stack (Quran download runs in background on API boot)"
-docker compose -f docker-compose.prod.yml up -d
+"${COMPOSE[@]}" up -d
 ok "Containers started"
 
 log "Quick status"
-docker compose -f docker-compose.prod.yml ps
+"${COMPOSE[@]}" ps
 
 if [[ "${FOLLOW_LOGS}" -eq 1 ]]; then
   log "Following API logs — wait for “Quran download finished.” (Ctrl+C to stop following)"
-  docker compose -f docker-compose.prod.yml logs -f api
+  "${COMPOSE[@]}" logs -f api
 fi

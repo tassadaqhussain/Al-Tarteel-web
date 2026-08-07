@@ -4,8 +4,7 @@
 #
 # Execute:
 #   sudo bash scripts/sync-public-env.sh
-#   set -a && source deploy/production.env && set +a
-#   sudo docker compose -f docker-compose.prod.yml up -d
+#   sudo docker compose --env-file deploy/production.env -f docker-compose.prod.yml up -d
 #
 # Or source helpers:
 #   source scripts/sync-public-env.sh
