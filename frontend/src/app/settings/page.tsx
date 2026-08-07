@@ -133,12 +133,23 @@ export default function SettingsPage() {
 
   const [translators, setTranslators] = useState<Translator[]>([]);
   const [tafsirSources, setTafsirSources] = useState<TafsirSource[]>([]);
+  const [tafsirLoading, setTafsirLoading] = useState(true);
+  const [tafsirError, setTafsirError] = useState<string | null>(null);
   const [reciters, setReciters] = useState<Reciter[]>([]);
   const [translationSheetOpen, setTranslationSheetOpen] = useState(false);
 
   useEffect(() => {
     quranApi.translators().then(setTranslators).catch(() => {});
-    quranApi.tafsirSources().then(setTafsirSources).catch(() => {});
+    setTafsirLoading(true);
+    setTafsirError(null);
+    quranApi
+      .tafsirSources()
+      .then((data) => setTafsirSources(Array.isArray(data) ? data : []))
+      .catch(() => {
+        setTafsirSources([]);
+        setTafsirError('Could not load tafsir sources. Check your connection and try again.');
+      })
+      .finally(() => setTafsirLoading(false));
     audioApi.reciters().then(setReciters).catch(() => {});
   }, []);
 
@@ -280,9 +291,19 @@ export default function SettingsPage() {
 
         {/* ── Tafsir ──────────────────────────────────────────────────────── */}
         <Section title="Tafsir" icon={<BookMarked className="h-4 w-4" />}>
-          {tafsirSources.length === 0 ? (
+          {tafsirLoading ? (
             <div className="px-5 py-4">
               <p className="text-sm text-[var(--muted)]">Loading sources…</p>
+            </div>
+          ) : tafsirError ? (
+            <div className="px-5 py-4">
+              <p className="text-sm text-red-600">{tafsirError}</p>
+            </div>
+          ) : tafsirSources.length === 0 ? (
+            <div className="px-5 py-4">
+              <p className="text-sm text-[var(--muted)]">
+                No tafsir sources available right now.
+              </p>
             </div>
           ) : (
             <>
@@ -295,10 +316,10 @@ export default function SettingsPage() {
               )}
               <div className="px-5 py-4">
                 <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Available Sources</p>
-                <div className="space-y-1">
+                <div className="max-h-80 space-y-1 overflow-y-auto">
                   {tafsirSources.map((src) => (
                     <button
-                      key={src.slug}
+                      key={`${src.id}-${src.slug}`}
                       type="button"
                       onClick={() => setTafsirSlug(src.slug === tafsirSlug ? null : src.slug)}
                       className={cn(
@@ -310,9 +331,9 @@ export default function SettingsPage() {
                         <p className={cn('font-medium', src.slug === tafsirSlug ? 'text-[var(--accent)]' : 'text-[var(--fg)]')}>
                           {src.name}
                         </p>
-                        {src.author && (
-                          <p className="mt-0.5 text-xs text-[var(--muted)]">{src.author}</p>
-                        )}
+                        <p className="mt-0.5 text-xs text-[var(--muted)]">
+                          {[src.languageCode?.toUpperCase(), src.author].filter(Boolean).join(' · ')}
+                        </p>
                       </div>
                       {src.slug === tafsirSlug && (
                         <Check className="h-4 w-4 text-[var(--accent)]" />

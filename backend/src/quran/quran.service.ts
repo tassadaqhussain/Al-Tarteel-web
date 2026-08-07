@@ -335,10 +335,48 @@ export class QuranService {
   }
 
   async getTafsirSources() {
-    return this.prisma.tafsirSource.findMany({
+    const local = await this.prisma.tafsirSource.findMany({
       orderBy: [{ languageCode: 'asc' }, { name: 'asc' }],
       select: { id: true, name: true, slug: true, languageCode: true, author: true },
     });
+    if (local.length > 0) return local;
+
+    // DB has no seeded tafsir rows — surface Quran Foundation catalog so Settings/reader work.
+    try {
+      const resources = (await this.getOfficialTafsirResources('en')) as Array<{
+        id: number;
+        name: string;
+        author_name?: string | null;
+        slug?: string | null;
+        language_name?: string;
+        translated_name?: { name?: string };
+      }>;
+      return resources
+        .map((r) => {
+          const languageName = (r.language_name || 'english').toLowerCase();
+          const languageCode =
+            languageName.startsWith('ar')
+              ? 'ar'
+              : languageName.startsWith('ur')
+                ? 'ur'
+                : languageName.startsWith('en')
+                  ? 'en'
+                  : languageName.slice(0, 2) || 'en';
+          return {
+            id: r.id,
+            name: r.translated_name?.name || r.name,
+            slug: (r.slug && String(r.slug).trim()) || `qf-${r.id}`,
+            languageCode,
+            author: r.author_name ?? null,
+          };
+        })
+        .sort((a, b) => {
+          const rank = (code: string) => (code === 'en' ? 0 : code === 'ar' ? 1 : 2);
+          return rank(a.languageCode) - rank(b.languageCode) || a.name.localeCompare(b.name);
+        });
+    } catch {
+      return [];
+    }
   }
 
   async getOfficialTafsirResources(language = 'en') {

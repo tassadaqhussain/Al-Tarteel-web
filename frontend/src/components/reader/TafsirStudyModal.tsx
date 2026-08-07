@@ -13,6 +13,7 @@ const LANGUAGE_NAMES: Record<string, string> = { english: 'English', arabic: 'ا
 
 export function TafsirStudyModal({ open, onOpenChange, surahNumber, surahName, ayahNumber }: Props) {
   const selectedTranslations = useSettingsStore((state) => state.translationSlugs);
+  const tafsirSlug = useSettingsStore((state) => state.tafsirSlug);
   const requestedTranslations = selectedTranslations.length ? selectedTranslations.join(',') : 'en-clear-quran,ur-bayan-ul-quran';
   const [verse, setVerse] = useState<AyahFull | null>(null);
   const [resources, setResources] = useState<OfficialTafsirResource[]>([]);
@@ -29,10 +30,23 @@ export function TafsirStudyModal({ open, onOpenChange, surahNumber, surahName, a
     Promise.all([
       quranApi.ayah(surahNumber, ayahNumber, { translations: requestedTranslations }),
       quranApi.officialTafsirResources(),
-    ]).then(([verseData, resourceData]) => { if (active) { setVerse(verseData); setResources(resourceData); } })
+    ]).then(([verseData, resourceData]) => {
+      if (!active) return;
+      setVerse(verseData);
+      const list = Array.isArray(resourceData) ? resourceData : [];
+      setResources(list);
+      // Prefer the user's Settings selection when it matches a resource slug.
+      if (tafsirSlug) {
+        const preferred = list.find((item) => item.slug === tafsirSlug || `qf-${item.id}` === tafsirSlug);
+        if (preferred) {
+          setResourceId(preferred.id);
+          setLanguage((preferred.language_name || 'english').toLowerCase());
+        }
+      }
+    })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [open, surahNumber, ayahNumber, requestedTranslations]);
+  }, [open, surahNumber, ayahNumber, requestedTranslations, tafsirSlug]);
 
   useEffect(() => {
     if (!open || !resourceId) return;
