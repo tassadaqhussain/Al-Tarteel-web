@@ -15,6 +15,9 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ENV_FILE="${REPO_ROOT}/deploy/production.env"
 FOLLOW_LOGS=1
 
+# shellcheck source=sync-public-env.sh
+source "${SCRIPT_DIR}/sync-public-env.sh"
+
 log()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m✓\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!\033[0m %s\n' "$*"; }
@@ -25,7 +28,7 @@ usage() {
 clean-reinstall-prod.sh — wipe volumes and rebuild production stack
 
   1. Load deploy/production.env
-  2. Export public URLs from DOMAIN
+  2. Auto-sync FRONTEND_URL / CORS / API / AUDIO URLs from DOMAIN
   3. docker compose down -v  (DELETES postgres + redis data)
   4. Build api, then web (sequential — avoids OOM)
   5. Up containers (SKIP_QURAN_DOWNLOAD=0 → downloads Quran)
@@ -59,15 +62,25 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-DOMAIN="${DOMAIN:-quranpilot.com}"
-export DOMAIN
-export FRONTEND_URL="${FRONTEND_URL:-https://${DOMAIN}}"
-export CORS_ORIGINS="${CORS_ORIGINS:-https://${DOMAIN},https://www.${DOMAIN}}"
-export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://${DOMAIN}/api/v1}"
-export AUDIO_PUBLIC_BASE_URL="${AUDIO_PUBLIC_BASE_URL:-https://${DOMAIN}/api/v1/audio/files}"
+log "Auto-sync public URL env vars from DOMAIN"
+sync_public_urls "${ENV_FILE}" "${REPO_ROOT}/backend/.env"
+# Re-load so compose interpolation sees persisted values
+set -a
+# shellcheck disable=SC1090
+source "${ENV_FILE}"
+set +a
 export SKIP_QURAN_DOWNLOAD=0
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
+export JWT_SECRET="${JWT_SECRET:-change-me-in-production}"
+export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-quran_secret}"
+export AI_PROMPT_LIMIT="${AI_PROMPT_LIMIT:-3}"
+export NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION="${NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:-}"
+export NEXT_PUBLIC_BING_SITE_VERIFICATION="${NEXT_PUBLIC_BING_SITE_VERIFICATION:-}"
+ok "FRONTEND_URL=${FRONTEND_URL}"
+ok "CORS_ORIGINS=${CORS_ORIGINS}"
+ok "NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}"
+ok "AUDIO_PUBLIC_BASE_URL=${AUDIO_PUBLIC_BASE_URL}"
 
 warn "This will DELETE Postgres + Redis volumes (all app data)."
 warn "Domain: ${DOMAIN}"

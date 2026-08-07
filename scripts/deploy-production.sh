@@ -175,6 +175,29 @@ export JWT_SECRET SKIP_QURAN_DOWNLOAD POSTGRES_PASSWORD WEB_PORT API_PORT
 export NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION="${NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:-}"
 export NEXT_PUBLIC_BING_SITE_VERIFICATION="${NEXT_PUBLIC_BING_SITE_VERIFICATION:-}"
 
+# Persist derived URLs into production.env so manual compose sourced from that file works.
+upsert_env() {
+  local key="$1" value="$2" file="$3"
+  local tmp
+  tmp="$(mktemp)"
+  if [[ -f "${file}" ]] && grep -qE "^${key}=" "${file}"; then
+    while IFS= read -r line || [[ -n "${line}" ]]; do
+      case "${line}" in
+        "${key}="*) printf '%s=%s\n' "${key}" "${value}" ;;
+        *) printf '%s\n' "${line}" ;;
+      esac
+    done < "${file}" > "${tmp}"
+    mv "${tmp}" "${file}"
+  else
+    printf '%s=%s\n' "${key}" "${value}" >> "${file}"
+    rm -f "${tmp}"
+  fi
+}
+upsert_env "FRONTEND_URL" "${FRONTEND_URL}" "${ENV_FILE}"
+upsert_env "CORS_ORIGINS" "${CORS_ORIGINS}" "${ENV_FILE}"
+upsert_env "NEXT_PUBLIC_API_URL" "${NEXT_PUBLIC_API_URL}" "${ENV_FILE}"
+upsert_env "AUDIO_PUBLIC_BASE_URL" "${AUDIO_PUBLIC_BASE_URL}" "${ENV_FILE}"
+
 NGINX_AVAILABLE="/etc/nginx/sites-available/${SITE_NAME}"
 NGINX_ENABLED="/etc/nginx/sites-enabled/${SITE_NAME}"
 NGINX_CONF_D="/etc/nginx/conf.d/${SITE_NAME}.conf"
@@ -303,25 +326,6 @@ elif command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet fire
   ok "firewalld http/https open"
 fi
 
-# ---------------------------------------------------------------------------
-upsert_env() {
-  local key="$1" value="$2" file="$3"
-  local tmp
-  tmp="$(mktemp)"
-  if [[ -f "${file}" ]] && grep -qE "^${key}=" "${file}"; then
-    while IFS= read -r line || [[ -n "${line}" ]]; do
-      case "${line}" in
-        "${key}="*) printf '%s=%s\n' "${key}" "${value}" ;;
-        *) printf '%s\n' "${line}" ;;
-      esac
-    done < "${file}" > "${tmp}"
-    mv "${tmp}" "${file}"
-  else
-    printf '%s=%s\n' "${key}" "${value}" >> "${file}"
-    rm -f "${tmp}"
-  fi
-}
-
 [[ -d "${APP_DIR}" ]] || die "APP_DIR does not exist: ${APP_DIR}"
 [[ -f "${COMPOSE_FILE}" ]] || die "Missing ${COMPOSE_FILE}"
 [[ -f "${NGINX_TPL}" ]] || die "Missing Nginx template ${NGINX_TPL}"
@@ -415,13 +419,17 @@ ensure_swap() {
 }
 
 # ---------------------------------------------------------------------------
-log "Sync public URLs into backend/.env"
+log "Sync public URLs into production.env + backend/.env"
 BACKEND_ENV="${APP_DIR}/backend/.env"
+upsert_env "FRONTEND_URL" "${FRONTEND_URL}" "${ENV_FILE}"
+upsert_env "CORS_ORIGINS" "${CORS_ORIGINS}" "${ENV_FILE}"
+upsert_env "NEXT_PUBLIC_API_URL" "${NEXT_PUBLIC_API_URL}" "${ENV_FILE}"
+upsert_env "AUDIO_PUBLIC_BASE_URL" "${AUDIO_PUBLIC_BASE_URL}" "${ENV_FILE}"
 upsert_env "FRONTEND_URL" "${FRONTEND_URL}" "${BACKEND_ENV}"
 upsert_env "CORS_ORIGINS" "${CORS_ORIGINS}" "${BACKEND_ENV}"
 upsert_env "AUDIO_PUBLIC_BASE_URL" "${AUDIO_PUBLIC_BASE_URL}" "${BACKEND_ENV}"
 upsert_env "JWT_SECRET" "${JWT_SECRET}" "${BACKEND_ENV}"
-ok "backend/.env updated"
+ok "production.env + backend/.env updated"
 
 # ---------------------------------------------------------------------------
 log "Docker Compose — sequential build & start (avoids OOM on small VPSes)"
