@@ -18,8 +18,9 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build-time API URL (override at run if needed)
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+# Build-time API URL — must be the public HTTPS API in production images.
+# Override via compose: NEXT_PUBLIC_API_URL=https://quranpilot.com/api/v1
+ARG NEXT_PUBLIC_API_URL=https://quranpilot.com/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 ARG NEXT_PUBLIC_SITE_URL=https://quranpilot.com

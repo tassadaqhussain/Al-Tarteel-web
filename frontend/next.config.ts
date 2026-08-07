@@ -11,7 +11,10 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
+    // Do not hardcode localhost — a production build with a blank env used to bake
+    // http://localhost:4000 into the browser bundle. Prefer compose --env-file value;
+    // empty lets the client fall back to same-origin /api/v1.
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '',
   },
   images: {
     formats: ['image/avif', 'image/webp'],
