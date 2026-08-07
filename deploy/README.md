@@ -32,7 +32,10 @@ Also put secrets in `backend/.env` (Stripe, Quran Foundation, etc.).
 Point both to this server:
 
 - `quranpilot.com` → A/AAAA  
-- `www.quranpilot.com` → A/AAAA (or CNAME)
+- `www.quranpilot.com` → A/AAAA (or CNAME → apex)
+
+If `www` is missing, Certbot still issues a cert for the apex and leaves a retry hint.
+Leave `WWW_DOMAIN=` empty in `deploy/production.env` to skip www entirely.
 
 ## Useful flags
 

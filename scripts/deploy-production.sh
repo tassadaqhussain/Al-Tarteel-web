@@ -154,10 +154,11 @@ SKIP_SSL="${SKIP_SSL:-0}"
 [[ "${CLI_SKIP_SSL}" == "1" ]] && SKIP_SSL=1
 
 SERVER_NAMES="${DOMAIN}"
-CERTBOT_DOMAINS=(-d "${DOMAIN}")
+# Populated later after DNS pre-check (see SSL section)
+CERTBOT_DOMAINS=()
+CERTBOT_SKIPPED=()
 if [[ -n "${WWW_DOMAIN}" ]]; then
   SERVER_NAMES="${DOMAIN} ${WWW_DOMAIN}"
-  CERTBOT_DOMAINS+=(-d "${WWW_DOMAIN}")
 fi
 
 PUBLIC_ORIGIN="https://${DOMAIN}"
@@ -418,6 +419,38 @@ done
 [[ "${ready_api}" -eq 1 ]] || warn "API not ready — docker compose -f docker-compose.prod.yml logs api --tail=80"
 
 # ---------------------------------------------------------------------------
+domain_resolves() {
+  local host="$1"
+  # Prefer dig if present; fall back to getent.
+  if command -v dig >/dev/null 2>&1; then
+    dig +short "${host}" A 2>/dev/null | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' \
+      && return 0
+    dig +short "${host}" AAAA 2>/dev/null | grep -Eq '^[0-9a-fA-F:]+$' \
+      && return 0
+    return 1
+  fi
+  getent ahosts "${host}" 2>/dev/null | grep -Eq '[[:space:]]STREAM' && return 0
+  return 1
+}
+
+build_certbot_domains() {
+  CERTBOT_DOMAINS=()
+  CERTBOT_SKIPPED=()
+  if domain_resolves "${DOMAIN}"; then
+    CERTBOT_DOMAINS+=(-d "${DOMAIN}")
+  else
+    CERTBOT_SKIPPED+=("${DOMAIN}")
+  fi
+  if [[ -n "${WWW_DOMAIN}" ]]; then
+    if domain_resolves "${WWW_DOMAIN}"; then
+      CERTBOT_DOMAINS+=(-d "${WWW_DOMAIN}")
+    else
+      CERTBOT_SKIPPED+=("${WWW_DOMAIN}")
+      warn "DNS for ${WWW_DOMAIN} does not resolve publicly yet — SSL will skip www"
+    fi
+  fi
+}
+
 if [[ "${SKIP_SSL}" == "1" ]]; then
   warn "SSL skipped. Open http://${DOMAIN} until you re-run without --skip-ssl."
 else
@@ -425,22 +458,63 @@ else
     die "Set CERTBOT_EMAIL in ${ENV_FILE} to a real address for Let's Encrypt"
   fi
 
-  log "SSL for ${SERVER_NAMES}"
-  if certbot certificates 2>/dev/null | grep -qE "Domains:.*[[:space:]]${DOMAIN}([[:space:]]|$)"; then
-    ok "Certificate already exists for ${DOMAIN}"
-    certbot renew --nginx --quiet || warn "certbot renew reported an issue"
-  else
-    certbot --nginx --non-interactive --agree-tos \
-      --email "${CERTBOT_EMAIL}" --redirect \
-      "${CERTBOT_DOMAINS[@]}" \
-      || die "Certbot failed. Ensure DNS for ${DOMAIN} points here and ports 80/443 are open."
-    ok "SSL issued for ${DOMAIN} (+ HTTPS redirect)"
+  # dig helps catch NXDOMAIN before burning a Let's Encrypt attempt
+  if ! command -v dig >/dev/null 2>&1; then
+    case "${PKG}" in
+      apt) install_pkgs dnsutils || true ;;
+      dnf|yum) install_pkgs bind-utils || true ;;
+    esac
   fi
 
-  systemctl enable certbot.timer >/dev/null 2>&1 || true
-  systemctl start certbot.timer >/dev/null 2>&1 || true
-  nginx -t && systemctl reload nginx
-  ok "HTTPS live: ${PUBLIC_ORIGIN}"
+  build_certbot_domains
+
+  if [[ ${#CERTBOT_SKIPPED[@]} -gt 0 ]]; then
+    warn "Unresolved for SSL: ${CERTBOT_SKIPPED[*]}"
+    warn "Add A/AAAA (or CNAME for www) pointing at this server, wait for propagation, then re-run SSL."
+  fi
+
+  if [[ ${#CERTBOT_DOMAINS[@]} -eq 0 ]]; then
+    warn "No domains resolve for Let's Encrypt — leaving HTTP only."
+    warn "Retry after DNS: sudo certbot --nginx -d ${DOMAIN}${WWW_DOMAIN:+ -d ${WWW_DOMAIN}}"
+  elif certbot certificates 2>/dev/null | grep -qE "Domains:.*[[:space:]]${DOMAIN}([[:space:]]|$)"; then
+    ok "Certificate already exists for ${DOMAIN}"
+    certbot renew --nginx --quiet || warn "certbot renew reported an issue"
+    nginx -t && systemctl reload nginx
+    ok "HTTPS: ${PUBLIC_ORIGIN}"
+  else
+    log "SSL for: ${CERTBOT_DOMAINS[*]//-d /}"
+    if certbot --nginx --non-interactive --agree-tos \
+      --email "${CERTBOT_EMAIL}" --redirect \
+      "${CERTBOT_DOMAINS[@]}"; then
+      ok "SSL issued (+ HTTPS redirect)"
+      systemctl enable certbot.timer >/dev/null 2>&1 || true
+      systemctl start certbot.timer >/dev/null 2>&1 || true
+      nginx -t && systemctl reload nginx
+      ok "HTTPS live: ${PUBLIC_ORIGIN}"
+    else
+      warn "Certbot failed for: ${CERTBOT_DOMAINS[*]//-d /}"
+      if [[ ${#CERTBOT_DOMAINS[@]} -gt 1 ]] && domain_resolves "${DOMAIN}"; then
+        warn "Retrying SSL for apex only (${DOMAIN})…"
+        if certbot --nginx --non-interactive --agree-tos \
+          --email "${CERTBOT_EMAIL}" --redirect \
+          -d "${DOMAIN}"; then
+          ok "SSL issued for ${DOMAIN} only. Add www DNS later, then:"
+          warn "  sudo certbot --nginx --expand -d ${DOMAIN} -d ${WWW_DOMAIN}"
+          systemctl enable certbot.timer >/dev/null 2>&1 || true
+          systemctl start certbot.timer >/dev/null 2>&1 || true
+          nginx -t && systemctl reload nginx
+          ok "HTTPS live: ${PUBLIC_ORIGIN}"
+        else
+          warn "Apex-only Certbot also failed. App is still up on HTTP."
+          warn "Check: DNS A records, security group 80/443, nginx -t"
+          warn "Retry: sudo certbot --nginx -d ${DOMAIN}"
+        fi
+      else
+        warn "App is still up on HTTP. Fix DNS / firewall, then:"
+        warn "  sudo certbot --nginx -d ${DOMAIN}${WWW_DOMAIN:+ -d ${WWW_DOMAIN}}"
+      fi
+    fi
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -452,5 +526,6 @@ cat <<EOF
   API:       ${PUBLIC_ORIGIN}/api/v1
   Vhost:     ${VHOST_PATH}
   Compose:   docker compose -f docker-compose.prod.yml
+  HTTP:      http://${DOMAIN}  (until SSL succeeds)
 
 EOF
