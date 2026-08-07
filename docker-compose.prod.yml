@@ -1,0 +1,98 @@
+# Production stack — app ports bound to localhost; Nginx terminates TLS.
+# Deploy via: sudo bash scripts/deploy-production.sh
+#
+# Or manually:
+#   set -a && source deploy/production.env && set +a
+#   export FRONTEND_URL="https://${DOMAIN}" CORS_ORIGINS="https://${DOMAIN}" \
+#     NEXT_PUBLIC_API_URL="https://${DOMAIN}/api/v1" \
+#     AUDIO_PUBLIC_BASE_URL="https://${DOMAIN}/api/v1/audio/files"
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: quran
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quran_secret}
+      POSTGRES_DB: quran_app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quran -d quran_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - internal
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${API_PORT:-4010}:4000"
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      API_PREFIX: api/v1
+      DATABASE_URL: postgresql://quran:${POSTGRES_PASSWORD:-quran_secret}@postgres:5432/quran_app?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      FRONTEND_URL: ${FRONTEND_URL}
+      AUDIO_STORAGE_PATH: /app/storage/audio
+      AUDIO_PUBLIC_BASE_URL: ${AUDIO_PUBLIC_BASE_URL}
+      SKIP_QURAN_DOWNLOAD: ${SKIP_QURAN_DOWNLOAD:-0}
+      # Temporary free Ask AI cap (0 = unlimited)
+      AI_PROMPT_LIMIT: ${AI_PROMPT_LIMIT:-3}
+    volumes:
+      - ./backend/storage/audio:/app/storage/audio:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - internal
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3010}:3000"
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:4000/api/v1
+    depends_on:
+      - api
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  internal:
+    driver: bridge

@@ -6,6 +6,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   // rawBody required for Stripe webhook signature verification
   const app = await NestFactory.create(AppModule, { rawBody: true });
+  // Respect X-Forwarded-For from Nginx (needed for production AI prompt limits).
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.getInstance()?.set?.('trust proxy', 1);
   const prefix = process.env.API_PREFIX || 'api/v1';
   app.setGlobalPrefix(prefix);
   app.useGlobalPipes(

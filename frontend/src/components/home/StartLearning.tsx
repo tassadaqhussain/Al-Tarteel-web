@@ -1,38 +1,97 @@
-import Link from 'next/link';
-import { LEARNING_PLANS } from '@/lib/learning-plans';
+'use client';
 
-const PREVIEW = LEARNING_PLANS.filter((p) => p.featured).slice(0, 4);
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+
+const ARTICLES = [
+  {
+    image: '/images/article_1.png',
+    title: 'When was Islam created at first?',
+    desc: 'Discover the historical origin and evolution of the Islamic message across the globe.',
+    duration: '5 min read',
+    slug: 'when-was-islam-created-at-first',
+  },
+  {
+    image: '/images/article_2.png',
+    title: 'How many years did it take to build?',
+    desc: 'Exploring the history and divine architecture of the Kaaba in Mecca.',
+    duration: '8 min read',
+    slug: 'how-many-years-did-it-take-to-build',
+  },
+  {
+    image: '/images/article_3.png',
+    title: 'Benefits of Reading the Holy Quran.',
+    desc: 'Unveiling the physical, mental, and spiritual blessings of regular Quranic recitation.',
+    duration: '6 min read',
+    slug: 'benefits-of-reading-the-holy-quran',
+  },
+];
 
 export function StartLearning() {
   return (
-    <section className="w-full px-3 py-3 sm:px-4 sm:py-4 md:px-6">
-      <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
-        <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">Start Learning</h2>
-        <Link
-          href="/learning-plans"
-          className="shrink-0 text-sm font-medium text-slate-600 underline underline-offset-4 hover:text-[var(--accent)]"
-        >
-          See More
-        </Link>
-      </div>
+    <section className="w-full bg-[#f4fbf9]/30 py-16 px-4 md:px-6">
+      <div className="mx-auto max-w-[1200px]">
+        {/* Section Header */}
+        <div className="mb-10 text-center lg:text-left">
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            Learn Quran and Islam <br className="sm:hidden" />
+            <span className="text-emerald-800">basics everyday.</span>
+          </h2>
+        </div>
 
-      <div className="-mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-4 sm:gap-4 sm:px-4 md:-mx-6 md:px-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {PREVIEW.map((plan) => (
-          <Link
-            key={plan.slug}
-            href={`/learning-plans/${plan.slug}`}
-            className={`relative flex h-40 w-[min(14rem,80vw)] shrink-0 flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br ${plan.imageTone} p-4 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg sm:h-44 sm:w-56 md:w-64`}
-          >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.22),transparent_45%)]" />
-            <div className="relative flex items-start justify-between gap-2">
-              <span className="text-xs font-medium text-white/80">{plan.days}-day plan</span>
-              <span className="rounded-full bg-sky-200 px-2 py-0.5 text-[11px] font-semibold text-sky-900">
-                New!
-              </span>
+        {/* Articles Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {ARTICLES.map((a) => (
+            <div
+              key={a.slug}
+              className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+            >
+              {/* Image Cover */}
+              <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
+                <img
+                  src={a.image}
+                  alt={a.title}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+
+              {/* Text Body */}
+              <div className="flex flex-1 flex-col justify-between p-5">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                    {a.duration}
+                  </span>
+                  <h3 className="mt-2 text-lg font-bold leading-snug text-slate-800 transition group-hover:text-emerald-850">
+                    {a.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-500 line-clamp-3">
+                    {a.desc}
+                  </p>
+                </div>
+
+                <div className="mt-5 pt-4 border-t border-slate-50">
+                  <Link
+                    href="/learning-plans"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950"
+                  >
+                    Read More
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
             </div>
-            <p className="relative line-clamp-3 text-sm font-semibold leading-snug">{plan.title}</p>
+          ))}
+        </div>
+
+        {/* Centered Action Button */}
+        <div className="mt-12 text-center">
+          <Link
+            href="/learning-plans"
+            className="inline-flex items-center justify-center rounded-full bg-emerald-800 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-950"
+          >
+            Read More Articles
           </Link>
-        ))}
+        </div>
       </div>
     </section>
   );

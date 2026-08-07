@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bookmark, Check, Clock, StickyNote } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { SignInSheet } from '@/components/SignInSheet';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getSurahArabicName, getSurahMeta } from '@/lib/surah-meta';
@@ -15,6 +16,7 @@ type Tab = 'saved' | 'recent' | 'notes';
 export default function MyQuranPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('saved');
+  const [signInOpen, setSignInOpen] = useState(false);
   const bookmarks = useBookmarksStore((s) => s.bookmarks);
   const lastRead = useSettingsStore((s) => s.lastRead);
   const recentSurahs = useSettingsStore((s) => s.recentSurahs);
@@ -166,12 +168,13 @@ export default function MyQuranPage() {
                     </Link>
                   </p>
                 )}
-                <Link
-                  href="/settings"
+                <button
+                  type="button"
+                  onClick={() => setSignInOpen(true)}
                   className="mt-6 inline-flex rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent)]/90"
                 >
                   Sign in
-                </Link>
+                </button>
               </div>
             </section>
           </div>
@@ -255,6 +258,7 @@ export default function MyQuranPage() {
           </section>
         )}
       </main>
+      <SignInSheet open={signInOpen} onOpenChange={setSignInOpen} />
     </div>
   );
 }

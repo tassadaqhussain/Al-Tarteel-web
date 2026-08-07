@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo } 
 import { usePathname } from 'next/navigation';
 import { useSettingsStore, type ExperienceMode } from '@/stores/settingsStore';
 import { getSurahNumberFromSlug } from '@/lib/surah-meta';
+import { isRtlLocale } from '@/lib/i18n/messages';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -70,7 +71,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!mounted) return;
     const root = document.documentElement;
     root.lang = uiLocale;
-    root.dir = ['ar', 'fa', 'ur'].includes(uiLocale) ? 'rtl' : 'ltr';
+    root.dir = isRtlLocale(uiLocale) ? 'rtl' : 'ltr';
   }, [mounted, uiLocale]);
 
   useEffect(() => {

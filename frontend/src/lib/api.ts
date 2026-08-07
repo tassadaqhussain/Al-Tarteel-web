@@ -172,6 +172,35 @@ export const donationsApi = {
     }>(`/donations/session/${sessionId}`),
 } as const;
 
+export const aiApi = {
+  config: () =>
+    api<{
+      configured: boolean;
+      provider: string;
+      model: string;
+      voiceSupported: boolean;
+      promptLimit: number;
+      promptsUsed: number;
+      promptsRemaining: number | null;
+    }>('/ai/config'),
+  ask: (body: {
+    question: string;
+    locale?: string;
+    verseKey?: string;
+    history?: { role: 'user' | 'assistant'; content: string }[];
+  }) =>
+    api<{
+      answer: string;
+      model: string;
+      promptLimit?: number;
+      promptsUsed?: number;
+      promptsRemaining?: number | null;
+    }>('/ai/ask', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+} as const;
+
 // Types (mirror API responses)
 export interface Surah {
   id: number;

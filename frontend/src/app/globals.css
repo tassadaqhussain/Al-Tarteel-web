@@ -9,12 +9,12 @@
   --fg: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;
-  --accent: #b45309;
+  --accent: rgb(6 95 70);
   --accent-gold: #c08829;
   /* Primary action / highlight — keep in sync with --accent app-wide */
   --recite-highlight: var(--accent);
   --surface: #ffffff;
-  --ayah-highlight: rgba(180, 83, 9, 0.12);
+  --ayah-highlight: rgba(6, 95, 70, 0.06);
   --header-bg: rgba(255, 255, 255, 0.92);
   --radius: 0.75rem;
 
@@ -24,18 +24,18 @@
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --primary: 26 90% 37%;
+  --primary: 163 88% 20%;
   --primary-foreground: 0 0% 100%;
   --secondary: 210 40% 96%;
   --secondary-foreground: 222 47% 11%;
   --muted-hsl: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
-  --accent-hsl: 26 90% 37%;
+  --accent-hsl: 163 88% 20%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
   --input: 214 32% 91%;
-  --ring: 26 90% 37%;
+  --ring: 163 88% 20%;
 }
 
 .control-button {
@@ -267,7 +267,7 @@
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(180, 83, 9, 0.12);
+  border: 1px solid rgba(6, 95, 70, 0.12);
 }
 
 .glass-light {

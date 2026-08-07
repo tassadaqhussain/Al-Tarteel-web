@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
 import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
+import { AskAiFab } from '@/components/ai/AskAiFab';
 
 const amiri = Amiri({
   weight: ['400', '700'],
@@ -61,6 +62,7 @@ export default function RootLayout({
               {children}
             </div>
             <AudioBar />
+            <AskAiFab />
           </AudioPlayerProvider>
         </ThemeProvider>
       </body>
