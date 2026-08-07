@@ -95,8 +95,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/images/logo.png',
-    apple: '/images/logo.png',
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/images/logo.png', type: 'image/png' },
+    ],
+    apple: '/images/apple-touch-icon.png',
   },
   manifest: '/manifest.webmanifest',
   // Set via env after Google Search Console / Bing give you real tokens.
