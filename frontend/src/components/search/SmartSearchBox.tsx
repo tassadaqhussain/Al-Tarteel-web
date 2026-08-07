@@ -8,6 +8,7 @@ import {
   getSearchSuggestions,
   type SearchSuggestion,
 } from '@/lib/search-intelligence';
+import { getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 
 const SUGGEST_MIN_CHARS = 3;
@@ -70,7 +71,7 @@ export function SmartSearchBox({
     const q = correction.didCorrect ? correction.corrected : typed;
     if (correction.bestSurah && correction.reason === 'surah' && correction.didCorrect) {
       // Strong surah typo → open the chapter directly from home
-      router.push(`/surah/${correction.bestSurah.number}`);
+      router.push(getSurahPath(correction.bestSurah.number));
       return;
     }
     if (onSearchNavigate) {

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import type { Surah } from '@/lib/api';
-import { getSurahArabicName, getSurahMeaning } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeaning, getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 
 type Tab = 'surah' | 'juz' | 'revelation';
@@ -134,7 +134,7 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
               return (
                 <Link
                   key={surah.number}
-                  href={`/surah/${surah.number}`}
+                  href={getSurahPath(surah.number)}
                   className={cn(
                     'group flex items-center gap-4 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
                     isActiveMock

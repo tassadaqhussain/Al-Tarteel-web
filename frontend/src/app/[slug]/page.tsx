@@ -11,11 +11,14 @@ export function generateStaticParams() {
   return Array.from({ length: 114 }, (_, index) => ({ slug: getSurahSlug(index + 1) }));
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params, searchParams }: Props) {
   const { slug } = await params;
   const number = getSurahNumberFromSlug(slug);
   if (!number) return {};
-  return generateSurahMetadata({ params: Promise.resolve({ number: String(number) }), searchParams: Promise.resolve({}) });
+  return generateSurahMetadata({
+    params: Promise.resolve({ number: String(number) }),
+    searchParams,
+  });
 }
 
 export default async function CleanSurahPage({ params, searchParams }: Props) {

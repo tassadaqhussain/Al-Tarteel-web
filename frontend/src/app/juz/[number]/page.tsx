@@ -10,8 +10,9 @@ import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
-import { getSurahArabicName } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
+import { buildPageMetadata } from '@/lib/seo';
 
 interface Props {
   params: Promise<{ number: string }>;
@@ -26,10 +27,12 @@ export async function generateMetadata({ params }: Props) {
   const { number } = await params;
   const n = parseInt(number, 10);
   if (Number.isNaN(n) || n < 1 || n > 30) return {};
-  return {
-    title: `Juz ${n}`,
-    description: `Read Juz ${n} of the Holy Quran with translation and audio.`,
-  };
+  return buildPageMetadata({
+    title: `Juz ${n} — Read the Holy Quran`,
+    description: `Read Juz (para) ${n} of the Holy Quran with Uthmani script, English translation, and verse-by-verse audio on QuranPilot.`,
+    path: `/juz/${n}`,
+    keywords: [`Juz ${n}`, `Para ${n}`, 'Quran juz', 'Quran para'],
+  });
 }
 
 export const revalidate = 3600;
@@ -62,15 +65,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
   const ayahs: AyahWithRelations[] = Array.isArray(rawAyahs) ? rawAyahs : [];
 
   if (ayahs.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#f7f7f7]">
-        <Header />
-        <main className="mx-auto max-w-4xl px-4 py-24 text-center">
-          <p className="text-slate-500">No verses found for Juz {juzNumber}.</p>
-          <Link href="/" className="mt-4 inline-block text-[var(--accent)] hover:underline">Go home</Link>
-        </main>
-      </div>
-    );
+    notFound();
   }
 
   const hasMore = ayahs.length === limit;
@@ -139,7 +134,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
             <div className="mb-6 flex items-center gap-4">
               <div className="h-px flex-1 bg-[var(--border)]" />
               <Link
-                href={`/surah/${group.surahNumber}`}
+                href={getSurahPath(group.surahNumber)}
                 className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-sm font-medium text-[var(--fg)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
               >
                 <span className="font-arabic" dir="rtl" lang="ar">{getSurahArabicName(group.ayahs[0]?.surah?.number ?? 0, group.ayahs[0]?.surah?.nameArabic ?? '')}</span>

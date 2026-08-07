@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BookMarked, Check, GraduationCap, MessageCircle, ScrollText, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { quranApi, type TafsirItem } from '@/lib/api';
+import { getSurahPath } from '@/lib/surah-meta';
 
 export type VerseResource = 'tafsirs' | 'lessons' | 'reflections' | 'hadith' | 'related';
 
@@ -71,7 +72,7 @@ export function VerseResourcePanel({ open, onOpenChange, resource, ayahId, surah
 
           {active === 'hadith' && <EmptyState icon={<ScrollText />} title="No Hadith available" description="No verified Hadith source is currently linked to this verse." />}
 
-          {active === 'related' && <div className="space-y-3"><ResourceLink href={`/surah/${surahNumber}`} icon={<BookMarked />} title={`Read ${surahName}`} description="Continue reading the complete chapter." /><ResourceLink href={`/search?q=${encodeURIComponent(`${surahName} ${ayahNumber}`)}`} icon={<ScrollText />} title="Search related verses" description="Find related Quran text and translations." /><ResourceLink href="/bookmarks" icon={<BookMarked />} title="My Bookmarks" description="Review saved verses and notes." /></div>}
+          {active === 'related' && <div className="space-y-3"><ResourceLink href={getSurahPath(surahNumber)} icon={<BookMarked />} title={`Read ${surahName}`} description="Continue reading the complete chapter." /><ResourceLink href={`/search?q=${encodeURIComponent(`${surahName} ${ayahNumber}`)}`} icon={<ScrollText />} title="Search related verses" description="Find related Quran text and translations." /><ResourceLink href="/bookmarks" icon={<BookMarked />} title="My Bookmarks" description="Review saved verses and notes." /></div>}
         </div>
       </SheetContent>
     </Sheet>

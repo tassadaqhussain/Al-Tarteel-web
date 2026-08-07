@@ -15,6 +15,7 @@ import { Header } from '@/components/Header';
 import { useBookmarksStore, type BookmarkColor } from '@/stores/bookmarksStore';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getSurahHref } from '@/lib/surah-meta';
 
 const COLOR_MAP: Record<BookmarkColor, { dot: string; ring: string; label: string }> = {
   gold:   { dot: 'bg-gold-500',    ring: 'ring-gold-500/50',    label: 'Gold' },
@@ -138,7 +139,7 @@ export default function BookmarksPage() {
 
                       {/* Open verse */}
                       <Link
-                        href={`/surah/${bm.surahNumber}#ayah-${bm.ayahId}`}
+                        href={getSurahHref(bm.surahNumber, { ayahId: bm.ayahId })}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)] transition-colors"
                         aria-label="Open verse"
                       >

@@ -1,13 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { BookOpen } from 'lucide-react';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Learning Plans',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Quran Learning Plans',
   description:
-    'Boost your knowledge with easy-to-follow lessons that keep you growing in your journey with the Quran.',
-};
+    'Free guided Quran learning plans — short daily lessons to understand surahs, deepen reflection, and stay consistent with the Holy Quran.',
+  path: '/learning-plans',
+  keywords: ['Quran learning', 'Quran study plan', 'learn Al-Fatihah', 'Islamic education'],
+});
 
 export default function LearningPlansPage() {
   return (

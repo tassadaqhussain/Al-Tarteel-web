@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Bookmark, ChevronRight, Sparkles, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { getSurahArabicName, getSurahMeta } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 
 const DEFAULT_CONTINUE = {
   surahNumber: 1,
@@ -40,7 +40,7 @@ export function ContinueReading() {
 
       <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
         <Link
-          href={`/surah/${surahNumber}`}
+          href={getSurahPath(surahNumber)}
           className="group flex min-h-[140px] flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md sm:min-h-[180px] sm:p-6"
         >
           <p

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BookOpen, MapPin, History, Clock, ChevronRight } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
+import { getSurahPath } from '@/lib/surah-meta';
 
 // Static quick-access tiles shown when there's no user history
 const DEFAULT_ITEMS = [
@@ -11,7 +12,7 @@ const DEFAULT_ITEMS = [
     title: 'Al-Fatihah',
     subtitle: 'The Opening · 7 Ayahs',
     icon: BookOpen,
-    href: '/surah/1',
+    href: getSurahPath(1),
     accentClass: 'text-gold-500',
   },
   {
@@ -25,7 +26,7 @@ const DEFAULT_ITEMS = [
     title: 'Al-Kahf',
     subtitle: 'Friday Surah · 110 Ayahs',
     icon: Clock,
-    href: '/surah/18',
+    href: getSurahPath(18),
     accentClass: 'text-blue-400',
   },
 ];
@@ -40,7 +41,7 @@ export function QuickAccess() {
       {lastRead && (
         <div className="mb-8">
           <Link
-            href={`/surah/${lastRead.surahNumber}`}
+            href={getSurahPath(lastRead.surahNumber)}
             className="group relative flex items-center justify-between overflow-hidden rounded-2xl border border-gold-500/20 bg-gradient-to-r from-emerald-900/40 to-emerald-900/10 px-6 py-5 backdrop-blur-sm transition-all duration-300 hover:border-gold-500/40 hover:from-emerald-900/60"
           >
             {/* Background glow */}

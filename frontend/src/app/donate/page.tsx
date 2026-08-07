@@ -2,11 +2,15 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { DonationCard } from '@/components/donate/DonationCard';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Donate',
-  description: 'Support QuranPilot — help millions connect with the Quran through secure Stripe donations.',
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Donate — Support QuranPilot',
+  description:
+    'Support free Quran access for everyone. Donate securely to help QuranPilot provide translations, tafsir, and audio worldwide.',
+  path: '/donate',
+  keywords: ['donate Quran', 'support Islamic app', 'QuranPilot donation'],
+});
 
 export default function DonatePage() {
   return (

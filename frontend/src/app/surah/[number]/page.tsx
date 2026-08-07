@@ -10,36 +10,47 @@ import { ChapterControls } from '@/components/reader/ChapterControls';
 import { ReaderBismillah } from '@/components/reader/ReaderBismillah';
 import { SurahAyahFeed } from '@/components/reader/SurahAyahFeed';
 import { SurahNavTrigger } from '@/components/reader/SurahNavTrigger';
+import { SurahPaginationNav } from '@/components/reader/SurahPaginationNav';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
-import { getSurahArabicName, SURAH_MEANINGS } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
 import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { breadcrumbJsonLd, surahJsonLd, surahSeo } from '@/lib/seo';
+import {
+  clampSurahPage,
+  getSurahAyahCount,
+  surahSsrLimit,
+  surahTotalPages,
+  surahVerseRange,
+} from '@/lib/surah-pagination';
 
 interface Props {
   params: Promise<{ number: string }>;
   searchParams: Promise<{ page?: string; trans?: string }>;
 }
 
+export const revalidate = 3600;
+
 export async function generateStaticParams() {
   return Array.from({ length: 114 }, (_, i) => ({ number: String(i + 1) }));
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params, searchParams }: Props) {
   const { number } = await params;
+  const { page: pageStr } = await searchParams;
   const n = parseInt(number, 10);
   if (Number.isNaN(n) || n < 1 || n > 114) return {};
   const surah = await quranApi.surah(n).catch(() => null);
-  if (!surah) return {};
-  const arabicName = getSurahArabicName(n, surah.nameArabic);
-  return {
-    title: `${surah.nameSimple} (${arabicName})`,
-    description: `Read Surah ${surah.nameSimple} — ${surah.numberOfAyahs} verses of the Holy Quran with translation and audio.`,
-    openGraph: {
-      title: `${surah.nameSimple} — QuranPilot`,
-      description: `Read Surah ${surah.nameSimple} in Uthmani script with translation and verse-by-verse audio.`,
-    },
-  };
+  const ayahCount = surah?.numberOfAyahs || getSurahAyahCount(n);
+  const page = clampSurahPage(parseInt(pageStr || '1', 10), ayahCount);
+  const arabicName = getSurahArabicName(n, surah?.nameArabic);
+  return surahSeo(n, {
+    arabicName,
+    ayahCount,
+    page,
+  }).metadata;
 }
 
 export default async function SurahPage({ params, searchParams }: Props) {
@@ -48,33 +59,39 @@ export default async function SurahPage({ params, searchParams }: Props) {
   const surahNumber = parseInt(number, 10);
   if (Number.isNaN(surahNumber) || surahNumber < 1 || surahNumber > 114) notFound();
 
-  const page = Math.max(1, parseInt(pageStr || '1', 10));
-  const limit = 20;
   const cookieStore = await cookies();
   const effectiveTranslations = resolveTranslations({
     cookieValue: cookieStore.get(TRANSLATION_COOKIE)?.value,
     queryTrans: trans,
   });
 
-  const [surah, ayahs, prevSurah, nextSurah] = await Promise.all([
-    quranApi.surah(surahNumber).catch(() => null),
-    quranApi.ayahsBySurah(surahNumber, {
-      page,
-      limit,
-      translations: effectiveTranslations,
-      words: true,
-    }).catch(() => []),
+  const surah = await quranApi.surah(surahNumber).catch(() => null);
+  if (!surah) notFound();
+
+  const ayahCount = surah.numberOfAyahs || getSurahAyahCount(surahNumber);
+  const page = clampSurahPage(parseInt(pageStr || '1', 10), ayahCount);
+  const limit = Math.max(1, surahSsrLimit(ayahCount, page));
+  const totalPages = surahTotalPages(ayahCount);
+  const range = surahVerseRange(page, ayahCount);
+  const surahPath = getSurahPath(surahNumber);
+
+  const [ayahs, prevSurah, nextSurah] = await Promise.all([
+    quranApi
+      .ayahsBySurah(surahNumber, {
+        page,
+        limit,
+        translations: effectiveTranslations,
+        words: true,
+      })
+      .catch(() => []),
     surahNumber > 1 ? quranApi.surah(surahNumber - 1).catch(() => null) : Promise.resolve(null),
     surahNumber < 114 ? quranApi.surah(surahNumber + 1).catch(() => null) : Promise.resolve(null),
   ]);
 
-  if (!surah) notFound();
-
   const arabicName = getSurahArabicName(surahNumber, surah.nameArabic);
-  const totalPages = Math.ceil(surah.numberOfAyahs / limit);
-  const firstAyah = Array.isArray(ayahs) && ayahs.length > 0 ? ayahs[0].number : 1;
-  const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
   const initialAyahs = Array.isArray(ayahs) ? ayahs : [];
+  const firstAyah = initialAyahs.length > 0 ? initialAyahs[0].number : range.start;
+  const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
 
   const endOfChapter = (
           <div className="mt-12">
@@ -91,7 +108,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
             <div className="grid gap-4 md:grid-cols-3">
               {prevSurah && (
                 <Link
-                  href={`/surah/${prevSurah.number}`}
+                  href={getSurahPath(prevSurah.number)}
                   className="group flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all hover:border-[var(--accent)]/40 hover:bg-[var(--ayah-highlight)]"
                 >
                   <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm font-bold text-[var(--muted)] transition-colors group-hover:border-[var(--accent)]/40 group-hover:text-[var(--accent)]">
@@ -110,7 +127,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
 
               {nextSurah && (
                 <Link
-                  href={`/surah/${nextSurah.number}`}
+                  href={getSurahPath(nextSurah.number)}
                   className="group flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all hover:border-[var(--accent)]/40 hover:bg-[var(--ayah-highlight)]"
                 >
                   <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm font-bold text-[var(--muted)] transition-colors group-hover:border-[var(--accent)]/40 group-hover:text-[var(--accent)]">
@@ -149,7 +166,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
             {/* Quick actions */}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href={`/surah/${surahNumber}`}
+                href={getSurahPath(surahNumber)}
                 className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-sm text-[var(--muted)] transition-all hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -179,6 +196,26 @@ export default async function SurahPage({ params, searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] pb-32">
+      <JsonLd
+        data={[
+          surahJsonLd({
+            number: surahNumber,
+            name: surah.nameSimple,
+            arabic: arabicName,
+            meaning: SURAH_MEANINGS[surahNumber],
+            ayahCount,
+            path: surahPath,
+          }),
+          breadcrumbJsonLd([
+            { name: 'Home', path: '/' },
+            { name: 'Surahs', path: '/surahs' },
+            { name: `Surah ${surah.nameSimple}`, path: surahPath },
+            ...(page > 1
+              ? [{ name: `Verses ${range.start}–${range.end}`, path: `${surahPath}?page=${page}` }]
+              : []),
+          ]),
+        ]}
+      />
       <Header />
 
       {/* Quran.com 3-col sticky: Surah+progress | Page/Juz/Hizb | modes */}
@@ -191,9 +228,15 @@ export default async function SurahPage({ params, searchParams }: Props) {
           <p className="col-span-2 flex min-w-0 items-center justify-center gap-1.5 truncate text-center text-[11px] text-slate-500 sm:col-span-1 sm:text-sm">
             <Bookmark className="hidden h-3.5 w-3.5 shrink-0 text-slate-400 sm:block" aria-hidden />
             <span className="truncate">
-              Page {ayahs[0]?.page || '—'}{' '}
-              <span className="text-slate-300">·</span> Juz {ayahs[0]?.juz || '—'} / Hizb{' '}
-              {ayahs[0]?.hizb || '—'}
+              {page > 1 ? (
+                <>Verses {range.start}–{range.end}</>
+              ) : (
+                <>
+                  Page {initialAyahs[0]?.page || '—'}{' '}
+                  <span className="text-slate-300">·</span> Juz {initialAyahs[0]?.juz || '—'} / Hizb{' '}
+                  {initialAyahs[0]?.hizb || '—'}
+                </>
+              )}
             </span>
           </p>
 
@@ -211,6 +254,34 @@ export default async function SurahPage({ params, searchParams }: Props) {
       <CleanTranslationUrl />
 
       <main className="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-6">
+        <nav aria-label="Breadcrumb" className="mb-3 text-xs text-slate-500">
+          <ol className="flex flex-wrap items-center gap-1.5">
+            <li><Link href="/" className="hover:text-emerald-800">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/surahs" className="hover:text-emerald-800">Surahs</Link></li>
+            <li aria-hidden="true">/</li>
+            <li>
+              {page > 1 ? (
+                <Link href={surahPath} className="hover:text-emerald-800">
+                  Surah {surah.nameSimple}
+                </Link>
+              ) : (
+                <span className="font-medium text-slate-700" aria-current="page">
+                  Surah {surah.nameSimple}
+                </span>
+              )}
+            </li>
+            {page > 1 && (
+              <>
+                <li aria-hidden="true">/</li>
+                <li className="font-medium text-slate-700" aria-current="page">
+                  Verses {range.start}–{range.end}
+                </li>
+              </>
+            )}
+          </ol>
+        </nav>
+
         <ReadingTracker
           surahNumber={surahNumber}
           surahName={surah.nameSimple}
@@ -219,7 +290,8 @@ export default async function SurahPage({ params, searchParams }: Props) {
         />
 
         {/* ── Surah intro card (Quran.com) ─────────────────────────────── */}
-        <div className="mb-4 rounded-2xl bg-slate-100 px-4 py-5 sm:mb-6 sm:px-7 sm:py-6">
+        <article>
+        <header className="mb-4 rounded-2xl bg-slate-100 px-4 py-5 sm:mb-6 sm:px-7 sm:py-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
             <span
               className="shrink-0 self-start font-arabic text-4xl font-bold leading-none text-slate-900 sm:text-5xl"
@@ -230,14 +302,17 @@ export default async function SurahPage({ params, searchParams }: Props) {
             </span>
             <div className="min-w-0 sm:max-w-xl sm:text-right">
               <h1 className="text-lg font-bold leading-snug text-slate-900 sm:text-xl">
-                {surahNumber}. Surah {surah.nameSimple}
+                {page > 1
+                  ? `${surahNumber}. Surah ${surah.nameSimple} – Verses ${range.start}–${range.end}`
+                  : `${surahNumber}. Surah ${surah.nameSimple}`}
               </h1>
               {SURAH_MEANINGS[surahNumber] && (
                 <p className="mt-0.5 text-sm text-slate-500">{SURAH_MEANINGS[surahNumber]}</p>
               )}
               <p className="mt-3 hidden text-sm leading-relaxed text-slate-500 sm:block">
-                Read and listen to Surah {surah.nameSimple} with translation, tafsir, audio
-                recitation, word-by-word meaning, and transliteration.
+                {page > 1
+                  ? `Continue reading Surah ${surah.nameSimple} verses ${range.start}–${range.end} with translation and audio.`
+                  : `Read and listen to Surah ${surah.nameSimple} with translation, tafsir, audio recitation, word-by-word meaning, and transliteration. ${ayahCount} verses.`}
               </p>
             </div>
           </div>
@@ -248,7 +323,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
               surahName={surah.nameSimple}
             />
           </div>
-        </div>
+        </header>
 
         {/* ── Bismillah ────────────────────────────────────────────────── */}
         {surahNumber !== 9 && surahNumber !== 1 && page === 1 && <ReaderBismillah />}
@@ -256,7 +331,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
         {page > 1 && (
           <div className="mb-6 flex justify-center">
             <Link
-              href={`/surah/${surahNumber}`}
+              href={surahPath}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
               Start from beginning
@@ -264,6 +339,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
           </div>
         )}
 
+        <section aria-label={`Verses ${range.start}–${range.end} of Surah ${surah.nameSimple}`}>
         <SurahAyahFeed
           surahNumber={surahNumber}
           surahName={surah.nameSimple}
@@ -274,6 +350,16 @@ export default async function SurahPage({ params, searchParams }: Props) {
           hasTranslations={translationCount > 0}
           endOfChapter={endOfChapter}
         />
+        </section>
+
+        <SurahPaginationNav
+          path={surahPath}
+          page={page}
+          totalPages={totalPages}
+          ayahCount={ayahCount}
+          surahName={surah.nameSimple}
+        />
+        </article>
 
       </main>
 
@@ -293,7 +379,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
           <div>
             <h2 className="text-sm font-bold text-slate-900">Popular Links</h2>
             <div className="mt-3 grid gap-2 text-sm text-slate-500">
-              <Link href="/surah/36">Ya-Sin</Link><Link href="/surah/67">Al-Mulk</Link><Link href="/surah/55">Ar-Rahman</Link><Link href="/surah/18">Al-Kahf</Link>
+              <Link href={getSurahPath(36)}>Ya-Sin</Link><Link href={getSurahPath(67)}>Al-Mulk</Link><Link href={getSurahPath(55)}>Ar-Rahman</Link><Link href={getSurahPath(18)}>Al-Kahf</Link>
             </div>
           </div>
         </div>

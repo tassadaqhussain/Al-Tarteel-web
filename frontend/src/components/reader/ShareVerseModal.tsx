@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Check, Code2, ImageIcon, Link2, Video, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { getSurahHref, getSurahPath } from '@/lib/surah-meta';
 
 interface Props {
   open: boolean;
@@ -50,9 +51,9 @@ export function ShareVerseModal({
 }: Props) {
   const [copied, setCopied] = useState<'link' | 'embed' | 'image' | null>(null);
 
-  const verseUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/surah/${surahNumber}#ayah-${surahNumber}-${ayahNumber}`
-    : `/surah/${surahNumber}`;
+  const path = getSurahHref(surahNumber, { ayahNumber });
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const verseUrl = origin ? `${origin}${path}` : path;
 
   const shareText = [
     textUthmani,
@@ -61,7 +62,7 @@ export function ShareVerseModal({
     verseUrl,
   ].filter(Boolean).join('\n\n');
 
-  const embedCode = `<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}/surah/${surahNumber}?embed=1#ayah-${surahNumber}-${ayahNumber}" title="${surahName} ${surahNumber}:${ayahNumber}" width="100%" height="360" frameborder="0" loading="lazy"></iframe>`;
+  const embedCode = `<iframe src="${origin}${getSurahPath(surahNumber)}?embed=1#ayah-${surahNumber}-${ayahNumber}" title="${surahName} ${surahNumber}:${ayahNumber}" width="100%" height="360" frameborder="0" loading="lazy"></iframe>`;
 
   const flash = (key: 'link' | 'embed' | 'image') => {
     setCopied(key);

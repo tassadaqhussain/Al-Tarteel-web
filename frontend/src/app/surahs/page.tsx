@@ -1,14 +1,20 @@
+import type { Metadata } from 'next';
 import { quranApi, type Surah } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { SurahGrid } from '@/components/home/SurahGrid';
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
+import { buildPageMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const revalidate = 3600;
 
-export const metadata = {
-  title: 'Surahs',
-  description: 'List of all 114 surahs of the Holy Quran.',
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: 'All 114 Surahs of the Holy Quran',
+  description:
+    'Browse and read all 114 surahs (chapters) of the Holy Quran with Arabic Uthmani text, translations, and audio on QuranPilot.',
+  path: '/surahs',
+  keywords: ['Quran surahs', '114 chapters', 'Quran index', 'list of surahs'],
+});
 
 function fallbackSurahs(): Surah[] {
   return Array.from({ length: 114 }, (_, i) => {
@@ -33,12 +39,24 @@ export default async function SurahsPage() {
   return (
     <div className="min-h-screen bg-[#f7f7f7]">
       <Header />
-      <main className="w-full px-3 py-6 sm:px-4 sm:py-8 md:px-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">All Surahs</h1>
-          <p className="mt-1 text-sm text-slate-500">Explore all 114 chapters of the Holy Quran</p>
-        </div>
-
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <header className="mb-8 max-w-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            All 114 Surahs of the Holy Quran
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-500 sm:text-base">
+            Open any chapter to read Uthmani Arabic text with translation and verse-by-verse audio.
+            You can also browse by{' '}
+            <Link href="/juz/1" className="font-medium text-emerald-800 hover:underline">
+              Juz
+            </Link>{' '}
+            or{' '}
+            <Link href="/search" className="font-medium text-emerald-800 hover:underline">
+              search the Quran
+            </Link>
+            .
+          </p>
+        </header>
         <SurahGrid surahs={list} />
       </main>
     </div>

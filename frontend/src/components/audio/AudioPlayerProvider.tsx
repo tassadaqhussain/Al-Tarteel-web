@@ -94,7 +94,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
   return (
     <>
-      <audio ref={audioRef} preload="metadata" className="hidden" />
+      <audio ref={audioRef} preload="none" className="hidden" />
       {children}
     </>
   );

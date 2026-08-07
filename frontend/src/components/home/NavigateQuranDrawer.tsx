@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import { ChevronUp, Search, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { quranApi, type Surah } from '@/lib/api';
-import { SURAH_ARABIC, SURAH_MEANINGS } from '@/lib/surah-meta';
+import { SURAH_ARABIC, SURAH_MEANINGS, getSurahPath } from '@/lib/surah-meta';
+import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 import { cn } from '@/lib/utils';
 
 type NavTab = 'surah' | 'verse' | 'juz' | 'page';
@@ -244,8 +245,8 @@ export function NavigateQuranDrawer({
     const ayah = match[2] ? parseInt(match[2], 10) : 1;
     if (surah < 1 || surah > 114) return;
     onOpenChange(false);
-    const page = Math.max(1, Math.ceil(ayah / 20));
-    router.push(page > 1 ? `/surah/${surah}?page=${page}` : `/surah/${surah}`);
+    const page = Math.max(1, Math.ceil(ayah / SURAH_PAGE_SIZE));
+    router.push(page > 1 ? `${getSurahPath(surah)}?page=${page}` : getSurahPath(surah));
   };
 
   const placeholder =
@@ -355,7 +356,7 @@ export function NavigateQuranDrawer({
               return (
                 <Link
                   key={s.number}
-                  href={`/surah/${s.number}`}
+                  href={getSurahPath(s.number)}
                   onClick={() => onOpenChange(false)}
                   className={cn(
                     'flex items-center gap-4 rounded-full px-4 py-3 text-[15px] transition',

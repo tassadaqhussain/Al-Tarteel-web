@@ -25,7 +25,8 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useSettingsStore, type LastRead } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
-import { POPULAR_SURAHS, getSurahMeta } from '@/lib/surah-meta';
+import { POPULAR_SURAHS, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
+import { SiteLogo } from '@/components/SiteLogo';
 import { NavigateQuranDrawer } from '@/components/home/NavigateQuranDrawer';
 import { LanguagePanel, LANGUAGES } from '@/components/LanguagePanel';
 import { SearchDrawer } from '@/components/SearchDrawer';
@@ -124,7 +125,7 @@ export function Header() {
             href="/"
             className="flex items-center gap-2.5 font-serif text-[1.35rem] font-bold tracking-tight text-slate-900 sm:text-2xl"
           >
-            <img src="/images/logo.png" alt="QP" className="h-7 w-7 object-contain" />
+            <SiteLogo size={28} className="h-7 w-7" priority alt="QuranPilot" />
             <span className="truncate">QuranPilot</span>
           </Link>
 
@@ -247,7 +248,7 @@ function MobileNav({
         {lastRead && (
           <div className="mx-4 mt-4 sm:mx-7 sm:mt-5">
             <Link
-              href={`/surah/${lastRead.surahNumber}`}
+              href={getSurahPath(lastRead.surahNumber)}
               onClick={() => onOpenChange(false)}
               className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-[var(--accent)]"
             >

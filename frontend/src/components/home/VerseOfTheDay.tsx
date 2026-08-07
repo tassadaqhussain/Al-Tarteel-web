@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { quranApi } from '@/lib/api';
-import { getDayOfYear, getDayReading } from '@/lib/surah-meta';
+import { getDayOfYear, getDayReading, getSurahPath } from '@/lib/surah-meta';
 
 const FEATURED_FALLBACKS: [number, number][] = [
   [1, 1],
@@ -52,7 +52,7 @@ export async function VerseOfTheDay() {
           Quran Verse of the Day
         </h2>
         <Link
-          href={`/surah/${surahNumber}`}
+          href={getSurahPath(surahNumber)}
           className="shrink-0 text-sm font-medium text-slate-600 transition hover:text-[var(--accent)]"
         >
           Surah {surah.nameSimple} [{surahNumber}:{ayahNumber}]
@@ -76,7 +76,7 @@ export async function VerseOfTheDay() {
           <p className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-slate-600 sm:text-base">
             {translation}{' '}
             <Link
-              href={`/surah/${surahNumber}`}
+              href={getSurahPath(surahNumber)}
               className="font-medium text-[var(--accent)] hover:underline"
             >
               {surah.nameSimple} {surahNumber}:{ayahNumber}
@@ -86,7 +86,7 @@ export async function VerseOfTheDay() {
 
         <div className="mt-6 flex justify-end sm:mt-8">
           <Link
-            href={`/surah/${surahNumber}`}
+            href={getSurahPath(surahNumber)}
             className="inline-flex items-center gap-1 text-sm font-medium text-slate-700 transition hover:text-[var(--accent)]"
           >
             Read the Full Surah

@@ -11,8 +11,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { audioApi } from '@/lib/api';
-import { SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
+import { SURAH_SIMPLE_NAMES, getSurahPath } from '@/lib/surah-meta';
 import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
@@ -244,10 +245,19 @@ export function Hero() {
   return (
     <section className="relative w-full overflow-x-clip bg-gradient-to-br from-[#ecfdf5] via-[#f0fdfa] to-[#e0f2fe] px-4 py-16 md:py-24 lg:py-28">
       <div
-        className="absolute bottom-0 right-0 top-0 hidden w-1/2 overflow-hidden bg-contain bg-right-bottom bg-no-repeat opacity-[0.22] lg:block"
-        style={{ backgroundImage: 'url("/images/hero_mosque.png")' }}
+        className="pointer-events-none absolute bottom-0 right-0 top-0 hidden w-1/2 overflow-hidden opacity-[0.22] lg:block"
         aria-hidden
-      />
+      >
+        <Image
+          src="/images/hero_mosque.png"
+          alt=""
+          fill
+          sizes="50vw"
+          className="object-contain object-right-bottom"
+          // Decorative; keep bandwidth for the H1 LCP candidate
+          loading="lazy"
+        />
+      </div>
 
       <div className="relative z-20 mx-auto grid max-w-[1200px] grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
         <div className="text-left lg:col-span-7">
@@ -258,7 +268,7 @@ export function Hero() {
 
           <div className="mb-8 flex flex-wrap gap-3">
             <Link
-              href="/surah/1"
+              href={getSurahPath(1)}
               className="inline-flex items-center gap-2 rounded-full bg-emerald-800 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-emerald-950"
             >
               <Compass className="h-4 w-4" />
@@ -293,7 +303,7 @@ export function Hero() {
             {POPULAR.map((item) => (
               <Link
                 key={item.number}
-                href={`/surah/${item.number}`}
+                href={getSurahPath(item.number)}
                 className="rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-600 shadow-xs transition hover:border-emerald-800/40 hover:bg-emerald-50/20 hover:text-emerald-800"
               >
                 {item.name}

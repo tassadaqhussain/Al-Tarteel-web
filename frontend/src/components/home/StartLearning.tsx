@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -31,7 +32,6 @@ export function StartLearning() {
   return (
     <section className="w-full bg-[#f4fbf9]/30 py-16 px-4 md:px-6">
       <div className="mx-auto max-w-[1200px]">
-        {/* Section Header */}
         <div className="mb-10 text-center lg:text-left">
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             Learn Quran and Islam <br className="sm:hidden" />
@@ -39,19 +39,20 @@ export function StartLearning() {
           </h2>
         </div>
 
-        {/* Articles Grid */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {ARTICLES.map((a) => (
             <div
               key={a.slug}
               className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1"
             >
-              {/* Image Cover */}
               <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
-                <img
+                <Image
                   src={a.image}
                   alt={a.title}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
                 />
               </div>
 

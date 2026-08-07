@@ -1,5 +1,5 @@
 import calendarData from '@/data/quranic-calendar.json';
-import { getSurahMeta } from '@/lib/surah-meta';
+import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 
 export type CalendarWeekRaw = {
   weekNumber: string;
@@ -163,7 +163,7 @@ export function formatWeekReadingLabel(week: CalendarWeek): string {
 }
 
 export function weekReadingHref(week: CalendarWeek): string {
-  return `/surah/${week.start.surah}`;
+  return getSurahPath(week.start.surah);
 }
 
 export function getProgressGroups(): ProgressGroup[] {

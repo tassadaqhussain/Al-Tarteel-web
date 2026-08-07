@@ -26,7 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { audioApi, quranApi, type AyahFull } from '@/lib/api';
-import { SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
+import { SURAH_SIMPLE_NAMES, getSurahHref } from '@/lib/surah-meta';
 import { loadWordTimings } from '@/lib/loadWordTimings';
 import { useAudioStore } from '@/stores/audioStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
@@ -221,7 +221,7 @@ export function CompareVerseModal() {
 
   const handleShare = async () => {
     if (!verse) return;
-    const url = `${window.location.origin}/surah/${surahNumber}#ayah-${verse.id}`;
+    const url = `${window.location.origin}${getSurahHref(surahNumber, { ayahId: verse.id })}`;
     if (navigator.share) {
       await navigator.share({ title: `${surahName} ${surahNumber}:${ayahNumber}`, url }).catch(() => null);
     } else {

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BookOpen, Mail } from 'lucide-react';
+import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { MyProgress } from '@/components/quran-in-year/MyProgress';
 import { FaqSection } from '@/components/quran-in-year/FaqSection';
@@ -10,12 +11,16 @@ import {
   getReflectionPrompts,
   weekReadingHref,
 } from '@/lib/quranic-calendar';
+import { buildPageMetadata } from '@/lib/seo';
+import { getSurahPath } from '@/lib/surah-meta';
 
-export const metadata = {
-  title: 'Quran in a Year',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Quran in a Year — Reading Schedule',
   description:
-    'A thoughtfully designed schedule that makes it easy to read and understand the entire Quran from one Ramadan to the next.',
-};
+    'A weekly schedule to read and understand the entire Holy Quran from one Ramadan to the next. Track progress and stay consistent with QuranPilot.',
+  path: '/quran-in-year',
+  keywords: ['Quran in a year', 'Quran schedule', 'read Quran yearly', 'Ramadan Quran plan'],
+});
 
 export default function QuranInYearPage() {
   const currentWeek = getCurrentProgramWeek();
@@ -114,7 +119,7 @@ export default function QuranInYearPage() {
             </Link>
             <span className="hidden text-slate-300 sm:inline">—</span>
             <Link
-              href={`/surah/${week.end.surah}`}
+              href={getSurahPath(week.end.surah)}
               className="inline-flex items-start gap-2 text-sm font-medium text-slate-800 transition hover:text-[var(--accent)] sm:text-[15px]"
             >
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />

@@ -8,7 +8,9 @@ import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 
-export const SURAH_PAGE_SIZE = 20;
+import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
+
+export { SURAH_PAGE_SIZE };
 
 interface Props {
   surahNumber: number;

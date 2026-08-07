@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { audioApi, quranApi, type AyahWithRelations, type Surah } from '@/lib/api';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
-import { getSurahArabicName } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
@@ -317,7 +317,7 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
                   <p className="text-xs text-slate-400">English - Sahih International</p>
                 </div>
                 <Link
-                  href={`/surah/${activeSurah}`}
+                  href={getSurahPath(activeSurah)}
                   className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-emerald-800 transition hover:bg-emerald-800/20"
                 >
                   Open Reader
@@ -366,7 +366,7 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
                     {(ayahs.length > previewAyahs.length ||
                       (activeMeta?.numberOfAyahs ?? 0) > previewAyahs.length) && (
                       <Link
-                        href={`/surah/${activeSurah}`}
+                        href={getSurahPath(activeSurah)}
                         className="inline-flex text-xs font-bold text-emerald-800 hover:underline"
                       >
                         Continue in full reader →

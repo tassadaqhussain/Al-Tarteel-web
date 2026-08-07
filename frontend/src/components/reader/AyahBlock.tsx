@@ -35,6 +35,7 @@ import { AdvancedCopyModal } from './AdvancedCopyModal';
 import { TranslationSheet } from './TranslationSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { cn } from '@/lib/utils';
+import { getSurahPath } from '@/lib/surah-meta';
 
 interface Props {
   ayah: AyahWithRelations;
@@ -285,7 +286,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       }
       case 'embed': {
         const origin = window.location.origin;
-        const embed = `<iframe src="${origin}/surah/${surahNumber}?embed=1#ayah-${surahNumber}-${ayah.number}" title="${surahName} ${surahNumber}:${ayah.number}" width="100%" height="360" frameborder="0" loading="lazy"></iframe>`;
+        const embed = `<iframe src="${origin}${getSurahPath(surahNumber)}?embed=1#ayah-${surahNumber}-${ayah.number}" title="${surahName} ${surahNumber}:${ayah.number}" width="100%" height="360" frameborder="0" loading="lazy"></iframe>`;
         await navigator.clipboard.writeText(embed).catch(() => null);
         showToast('Embed code copied');
         break;

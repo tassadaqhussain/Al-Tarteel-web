@@ -5,6 +5,7 @@ import {
   getCurrentProgramWeek,
   weekReadingHref,
 } from '@/lib/quranic-calendar';
+import { getSurahPath } from '@/lib/surah-meta';
 
 export function QuranInYear() {
   const weekNum = getCurrentProgramWeek();
@@ -59,7 +60,7 @@ export function QuranInYear() {
               <ArrowRight className="mx-auto h-4 w-4 shrink-0 rotate-90 text-slate-400 sm:mx-2 sm:rotate-0" />
 
               <Link
-                href={`/surah/${week.end.surah}`}
+                href={getSurahPath(week.end.surah)}
                 className="min-w-0 text-left transition hover:opacity-80 sm:text-right"
               >
                 <p className="font-arabic text-xl text-slate-800 sm:text-right sm:text-2xl" dir="rtl" lang="ar">

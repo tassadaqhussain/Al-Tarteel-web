@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { BookOpen, Mic, Search, TrendingUp, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { quranApi } from '@/lib/api';
+import { getSurahPath } from '@/lib/surah-meta';
+import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 
 const POPULAR = [
-  { label: 'Al-Mulk', href: '/surah/67' },
-  { label: 'Nuh', href: '/surah/71' },
-  { label: 'Al-Kahf', href: '/surah/18' },
-  { label: 'Ya-Sin', href: '/surah/36' },
+  { label: 'Al-Mulk', href: getSurahPath(67) },
+  { label: 'Nuh', href: getSurahPath(71) },
+  { label: 'Al-Kahf', href: getSurahPath(18) },
+  { label: 'Ya-Sin', href: getSurahPath(36) },
 ];
 
 const EXAMPLES = ['Juz 1', 'Page 1', 'Ya-Sin', '36', '2:255'];
@@ -58,7 +60,7 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
         try {
           const ayahs = await quranApi.ayahsByPage(number, { limit: 1 });
           const first = ayahs[0];
-          if (first?.surah?.number) return navigate(`/surah/${first.surah.number}`);
+          if (first?.surah?.number) return navigate(getSurahPath(first.surah.number));
         } catch {}
       }
     }
@@ -68,13 +70,13 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
       const surah = Number(verse[1]);
       const ayah = Number(verse[2]);
       if (surah >= 1 && surah <= 114 && ayah > 0) {
-        return navigate(`/surah/${surah}?page=${Math.ceil(ayah / 20)}`);
+        return navigate(`${getSurahPath(surah)}?page=${Math.ceil(ayah / SURAH_PAGE_SIZE)}`);
       }
     }
 
     if (/^\d{1,3}$/.test(q)) {
       const surah = Number(q);
-      if (surah >= 1 && surah <= 114) return navigate(`/surah/${surah}`);
+      if (surah >= 1 && surah <= 114) return navigate(getSurahPath(surah));
     }
 
     const popular = POPULAR.find((item) => item.label.toLowerCase() === q.toLowerCase());

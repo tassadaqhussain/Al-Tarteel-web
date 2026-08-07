@@ -1,18 +1,27 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import { AskAiSheet } from '@/components/ai/AskAiSheet';
 
-/** Global floating entry point for Ask AI (text + voice). */
+const AskAiSheet = dynamic(
+  () => import('@/components/ai/AskAiSheet').then((m) => m.AskAiSheet),
+  { ssr: false }
+);
+
+/** Global floating entry point for Ask AI (text + voice). Sheet JS loads on demand. */
 export function AskAiFab() {
   const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setLoaded(true);
+          setOpen(true);
+        }}
         className="fixed bottom-24 right-4 z-[55] flex h-14 items-center gap-2 rounded-full bg-[var(--accent)] px-4 text-sm font-bold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:scale-[1.03] hover:bg-[var(--accent)]/90 active:scale-95 sm:bottom-28 sm:right-6"
         aria-label="Ask AI"
       >
@@ -21,7 +30,7 @@ export function AskAiFab() {
         </span>
         Ask AI
       </button>
-      <AskAiSheet open={open} onOpenChange={setOpen} />
+      {loaded && <AskAiSheet open={open} onOpenChange={setOpen} />}
     </>
   );
 }

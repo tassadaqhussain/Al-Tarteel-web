@@ -373,6 +373,14 @@ export function getSurahPath(number: number): string {
   return `/${getSurahSlug(number)}`;
 }
 
+/** Canonical reader href (slug URL). Optional hash targets a mounted ayah block. */
+export function getSurahHref(number: number, opts?: { ayahId?: number | string; ayahNumber?: number }): string {
+  const base = getSurahPath(number);
+  if (opts?.ayahId != null) return `${base}#ayah-${opts.ayahId}`;
+  if (opts?.ayahNumber != null) return `${base}#ayah-${opts.ayahNumber}`;
+  return base;
+}
+
 export function getSurahNumberFromSlug(slug: string): number | null {
   for (let number = 1; number <= 114; number += 1) {
     if (getSurahSlug(number) === slug.toLowerCase()) return number;

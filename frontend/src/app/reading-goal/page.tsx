@@ -7,6 +7,7 @@ import { BookOpen, Calendar, ChevronRight, Clock, Settings } from 'lucide-react'
 import { Header } from '@/components/Header';
 import { useSettingsStore, type ReadingGoalId } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
+import { getSurahPath } from '@/lib/surah-meta';
 
 const GOALS: {
   id: ReadingGoalId;
@@ -22,7 +23,7 @@ const GOALS: {
     description: 'A Simple Beginner-Friendly Goal',
     icon: Clock,
     recommended: true,
-    hrefAfter: '/surah/1',
+    hrefAfter: getSurahPath(1),
   },
   {
     id: 'days-30',

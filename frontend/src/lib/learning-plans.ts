@@ -1,3 +1,5 @@
+import { getSurahPath } from '@/lib/surah-meta';
+
 export type LearningPlan = {
   slug: string;
   title: string;
@@ -344,7 +346,7 @@ export function getLearningPlan(slug: string): LearningPlan | undefined {
 }
 
 export function getPlanHref(plan: LearningPlan): string {
-  if (plan.surahNumber) return `/surah/${plan.surahNumber}`;
+  if (plan.surahNumber) return getSurahPath(plan.surahNumber);
   if (plan.searchQuery) return `/search?q=${encodeURIComponent(plan.searchQuery)}`;
   return '/learning-plans';
 }

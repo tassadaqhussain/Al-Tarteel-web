@@ -8,7 +8,7 @@ import { Header } from '@/components/Header';
 import { SignInSheet } from '@/components/SignInSheet';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { getSurahArabicName, getSurahMeta } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 
 type Tab = 'saved' | 'recent' | 'notes';
@@ -88,7 +88,7 @@ export default function MyQuranPage() {
               <h2 className="mb-4 text-xl font-bold text-slate-900">My Reading Bookmark</h2>
               {lastRead ? (
                 <Link
-                  href={`/surah/${lastRead.surahNumber}`}
+                  href={getSurahPath(lastRead.surahNumber)}
                   className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-5 transition hover:border-[var(--accent)]"
                 >
                   <div>
@@ -130,7 +130,7 @@ export default function MyQuranPage() {
                   {bookmarks.slice(0, 8).map((b) => (
                     <Link
                       key={b.id}
-                      href={`/surah/${b.surahNumber}`}
+                      href={getSurahPath(b.surahNumber)}
                       className="block rounded-2xl border border-slate-200 px-5 py-4 transition hover:border-[var(--accent)]"
                     >
                       <div className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--accent)]">
@@ -199,7 +199,7 @@ export default function MyQuranPage() {
                   return (
                     <Link
                       key={n}
-                      href={`/surah/${n}`}
+                      href={getSurahPath(n)}
                       className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 transition hover:border-[var(--accent)]"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-500">
@@ -244,7 +244,7 @@ export default function MyQuranPage() {
                 {notes.map((b) => (
                   <Link
                     key={b.id}
-                    href={`/surah/${b.surahNumber}`}
+                    href={getSurahPath(b.surahNumber)}
                     className="block rounded-2xl border border-slate-200 px-5 py-4 transition hover:border-[var(--accent)]"
                   >
                     <p className="text-sm font-medium text-[var(--accent)]">

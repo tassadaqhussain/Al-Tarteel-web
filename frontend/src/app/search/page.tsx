@@ -17,7 +17,7 @@ import {
   Hash,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
-import { getSurahArabicName } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahPath, getSurahHref } from '@/lib/surah-meta';
 import { searchApi, type SearchAyahResult, type SearchTranslationResult } from '@/lib/api';
 import { highlightText } from '@/lib/highlight';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -527,7 +527,7 @@ function SearchPageContent() {
                 {SUGGESTED_SURAHS.map((s) => (
                   <Link
                     key={s.number}
-                    href={`/surah/${s.number}`}
+                    href={getSurahPath(s.number)}
                     className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md"
                   >
                     <div>
@@ -599,7 +599,7 @@ function SearchPageContent() {
                   {visibleAyahs.map((a) => (
                     <Link
                       key={`${a.surah.number}-${a.number}`}
-                      href={`/surah/${a.surah.number}#ayah-${a.id}`}
+                      href={getSurahHref(a.surah.number, { ayahId: a.id })}
                       className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md sm:p-5"
                     >
                       <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -644,7 +644,7 @@ function SearchPageContent() {
                   {visibleTranslations.map((t) => (
                     <Link
                       key={`${t.ayahId}-${t.translator.slug}`}
-                      href={`/surah/${t.surah.number}#ayah-${t.ayahId}`}
+                      href={getSurahHref(t.surah.number, { ayahId: t.ayahId })}
                       className="group block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md sm:p-5"
                     >
                       <div className="mb-2 flex flex-wrap items-center gap-2">

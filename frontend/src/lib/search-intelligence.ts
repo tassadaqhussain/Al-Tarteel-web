@@ -3,7 +3,7 @@
  * Triggers suggestions after 3 typed characters.
  */
 
-import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
+import { SURAH_ARABIC, SURAH_SIMPLE_NAMES, getSurahPath } from '@/lib/surah-meta';
 
 export type SuggestKind = 'surah' | 'topic' | 'query';
 
@@ -168,7 +168,7 @@ export function getSurahSuggestions(query: string, limit = 5): SearchSuggestion[
       label: entry.nameSimple,
       subtitle: `${String(entry.number).padStart(2, '0')} · ${entry.nameArabic}`,
       query: entry.nameSimple,
-      href: `/surah/${entry.number}`,
+      href: getSurahPath(entry.number),
       score,
     };
   })
