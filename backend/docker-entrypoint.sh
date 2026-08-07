@@ -7,12 +7,20 @@ until node -e "
   const s = net.createConnection(5432, 'postgres', () => { s.destroy(); process.exit(0); });
   s.on('error', () => process.exit(1));
   s.setTimeout(3000, () => { s.destroy(); process.exit(1); });
-" 2>/dev/null; do
+    10|" 2>/dev/null; do
   sleep 2
 done
 echo "Running schema sync..."
 npx prisma db push --skip-generate
 echo "Database ready."
+
+# Seed verified reciters early so homepage audio (Alafasy) works before full Quran finishes.
+(
+  echo "Seeding reciters..."
+  npx ts-node prisma/import-reciters.ts \
+    && echo "Reciters seed finished." \
+    || echo "Warning: reciter seed failed."
+) &
 
 # Download full Quran when missing (runs in background so API can start)
 if [ "${SKIP_QURAN_DOWNLOAD:-0}" != "1" ]; then

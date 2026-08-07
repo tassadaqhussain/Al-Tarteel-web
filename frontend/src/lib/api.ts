@@ -1,7 +1,16 @@
 const IS_SERVER = typeof window === 'undefined';
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const SERVER_BASE = process.env.API_URL || PUBLIC_BASE;
-const BASE = IS_SERVER ? SERVER_BASE : PUBLIC_BASE;
+
+/** Resolve API base for both browser and server. Blank NEXT_PUBLIC_API_URL used to crash `new URL()`. */
+function apiBase(): string {
+  const configured = (IS_SERVER ? SERVER_BASE : PUBLIC_BASE).replace(/\/$/, '');
+  if (configured) return configured;
+  if (!IS_SERVER && typeof window !== 'undefined') {
+    return `${window.location.origin}/api/v1`;
+  }
+  return 'http://127.0.0.1:4010/api/v1';
+}
 
 export class ApiError extends Error {
   status: number;
@@ -18,7 +27,8 @@ export async function api<T>(
   options?: RequestInit & { params?: Record<string, string | number | boolean | undefined> }
 ): Promise<T> {
   const { params, ...init } = options ?? {};
-  const url = new URL(path.startsWith('http') ? path : `${BASE}${path}`);
+  const base = apiBase();
+  const url = new URL(path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : `/${path}`}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== '') url.searchParams.set(k, String(v));

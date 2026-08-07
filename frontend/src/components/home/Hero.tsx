@@ -105,8 +105,8 @@ export function Hero() {
     const reciters = await audioApi.reciters();
     const preferred =
       reciters.find((r) => r.slug === PREFERRED_RECITER) ??
-      reciters.find((r) => r.slug === (reciterSlug ?? settingsReciter ?? '')) ??
       reciters.find((r) => r.isDefault) ??
+      reciters.find((r) => r.slug === (reciterSlug ?? settingsReciter ?? '')) ??
       reciters[0];
     if (!preferred) throw new Error('No reciters available');
     setReciterName(preferred.name || DEFAULT_RECITER_NAME);
