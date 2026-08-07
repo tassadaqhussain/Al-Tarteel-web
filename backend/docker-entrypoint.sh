@@ -1,50 +1,90 @@
 #!/bin/sh
 set -e
+
 echo "Waiting for database..."
-# Wait for Postgres to accept connections (avoid looping prisma forever)
-tries=0
-max_tries=60
-until node -e "
-  const net = require('net');
-  const s = net.createConnection(5432, 'postgres', () => { s.destroy(); process.exit(0); });
-  s.on('error', (e) => { console.error('db wait:', e && e.message ? e.message : e); process.exit(1); });
-  s.setTimeout(3000, () => { s.destroy(); console.error('db wait: timeout'); process.exit(1); });
-"; do
-  tries=$((tries + 1))
-  if [ "$tries" -ge "$max_tries" ]; then
-    echo "ERROR: Postgres not reachable at postgres:5432 after ${max_tries} attempts."
-    echo "Check: docker compose ps postgres && docker compose logs postgres --tail 50"
-    exit 1
+
+# Prefer host from DATABASE_URL (Compose sets postgresql://...@postgres:5432/...)
+DB_HOST="postgres"
+DB_PORT="5432"
+if [ -n "${DATABASE_URL:-}" ]; then
+  # postgresql://user:pass@host:port/db
+  _rest="${DATABASE_URL#*@}"
+  _hostport="${_rest%%/*}"
+  _host="${_hostport%%:*}"
+  _port="${_hostport##*:}"
+  if [ -n "${_host}" ] && [ "${_host}" != "${_hostport}" ] || [ -n "${_host}" ]; then
+    DB_HOST="${_host}"
   fi
-  echo "Postgres not ready yet (attempt ${tries}/${max_tries})..."
-  sleep 2
-done
+  case "${_port}" in
+    ''|*"@"*|*"/"*) ;;
+    *) DB_PORT="${_port}" ;;
+  esac
+fi
+
+echo "DB target: ${DB_HOST}:${DB_PORT}"
+
+# DNS sanity (best-effort)
+if command -v getent >/dev/null 2>&1; then
+  getent hosts "${DB_HOST}" || echo "WARNING: getent hosts ${DB_HOST} failed"
+fi
+
+export DB_HOST DB_PORT
+node <<'NODE'
+const net = require('net');
+const host = process.env.DB_HOST || 'postgres';
+const port = Number(process.env.DB_PORT || 5432);
+const max = 60;
+
+function tryOnce() {
+  return new Promise((resolve, reject) => {
+    const s = net.connect({ host, port }, () => {
+      s.end();
+      resolve();
+    });
+    s.setTimeout(3000, () => {
+      s.destroy();
+      reject(new Error('timeout'));
+    });
+    s.on('error', (err) => reject(err));
+  });
+}
+
+(async () => {
+  for (let i = 1; i <= max; i += 1) {
+    try {
+      await tryOnce();
+      console.log(`Postgres reachable at ${host}:${port}`);
+      process.exit(0);
+    } catch (err) {
+      const msg = err && err.message ? err.message : String(err);
+      console.error(`Postgres not ready (${i}/${max}) ${host}:${port} — ${msg}`);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
+  console.error(`ERROR: could not reach Postgres at ${host}:${port}`);
+  process.exit(1);
+})();
+NODE
+
 echo "Running schema sync..."
 npx prisma db push --skip-generate
 echo "Database ready."
 
 # Heavy seed jobs OOM-kill Nest on ~2GB VPSes if run at boot.
-# Default OFF — run manually after API is healthy:
-#   docker compose exec api npx ts-node prisma/import-reciters.ts
-#   docker compose exec api npx ts-node prisma/download-quran.ts
-# Opt-in: ENABLE_BOOT_SEED=1 (and SKIP_QURAN_DOWNLOAD=0 to also download Quran).
+# Default OFF — run manually after API is healthy.
 if [ "${ENABLE_BOOT_SEED:-0}" = "1" ]; then
   (
     echo "Boot seed enabled — seeding reciters..."
-    if npx ts-node prisma/import-reciters.ts; then
-      echo "Reciters seed finished."
-    else
-      echo "Warning: reciter seed failed."
-    fi
+    npx ts-node prisma/import-reciters.ts \
+      && echo "Reciters seed finished." \
+      || echo "Warning: reciter seed failed."
 
     if [ "${SKIP_QURAN_DOWNLOAD:-0}" != "1" ]; then
       echo "Checking Quran completeness..."
-      if npx ts-node prisma/download-quran.ts; then
-        echo "Quran download finished."
-        command -v redis-cli >/dev/null 2>&1 && redis-cli -h redis DEL quran:surahs:all >/dev/null 2>&1 || true
-      else
-        echo "Warning: Quran download failed."
-      fi
+      npx ts-node prisma/download-quran.ts \
+        && echo "Quran download finished." \
+        && (command -v redis-cli >/dev/null 2>&1 && redis-cli -h redis DEL quran:surahs:all >/dev/null 2>&1 || true) \
+        || echo "Warning: Quran download failed."
     fi
   ) &
 else
