@@ -1,20 +1,29 @@
 #!/bin/sh
 set -e
 echo "Waiting for database..."
-# Wait for Postgres to accept connections (avoid looping prisma)
+# Wait for Postgres to accept connections (avoid looping prisma forever)
+tries=0
+max_tries=60
 until node -e "
   const net = require('net');
   const s = net.createConnection(5432, 'postgres', () => { s.destroy(); process.exit(0); });
-  s.on('error', () => process.exit(1));
-  s.setTimeout(3000, () => { s.destroy(); process.exit(1); });
-    10|" 2>/dev/null; do
+  s.on('error', (e) => { console.error('db wait:', e && e.message ? e.message : e); process.exit(1); });
+  s.setTimeout(3000, () => { s.destroy(); console.error('db wait: timeout'); process.exit(1); });
+"; do
+  tries=$((tries + 1))
+  if [ "$tries" -ge "$max_tries" ]; then
+    echo "ERROR: Postgres not reachable at postgres:5432 after ${max_tries} attempts."
+    echo "Check: docker compose ps postgres && docker compose logs postgres --tail 50"
+    exit 1
+  fi
+  echo "Postgres not ready yet (attempt ${tries}/${max_tries})..."
   sleep 2
 done
 echo "Running schema sync..."
 npx prisma db push --skip-generate
 echo "Database ready."
 
-# Heavy seed jobs OOM-kill Nest on small VPSes if run at boot.
+# Heavy seed jobs OOM-kill Nest on ~2GB VPSes if run at boot.
 # Default OFF — run manually after API is healthy:
 #   docker compose exec api npx ts-node prisma/import-reciters.ts
 #   docker compose exec api npx ts-node prisma/download-quran.ts
