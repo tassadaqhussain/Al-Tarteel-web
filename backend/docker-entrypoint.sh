@@ -14,23 +14,25 @@ echo "Running schema sync..."
 npx prisma db push --skip-generate
 echo "Database ready."
 
-# Seed verified reciters early so homepage audio (Alafasy) works before full Quran finishes.
+# One background job only (parallel ts-node jobs often OOM-kill the API on 2–4GB VPSes).
+# Reciters first (needed for live audio), then Quran download if enabled.
 (
   echo "Seeding reciters..."
-  npx ts-node prisma/import-reciters.ts \
-    && echo "Reciters seed finished." \
-    || echo "Warning: reciter seed failed."
-) &
+  if npx ts-node prisma/import-reciters.ts; then
+    echo "Reciters seed finished."
+  else
+    echo "Warning: reciter seed failed."
+  fi
 
-# Download full Quran when missing (runs in background so API can start)
-if [ "${SKIP_QURAN_DOWNLOAD:-0}" != "1" ]; then
-  echo "Checking Quran completeness (auto-download if missing)..."
-  (
-    npx ts-node prisma/download-quran.ts \
-      && echo "Quran download finished." \
-      && (command -v redis-cli >/dev/null 2>&1 && redis-cli -h redis DEL quran:surahs:all >/dev/null 2>&1 || true) \
-      || echo "Warning: Quran download failed."
-  ) &
-fi
+  if [ "${SKIP_QURAN_DOWNLOAD:-0}" != "1" ]; then
+    echo "Checking Quran completeness (auto-download if missing)..."
+    if npx ts-node prisma/download-quran.ts; then
+      echo "Quran download finished."
+      command -v redis-cli >/dev/null 2>&1 && redis-cli -h redis DEL quran:surahs:all >/dev/null 2>&1 || true
+    else
+      echo "Warning: Quran download failed."
+    fi
+  fi
+) &
 
 exec "$@"
