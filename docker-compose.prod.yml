@@ -58,7 +58,9 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-https://quranpilot.com}
       AUDIO_STORAGE_PATH: /app/storage/audio
       AUDIO_PUBLIC_BASE_URL: ${AUDIO_PUBLIC_BASE_URL:-https://quranpilot.com/api/v1/audio/files}
-      SKIP_QURAN_DOWNLOAD: ${SKIP_QURAN_DOWNLOAD:-0}
+      SKIP_QURAN_DOWNLOAD: ${SKIP_QURAN_DOWNLOAD:-1}
+      # Set 1 only on a high-RAM host; otherwise seed manually after API is up
+      ENABLE_BOOT_SEED: ${ENABLE_BOOT_SEED:-0}
       # Temporary free Ask AI cap (0 = unlimited)
       AI_PROMPT_LIMIT: ${AI_PROMPT_LIMIT:-3}
     volumes:
