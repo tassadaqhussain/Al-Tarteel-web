@@ -128,48 +128,29 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {filteredSurahs.map((surah) => {
               const meaning = getSurahMeaning(surah.number);
-              // Make Surah 2 Al-Baqarah styled as the "Active" card by default to match visual mockup layout
-              const isActiveMock = surah.number === 2;
 
               return (
                 <Link
                   key={surah.number}
                   href={getSurahPath(surah.number)}
-                  className={cn(
-                    'group flex items-center gap-4 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
-                    isActiveMock
-                      ? 'bg-emerald-800 text-white border-transparent shadow-md'
-                      : 'border border-slate-200 bg-white hover:border-emerald-800/30'
-                  )}
+                  className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-emerald-800/30 hover:shadow-lg hover:-translate-y-0.5"
                 >
-                  <DiamondNumber n={surah.number} isActive={isActiveMock} />
-                  
+                  <DiamondNumber n={surah.number} isActive={false} />
+
                   <div className="min-w-0 flex-1">
-                    <h3 className={cn(
-                      'truncate font-bold',
-                      isActiveMock ? 'text-white' : 'text-slate-800 group-hover:text-emerald-800'
-                    )}>
+                    <h3 className="truncate font-bold text-slate-800 group-hover:text-emerald-800">
                       {surah.number.toString().padStart(2, '0')}. {surah.nameSimple}
                     </h3>
-                    <p className={cn(
-                      'truncate text-xs',
-                      isActiveMock ? 'text-emerald-100' : 'text-slate-400 transition-colors group-hover:text-emerald-800/70'
-                    )}>
+                    <p className="truncate text-xs text-slate-400 transition-colors group-hover:text-emerald-800/70">
                       {meaning || surah.revelationPlace}
                     </p>
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <p className={cn(
-                      'font-arabic text-lg leading-none',
-                      isActiveMock ? 'text-white' : 'text-slate-800'
-                    )} dir="rtl" lang="ar">
+                    <p className="font-arabic text-lg leading-none text-slate-800" dir="rtl" lang="ar">
                       {getSurahArabicName(surah.number, surah.nameArabic)}
                     </p>
-                    <p className={cn(
-                      'mt-1.5 text-xs',
-                      isActiveMock ? 'text-emerald-200' : 'text-slate-400'
-                    )}>
+                    <p className="mt-1.5 text-xs text-slate-400">
                       {surah.numberOfAyahs} verses
                     </p>
                   </div>
