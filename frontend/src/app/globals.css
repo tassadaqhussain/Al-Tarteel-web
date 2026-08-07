@@ -71,23 +71,27 @@
 .tafsir-study-content blockquote { border-inline-start: 3px solid var(--accent); margin: 1rem 0; padding-inline-start: 1rem; }
 
 /* Quran.com Tajweed markup colors */
-.tajweed-text tajweed.ham_wasl { color: #9ca3af; }
-.tajweed-text tajweed.laam_shamsiyah { color: #9ca3af; }
-.tajweed-text tajweed.madda_normal { color: #537fff; }
-.tajweed-text tajweed.madda_permissible { color: #4050ff; }
-.tajweed-text tajweed.madda_necessary { color: #000ebc; }
-.tajweed-text tajweed.ghunnah { color: #ff5aa5; }
-.tajweed-text tajweed.qalqalah { color: #2aa9df; }
-.tajweed-text tajweed.ikhafa { color: #22a06b; }
-.tajweed-text tajweed.ikhafa_shafawi { color: #22a06b; }
-.tajweed-text tajweed.idgham_shafawi { color: #ff6f61; }
-.tajweed-text tajweed.iqlab { color: #26a6a1; }
-.tajweed-text tajweed.idgham_with_ghunnah { color: #16a34a; }
-.tajweed-text tajweed.idgham_without_ghunnah { color: #16a34a; }
-.tajweed-text tajweed.idgham_mutajanisayn { color: #f59e0b; }
-.tajweed-text tajweed.idgham_mutaqaribayn { color: #f59e0b; }
-.tajweed-text tajweed.silent { color: #9ca3af; }
-.tajweed-text.tajweed-disabled tajweed { color: inherit; }
+.tajweed-text .tajweed-mark,
+.tajweed-text tajweed { font: inherit; }
+/* Colours are injected from TAJWEED_RULES via <TajweedStyles /> — keep these as fallback if JS styles load late */
+.tajweed-text tajweed.ham_wasl, .tajweed-text .tajweed-mark.ham_wasl { color: #6b7280; }
+.tajweed-text tajweed.laam_shamsiyah, .tajweed-text .tajweed-mark.laam_shamsiyah { color: #6b7280; }
+.tajweed-text tajweed.madda_normal, .tajweed-text .tajweed-mark.madda_normal { color: #2563eb; }
+.tajweed-text tajweed.madda_permissible, .tajweed-text .tajweed-mark.madda_permissible { color: #1d4ed8; }
+.tajweed-text tajweed.madda_necessary, .tajweed-text .tajweed-mark.madda_necessary { color: #1e3a8a; }
+.tajweed-text tajweed.ghunnah, .tajweed-text .tajweed-mark.ghunnah { color: #db2777; }
+.tajweed-text tajweed.qalqalah, .tajweed-text .tajweed-mark.qalqalah { color: #0891b2; }
+.tajweed-text tajweed.ikhafa, .tajweed-text .tajweed-mark.ikhafa { color: #059669; }
+.tajweed-text tajweed.ikhafa_shafawi, .tajweed-text .tajweed-mark.ikhafa_shafawi { color: #059669; }
+.tajweed-text tajweed.idgham_shafawi, .tajweed-text .tajweed-mark.idgham_shafawi { color: #dc2626; }
+.tajweed-text tajweed.iqlab, .tajweed-text .tajweed-mark.iqlab { color: #0f766e; }
+.tajweed-text tajweed.idgham_with_ghunnah, .tajweed-text .tajweed-mark.idgham_with_ghunnah { color: #16a34a; }
+.tajweed-text tajweed.idgham_without_ghunnah, .tajweed-text .tajweed-mark.idgham_without_ghunnah { color: #15803d; }
+.tajweed-text tajweed.idgham_mutajanisayn, .tajweed-text .tajweed-mark.idgham_mutajanisayn { color: #d97706; }
+.tajweed-text tajweed.idgham_mutaqaribayn, .tajweed-text .tajweed-mark.idgham_mutaqaribayn { color: #b45309; }
+.tajweed-text tajweed.silent, .tajweed-text .tajweed-mark.silent { color: #6b7280; }
+.tajweed-text.tajweed-disabled tajweed,
+.tajweed-text.tajweed-disabled .tajweed-mark { color: inherit; }
 
 .dark {
   --bg: #0b1214;

@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
-import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = buildPageMetadata({
+export const metadata: Metadata = {
   title: 'Bookmarks',
-  description: 'Your saved Quran verses on QuranPilot.',
-  path: '/bookmarks',
-  noIndex: true,
-});
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+};
 
 export default function BookmarksLayout({ children }: { children: React.ReactNode }) {
   return children;

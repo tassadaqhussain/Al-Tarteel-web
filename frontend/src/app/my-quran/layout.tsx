@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
-import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = buildPageMetadata({
+export const metadata: Metadata = {
   title: 'My Quran',
-  description: 'Your personalized Quran reading space on QuranPilot.',
-  path: '/my-quran',
-  noIndex: true,
-});
+  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+};
 
 export default function MyQuranLayout({ children }: { children: React.ReactNode }) {
   return children;

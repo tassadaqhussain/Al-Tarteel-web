@@ -48,5 +48,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: plan.featured ? 0.65 : 0.55,
   }));
 
-  return [...staticPages, ...surahs, ...juz, ...plans];
+  const tajweed: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
+    ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
+      url: `${SITE_URL}/tajweed/${slug}`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.55,
+    })),
+  ];
+
+  return [...staticPages, ...surahs, ...juz, ...plans, ...tajweed];
 }

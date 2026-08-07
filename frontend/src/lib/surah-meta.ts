@@ -369,6 +369,11 @@ export function getSurahSlug(number: number): string {
     .replace(/^-|-$/g, '');
 }
 
+/** Strip Arabic definite-article prefixes from a Latin slug for fuzzy matching. */
+function stripSlugArticle(slug: string): string {
+  return slug.replace(/^(al|an|ar|as|ash|at|ad|adh|az|a)-/, '');
+}
+
 export function getSurahPath(number: number): string {
   return `/${getSurahSlug(number)}`;
 }
@@ -381,10 +386,36 @@ export function getSurahHref(number: number, opts?: { ayahId?: number | string; 
   return base;
 }
 
+/**
+ * Resolve a URL slug to a surah number.
+ * Accepts canonical slugs (`al-baqarah`), common short forms (`baqarah`),
+ * and bare numbers (`2`).
+ */
 export function getSurahNumberFromSlug(slug: string): number | null {
-  for (let number = 1; number <= 114; number += 1) {
-    if (getSurahSlug(number) === slug.toLowerCase()) return number;
+  const normalized = decodeURIComponent(slug).trim().toLowerCase();
+  if (!normalized) return null;
+
+  const asNumber = parseInt(normalized, 10);
+  if (
+    !Number.isNaN(asNumber) &&
+    asNumber >= 1 &&
+    asNumber <= 114 &&
+    String(asNumber) === normalized
+  ) {
+    return asNumber;
   }
+
+  for (let number = 1; number <= 114; number += 1) {
+    if (getSurahSlug(number) === normalized) return number;
+  }
+
+  const needle = stripSlugArticle(normalized);
+  if (needle) {
+    for (let number = 1; number <= 114; number += 1) {
+      if (stripSlugArticle(getSurahSlug(number)) === needle) return number;
+    }
+  }
+
   return null;
 }
 

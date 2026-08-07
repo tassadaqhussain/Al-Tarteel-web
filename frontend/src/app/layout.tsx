@@ -6,6 +6,8 @@ import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
 import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
 import { AskAiFab } from '@/components/ai/AskAiFab';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
   DEFAULT_DESCRIPTION,
@@ -129,15 +131,18 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${amiri.variable} ${amiriQuran.variable} ${outfit.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
+        <TajweedStyles />
         <ThemeProvider>
-          <AudioPlayerProvider>
-            <ScrollToCurrentAyah />
-            <div className="relative flex min-h-screen flex-col">
-              {children}
-            </div>
-            <AudioBar />
-            <AskAiFab />
-          </AudioPlayerProvider>
+          <AuthProvider>
+            <AudioPlayerProvider>
+              <ScrollToCurrentAyah />
+              <div className="relative flex min-h-screen flex-col">
+                {children}
+              </div>
+              <AudioBar />
+              <AskAiFab />
+            </AudioPlayerProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,6 +12,7 @@ async function bootstrap() {
   httpAdapter.getInstance()?.set?.('trust proxy', 1);
   const prefix = process.env.API_PREFIX || 'api/v1';
   app.setGlobalPrefix(prefix);
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -33,6 +35,7 @@ async function bootstrap() {
     .setDescription('REST API for Quran content, audio, translations, and user features')
     .setVersion('1.0')
     .addBearerAuth()
+    .addCookieAuth('qp_access')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(`${prefix}/docs`, app, document);

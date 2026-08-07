@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import {
   Bookmark,
@@ -12,7 +12,9 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { useBookmarksStore, type BookmarkColor } from '@/stores/bookmarksStore';
+import { usersApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getSurahHref } from '@/lib/surah-meta';
@@ -30,7 +32,7 @@ function formatDate(ts: number) {
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(ts));
 }
 
-export default function BookmarksPage() {
+function BookmarksContent() {
   const { bookmarks, remove, updateNote, updateColor } = useBookmarksStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
@@ -41,9 +43,24 @@ export default function BookmarksPage() {
     setNoteText(currentNote);
   };
 
-  const saveNote = (ayahId: number) => {
+  const saveNote = async (ayahId: number) => {
     updateNote(ayahId, noteText);
     setEditingId(null);
+    try {
+      await usersApi.addBookmark(ayahId, noteText);
+    } catch {
+      /* local note kept; server will retry on next sync */
+    }
+  };
+
+  const deleteBookmark = async (ayahId: number) => {
+    remove(ayahId);
+    setConfirmDelete(null);
+    try {
+      await usersApi.removeBookmark(ayahId);
+    } catch {
+      /* will vanish on next server sync if still on server */
+    }
   };
 
   return (
@@ -151,7 +168,7 @@ export default function BookmarksPage() {
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => { remove(bm.ayahId); setConfirmDelete(null); }}
+                            onClick={() => { void deleteBookmark(bm.ayahId); }}
                             className="flex h-7 items-center gap-1 rounded-lg bg-red-500/10 px-2 text-xs font-medium text-red-400 hover:bg-red-500/20 transition-colors"
                           >
                             <Trash2 className="h-3 w-3" /> Delete
@@ -226,5 +243,15 @@ export default function BookmarksPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function BookmarksPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading…</div>}>
+      <RequireAuth>
+        <BookmarksContent />
+      </RequireAuth>
+    </Suspense>
   );
 }

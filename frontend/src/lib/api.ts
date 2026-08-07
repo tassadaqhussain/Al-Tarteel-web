@@ -3,6 +3,16 @@ const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const SERVER_BASE = process.env.API_URL || PUBLIC_BASE;
 const BASE = IS_SERVER ? SERVER_BASE : PUBLIC_BASE;
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 export async function api<T>(
   path: string,
   options?: RequestInit & { params?: Record<string, string | number | boolean | undefined> }
@@ -16,6 +26,8 @@ export async function api<T>(
   }
   const res = await fetch(url.toString(), {
     ...init,
+    // Cookie auth (HttpOnly qp_access / qp_refresh) — required for /auth and /users
+    credentials: init.credentials ?? (IS_SERVER ? 'same-origin' : 'include'),
     headers: {
       'Content-Type': 'application/json',
       ...init.headers,
@@ -24,21 +36,168 @@ export async function api<T>(
   });
   if (!res.ok) {
     const text = await res.text();
+    let message = text || `HTTP ${res.status}`;
     try {
       const parsed = JSON.parse(text) as { message?: string | string[] };
       const msg = Array.isArray(parsed.message)
         ? parsed.message.join(', ')
         : parsed.message;
-      throw new Error(msg || text || `HTTP ${res.status}`);
-    } catch (err) {
-      if (err instanceof Error && err.message && !err.message.startsWith('{')) throw err;
-      throw new Error(text || `HTTP ${res.status}`);
+      if (msg) message = msg;
+    } catch {
+      /* use raw text */
     }
+    throw new ApiError(res.status, message);
   }
+  if (res.status === 204) return undefined as T;
   const contentType = res.headers.get('content-type');
   if (contentType?.includes('application/json')) return res.json() as Promise<T>;
   return res.text() as Promise<T>;
 }
+
+export type AuthUser = {
+  id: number;
+  email: string | null;
+  name: string | null;
+};
+
+export type AuthSessionResponse = { user: AuthUser };
+
+export const authApi = {
+  register: (body: {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }) =>
+    api<AuthSessionResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  login: (body: { email: string; password: string }) =>
+    api<AuthSessionResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  logout: () => api<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
+  me: () => api<AuthUser>('/auth/me'),
+  refresh: () => api<AuthSessionResponse>('/auth/refresh', { method: 'POST' }),
+  forgotPassword: (email: string) =>
+    api<{ ok: boolean; message: string }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+  resetPassword: (body: { token: string; password: string; confirmPassword: string }) =>
+    api<{ ok: boolean }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  changePassword: (body: { currentPassword: string; newPassword: string }) =>
+    api<{ ok: boolean }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+} as const;
+
+export type ServerBookmark = {
+  id: number;
+  ayahId: number;
+  note: string | null;
+  createdAt: string;
+  ayah: {
+    id: number;
+    number: number;
+    textUthmani: string;
+    surah: { id: number; number: number; nameArabic: string; nameSimple: string };
+  };
+  surah: { id: number; number: number; nameArabic: string; nameSimple: string };
+};
+
+export const usersApi = {
+  bookmarks: () => api<ServerBookmark[]>('/users/bookmarks'),
+  addBookmark: (ayahId: number, note?: string) =>
+    api<{ ok: boolean; ayahId: number }>('/users/bookmarks', {
+      method: 'POST',
+      body: JSON.stringify({ ayahId, note }),
+    }),
+  removeBookmark: (ayahId: number) =>
+    api<{ ok: boolean }>(`/users/bookmarks/${ayahId}`, { method: 'DELETE' }),
+  readingHistory: (limit?: number) =>
+    api<
+      {
+        ayahId: number;
+        readAt: string;
+        ayah: { number: number; textUthmani: string };
+        surah: { number: number; nameSimple: string; nameArabic: string };
+      }[]
+    >('/users/reading-history', { params: { limit } }),
+  recordReading: (body: {
+    ayahId: number;
+    surahNumber?: number;
+    ayahNumber?: number;
+    page?: number;
+  }) =>
+    api<{ ok: boolean }>('/users/reading-history', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  lastRead: () =>
+    api<{
+      lastReadSurahId: number | null;
+      lastReadAyahNumber: number | null;
+      lastReadPage: number | null;
+      lastReadSurah: { number: number; nameSimple: string; nameArabic: string } | null;
+    } | null>('/users/last-read'),
+  getDailyGoal: () =>
+    api<{
+      id: number;
+      goalType: string;
+      goalValue: number;
+      isActive: boolean;
+    } | null>('/users/daily-goal'),
+  setDailyGoal: (body: { goalType: string; goalValue: number }) =>
+    api<{ id: number; goalType: string; goalValue: number }>('/users/daily-goal', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  clearDailyGoal: () => api<{ ok: boolean }>('/users/daily-goal', { method: 'DELETE' }),
+  getDailyProgress: (date: string) =>
+    api<{
+      date: string;
+      ayahsRead: number;
+      minutesRead: number;
+      tajweedPracticed: boolean;
+      goalCompleted: boolean;
+    }>('/users/daily-progress', { params: { date } }),
+  upsertDailyProgress: (body: {
+    date: string;
+    ayahsRead?: number;
+    minutesRead?: number;
+    tajweedPracticed?: boolean;
+    incrementAyahs?: number;
+    incrementMinutes?: number;
+  }) =>
+    api('/users/daily-progress', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  getMotivationPreferences: () =>
+    api<{
+      reminderEnabled: boolean;
+      reminderSlot: string | null;
+      reminderTime: string | null;
+      timezone: string;
+    }>('/users/motivation-preferences'),
+  setMotivationPreferences: (body: {
+    reminderEnabled?: boolean;
+    reminderSlot?: string | null;
+    reminderTime?: string | null;
+    timezone?: string;
+  }) =>
+    api('/users/motivation-preferences', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+} as const;
 
 export const quranApi = {
   surahs: () => api<Awaited<ReturnType<typeof getSurahs>>>('/quran/surahs'),

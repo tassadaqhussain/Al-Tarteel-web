@@ -24,13 +24,14 @@ import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useSettingsStore, type LastRead } from '@/stores/settingsStore';
+import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/lib/utils';
 import { POPULAR_SURAHS, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { SiteLogo } from '@/components/SiteLogo';
 import { NavigateQuranDrawer } from '@/components/home/NavigateQuranDrawer';
 import { LanguagePanel, LANGUAGES } from '@/components/LanguagePanel';
 import { SearchDrawer } from '@/components/SearchDrawer';
-import { SignInSheet } from '@/components/SignInSheet';
+import { loginHref, registerHref } from '@/lib/auth-redirect';
 import { useT } from '@/lib/i18n';
 
 type SpeechRecognitionCtor = new () => {
@@ -48,18 +49,31 @@ export function Header() {
   const [languageOpen, setLanguageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [popularOpen, setPopularOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [signInOpen, setSignInOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [ageOpen, setAgeOpen] = useState(false);
   const [query, setQuery] = useState('');
   const lastRead = useSettingsStore((s) => s.lastRead);
   const languageLabel = LANGUAGES.find((l) => l.code === locale)?.label ?? 'English';
+  const user = useAuthStore((s) => s.user);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authLoading = useAuthStore((s) => s.isLoading);
+  const logout = useAuthStore((s) => s.logout);
+  const initials = (user?.name || user?.email || 'U')
+    .split(/\s+/)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   useEffect(() => {
-    if (!profileOpen) return;
-    const onClickOutside = () => setProfileOpen(false);
+    if (!accountOpen && !ageOpen) return;
+    const onClickOutside = () => {
+      setAccountOpen(false);
+      setAgeOpen(false);
+    };
     window.addEventListener('click', onClickOutside);
     return () => window.removeEventListener('click', onClickOutside);
-  }, [profileOpen]);
+  }, [accountOpen, ageOpen]);
 
   useEffect(() => {
     setOpen(false);
@@ -67,8 +81,8 @@ export function Header() {
     setNavigateOpen(false);
     setLanguageOpen(false);
     setSearchOpen(false);
-    setProfileOpen(false);
-    setSignInOpen(false);
+    setAccountOpen(false);
+    setAgeOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -130,29 +144,103 @@ export function Header() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-2.5">
-            <button
-              type="button"
-              onClick={() => setSignInOpen(true)}
-              className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--accent)] px-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4"
-            >
-              {t('signIn')}
-            </button>
+            {!authLoading && !isAuthenticated && (
+              <>
+                <Link
+                  href={loginHref(pathname)}
+                  className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--accent)] px-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4"
+                >
+                  {t('signIn')}
+                </Link>
+                <Link
+                  href={registerHref(pathname)}
+                  className="hidden h-9 items-center justify-center rounded-full bg-[var(--accent)] px-3 text-sm font-semibold text-white transition hover:opacity-90 sm:inline-flex"
+                >
+                  Create account
+                </Link>
+              </>
+            )}
+            {!authLoading && isAuthenticated && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAgeOpen(false);
+                    setAccountOpen((v) => !v);
+                  }}
+                  className="flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-2 pr-3 text-sm font-semibold text-slate-800 transition hover:border-[var(--accent)] sm:h-10"
+                  aria-label="Account menu"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">
+                    {initials}
+                  </span>
+                  <span className="hidden max-w-[7rem] truncate sm:inline">{user?.name || 'Account'}</span>
+                </button>
+                {accountOpen && (
+                  <div
+                    className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Link
+                      href="/my-quran"
+                      className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      My Quran
+                    </Link>
+                    <Link
+                      href="/bookmarks"
+                      className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      {t('bookmarks')}
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      Profile &amp; settings
+                    </Link>
+                    <button
+                      type="button"
+                      className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50"
+                      onClick={async () => {
+                        setAccountOpen(false);
+                        await logout();
+                        router.push('/');
+                      }}
+                    >
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {authLoading && (
+              <div className="h-9 w-20 animate-pulse rounded-full bg-slate-100 sm:w-28" aria-hidden />
+            )}
             <div className="relative hidden sm:block">
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setProfileOpen((v) => !v); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAccountOpen(false);
+                  setAgeOpen((v) => !v);
+                }}
                 className="flex h-10 w-10 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100"
                 aria-label={t('selectAgeStyle')}
               >
                 <Smile className="h-5 w-5" strokeWidth={1.75} />
               </button>
-              {profileOpen && (
-                <div 
+              {ageOpen && (
+                <div
                   className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-950"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="px-3 py-1.5 text-xs font-semibold text-slate-400">{t('selectAgeStyle')}</div>
-                  <AgeModeSelector variant="dropdown" onSelect={() => setProfileOpen(false)} />
+                  <AgeModeSelector variant="dropdown" onSelect={() => setAgeOpen(false)} />
                 </div>
               )}
             </div>
@@ -189,7 +277,6 @@ export function Header() {
       <NavigateQuranDrawer open={navigateOpen} onOpenChange={setNavigateOpen} />
       <LanguagePanel open={languageOpen} onOpenChange={setLanguageOpen} />
       <SearchDrawer open={searchOpen} onOpenChange={setSearchOpen} />
-      <SignInSheet open={signInOpen} onOpenChange={setSignInOpen} />
       <MobileNav
         open={open}
         onOpenChange={setOpen}
@@ -197,10 +284,7 @@ export function Header() {
           setOpen(false);
           window.setTimeout(() => setLanguageOpen(true), 150);
         }}
-        onSignInOpen={() => {
-          setOpen(false);
-          window.setTimeout(() => setSignInOpen(true), 150);
-        }}
+        pathname={pathname}
         lastRead={lastRead}
         isActive={isActive}
       />
@@ -212,33 +296,47 @@ function MobileNav({
   open,
   onOpenChange,
   onLanguageOpen,
-  onSignInOpen,
+  pathname,
   lastRead,
   isActive,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onLanguageOpen: () => void;
-  onSignInOpen: () => void;
+  pathname: string;
   lastRead: LastRead | null;
   isActive: (href: string) => boolean;
 }) {
   const experienceMode = useSettingsStore((s) => s.experienceMode);
   const { t, locale } = useT();
   const languageLabel = LANGUAGES.find((l) => l.code === locale)?.label ?? 'English';
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" showClose={false} className="flex w-[min(100vw,460px)] max-w-none flex-col bg-white p-0 text-slate-800 sm:w-[460px] sm:max-w-[460px]">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4 sm:h-[88px] sm:px-6">
           <SheetTitle className="font-serif text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">QuranPilot</SheetTitle>
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={onSignInOpen}
-              className="rounded-full border border-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4 sm:py-2 sm:text-base"
-            >
-              {t('signIn')}
-            </button>
+            {!isAuthenticated ? (
+              <Link
+                href={loginHref(pathname)}
+                onClick={() => onOpenChange(false)}
+                className="rounded-full border border-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4 sm:py-2 sm:text-base"
+              >
+                {t('signIn')}
+              </Link>
+            ) : (
+              <Link
+                href="/profile"
+                onClick={() => onOpenChange(false)}
+                className="max-w-[8rem] truncate rounded-full bg-[var(--accent)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--accent)] sm:px-4 sm:py-2"
+              >
+                {user?.name || 'Account'}
+              </Link>
+            )}
             <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label={t('close')}>
               <X className="h-6 w-6 sm:h-7 sm:w-7" />
             </button>
@@ -268,8 +366,15 @@ function MobileNav({
             { label: t('learn'), href: '/learning-plans', icon: GraduationCap, id: 'learn' },
             { label: t('myQuran'), href: '/my-quran', icon: Bookmark, id: 'my-quran' },
             { label: t('bookmarks'), href: '/bookmarks', icon: BookOpen, id: 'bookmarks' },
+            { label: 'Tajweed', href: '/tajweed', icon: GraduationCap, id: 'tajweed' },
             { label: t('quranInYear'), href: '/quran-in-year', icon: LayoutGrid, id: 'quran-year' },
             { label: t('settings'), href: '/settings', icon: Settings, id: 'settings' },
+            ...(isAuthenticated
+              ? [{ label: 'Profile', href: '/profile', icon: Smile, id: 'profile' }]
+              : [
+                  { label: t('signIn'), href: loginHref(pathname), icon: Smile, id: 'login' },
+                  { label: 'Create account', href: registerHref(pathname), icon: Smile, id: 'register' },
+                ]),
           ].map((item) => (
             <Link
               key={item.id}
@@ -286,6 +391,19 @@ function MobileNav({
               {item.label}
             </Link>
           ))}
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={async () => {
+                onOpenChange(false);
+                await logout();
+                router.push('/');
+              }}
+              className="mt-2 flex w-full items-center gap-4 rounded-xl px-3 py-3 text-lg font-semibold text-red-700 hover:bg-red-50 sm:gap-6 sm:py-4 sm:text-xl"
+            >
+              Log out
+            </button>
+          )}
         </nav>
 
         <div className="shrink-0 border-t border-slate-100 px-4 py-4 sm:px-7 sm:py-5">

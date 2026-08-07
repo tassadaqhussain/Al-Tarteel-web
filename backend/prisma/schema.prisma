@@ -225,9 +225,46 @@ model User {
 
   bookmarks       Bookmark[]
   readingHistory  ReadingHistory[]
+  refreshTokens   RefreshToken[]
+  passwordResets  PasswordResetToken[]
+  dailyGoals      UserDailyGoal[]
+  dailyProgress   DailyProgress[]
+  motivationPref  UserMotivationPreference?
   lastReadSurah   Surah? @relation("UserLastRead", fields: [lastReadSurahId], references: [id])
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  tokenHash String   @unique @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  ip        String?  @db.VarChar(64)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  tokenHash String   @unique @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
 // Allow unauthenticated users to have local-only state; for persisted we use userId
@@ -262,4 +299,73 @@ model ReadingHistory {
   @@index([userId, readAt(sort: Desc)])
   @@index([ayahId])
   @@map("reading_history")
+}
+
+/// Optional daily learning goal for an authenticated user (non-forced).
+model UserDailyGoal {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  /// read_ayahs | read_page | read_minutes | tajweed_rule | listen
+  goalType  String   @map("goal_type") @db.VarChar(40)
+  goalValue Int      @default(5) @map("goal_value")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("user_daily_goals")
+}
+
+/// Per-calendar-day progress (date is YYYY-MM-DD in the user's timezone).
+model DailyProgress {
+  id               Int      @id @default(autoincrement())
+  userId           Int      @map("user_id")
+  date             String   @db.VarChar(10)
+  ayahsRead        Int      @default(0) @map("ayahs_read")
+  minutesRead      Int      @default(0) @map("minutes_read")
+  tajweedPracticed Boolean  @default(false) @map("tajweed_practiced")
+  goalCompleted    Boolean  @default(false) @map("goal_completed")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("daily_progress")
+}
+
+/// Opt-in reminder preferences (never enabled by default).
+model UserMotivationPreference {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique @map("user_id")
+  reminderEnabled Boolean  @default(false) @map("reminder_enabled")
+  /// morning | afternoon | evening | custom
+  reminderSlot    String?  @map("reminder_slot") @db.VarChar(20)
+  reminderTime    String?  @map("reminder_time") @db.VarChar(5) // HH:mm
+  timezone        String   @default("UTC") @db.VarChar(64)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_motivation_preferences")
+}
+
+/// Reviewable motivational messages (admin-ready). Only ACTIVE+APPROVED should appear.
+model MotivationalMessage {
+  id        Int      @id @default(autoincrement())
+  message   String   @db.Text
+  category  String   @db.VarChar(40)
+  language  String   @default("en") @db.VarChar(10)
+  /// draft | approved
+  status    String   @default("approved") @db.VarChar(20)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive, status, language, category])
+  @@map("motivational_messages")
 }

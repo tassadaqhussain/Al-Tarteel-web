@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Hero } from '@/components/home/Hero';
 import { ContinueReading } from '@/components/home/ContinueReading';
 import { SurahGrid } from '@/components/home/SurahGrid';
+import { DailyMotivationHome } from '@/components/daily/DailyMotivationHome';
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 import { buildPageMetadata, DEFAULT_DESCRIPTION } from '@/lib/seo';
 import { SiteLogo } from '@/components/SiteLogo';
@@ -97,6 +98,7 @@ export default async function HomePage() {
       <main className="w-full flex-1">
         <Hero />
         <ContinueReading />
+        <DailyMotivationHome />
         <SurahGrid surahs={list} />
         <TranslationsPreview surahs={list} />
         <RecitersSection />

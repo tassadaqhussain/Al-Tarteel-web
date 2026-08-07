@@ -48,7 +48,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
 
   const reset = () => {
     setMushafType('uthmani'); setFontSize('md'); setMushafLines(15);
-    setShowTajweedRules(true); setCopyVerseAsGlyphs(false);
+    setShowTajweedRules(false); setCopyVerseAsGlyphs(false);
     setTranslationFontSize('md'); setWordByWordFontSize('md'); setWordByWordDisplay('tooltip');
     setWordByWordShowTranslation(true); setWordByWordShowTransliteration(false); setWordByWordLocale('ur'); setWordClickPlayAudio(true);
     setShowTranslation(true); setShowWordByWord(false);
@@ -99,12 +99,32 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
               </div>
 
               <div className="grid grid-cols-3 rounded-full bg-slate-100 p-1.5">
-                {SCRIPTS.map((script) => <button key={script.value} type="button" onClick={() => setMushafType(script.value)} className={cn('rounded-full px-2 py-2.5 text-base transition', mushafType === script.value ? 'bg-white font-medium text-slate-900 shadow' : 'text-slate-500')}>{script.label}</button>)}
+                {SCRIPTS.map((script) => (
+                  <button
+                    key={script.value}
+                    type="button"
+                    onClick={() => {
+                      setMushafType(script.value);
+                      if (script.value === 'simple') setShowTajweedRules(true);
+                    }}
+                    className={cn('rounded-full px-2 py-2.5 text-base transition', mushafType === script.value ? 'bg-white font-medium text-slate-900 shadow' : 'text-slate-500')}
+                  >
+                    {script.label}
+                  </button>
+                ))}
               </div>
+
+              <CheckSetting
+                label="Show Tajweed colours while reading:"
+                checked={showTajweedRules}
+                onChange={setShowTajweedRules}
+              />
+              <p className="text-sm text-slate-500">
+                Uses verified Quran.com Uthmani tajweed annotations. Canonical Arabic text is never rewritten.
+              </p>
 
               {mushafType === 'simple' ? (
                 <div className="space-y-5">
-                  <CheckSetting label="Show Tajweed rules while reading:" checked={showTajweedRules} onChange={setShowTajweedRules} />
                   <CheckSetting label="Copy verse as glyphs" checked={copyVerseAsGlyphs} onChange={setCopyVerseAsGlyphs} />
                 </div>
               ) : (

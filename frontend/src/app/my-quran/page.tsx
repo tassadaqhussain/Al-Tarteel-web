@@ -1,22 +1,24 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bookmark, Check, Clock, StickyNote } from 'lucide-react';
 import { Header } from '@/components/Header';
-import { SignInSheet } from '@/components/SignInSheet';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
+import { loginHref } from '@/lib/auth-redirect';
 import { cn } from '@/lib/utils';
+import { TajweedJourneyPanel } from '@/components/tajweed/TajweedJourneyPanel';
+import { DailyMotivation } from '@/components/daily/DailyMotivation';
 
 type Tab = 'saved' | 'recent' | 'notes';
 
-export default function MyQuranPage() {
+function MyQuranContent() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('saved');
-  const [signInOpen, setSignInOpen] = useState(false);
   const bookmarks = useBookmarksStore((s) => s.bookmarks);
   const lastRead = useSettingsStore((s) => s.lastRead);
   const recentSurahs = useSettingsStore((s) => s.recentSurahs);
@@ -83,6 +85,16 @@ export default function MyQuranPage() {
 
         {tab === 'saved' && (
           <div className="space-y-10">
+            <section>
+              <h2 className="mb-4 text-xl font-bold text-slate-900">Assalamu Alaikum</h2>
+              <DailyMotivation variant="full" showGoalPicker showAyahOfDay showTajweedOfDay />
+            </section>
+
+            <section>
+              <h2 className="mb-4 text-xl font-bold text-slate-900">Tajweed Journey</h2>
+              <TajweedJourneyPanel showPersonal />
+            </section>
+
             {/* Reading bookmark */}
             <section>
               <h2 className="mb-4 text-xl font-bold text-slate-900">My Reading Bookmark</h2>
@@ -168,13 +180,12 @@ export default function MyQuranPage() {
                     </Link>
                   </p>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setSignInOpen(true)}
+                <Link
+                  href={loginHref('/my-quran')}
                   className="mt-6 inline-flex rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent)]/90"
                 >
                   Sign in
-                </button>
+                </Link>
               </div>
             </section>
           </div>
@@ -258,7 +269,16 @@ export default function MyQuranPage() {
           </section>
         )}
       </main>
-      <SignInSheet open={signInOpen} onOpenChange={setSignInOpen} />
     </div>
+  );
+}
+
+export default function MyQuranPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading…</div>}>
+      <RequireAuth>
+        <MyQuranContent />
+      </RequireAuth>
+    </Suspense>
   );
 }

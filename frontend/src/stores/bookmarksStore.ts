@@ -18,10 +18,14 @@ export interface BookmarkItem {
 
 export interface BookmarksState {
   bookmarks: BookmarkItem[];
-  add: (item: Omit<BookmarkItem, 'id' | 'createdAt'>) => void;
+  add: (item: Omit<BookmarkItem, 'id' | 'createdAt'> & { createdAt?: number }) => void;
   remove: (ayahId: number) => void;
   updateNote: (ayahId: number, note: string) => void;
   updateColor: (ayahId: number, color: BookmarkColor) => void;
+  clear: () => void;
+  replaceFromServer: (
+    items: Array<Omit<BookmarkItem, 'id'> & { id?: string }>,
+  ) => void;
   isBookmarked: (ayahId: number) => boolean;
   get: (ayahId: number) => BookmarkItem | undefined;
 }
@@ -39,7 +43,7 @@ export const useBookmarksStore = create<BookmarksState>()(
             {
               ...item,
               id: String(item.ayahId),
-              createdAt: Date.now(),
+              createdAt: item.createdAt ?? Date.now(),
             },
             ...s.bookmarks,
           ],
@@ -62,6 +66,18 @@ export const useBookmarksStore = create<BookmarksState>()(
             b.ayahId === ayahId ? { ...b, color } : b
           ),
         })),
+
+      clear: () => set({ bookmarks: [] }),
+
+      replaceFromServer: (items) =>
+        set({
+          bookmarks: items.map((item) => ({
+            ...item,
+            id: item.id ?? String(item.ayahId),
+            color: item.color ?? 'gold',
+            note: item.note ?? '',
+          })),
+        }),
 
       isBookmarked: (ayahId) => get().bookmarks.some((b) => b.ayahId === ayahId),
       get: (ayahId) => get().bookmarks.find((b) => b.ayahId === ayahId),

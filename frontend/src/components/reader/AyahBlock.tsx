@@ -21,7 +21,9 @@ import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
-import { audioApi, type AyahWithRelations } from '@/lib/api';
+import { audioApi, usersApi, type AyahWithRelations } from '@/lib/api';
+import { useRequireAuth } from '@/components/auth/AuthProvider';
+import { TajweedText } from '@/components/tajweed/TajweedText';
 import { loadWordTimings } from '@/lib/loadWordTimings';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { VerseResourcePanel, type VerseResource } from './VerseResourcePanel';
@@ -51,7 +53,6 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     reciterSlug: settingsReciter,
     showWordByWord,
     setShowWordByWord,
-    mushafType,
     showTajweedRules,
     translationFontSize,
     wordByWordFontSize,
@@ -66,6 +67,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
   const { add: addBookmark, remove: removeBookmark, isBookmarked, get: getBookmark, updateNote } = useBookmarksStore();
   const { pins, pin, unpin, isPinned } = useComparePinStore();
+  const requireAuth = useRequireAuth();
   const pinned = pins[0] ?? null;
 
   const current = getCurrentAyah();
@@ -151,23 +153,42 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     }
   }, [ayah.number, isCurrent, reciterSlug, settingsReciter, surahNumber, setContinuous, setPlaylist, setPlaying, setReciter, setReciterSlug]);
 
+  // ── Feedback ─────────────────────────────────────────────────────────────
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 2200);
+  }, []);
+
   // ── Bookmark ──────────────────────────────────────────────────────────────
   const handleBookmark = useCallback(() => {
-    if (bookmarked) {
-      removeBookmark(ayah.id);
-    } else {
-      addBookmark({
-        ayahId: ayah.id,
-        surahNumber,
-        surahName: surahName || `Surah ${surahNumber}`,
-        ayahNumber: ayah.number,
-        textUthmani: ayah.textUthmani,
-        translation: ayah.translations?.[0]?.text,
-        note: '',
-        color: 'gold',
-      });
-    }
-  }, [ayah, bookmarked, surahNumber, surahName, addBookmark, removeBookmark]);
+    requireAuth(async () => {
+      if (bookmarked) {
+        removeBookmark(ayah.id);
+        try {
+          await usersApi.removeBookmark(ayah.id);
+        } catch {
+          /* optimistic local remove kept; refresh on next login sync */
+        }
+      } else {
+        addBookmark({
+          ayahId: ayah.id,
+          surahNumber,
+          surahName: surahName || `Surah ${surahNumber}`,
+          ayahNumber: ayah.number,
+          textUthmani: ayah.textUthmani,
+          translation: ayah.translations?.[0]?.text,
+          note: '',
+          color: 'gold',
+        });
+        try {
+          await usersApi.addBookmark(ayah.id);
+        } catch {
+          removeBookmark(ayah.id);
+          showToast('Could not save bookmark');
+        }
+      }
+    }, { key: `bookmark:${ayah.id}` });
+  }, [ayah, bookmarked, surahNumber, surahName, addBookmark, removeBookmark, requireAuth, showToast]);
 
   // ── Copy ─────────────────────────────────────────────────────────────────
   const handleCopy = useCallback(async () => {
@@ -179,39 +200,43 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     setTimeout(() => setCopied(false), 2000);
   }, [ayah, surahNumber, surahName]);
 
-  const showToast = useCallback((message: string) => {
-    setToast(message);
-    window.setTimeout(() => setToast(null), 2200);
-  }, []);
-
   const handleShare = useCallback(() => {
     setShareOpen(true);
   }, []);
 
   const handleOpenNote = useCallback(() => {
-    const existing = getBookmark(ayah.id);
-    setNoteDraft(existing?.note ?? '');
-    setNoteOpen(true);
-  }, [ayah.id, getBookmark]);
+    requireAuth(() => {
+      const existing = getBookmark(ayah.id);
+      setNoteDraft(existing?.note ?? '');
+      setNoteOpen(true);
+    }, { key: `note-open:${ayah.id}` });
+  }, [ayah.id, getBookmark, requireAuth]);
 
   const handleSaveNote = useCallback(() => {
-    if (!isBookmarked(ayah.id)) {
-      addBookmark({
-        ayahId: ayah.id,
-        surahNumber,
-        surahName: surahName || `Surah ${surahNumber}`,
-        ayahNumber: ayah.number,
-        textUthmani: ayah.textUthmani,
-        translation: ayah.translations?.[0]?.text,
-        note: noteDraft,
-        color: 'gold',
-      });
-    } else {
-      updateNote(ayah.id, noteDraft);
-    }
-    setNoteOpen(false);
-    showToast('Note saved');
-  }, [addBookmark, ayah, isBookmarked, noteDraft, showToast, surahName, surahNumber, updateNote]);
+    requireAuth(async () => {
+      if (!isBookmarked(ayah.id)) {
+        addBookmark({
+          ayahId: ayah.id,
+          surahNumber,
+          surahName: surahName || `Surah ${surahNumber}`,
+          ayahNumber: ayah.number,
+          textUthmani: ayah.textUthmani,
+          translation: ayah.translations?.[0]?.text,
+          note: noteDraft,
+          color: 'gold',
+        });
+      } else {
+        updateNote(ayah.id, noteDraft);
+      }
+      try {
+        await usersApi.addBookmark(ayah.id, noteDraft);
+        setNoteOpen(false);
+        showToast('Note saved');
+      } catch {
+        showToast('Could not save note');
+      }
+    }, { key: `note-save:${ayah.id}` });
+  }, [addBookmark, ayah, isBookmarked, noteDraft, requireAuth, showToast, surahName, surahNumber, updateNote]);
 
   const playCurrentVerseOnly = useCallback(async (repeat: boolean) => {
     try {
@@ -456,18 +481,25 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         </span>
       )}
     </div>
-  ) : mushafType === 'simple' && ayah.textTajweed ? (
-    <span
-      className={cn(
-        'tajweed-text font-arabic ayah-arabic leading-loose text-[var(--fg)]',
-        fontSizeClass,
-        !showTajweedRules && 'tajweed-disabled',
-        readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right'
+  ) : showTajweedRules && ayah.textTajweed ? (
+    <>
+      <TajweedText
+        textTajweed={ayah.textTajweed}
+        textUthmani={ayah.textUthmani}
+        showColors={showTajweedRules}
+        interactive={showTajweedRules}
+        className={cn(
+          'font-arabic ayah-arabic leading-loose text-[var(--fg)]',
+          fontSizeClass,
+          readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right',
+        )}
+      />
+      {readerViewMode === 'arabic' && (
+        <span className="ayah-verse-marker" aria-label={`Verse ${ayah.number}`}>
+          {ayah.number}
+        </span>
       )}
-      lang="ar"
-      dir="rtl"
-      dangerouslySetInnerHTML={{ __html: ayah.textTajweed }}
-    />
+    </>
   ) : (
     <span
       className={cn(
@@ -477,6 +509,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       )}
       lang="ar"
       dir="rtl"
+      translate="no"
     >
       {ayah.textUthmani}
       {readerViewMode === 'arabic' && (

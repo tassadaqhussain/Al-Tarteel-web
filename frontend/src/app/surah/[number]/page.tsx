@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { quranApi } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { ReadingTracker } from '@/components/reader/ReadingTracker';
+import { DailyMotivationReader } from '@/components/daily/DailyMotivationReader';
 import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { Bookmark, ChevronLeft, ChevronRight, RotateCcw, BookMarked } from 'lucide-react';
 import { ChapterControls } from '@/components/reader/ChapterControls';
@@ -14,7 +15,7 @@ import { SurahPaginationNav } from '@/components/reader/SurahPaginationNav';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
-import { getSurahArabicName, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
 import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { breadcrumbJsonLd, surahJsonLd, surahSeo } from '@/lib/seo';
@@ -25,6 +26,22 @@ import {
   surahTotalPages,
   surahVerseRange,
 } from '@/lib/surah-pagination';
+import type { Surah } from '@/lib/api';
+
+/** Used when the API is briefly unavailable — never treat a valid surah number as 404. */
+function localSurahFallback(surahNumber: number): Surah {
+  const meta = getSurahMeta(surahNumber);
+  return {
+    id: surahNumber,
+    number: surahNumber,
+    nameArabic: meta.nameArabic,
+    nameSimple: meta.nameSimple,
+    nameComplex: meta.nameSimple,
+    revelationPlace: '',
+    revelationOrder: null,
+    numberOfAyahs: getSurahAyahCount(surahNumber),
+  };
+}
 
 interface Props {
   params: Promise<{ number: string }>;
@@ -65,8 +82,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
     queryTrans: trans,
   });
 
-  const surah = await quranApi.surah(surahNumber).catch(() => null);
-  if (!surah) notFound();
+  const surah = (await quranApi.surah(surahNumber).catch(() => null)) ?? localSurahFallback(surahNumber);
 
   const ayahCount = surah.numberOfAyahs || getSurahAyahCount(surahNumber);
   const page = clampSurahPage(parseInt(pageStr || '1', 10), ayahCount);
@@ -288,6 +304,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
           surahNameArabic={arabicName}
           firstAyahNumber={firstAyah}
         />
+        <DailyMotivationReader />
 
         {/* ── Surah intro card (Quran.com) ─────────────────────────────── */}
         <article>

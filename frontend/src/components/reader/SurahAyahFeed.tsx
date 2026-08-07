@@ -6,6 +6,7 @@ import { AyahBlock } from '@/components/reader/AyahBlock';
 import { quranApi, type AyahWithRelations } from '@/lib/api';
 import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useDailyMotivationStore } from '@/stores/dailyMotivationStore';
 import { cn } from '@/lib/utils';
 
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
@@ -38,6 +39,7 @@ export function SurahAyahFeed({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
   const pageRef = useRef(page);
   const ayahsRef = useRef(ayahs);
@@ -164,9 +166,41 @@ export function SurahAyahFeed({
     return () => window.removeEventListener('quranpilot:ensure-ayah', onEnsure);
   }, [loadPage, surahNumber]);
 
+  // Credit unique visible ayahs toward today's reading goal (calm, no UI noise).
+  useEffect(() => {
+    const root = feedRef.current;
+    if (!root) return;
+
+    const recordAyahView = useDailyMotivationStore.getState().recordAyahView;
+    const setLastRead = useSettingsStore.getState().setLastRead;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.45) continue;
+          const el = entry.target as HTMLElement;
+          const num = Number(el.dataset.ayahNumber);
+          if (!Number.isFinite(num) || num < 1) continue;
+          recordAyahView(surahNumber, num);
+          setLastRead({
+            surahNumber,
+            surahName,
+            ayahNumber: num,
+            timestamp: Date.now(),
+          });
+        }
+      },
+      { threshold: [0.45], rootMargin: '-10% 0px -25% 0px' },
+    );
+
+    root.querySelectorAll<HTMLElement>('[data-ayah-number]').forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [ayahs, surahName, surahNumber]);
+
   return (
     <>
       <div
+        ref={feedRef}
         className={cn(
           readerViewMode === 'verse' && 'divide-y divide-slate-200 border-t border-slate-200',
           readerViewMode === 'arabic' &&

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useDailyMotivationStore } from '@/stores/dailyMotivationStore';
 import { getSurahArabicName } from '@/lib/surah-meta';
 
 interface Props {
@@ -13,7 +14,8 @@ interface Props {
 
 /**
  * Invisible client component mounted inside the surah page.
- * Persists reading position to settingsStore (localStorage) on every visit.
+ * Persists reading position, credits unique ayahs toward today's goal,
+ * and softly tracks reading minutes while the chapter is open.
  */
 export function ReadingTracker({
   surahNumber,
@@ -23,6 +25,8 @@ export function ReadingTracker({
 }: Props) {
   const setLastRead = useSettingsStore((s) => s.setLastRead);
   const addRecentSurah = useSettingsStore((s) => s.addRecentSurah);
+  const recordAyahView = useDailyMotivationStore((s) => s.recordAyahView);
+  const addMinutes = useDailyMotivationStore((s) => s.addMinutes);
 
   useEffect(() => {
     setLastRead({
@@ -33,7 +37,23 @@ export function ReadingTracker({
       timestamp: Date.now(),
     });
     addRecentSurah(surahNumber);
-  }, [surahNumber, surahName, surahNameArabic, firstAyahNumber, setLastRead, addRecentSurah]);
+    recordAyahView(surahNumber, firstAyahNumber);
+  }, [
+    surahNumber,
+    surahName,
+    surahNameArabic,
+    firstAyahNumber,
+    setLastRead,
+    addRecentSurah,
+    recordAyahView,
+  ]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState === 'visible') addMinutes(1);
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, [addMinutes]);
 
   return null;
 }

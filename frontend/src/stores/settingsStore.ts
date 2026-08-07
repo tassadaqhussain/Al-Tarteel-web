@@ -150,7 +150,7 @@ export const useSettingsStore = create<SettingsState>()(
       showTranslation: true,
       showTransliteration: false,
       showWordByWord: true,
-      showTajweedRules: true,
+      showTajweedRules: false,
       copyVerseAsGlyphs: false,
       translationFontSize: 'md',
       wordByWordFontSize: 'md',
