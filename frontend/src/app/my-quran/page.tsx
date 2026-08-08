@@ -171,6 +171,12 @@ function MyQuranContent() {
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" strokeWidth={3} />
                     Compare and contrast verses
                   </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" strokeWidth={3} />
+                    <Link href="/hifz" className="font-medium text-[var(--accent)] hover:underline">
+                      Practice hifz with blank ayahs
+                    </Link>
+                  </li>
                 </ul>
                 {readingGoal && (
                   <p className="mt-4 text-sm text-slate-500">

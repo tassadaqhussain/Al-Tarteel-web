@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { DonationsModule } from './donations/donations.module';
 import { AiModule } from './ai/ai.module';
+import { HifzModule } from './hifz/hifz.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     DonationsModule,
     AiModule,
+    HifzModule,
   ],
 })
 export class AppModule {}

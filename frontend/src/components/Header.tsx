@@ -365,6 +365,7 @@ function MobileNav({
             { label: t('read'), href: '/surahs', icon: Home, id: 'read' },
             { label: t('learn'), href: '/learning-plans', icon: GraduationCap, id: 'learn' },
             { label: t('myQuran'), href: '/my-quran', icon: Bookmark, id: 'my-quran' },
+            { label: 'Hifz', href: '/hifz', icon: BookOpen, id: 'hifz' },
             { label: t('bookmarks'), href: '/bookmarks', icon: BookOpen, id: 'bookmarks' },
             { label: 'Tajweed', href: '/tajweed', icon: GraduationCap, id: 'tajweed' },
             { label: t('quranInYear'), href: '/quran-in-year', icon: LayoutGrid, id: 'quran-year' },

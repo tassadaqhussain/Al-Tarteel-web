@@ -230,9 +230,53 @@ model User {
   dailyGoals      UserDailyGoal[]
   dailyProgress   DailyProgress[]
   motivationPref  UserMotivationPreference?
+  hifzAttempts    HifzAttempt[]
+  hifzDailyStats  HifzDailyStat[]
   lastReadSurah   Surah? @relation("UserLastRead", fields: [lastReadSurahId], references: [id])
 
   @@map("users")
+}
+
+/// Single hifz recite attempt (speech or typed) for one ayah.
+model HifzAttempt {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  surahNumber  Int      @map("surah_number")
+  ayahNumber   Int      @map("ayah_number")
+  ayahId       Int?     @map("ayah_id")
+  /// speech | type
+  mode         String   @db.VarChar(20)
+  transcript   String   @db.Text
+  accuracy     Float
+  isCorrect    Boolean  @map("is_correct")
+  /// YYYY-MM-DD in user timezone (client-provided)
+  practiceDate String   @map("practice_date") @db.VarChar(10)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, practiceDate])
+  @@index([userId, surahNumber, ayahNumber])
+  @@map("hifz_attempts")
+}
+
+/// Aggregated day-by-day hifz accuracy for charts.
+model HifzDailyStat {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  date           String   @db.VarChar(10)
+  attempts       Int      @default(0)
+  correct        Int      @default(0)
+  accuracySum    Float    @default(0) @map("accuracy_sum")
+  avgAccuracy    Float    @default(0) @map("avg_accuracy")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("hifz_daily_stats")
 }
 
 model RefreshToken {

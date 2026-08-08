@@ -209,6 +209,75 @@ export const usersApi = {
     }),
 } as const;
 
+export type HifzWordDiff = {
+  expected: string;
+  heard: string | null;
+  status: 'match' | 'mismatch' | 'missing' | 'extra';
+};
+
+export type HifzCheckResult = {
+  surahNumber: number;
+  ayahNumber: number;
+  ayahId: number;
+  expected: string;
+  expectedNormalized: string;
+  heardNormalized: string;
+  accuracy: number;
+  isCorrect: boolean;
+  words: HifzWordDiff[];
+  mode: 'speech' | 'type';
+};
+
+export type HifzDailyStat = {
+  id: number;
+  userId: number;
+  date: string;
+  attempts: number;
+  correct: number;
+  accuracySum: number;
+  avgAccuracy: number;
+};
+
+export const hifzApi = {
+  check: (body: {
+    surahNumber: number;
+    ayahNumber: number;
+    transcript: string;
+    mode?: 'speech' | 'type';
+  }) =>
+    api<HifzCheckResult>('/hifz/check', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  recordAttempt: (body: {
+    surahNumber: number;
+    ayahNumber: number;
+    mode: 'speech' | 'type';
+    transcript: string;
+    accuracy?: number;
+    isCorrect?: boolean;
+    practiceDate: string;
+  }) =>
+    api<{ attempt: unknown; check: HifzCheckResult }>('/hifz/attempts', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  daily: (days = 14) =>
+    api<HifzDailyStat[]>('/hifz/daily', { params: { days } }),
+  progress: (surahNumber: number) =>
+    api<{
+      surahNumber: number;
+      mastered: number;
+      practiced: number;
+      ayahs: Array<{
+        ayahNumber: number;
+        accuracy: number;
+        isCorrect: boolean;
+        attempts: number;
+      }>;
+    }>(`/hifz/progress/${surahNumber}`),
+};
+
 export const quranApi = {
   surahs: () => api<Awaited<ReturnType<typeof getSurahs>>>('/quran/surahs'),
   surah: (number: number) => api<Surah>(`/quran/surahs/${number}`),
