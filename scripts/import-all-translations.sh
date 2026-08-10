@@ -107,10 +107,11 @@ run_ayahs() {
     fi
   else
     echo "==> Ayah translations (Selected Translations picker) for ALL languages"
+    # Use translations:import (not :all) so older API images without the alias still work.
     if [[ "${#compose_cmd[@]}" -gt 0 ]]; then
-      run_in_api npm run translations:import:all
+      run_in_api npm run translations:import
     else
-      (cd "${BACKEND}" && npm run translations:import:all)
+      (cd "${BACKEND}" && npm run translations:import)
     fi
   fi
   echo
