@@ -43,8 +43,21 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
+function useIsMobileSheet(maxWidthPx = 639) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${maxWidthPx}px)`);
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, [maxWidthPx]);
+  return isMobile;
+}
+
 export function AskAiSheet({ open, onOpenChange }: Props) {
   const locale = useSettingsStore((s) => s.uiLocale);
+  const isMobile = useIsMobileSheet();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatTurn[]>([]);
   const [loading, setLoading] = useState(false);
@@ -166,7 +179,6 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
       if (res.promptsRemaining !== undefined) setPromptsRemaining(res.promptsRemaining);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reach AI.');
-      // Roll back the optimistic user bubble if the request failed before an answer.
       setMessages((prev) => {
         if (prev.length && prev[prev.length - 1]?.role === 'user' && prev[prev.length - 1]?.content === q) {
           return prev.slice(0, -1);
@@ -192,11 +204,28 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
       }}
     >
       <SheetContent
-        side="right"
+        side={isMobile ? 'bottom' : 'right'}
         showClose={false}
-        className="flex h-full w-full max-w-none flex-col gap-0 overflow-hidden border-l border-slate-200 bg-white p-0 text-slate-800 sm:max-w-[420px]"
+        overlayClassName="max-sm:bottom-[var(--audio-bar-height,0px)]"
+        className={cn(
+          'flex flex-col gap-0 overflow-hidden border-slate-200 bg-white p-0 text-slate-800',
+          isMobile
+            ? [
+                'inset-x-0 top-auto z-[55] h-[min(78dvh,calc(100dvh-var(--audio-bar-height,0px)-0.75rem))]',
+                'max-h-[calc(100dvh-var(--audio-bar-height,0px)-0.75rem)] w-full max-w-none',
+                'bottom-[var(--audio-bar-height,0px)] rounded-t-2xl border-x-0 border-b-0 border-t',
+                'pb-[max(0.25rem,env(safe-area-inset-bottom,0px))]',
+                'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
+              ]
+            : 'h-full w-full max-w-none border-l sm:max-w-[420px]',
+        )}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        {isMobile && (
+          <div className="flex justify-center pb-1 pt-2" aria-hidden>
+            <span className="h-1 w-10 rounded-full bg-slate-300" />
+          </div>
+        )}
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4">
           <div className="min-w-0">
             <SheetTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
@@ -236,7 +265,10 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
           </div>
         </div>
 
-        <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        <div
+          ref={listRef}
+          className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-3 sm:px-5 sm:py-4"
+        >
           {messages.length === 0 && (
             <div className="space-y-3">
               <p className="text-sm text-slate-600">
@@ -268,7 +300,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
                 'max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
                 m.role === 'user'
                   ? 'ml-auto bg-[var(--accent)] text-white'
-                  : 'mr-auto border border-slate-200 bg-slate-50 text-slate-800'
+                  : 'mr-auto border border-slate-200 bg-slate-50 text-slate-800',
               )}
             >
               {m.content}
@@ -283,12 +315,15 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
         </div>
 
         {error && (
-          <p className="mx-5 mb-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          <p className="mx-4 mb-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-5" role="alert">
             {error}
           </p>
         )}
 
-        <form onSubmit={onSubmit} className="border-t border-slate-200 px-4 py-3">
+        <form
+          onSubmit={onSubmit}
+          className="sticky bottom-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-4"
+        >
           <div className="flex items-end gap-2">
             {voiceSupported && (
               <button
@@ -300,7 +335,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
                   listening
                     ? 'border-red-200 bg-red-50 text-red-600'
                     : 'border-slate-200 text-slate-600 hover:border-[var(--accent)] hover:text-[var(--accent)]',
-                  limitReached && 'opacity-50'
+                  limitReached && 'opacity-50',
                 )}
                 aria-label={listening ? 'Stop listening' : 'Ask by voice'}
               >

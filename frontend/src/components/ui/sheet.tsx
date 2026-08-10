@@ -46,14 +46,16 @@ interface SheetContentProps
     VariantProps<typeof sheetVariants> {
   /** When false, omits the built-in top-right close control (use your own). */
   showClose?: boolean;
+  /** Optional class names for the dimmed overlay behind the sheet. */
+  overlayClassName?: string;
 }
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   SheetContentProps
->(({ side = 'right', className, children, showClose = true, ...props }, ref) => (
+>(({ side = 'right', className, children, showClose = true, overlayClassName, ...props }, ref) => (
   <SheetPortal>
-    <SheetOverlay />
+    <SheetOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(sheetVariants({ side }), className)}

@@ -82,12 +82,26 @@ async function main() {
   const resources = await getResources();
   if (!resources.length) throw new Error('No translation resources returned');
 
-  const langFilter = process.argv.find((arg) => arg.startsWith('--lang='))?.slice('--lang='.length);
-  const selected = langFilter
-    ? resources.filter((resource) => languageCode(resource) === langFilter)
+  const langsArg = process.argv.find((arg) => arg.startsWith('--langs='))?.slice('--langs='.length)
+    || process.argv.find((arg) => arg.startsWith('--lang='))?.slice('--lang='.length);
+  const langFilters = langsArg
+    ? langsArg.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+    : null;
+  const selected = langFilters
+    ? resources.filter((resource) => langFilters.includes(languageCode(resource)))
     : resources;
-  if (!selected.length) throw new Error(langFilter ? `No translations for language "${langFilter}"` : 'No translation resources returned');
-  console.log(`Found ${resources.length} official translations${langFilter ? `; importing ${selected.length} for ${langFilter}` : ''}.`);
+  if (!selected.length) {
+    throw new Error(
+      langFilters
+        ? `No translations for language(s): ${langFilters.join(', ')}`
+        : 'No translation resources returned',
+    );
+  }
+  console.log(
+    langFilters
+      ? `Found ${resources.length} official translations; importing ${selected.length} for ${langFilters.join(', ')}.`
+      : `Found ${resources.length} official translations; importing all languages.`,
+  );
 
   const translatorByResource = new Map<number, number>();
   for (const resource of selected) {
@@ -105,37 +119,43 @@ async function main() {
     return;
   }
 
-  const resourceIds = selected.map((resource) => resource.id).join(',');
+  // Quran Foundation rejects / truncates huge `translations=` lists — import in chunks.
+  const RESOURCE_CHUNK = 12;
+  const selectedIds = selected.map((resource) => resource.id);
   let processed = 0;
+
   for (let chapterNumber = 1; chapterNumber <= 114; chapterNumber += 1) {
     const surah = await prisma.surah.findUnique({ where: { number: chapterNumber }, select: { id: true } });
     if (!surah) continue;
     const ayahs = await prisma.ayah.findMany({ where: { surahId: surah.id }, select: { id: true, number: true } });
     const ayahByNumber = new Map(ayahs.map((ayah) => [ayah.number, ayah.id]));
-
-    const response = await axios.get<{
-      verses: Array<{
-        verse_number: number;
-        translations: Array<{ resource_id: number; text: string }>;
-      }>;
-    }>(`${API_BASE}/content/api/v4/verses/by_chapter/${chapterNumber}`, {
-      params: {
-        translations: resourceIds,
-        translation_fields: 'resource_name,language_id,resource_id',
-        per_page: 300,
-      },
-      headers: await headers(),
-      timeout: 120_000,
-    });
-
     const rows: Array<{ ayahId: number; translatorId: number; text: string }> = [];
-    for (const verse of response.data.verses ?? []) {
-      const ayahId = ayahByNumber.get(verse.verse_number);
-      if (!ayahId) continue;
-      for (const translation of verse.translations ?? []) {
-        const translatorId = translatorByResource.get(translation.resource_id);
-        const text = stripHtml(translation.text || '');
-        if (translatorId && text) rows.push({ ayahId, translatorId, text });
+
+    for (let i = 0; i < selectedIds.length; i += RESOURCE_CHUNK) {
+      const chunk = selectedIds.slice(i, i + RESOURCE_CHUNK);
+      const response = await axios.get<{
+        verses: Array<{
+          verse_number: number;
+          translations: Array<{ resource_id: number; text: string }>;
+        }>;
+      }>(`${API_BASE}/content/api/v4/verses/by_chapter/${chapterNumber}`, {
+        params: {
+          translations: chunk.join(','),
+          translation_fields: 'resource_name,language_id,resource_id',
+          per_page: 300,
+        },
+        headers: await headers(),
+        timeout: 120_000,
+      });
+
+      for (const verse of response.data.verses ?? []) {
+        const ayahId = ayahByNumber.get(verse.verse_number);
+        if (!ayahId) continue;
+        for (const translation of verse.translations ?? []) {
+          const translatorId = translatorByResource.get(translation.resource_id);
+          const text = stripHtml(translation.text || '');
+          if (translatorId && text) rows.push({ ayahId, translatorId, text });
+        }
       }
     }
 

@@ -35,6 +35,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
     wordByWordShowTranslation, setWordByWordShowTranslation,
     wordByWordShowTransliteration, setWordByWordShowTransliteration,
     wordByWordLocale, setWordByWordLocale, wordClickPlayAudio, setWordClickPlayAudio,
+    wordClickSpeakMeaning, setWordClickSpeakMeaning,
   } = useSettingsStore();
 
   useEffect(() => {
@@ -50,7 +51,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
     setMushafType('uthmani'); setFontSize('md'); setMushafLines(15);
     setShowTajweedRules(false); setCopyVerseAsGlyphs(false);
     setTranslationFontSize('md'); setWordByWordFontSize('md'); setWordByWordDisplay('tooltip');
-    setWordByWordShowTranslation(true); setWordByWordShowTransliteration(false); setWordByWordLocale('ur'); setWordClickPlayAudio(true);
+    setWordByWordShowTranslation(true); setWordByWordShowTransliteration(false); setWordByWordLocale('ur'); setWordClickPlayAudio(true); setWordClickSpeakMeaning(true);
     setShowTranslation(true); setShowWordByWord(false);
     setTranslationSlugs(['en-sahih-international']);
   };
@@ -196,12 +197,13 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
           )}
           {tab === 'word' && (
             <div className="space-y-6">
-              <TogglePanel title="Word By Word" description="Show individual word meanings while reading or listening." checked={showWordByWord} onChange={setShowWordByWord} />
+              <TogglePanel title="Word By Word" description="Tap a word for Arabic audio plus its meaning spoken in your language. Switch EN/UR/BN/ID/TR/FA/HI chips when those translations are imported." checked={showWordByWord} onChange={setShowWordByWord} />
               <div><p className="mb-3 text-lg font-medium">Display</p><Segmented options={[['tooltip', 'Tooltip'], ['inline', 'Inline']]} value={wordByWordDisplay} onChange={(v) => setWordByWordDisplay(v as 'tooltip' | 'inline')} /></div>
               <div className="space-y-4"><p className="text-lg font-medium">Type</p><CheckSetting label="Translation" checked={wordByWordShowTranslation} onChange={setWordByWordShowTranslation} /><CheckSetting label="Transliteration" checked={wordByWordShowTransliteration} onChange={setWordByWordShowTransliteration} /></div>
               <label className="flex items-center justify-between"><span className="text-lg font-medium">Word By Word Language</span><select value={wordByWordLocale} onChange={(e) => setWordByWordLocale(e.target.value as typeof wordByWordLocale)} className="rounded-lg bg-slate-100 px-4 py-3">{WORD_BY_WORD_LOCALES.map((locale) => <option key={locale.code} value={locale.code}>{locale.label}</option>)}</select></label>
               <SizeSetting label="Word font size" value={wordByWordFontSize} onChange={setWordByWordFontSize} />
-              <CheckSetting label="Play audio when a word is clicked" checked={wordClickPlayAudio} onChange={setWordClickPlayAudio} />
+              <CheckSetting label="Play Arabic word audio when clicked" checked={wordClickPlayAudio} onChange={setWordClickPlayAudio} />
+              <CheckSetting label="Speak word meaning in selected language" checked={wordClickSpeakMeaning} onChange={setWordClickSpeakMeaning} />
             </div>
           )}
         </div>

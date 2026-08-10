@@ -6,6 +6,8 @@
 /* ── QuranPilot design tokens (light Quran.com-style by default) ────── */
 :root {
   --bg: #f7f7f7;
+  /* Height of the fixed AudioBar; 0 when no playlist is active. */
+  --audio-bar-height: 0px;
   --fg: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;

@@ -8,6 +8,10 @@ import { quranApi } from '@/lib/api';
 import { getSurahPath } from '@/lib/surah-meta';
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 
+import { useVoiceSearch } from '@/hooks/useVoiceSearch';
+import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
+import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
+
 const POPULAR = [
   { label: 'Al-Mulk', href: getSurahPath(67) },
   { label: 'Nuh', href: getSurahPath(71) },
@@ -16,12 +20,6 @@ const POPULAR = [
 ];
 
 const EXAMPLES = ['Juz 1', 'Page 1', 'Ya-Sin', '36', '2:255'];
-
-type SpeechRecognitionCtor = new () => {
-  lang: string;
-  start: () => void;
-  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-};
 
 interface Props {
   open: boolean;
@@ -32,6 +30,7 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
+  const { startListening } = useVoiceSearch();
 
   useEffect(() => {
     if (open) window.setTimeout(() => inputRef.current?.focus(), 100);
@@ -46,6 +45,17 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
   const submit = async (value = query) => {
     const q = value.trim();
     if (!q) return;
+
+    onOpenChange(false);
+
+    // Try unified intent parser first
+    const intent = parseVoiceIntent(q);
+    const executed = executeVoiceCommand({
+      intent,
+      router,
+    });
+
+    if (executed) return;
 
     const juz = q.match(/^juz\s*(\d{1,2})$/i);
     if (juz) {
@@ -65,22 +75,6 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
       }
     }
 
-    const verse = q.match(/^(\d{1,3})\s*:\s*(\d{1,3})$/);
-    if (verse) {
-      const surah = Number(verse[1]);
-      const ayah = Number(verse[2]);
-      if (surah >= 1 && surah <= 114 && ayah > 0) {
-        return navigate(`${getSurahPath(surah)}?page=${Math.ceil(ayah / SURAH_PAGE_SIZE)}`);
-      }
-    }
-
-    if (/^\d{1,3}$/.test(q)) {
-      const surah = Number(q);
-      if (surah >= 1 && surah <= 114) return navigate(getSurahPath(surah));
-    }
-
-    const popular = POPULAR.find((item) => item.label.toLowerCase() === q.toLowerCase());
-    if (popular) return navigate(popular.href);
     navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
@@ -89,23 +83,9 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
     void submit();
   };
 
-  const startVoiceSearch = () => {
-    const browser = window as unknown as {
-      SpeechRecognition?: SpeechRecognitionCtor;
-      webkitSpeechRecognition?: SpeechRecognitionCtor;
-    };
-    const Recognition = browser.SpeechRecognition || browser.webkitSpeechRecognition;
-    if (!Recognition) return navigate('/search');
-    const recognition = new Recognition();
-    recognition.lang = 'en-US';
-    recognition.onresult = (event) => {
-      const spoken = event.results[0]?.[0]?.transcript?.trim();
-      if (spoken) {
-        setQuery(spoken);
-        void submit(spoken);
-      }
-    };
-    recognition.start();
+  const onMicClick = () => {
+    onOpenChange(false);
+    startListening();
   };
 
   return (
@@ -126,7 +106,7 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
             aria-label="Search the Quran"
             className="min-w-0 flex-1 bg-transparent text-2xl text-slate-800 outline-none placeholder:text-slate-500"
           />
-          <button type="button" onClick={startVoiceSearch} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label="Voice search">
+          <button type="button" onClick={onMicClick} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label="Voice search">
             <Mic className="h-7 w-7" />
           </button>
           <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label="Close search">

@@ -31,6 +31,7 @@ import { SiteLogo } from '@/components/SiteLogo';
 import { NavigateQuranDrawer } from '@/components/home/NavigateQuranDrawer';
 import { LanguagePanel, LANGUAGES } from '@/components/LanguagePanel';
 import { SearchDrawer } from '@/components/SearchDrawer';
+import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 import { loginHref, registerHref } from '@/lib/auth-redirect';
 import { useT } from '@/lib/i18n';
 
@@ -253,6 +254,7 @@ export function Header() {
               <Globe className="h-5 w-5" strokeWidth={1.75} />
               <span className="hidden max-w-[5.5rem] truncate text-xs font-semibold lg:inline">{languageLabel}</span>
             </button>
+            <VoiceSearchButton />
             <button
               type="button"
               onClick={() => setSearchOpen(true)}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAudioStore } from '@/stores/audioStore';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SkipBack,
   SkipForward,
@@ -16,6 +16,8 @@ import {
 import { useReciterPicker } from '@/hooks/useReciterPicker';
 import { ReciterSheet } from '@/components/reader/ReciterSheet';
 import { cn } from '@/lib/utils';
+
+const AUDIO_BAR_HEIGHT_VAR = '--audio-bar-height';
 
 export function AudioBar() {
   const {
@@ -37,6 +39,7 @@ export function AudioBar() {
 
   const current = getCurrentAyah();
   const hasPlaylist = playlist.length > 0;
+  const footerRef = useRef<HTMLElement | null>(null);
 
   const {
     reciterOpen,
@@ -46,6 +49,35 @@ export function AudioBar() {
     changeReciter,
   } = useReciterPicker();
   const [expanded, setExpanded] = useState(false);
+
+  // Publish bar height so floating UI (Ask AI, etc.) can dock above it.
+  useEffect(() => {
+    if (!hasPlaylist) {
+      document.documentElement.style.setProperty(AUDIO_BAR_HEIGHT_VAR, '0px');
+      return;
+    }
+    const el = footerRef.current;
+    if (!el) return;
+
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        AUDIO_BAR_HEIGHT_VAR,
+        `${el.offsetHeight}px`,
+      );
+    };
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+    };
+  }, [hasPlaylist, expanded]);
+
+  useEffect(() => {
+    return () => {
+      document.documentElement.style.setProperty(AUDIO_BAR_HEIGHT_VAR, '0px');
+    };
+  }, []);
 
   const formatTime = (s: number) => {
     if (!Number.isFinite(s) || s < 0) return '0:00';
@@ -69,7 +101,8 @@ export function AudioBar() {
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)] bg-[var(--bg)]/98 backdrop-blur-md safe-area-pb"
+      ref={footerRef}
+      className="fixed bottom-0 left-0 right-0 z-[60] border-t border-[var(--border)] bg-[var(--bg)]/98 backdrop-blur-md safe-area-pb"
       role="region"
       aria-label="Audio player"
     >

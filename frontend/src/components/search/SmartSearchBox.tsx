@@ -10,6 +10,9 @@ import {
 } from '@/lib/search-intelligence';
 import { getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
+import { VoiceSearchButton } from '@/components/VoiceSearchButton';
+import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
+import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
 
 const SUGGEST_MIN_CHARS = 3;
 
@@ -67,6 +70,12 @@ export function SmartSearchBox({
     const typed = raw.trim();
     if (!typed) return;
     setSuggestOpen(false);
+
+    // Try unified intent parser first
+    const intent = parseVoiceIntent(typed);
+    const executed = executeVoiceCommand({ intent, router });
+    if (executed) return;
+
     const correction = correctSearchQuery(typed);
     const q = correction.didCorrect ? correction.corrected : typed;
     if (correction.bestSurah && correction.reason === 'surah' && correction.didCorrect) {
@@ -182,6 +191,7 @@ export function SmartSearchBox({
               <X className="h-4 w-4" />
             </button>
           )}
+          <VoiceSearchButton className="mr-1" />
           {variant === 'hero' && (
             <button
               type="submit"

@@ -15,10 +15,11 @@ import {
   MessageCircle,
   MoreHorizontal,
   Pencil,
+  Volume2,
   X,
 } from 'lucide-react';
 import { useAudioStore } from '@/stores/audioStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, WORD_BY_WORD_LOCALES } from '@/stores/settingsStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
 import { audioApi, usersApi, type AyahWithRelations } from '@/lib/api';
@@ -38,6 +39,11 @@ import { TranslationSheet } from './TranslationSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { cn } from '@/lib/utils';
 import { getSurahPath } from '@/lib/surah-meta';
+import {
+  cancelWordMeaningSpeech,
+  speakWordMeaning,
+  warmSpeechVoices,
+} from '@/lib/speakWordMeaning';
 
 interface Props {
   ayah: AyahWithRelations;
@@ -60,7 +66,9 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     wordByWordShowTranslation,
     wordByWordShowTransliteration,
     wordByWordLocale,
+    setWordByWordLocale,
     wordClickPlayAudio,
+    wordClickSpeakMeaning,
     setReciterSlug,
   } = useSettingsStore();
   const showTranslation = useSettingsStore((s) => s.showTranslation);
@@ -101,6 +109,11 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
   useEffect(() => () => {
     if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
     wordAudioRef.current?.pause();
+    cancelWordMeaningSpeech();
+  }, []);
+
+  useEffect(() => {
+    warmSpeechVoices();
   }, []);
 
   useEffect(() => {
@@ -322,43 +335,104 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     }
   }, [ayah, pin, pins.length, playCurrentVerseOnly, setShowWordByWord, showToast, showWordByWord, surahName, surahNumber, unpin, versePinned]);
 
+  const resolveWordMeaning = useCallback(
+    (word: NonNullable<AyahWithRelations['words']>[number], locale = wordByWordLocale) =>
+      word.translations?.[locale] ||
+      word.translation ||
+      word.translations?.en ||
+      '',
+    [wordByWordLocale],
+  );
+
+  const speakMeaningForWord = useCallback(
+    (word: NonNullable<AyahWithRelations['words']>[number], locale = wordByWordLocale) => {
+      if (!wordClickSpeakMeaning) return;
+      const meaning = resolveWordMeaning(word, locale);
+      if (!meaning) return;
+      speakWordMeaning(meaning, locale);
+    },
+    [resolveWordMeaning, wordByWordLocale, wordClickSpeakMeaning],
+  );
+
   const handleWordClick = useCallback(
     async (word: NonNullable<AyahWithRelations['words']>[number]) => {
       setSelectedWordPosition(word.position);
       if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
+      cancelWordMeaningSpeech();
 
       // Pause continuous ayah playback so word audio is clear (Quran.com behaviour).
       if (isPlaying) {
         useAudioStore.setState({ isPlaying: false });
       }
 
-      const dismissMs = wordClickPlayAudio && word.audioUrl ? 4500 : 3200;
+      const meaning = resolveWordMeaning(word);
+      const willSpeak = wordClickSpeakMeaning && Boolean(meaning);
+      const dismissMs = wordClickPlayAudio || willSpeak ? 6500 : meaning ? 3600 : 2200;
       wordTooltipTimerRef.current = window.setTimeout(() => {
         setSelectedWordPosition((current) => (current === word.position ? null : current));
       }, dismissMs);
 
-      if (!wordClickPlayAudio) return;
+      if (!wordClickPlayAudio && !willSpeak) return;
 
       const audio = wordAudioRef.current;
+      // Verified Arabic word pronunciation CDN (language-independent).
       const url =
         word.audioUrl ||
         `https://audio.qurancdn.com/wbw/${String(surahNumber).padStart(3, '0')}_${String(ayah.number).padStart(3, '0')}_${String(word.position).padStart(3, '0')}.mp3`;
 
-      if (!audio || !url) return;
-
-      try {
-        audio.pause();
-        audio.currentTime = 0;
-        if (audio.src !== url) {
-          audio.src = url;
-          audio.load();
+      if (wordClickPlayAudio && audio && url) {
+        try {
+          audio.onended = null;
+          audio.pause();
+          audio.currentTime = 0;
+          if (audio.src !== url) {
+            audio.src = url;
+            audio.load();
+          }
+          if (willSpeak) {
+            audio.onended = () => {
+              speakMeaningForWord(word);
+              audio.onended = null;
+            };
+          }
+          await audio.play();
+        } catch {
+          // If Arabic audio fails, still speak the meaning when enabled.
+          if (willSpeak) speakMeaningForWord(word);
         }
-        await audio.play();
-      } catch {
-        // Autoplay / network failures should not break the tooltip UX.
+        return;
+      }
+
+      if (willSpeak) speakMeaningForWord(word);
+    },
+    [
+      ayah.number,
+      isPlaying,
+      resolveWordMeaning,
+      speakMeaningForWord,
+      surahNumber,
+      wordClickPlayAudio,
+      wordClickSpeakMeaning,
+    ],
+  );
+
+  const selectWordLocale = useCallback(
+    (code: (typeof WORD_BY_WORD_LOCALES)[number]['code'], word: NonNullable<AyahWithRelations['words']>[number]) => {
+      setWordByWordLocale(code);
+      setSelectedWordPosition(word.position);
+      // Avoid speaking again when Arabic clip finishes after a manual language switch.
+      if (wordAudioRef.current) wordAudioRef.current.onended = null;
+      if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
+      wordTooltipTimerRef.current = window.setTimeout(() => {
+        setSelectedWordPosition((current) => (current === word.position ? null : current));
+      }, 6500);
+      // Re-speak meaning in the newly selected language (Arabic clip already played on open).
+      const meaning = word.translations?.[code] || word.translation || word.translations?.en;
+      if (wordClickSpeakMeaning && meaning) {
+        speakWordMeaning(meaning, code);
       }
     },
-    [ayah.number, isPlaying, surahNumber, wordClickPlayAudio]
+    [setWordByWordLocale, wordClickSpeakMeaning],
   );
 
   const playingWordPosition = (() => {
@@ -415,31 +489,61 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       {ayah.words.map((word) => {
         const isSelected = selectedWordPosition === word.position;
         const isPlayingWord = playingWordPosition === word.position;
-        const meaning = word.translations?.[wordByWordLocale] || word.translation || word.translations?.en;
+        const availableLocales = WORD_BY_WORD_LOCALES.filter(
+          (locale) => Boolean(word.translations?.[locale.code]),
+        );
+        const meaning =
+          word.translations?.[wordByWordLocale] ||
+          (availableLocales[0] ? word.translations?.[availableLocales[0].code] : undefined) ||
+          word.translation ||
+          word.translations?.en;
         const rtlMeaning = ['ar', 'ur', 'fa', 'ps'].includes(wordByWordLocale);
-        const showInlineTranslation = readerViewMode === 'verse' && showWordByWord && wordByWordDisplay === 'inline' && wordByWordShowTranslation && meaning;
-        const showInlineTransliteration = readerViewMode === 'verse' && showWordByWord && wordByWordDisplay === 'inline' && wordByWordShowTransliteration && word.transliteration;
-        const showClickPopover = readerViewMode === 'verse' && isSelected && (meaning || word.transliteration);
+        const showInlineTranslation =
+          readerViewMode === 'verse' &&
+          showWordByWord &&
+          wordByWordDisplay === 'inline' &&
+          wordByWordShowTranslation &&
+          meaning;
+        const showInlineTransliteration =
+          readerViewMode === 'verse' &&
+          showWordByWord &&
+          wordByWordDisplay === 'inline' &&
+          wordByWordShowTransliteration &&
+          word.transliteration;
+        const showClickPopover =
+          readerViewMode === 'verse' &&
+          isSelected &&
+          (meaning || word.transliteration || availableLocales.length > 0 || wordClickPlayAudio || wordClickSpeakMeaning);
 
         return (
-          <button
+          <div
             key={word.id}
-            type="button"
+            tabIndex={0}
             data-word-position={word.position}
             data-playing-word={isPlayingWord ? 'true' : undefined}
-            onClick={(event) => { event.stopPropagation(); void handleWordClick(word); }}
-            onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); void handleWordClick(word); } }}
+            onClick={(event) => {
+              event.stopPropagation();
+              void handleWordClick(word);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                void handleWordClick(word);
+              }
+            }}
             className={cn(
-              'relative mx-[1px] my-0.5 touch-manipulation select-none rounded-md border border-transparent bg-transparent transition-colors duration-150',
+              'relative mx-[1px] my-0.5 cursor-pointer touch-manipulation select-none rounded-md border border-transparent bg-transparent transition-colors duration-150',
               readerViewMode === 'arabic'
                 ? 'inline px-0.5 align-baseline'
                 : 'inline-flex flex-col items-center justify-center align-middle',
-              readerViewMode === 'verse' && showWordByWord ? 'min-w-[3.25rem] px-1.5 py-1' : readerViewMode !== 'arabic' && 'px-1 py-0.5',
+              readerViewMode === 'verse' && showWordByWord
+                ? 'min-w-[3.25rem] px-1.5 py-1'
+                : readerViewMode !== 'arabic' && 'px-1 py-0.5',
               isSelected
                 ? 'text-[var(--accent)]'
                 : isPlayingWord
                   ? 'word-reciting text-[var(--accent)]'
-                  : 'text-[var(--fg)] hover:bg-[var(--ayah-highlight)]'
+                  : 'text-[var(--fg)] hover:bg-[var(--ayah-highlight)]',
             )}
             aria-label={`Word ${word.position}${meaning ? `: ${meaning}` : ''}`}
             aria-pressed={isSelected || isPlayingWord}
@@ -449,30 +553,94 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
               {word.textUthmani || word.textArabic}
             </span>
             {showInlineTranslation && (
-              <span dir={rtlMeaning ? 'rtl' : 'ltr'} className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-500', wordSizeClass)}>
+              <span
+                dir={rtlMeaning ? 'rtl' : 'ltr'}
+                className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-500', wordSizeClass)}
+              >
                 {meaning}
               </span>
             )}
             {showInlineTransliteration && (
-              <span dir="ltr" className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-400', wordSizeClass)}>
+              <span
+                dir="ltr"
+                className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-400', wordSizeClass)}
+              >
                 {word.transliteration}
               </span>
             )}
             {showClickPopover && (
-              <span className="absolute bottom-full left-1/2 z-20 mb-2 flex w-max max-w-[12rem] -translate-x-1/2 flex-col items-center gap-0.5 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg">
+              <span
+                role="tooltip"
+                className="absolute bottom-full left-1/2 z-30 mb-2 flex w-max max-w-[16rem] -translate-x-1/2 flex-col items-stretch gap-1.5 rounded-xl bg-slate-900 px-2.5 py-2 text-left text-[11px] font-medium text-white shadow-lg"
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
+              >
+                {(wordClickPlayAudio || wordClickSpeakMeaning) && (
+                  <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[10px] font-normal text-white/70">
+                    {wordClickPlayAudio && (
+                      <span className="inline-flex items-center gap-1">
+                        <Volume2 className="h-3 w-3" aria-hidden />
+                        Arabic
+                      </span>
+                    )}
+                    {wordClickSpeakMeaning && meaning && (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-white/90 hover:bg-white/20"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          speakMeaningForWord(word);
+                        }}
+                        title="Speak meaning in selected language"
+                      >
+                        <Volume2 className="h-3 w-3" aria-hidden />
+                        Speak {wordByWordLocale.toUpperCase()}
+                      </button>
+                    )}
+                  </span>
+                )}
                 {meaning && (
-                  <span dir={rtlMeaning ? 'rtl' : 'ltr'} className="w-full text-center">
+                  <span dir={rtlMeaning ? 'rtl' : 'ltr'} className="w-full text-center text-[12px] leading-snug">
                     {meaning}
                   </span>
                 )}
                 {word.transliteration && (
-                  <span dir="ltr" className="w-full text-center text-xs font-normal text-white/85">
+                  <span dir="ltr" className="w-full text-center text-[10px] font-normal text-white/80">
                     {word.transliteration}
+                  </span>
+                )}
+                {availableLocales.length > 1 && (
+                  <span className="flex max-w-[15rem] flex-wrap justify-center gap-1 border-t border-white/10 pt-1.5">
+                    {availableLocales.map((locale) => {
+                      const active = wordByWordLocale === locale.code;
+                      return (
+                        <button
+                          key={locale.code}
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            selectWordLocale(locale.code, word);
+                          }}
+                          className={cn(
+                            'cursor-pointer rounded-full px-2 py-0.5 text-[10px] font-semibold transition',
+                            active
+                              ? 'bg-white text-slate-900'
+                              : 'bg-white/10 text-white/90 hover:bg-white/20',
+                          )}
+                          aria-pressed={active}
+                          title={`${locale.label}${wordClickSpeakMeaning ? ' — tap to hear meaning' : ''}`}
+                        >
+                          {locale.code.toUpperCase()}
+                        </button>
+                      );
+                    })}
                   </span>
                 )}
               </span>
             )}
-          </button>
+          </div>
         );
       })}
       {readerViewMode === 'arabic' && (

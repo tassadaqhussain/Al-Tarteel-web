@@ -79,6 +79,8 @@ export interface SettingsState {
   wordByWordShowTransliteration: boolean;
   wordByWordLocale: UiLocale;
   wordClickPlayAudio: boolean;
+  /** Speak the word meaning in the selected WBW language (browser TTS). */
+  wordClickSpeakMeaning: boolean;
 
   // Translations / Tafsir
   translationSlugs: string[]; // e.g. ['en-sahih-international', 'ur-maududi']
@@ -125,6 +127,7 @@ export interface SettingsState {
   setWordByWordShowTransliteration: (v: boolean) => void;
   setWordByWordLocale: (v: UiLocale) => void;
   setWordClickPlayAudio: (v: boolean) => void;
+  setWordClickSpeakMeaning: (v: boolean) => void;
   setTranslationSlugs: (slugs: string[]) => void;
   toggleTranslationSlug: (slug: string) => void;
   setTafsirSlug: (slug: string | null) => void;
@@ -159,6 +162,7 @@ export const useSettingsStore = create<SettingsState>()(
       wordByWordShowTransliteration: true,
       wordByWordLocale: 'ur',
       wordClickPlayAudio: true,
+      wordClickSpeakMeaning: true,
       translationSlugs: [],
       tafsirSlug: null,
       reciterSlug: null,
@@ -188,6 +192,7 @@ export const useSettingsStore = create<SettingsState>()(
       setWordByWordShowTransliteration: (wordByWordShowTransliteration) => set({ wordByWordShowTransliteration }),
       setWordByWordLocale: (wordByWordLocale) => set({ wordByWordLocale }),
       setWordClickPlayAudio: (wordClickPlayAudio) => set({ wordClickPlayAudio }),
+      setWordClickSpeakMeaning: (wordClickSpeakMeaning) => set({ wordClickSpeakMeaning }),
 
       setTranslationSlugs: (translationSlugs) => {
         set({ translationSlugs });

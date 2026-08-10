@@ -125,6 +125,10 @@ export const viewport: Viewport = {
   ],
 };
 
+import { VoiceSearchProvider } from '@/providers/VoiceSearchProvider';
+import { GlobalVoiceSearch } from '@/components/GlobalVoiceSearch';
+import { VoiceSearchButton } from '@/components/VoiceSearchButton';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -138,12 +142,16 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <AudioPlayerProvider>
-              <ScrollToCurrentAyah />
-              <div className="relative flex min-h-screen flex-col">
-                {children}
-              </div>
-              <AudioBar />
-              <AskAiFab />
+              <VoiceSearchProvider>
+                <ScrollToCurrentAyah />
+                <div className="relative flex min-h-screen flex-col">
+                  {children}
+                </div>
+                <AudioBar />
+                <AskAiFab />
+                <VoiceSearchButton variant="fab" className="sm:hidden" />
+                <GlobalVoiceSearch />
+              </VoiceSearchProvider>
             </AudioPlayerProvider>
           </AuthProvider>
         </ThemeProvider>

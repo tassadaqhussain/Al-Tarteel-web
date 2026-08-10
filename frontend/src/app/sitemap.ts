@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { ARTICLES } from '@/lib/articles';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { getSurahPath } from '@/lib/surah-meta';
 import { SITE_URL } from '@/lib/seo';
@@ -12,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: SITE_URL, changeFrequency: 'weekly', priority: 1 },
     { url: `${SITE_URL}/surahs`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${SITE_URL}/articles`, changeFrequency: 'daily', priority: 0.75 },
     { url: `${SITE_URL}/learning-plans`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/quran-in-year`, changeFrequency: 'monthly', priority: 0.65 },
     { url: `${SITE_URL}/donate`, changeFrequency: 'yearly', priority: 0.3 },
@@ -48,6 +50,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: plan.featured ? 0.65 : 0.55,
   }));
 
+  const articles: MetadataRoute.Sitemap = ARTICLES.map((article) => ({
+    url: `${SITE_URL}/articles/${article.slug}`,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
   const tajweed: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
     ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
@@ -57,5 +65,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  return [...staticPages, ...surahs, ...juz, ...plans, ...tajweed];
+  return [...staticPages, ...surahs, ...juz, ...plans, ...articles, ...tajweed];
 }
