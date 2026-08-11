@@ -26,6 +26,7 @@ import {
 } from '@/lib/daily-motivation/messages';
 import { SOFT_DAILY_GOAL } from '@/stores/dailyMotivationStore';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 type Variant = 'full' | 'compact' | 'reader';
 
@@ -50,6 +51,7 @@ export function DailyMotivation({
   showTajweedOfDay = true,
   showGoalPicker = false,
 }: Props) {
+  const { t } = useT();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const lastRead = useSettingsStore((s) => s.lastRead);
   const uiLocale = useSettingsStore((s) => s.uiLocale);
@@ -155,17 +157,9 @@ export function DailyMotivation({
 
   const primaryMessage =
     priority.kind === 'continue_reading'
-      ? locale === 'ur'
-        ? 'اپنے قرآن کے سفر کو وہیں سے جاری رکھیں جہاں چھوڑا تھا۔'
-        : locale === 'ar'
-          ? 'تابع رحلتك مع القرآن من حيث توقفت.'
-          : 'Continue your Quran journey from where you left off.'
+      ? t('continueJourneyMsg')
       : priority.kind === 'tajweed'
-        ? locale === 'ur'
-          ? 'آج ایک مرکوز تجوید قاعدہ کافی ہے۔'
-          : locale === 'ar'
-            ? 'قاعدة تجويد مركزة واحدة تكفي اليوم.'
-            : 'One focused rule is enough for today.'
+        ? t('oneFocusedRuleMsg')
         : motivation.displayText;
 
   const tjSlug = tajweedOfTheDaySlug(dateKey);
@@ -192,7 +186,7 @@ export function DailyMotivation({
     : getSurahPath(2);
   const continueLabel = lastRead
     ? `${getSurahMeta(lastRead.surahNumber, lastRead.surahName).nameSimple} — ${lastRead.surahNumber}:${lastRead.ayahNumber}`
-    : 'Start with Al-Baqarah';
+    : t('startWithAlBaqarah');
 
   if (variant === 'reader') {
     if (goalComplete || (!goal && goalCurrent === 0)) return null;
@@ -204,7 +198,7 @@ export function DailyMotivation({
         )}
       >
         <p className="min-w-0 truncate text-slate-600">
-          {goalIsSoft ? 'Suggested today' : "Today's goal"} · {goalCurrent}/{goalTarget}
+          {goalIsSoft ? t('suggestedToday') : t('todaysGoal')} · {goalCurrent}/{goalTarget}
         </p>
         <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full bg-[var(--accent)]" style={{ width: `${goalPct}%` }} />
@@ -222,58 +216,56 @@ export function DailyMotivation({
         )}
       >
         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-          Today&apos;s Motivation
+          {t('todaysMotivation')}
         </p>
         <p className="mt-2 text-base leading-relaxed text-slate-700 sm:text-lg">
           “{primaryMessage}”
         </p>
-        <p className="mt-1 text-[11px] text-slate-400">
-          Educational encouragement — not a Quran or Hadith quotation.
-        </p>
+        <p className="mt-1 text-[11px] text-slate-400">{t('motivationDisclaimer')}</p>
 
         {/* Primary CTA */}
         <div className="mt-5 rounded-xl bg-slate-50 px-4 py-4">
           {priority.kind === 'continue_reading' || lastRead ? (
             <>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Continue Reading
+                {t('continueReading')}
               </p>
               <p className="mt-1 font-semibold text-slate-900">{continueLabel}</p>
               <Link
                 href={continueHref}
                 className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
               >
-                Continue Reading
+                {t('continueReading')}
               </Link>
             </>
           ) : priority.kind === 'tajweed' && tjLesson ? (
             <>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Continue Tajweed
+                {t('continueTajweed')}
               </p>
               <p className="mt-1 font-semibold text-slate-900">{tjLesson.name}</p>
               <Link
                 href={`/tajweed/${tjLesson.slug}`}
                 className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
               >
-                Continue Tajweed
+                {t('continueTajweed')}
               </Link>
             </>
           ) : (
             <>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Today&apos;s Goal
+                {t('todaysGoal')}
               </p>
               <p className="mt-1 font-semibold text-slate-900">
                 {DAILY_GOAL_OPTIONS.find(
                   (o) => o.type === displayGoal.goalType && o.value === displayGoal.goalValue,
-                )?.label[locale] || `Read ${displayGoal.goalValue} Ayahs`}
+                )?.label[locale] || t('readNAyahs').replace('{n}', String(displayGoal.goalValue))}
               </p>
               <Link
                 href={continueHref}
                 className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
               >
-                Start Reading
+                {t('startReading')}
               </Link>
             </>
           )}
@@ -284,19 +276,19 @@ export function DailyMotivation({
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-slate-700">
               {goalComplete
-                ? "Today's Goal ✓"
+                ? t('todaysGoalDone')
                 : goalIsSoft
-                  ? 'Suggested today'
-                  : "Today's Goal"}
+                  ? t('suggestedToday')
+                  : t('todaysGoal')}
             </span>
             <span className="text-slate-500">
               {goalCurrent} / {goalTarget}
               {displayGoal.goalType === 'read_minutes'
-                ? ' min'
+                ? t('unitMin')
                 : displayGoal.goalType.includes('ayah') ||
                     displayGoal.goalType === 'read_ayahs' ||
                     displayGoal.goalType === 'read_page'
-                  ? ' Ayahs'
+                  ? t('unitAyahs')
                   : ''}
             </span>
           </div>
@@ -304,21 +296,17 @@ export function DailyMotivation({
             <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${goalPct}%` }} />
           </div>
           {goalComplete && (
-            <p className="mt-2 text-sm text-slate-600">
-              Today&apos;s goal is complete. Continue reading if you&apos;d like.
-            </p>
+            <p className="mt-2 text-sm text-slate-600">{t('goalCompleteBody')}</p>
           )}
           {goalIsSoft && isAuthenticated && (
-            <p className="mt-2 text-xs text-slate-400">
-              Optional — pick a daily goal below to save it to your account.
-            </p>
+            <p className="mt-2 text-xs text-slate-400">{t('optionalDailyGoalHint')}</p>
           )}
         </div>
 
         {showGoalPicker && isAuthenticated && (
           <div className="mt-4 border-t border-slate-100 pt-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Choose a daily goal (optional)
+              {t('chooseDailyGoal')}
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {DAILY_GOAL_OPTIONS.map((opt) => {
@@ -347,7 +335,7 @@ export function DailyMotivation({
       {variant === 'full' && showAyahOfDay && ayahCard && (
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-            Ayah of the Day
+            {t('ayahOfTheDay')}
           </p>
           <p
             className="mt-4 text-center font-arabic text-2xl leading-loose text-slate-900"
@@ -370,7 +358,7 @@ export function DailyMotivation({
               href={getSurahPath(ayahCard.surah)}
               className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:border-[var(--accent)]"
             >
-              Read in Quran
+              {t('readInQuran')}
             </Link>
           </div>
         </div>
@@ -379,17 +367,15 @@ export function DailyMotivation({
       {variant === 'full' && showTajweedOfDay && tjLesson && (
         <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-            Today&apos;s Tajweed
+            {t('todaysTajweed')}
           </p>
           <p className="mt-2 text-lg font-bold text-slate-900">{tjLesson.name}</p>
-          <p className="mt-1 text-sm text-slate-600">
-            Listen to a few verified examples and focus on recognizing the sound.
-          </p>
+          <p className="mt-1 text-sm text-slate-600">{t('listenTajweedHint')}</p>
           <Link
             href={`/tajweed/${tjLesson.slug}`}
             className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
           >
-            Learn {tjLesson.name}
+            {t('learnNamed').replace('{name}', tjLesson.name)}
           </Link>
         </div>
       )}
