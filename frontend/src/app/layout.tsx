@@ -15,6 +15,7 @@ import {
   SITE_NAME,
   SITE_URL,
   absoluteUrl,
+  DEFAULT_OG_IMAGE_PATH,
   organizationJsonLd,
   websiteJsonLd,
 } from '@/lib/seo';
@@ -46,7 +47,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
     title: {
-    default: `${SITE_NAME} – Read, Listen & Understand the Quran`,
+    default: `${SITE_NAME} – Read Quran Online with Translation & Audio`,
     template: `%s | ${SITE_NAME}`,
   },
   description: DEFAULT_DESCRIPTION,
@@ -66,11 +67,11 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} – Read, Listen & Understand the Quran`,
+    title: `${SITE_NAME} – Read Quran Online with Translation & Audio`,
     description: DEFAULT_DESCRIPTION,
     images: [
       {
-        url: absoluteUrl('/images/hero_mosque.png'),
+        url: absoluteUrl(DEFAULT_OG_IMAGE_PATH),
         width: 1200,
         height: 630,
         alt: `${SITE_NAME} — Holy Quran reader`,
@@ -79,9 +80,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${SITE_NAME} – Read, Listen & Understand the Quran`,
+    title: `${SITE_NAME} – Read Quran Online with Translation & Audio`,
     description: DEFAULT_DESCRIPTION,
-    images: [absoluteUrl('/images/hero_mosque.png')],
+    images: [absoluteUrl(DEFAULT_OG_IMAGE_PATH)],
   },
   robots: {
     index: true,

@@ -12,7 +12,8 @@ import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
-import { buildPageMetadata } from '@/lib/seo';
+import { juzSeo } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 
 interface Props {
   params: Promise<{ number: string }>;
@@ -23,16 +24,13 @@ export async function generateStaticParams() {
   return Array.from({ length: 30 }, (_, i) => ({ number: String(i + 1) }));
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params, searchParams }: Props) {
   const { number } = await params;
+  const { page: pageStr } = await searchParams;
   const n = parseInt(number, 10);
   if (Number.isNaN(n) || n < 1 || n > 30) return {};
-  return buildPageMetadata({
-    title: `Juz ${n} — Read the Holy Quran`,
-    description: `Read Juz (para) ${n} of the Holy Quran with Uthmani script, English translation, and verse-by-verse audio on QuranPilot.`,
-    path: `/juz/${n}`,
-    keywords: [`Juz ${n}`, `Para ${n}`, 'Quran juz', 'Quran para'],
-  });
+  const page = Math.max(1, parseInt(pageStr || '1', 10) || 1);
+  return juzSeo(n, page);
 }
 
 export const revalidate = 3600;
@@ -121,10 +119,23 @@ export default async function JuzPage({ params, searchParams }: Props) {
       <CleanTranslationUrl />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <Breadcrumbs
+          items={[
+            { name: 'Home', path: '/' },
+            { name: 'Surahs', path: '/surahs' },
+            {
+              name: page > 1 ? `Juz ${juzNumber} · Page ${page}` : `Juz ${juzNumber}`,
+              path: page > 1 ? `/juz/${juzNumber}?page=${page}` : `/juz/${juzNumber}`,
+            },
+          ]}
+        />
+
         {/* Juz heading */}
         <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm">
           <h1 className="font-arabic text-4xl font-bold text-[var(--fg)]">الجزء {juzNumber}</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">Juz {juzNumber} · Part {juzNumber} of 30</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
+          </p>
         </div>
 
         {/* Ayahs grouped by surah */}

@@ -2,39 +2,25 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { TAJWEED_LESSONS } from '@/lib/tajweed/rules';
-import { absoluteUrl, SITE_NAME } from '@/lib/seo';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { buildPageMetadata } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { TajweedJourneyPanel } from '@/components/tajweed/TajweedJourneyPanel';
 import { DailyMotivation } from '@/components/daily/DailyMotivation';
 
-export const metadata: Metadata = {
-  title: 'Learn Tajweed',
+export const metadata: Metadata = buildPageMetadata({
+  title: 'Learn Tajweed – Quran Rules Guide | QuranPilot',
   description:
     'Learn core Tajweed rules with calm progress tracking on QuranPilot. Reader colours use verified Quran.com annotations — never AI-generated Arabic.',
-  alternates: { canonical: absoluteUrl('/tajweed') },
-  openGraph: {
-    title: `Learn Tajweed | ${SITE_NAME}`,
-    description: 'Guided Tajweed lessons with respectful motivation and dataset-backed mushaf colouring.',
-    url: absoluteUrl('/tajweed'),
-  },
-  robots: { index: true, follow: true },
-};
+  path: '/tajweed',
+  keywords: ['Tajweed', 'learn Tajweed', 'Quran Tajweed', 'Tajweed rules'],
+});
 
 export default function TajweedIndexPage() {
-  const breadcrumb = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
-      { '@type': 'ListItem', position: 2, name: 'Tajweed', item: absoluteUrl('/tajweed') },
-    ],
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <JsonLd data={breadcrumb} />
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-10">
+        <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Tajweed', path: '/tajweed' }]} />
         <p className="text-sm font-semibold text-[var(--accent)]">Learn Tajweed</p>
         <h1 className="mt-2 font-serif text-3xl font-bold text-slate-900 sm:text-4xl">
           Tajweed Journey

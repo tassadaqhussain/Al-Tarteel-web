@@ -4,16 +4,17 @@ import { Header } from '@/components/Header';
 import { SurahGrid } from '@/components/home/SurahGrid';
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 import { buildPageMetadata } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import Link from 'next/link';
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'All 114 Surahs of the Holy Quran',
+  title: 'All 114 Surahs – Read Quran Online | QuranPilot',
   description:
-    'Browse and read all 114 surahs (chapters) of the Holy Quran with Arabic Uthmani text, translations, and audio on QuranPilot.',
+    'Browse all 114 surahs of the Holy Quran. Open any chapter to read Arabic Uthmani text with English translation and verse-by-verse audio.',
   path: '/surahs',
-  keywords: ['Quran surahs', '114 chapters', 'Quran index', 'list of surahs'],
+  keywords: ['Quran surahs', '114 chapters', 'Quran index', 'list of surahs', 'read Quran online'],
 });
 
 function fallbackSurahs(): Surah[] {
@@ -40,6 +41,7 @@ export default async function SurahsPage() {
     <div className="min-h-screen bg-[#f7f7f7]">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Surahs', path: '/surahs' }]} />
         <header className="mb-8 max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             All 114 Surahs of the Holy Quran

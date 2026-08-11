@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { getTajweedLesson, TAJWEED_LESSONS } from '@/lib/tajweed/rules';
-import { absoluteUrl, SITE_NAME } from '@/lib/seo';
-import { JsonLd } from '@/components/seo/JsonLd';
+import { buildPageMetadata } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { TajweedLessonExperience } from '@/components/tajweed/TajweedLessonExperience';
 import type { TajweedLessonSlug } from '@/lib/tajweed/rules';
 
@@ -18,17 +18,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const lesson = getTajweedLesson(slug);
   if (!lesson) return { title: 'Tajweed lesson' };
-  return {
-    title: `${lesson.name} — Tajweed`,
+  return buildPageMetadata({
+    title: `${lesson.name} – Tajweed Lesson | QuranPilot`,
     description: lesson.summary.slice(0, 155),
-    alternates: { canonical: absoluteUrl(`/tajweed/${lesson.slug}`) },
-    openGraph: {
-      title: `${lesson.name} | ${SITE_NAME}`,
-      description: lesson.summary.slice(0, 155),
-      url: absoluteUrl(`/tajweed/${lesson.slug}`),
-    },
-    robots: { index: true, follow: true },
-  };
+    path: `/tajweed/${lesson.slug}`,
+    keywords: [lesson.name, 'Tajweed', 'Quran Tajweed'],
+    type: 'article',
+  });
 }
 
 export default async function TajweedLessonPage({ params }: Props) {
@@ -36,26 +32,17 @@ export default async function TajweedLessonPage({ params }: Props) {
   const lesson = getTajweedLesson(slug);
   if (!lesson) notFound();
 
-  const breadcrumb = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
-      { '@type': 'ListItem', position: 2, name: 'Tajweed', item: absoluteUrl('/tajweed') },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: lesson.name,
-        item: absoluteUrl(`/tajweed/${lesson.slug}`),
-      },
-    ],
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <JsonLd data={breadcrumb} />
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-10">
+        <Breadcrumbs
+          items={[
+            { name: 'Home', path: '/' },
+            { name: 'Tajweed', path: '/tajweed' },
+            { name: lesson.name, path: `/tajweed/${lesson.slug}` },
+          ]}
+        />
         <Link href="/tajweed" className="text-sm font-semibold text-[var(--accent)] hover:underline">
           ← All lessons
         </Link>

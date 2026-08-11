@@ -62,10 +62,16 @@ const QuranApps = dynamic(
 export const revalidate = 3600;
 
 export const metadata = buildPageMetadata({
-  title: 'QuranPilot – Read, Listen & Understand the Quran',
+  title: 'QuranPilot – Read Quran Online with Translation & Audio',
   description: DEFAULT_DESCRIPTION,
   path: '/',
-  keywords: ['Quran reader', 'listen to Quran', 'Quran search', 'online mushaf'],
+  keywords: [
+    'read Quran online',
+    'Quran with translation',
+    'listen to Quran',
+    'Quran reader',
+    'online mushaf',
+  ],
 });
 
 function fallbackSurahs(): Surah[] {

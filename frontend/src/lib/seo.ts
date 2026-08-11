@@ -9,16 +9,17 @@ export const SITE_URL =
 export const SITE_NAME = 'QuranPilot';
 
 export const DEFAULT_DESCRIPTION =
-  'Read, listen, and understand the Holy Quran online — Uthmani script, translations, tafsir, and verse-by-verse audio across all 114 surahs.';
+  'Read the Holy Quran online with Arabic Uthmani text, English translation, and verse-by-verse audio. Browse all 114 surahs on QuranPilot.';
 
 export const DEFAULT_KEYWORDS = [
   'Quran',
   'Holy Quran',
   'Quran online',
   'read Quran',
+  'read Quran online',
   'Quran translation',
   'Quran audio',
-  'tafsir',
+  'listen to Quran',
   'Surah',
   'ayah',
   'Islamic',
@@ -26,6 +27,9 @@ export const DEFAULT_KEYWORDS = [
   'Uthmani script',
   'Quran English translation',
 ];
+
+/** Default OG/Twitter image from `app/opengraph-image.tsx`. */
+export const DEFAULT_OG_IMAGE_PATH = '/opengraph-image';
 
 export function absoluteUrl(path = '/'): string {
   if (!path || path === '/') return SITE_URL;
@@ -49,6 +53,13 @@ export function buildPageMetadata({
 }): Metadata {
   const url = absoluteUrl(path);
   const fullTitle = title.includes(SITE_NAME) ? title : undefined;
+  const ogTitle = fullTitle || `${title} | ${SITE_NAME}`;
+  const ogImage = {
+    url: absoluteUrl(DEFAULT_OG_IMAGE_PATH),
+    width: 1200,
+    height: 630,
+    alt: `${SITE_NAME} — Holy Quran`,
+  };
   return {
     title: fullTitle ? { absolute: fullTitle } : title,
     description,
@@ -56,21 +67,31 @@ export function buildPageMetadata({
     alternates: { canonical: url },
     robots: noIndex
       ? { index: false, follow: true, googleBot: { index: false, follow: true } }
-      : { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+            'max-video-preview': -1,
+          },
+        },
     openGraph: {
       type,
       url,
       siteName: SITE_NAME,
-      title: fullTitle || `${title} | ${SITE_NAME}`,
+      title: ogTitle,
       description,
       locale: 'en_US',
-      images: [{ url: absoluteUrl('/images/hero_mosque.png'), width: 1200, height: 630, alt: `${SITE_NAME} — Holy Quran` }],
+      images: [ogImage],
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle || `${title} | ${SITE_NAME}`,
+      title: ogTitle,
       description,
-      images: [absoluteUrl('/images/hero_mosque.png')],
+      images: [absoluteUrl(DEFAULT_OG_IMAGE_PATH)],
     },
   };
 }
@@ -98,15 +119,15 @@ export function surahSeo(
       : null;
 
   const title = range
-    ? `Surah ${name} – Verses ${range.start}–${range.end}`
-    : `Surah ${name} – Quran, Translation & Audio`;
+    ? `Surah ${name} – Verses ${range.start}–${range.end} | ${SITE_NAME}`
+    : `Surah ${name} – Read, Listen & Translation | ${SITE_NAME}`;
 
   const description = range
-    ? `Read Surah ${name} verses ${range.start}–${range.end} of the Holy Quran with Uthmani Arabic text, English translation, and audio.`
+    ? `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, English translation, and audio on QuranPilot.`
     : [
-        `Read Surah ${name}${meaning ? ` (${meaning})` : ''}${arabic ? ` · ${arabic}` : ''}`,
+        `Read Surah ${name}${meaning ? ` (${meaning})` : ''}${arabic ? ` · ${arabic}` : ''} online`,
         ayahs ? `— ${ayahs} verses` : '',
-        'with Uthmani Arabic text, English translation, and verse-by-verse audio.',
+        'with Arabic text, translation, and verse-by-verse audio on QuranPilot.',
       ]
         .filter(Boolean)
         .join(' ');
@@ -130,14 +151,41 @@ export function surahSeo(
         meaning,
         `Surah ${number}`,
         range ? `verses ${range.start}-${range.end}` : '',
-        'Quran chapter',
+        'read Surah',
         'listen Quran',
+        'Quran chapter',
       ].filter(Boolean) as string[],
       type: 'article',
     }),
   };
 }
 
+/** Unique metadata for Juz slices — self-canonical when page > 1. */
+export function juzSeo(juzNumber: number, page = 1) {
+  const p = page > 1 ? page : 1;
+  const path = p > 1 ? `/juz/${juzNumber}?page=${p}` : `/juz/${juzNumber}`;
+  const title =
+    p > 1
+      ? `Juz ${juzNumber} – Page ${p} | ${SITE_NAME}`
+      : `Juz ${juzNumber} – Read the Holy Quran | ${SITE_NAME}`;
+  const description =
+    p > 1
+      ? `Continue Juz (para) ${juzNumber} of the Holy Quran — page ${p} with Arabic text, translation, and audio on QuranPilot.`
+      : `Read Juz (para) ${juzNumber} of the Holy Quran with Uthmani script, English translation, and verse-by-verse audio on QuranPilot.`;
+
+  return buildPageMetadata({
+    title,
+    description,
+    path,
+    keywords: [`Juz ${juzNumber}`, `Para ${juzNumber}`, 'Quran juz', 'Quran para'],
+    type: 'article',
+  });
+}
+
+/**
+ * WebSite JSON-LD without SearchAction — /search is noindex (hub + results).
+ * Re-add SearchAction only when a crawlable, indexable search hub exists.
+ */
 export function websiteJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -146,14 +194,6 @@ export function websiteJsonLd() {
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
     inLanguage: ['en', 'ar'],
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
-    },
   };
 }
 
@@ -164,7 +204,7 @@ export function organizationJsonLd() {
     name: SITE_NAME,
     url: SITE_URL,
     logo: absoluteUrl('/images/logo.png'),
-    description: 'Free online Quran reader with translations, tafsir, and audio.',
+    description: 'Free online Quran reader with translations and audio.',
   };
 }
 
