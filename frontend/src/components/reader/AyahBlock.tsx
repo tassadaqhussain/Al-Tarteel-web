@@ -156,8 +156,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       const idx = items.findIndex((a) => a.ayahNumber === ayah.number);
       if (idx >= 0) {
         setContinuous(false);
-        setPlaylist(items);
-        useAudioStore.setState({ currentIndex: idx });
+        setPlaylist(items, idx);
         setPlaying(true);
         void loadWordTimings(surahNumber, activeReciter);
       }
@@ -272,8 +271,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         ayahNumber: item.ayahNumber,
         url: item.url,
         duration: item.duration ?? undefined,
-      }]);
-      useAudioStore.setState({ currentIndex: 0 });
+      }], 0);
       setPlaying(true);
       void loadWordTimings(surahNumber, activeReciter);
       if (repeat) showToast('Repeating this verse');

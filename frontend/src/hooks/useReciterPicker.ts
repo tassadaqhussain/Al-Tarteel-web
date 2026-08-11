@@ -11,7 +11,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
  * the persisted default; if a playlist is already active it's refetched
  * in place so playback continues from the same ayah with the new voice. */
 export function useReciterPicker() {
-  const { getCurrentAyah, setReciter, setPlaylist, setCurrentIndex, setPlaying, isPlaying } =
+  const { getCurrentAyah, setReciter, setPlaylist, setPlaying, isPlaying } =
     useAudioStore();
   const { reciterSlug: settingsReciter, setReciterSlug } = useSettingsStore();
   const activeReciter = useAudioStore((s) => s.reciterSlug) ?? settingsReciter;
@@ -48,15 +48,14 @@ export function useReciterPicker() {
             duration: a.duration ?? undefined,
           }));
         const idx = items.findIndex((a) => a.ayahNumber === current.ayahNumber);
-        setPlaylist(items);
-        if (idx >= 0) setCurrentIndex(idx);
+        setPlaylist(items, idx >= 0 ? idx : 0);
         setPlaying(isPlaying);
         void loadWordTimings(current.surahNumber, slug);
       } catch {
         setPlaying(false);
       }
     },
-    [getCurrentAyah, isPlaying, setCurrentIndex, setPlaying, setPlaylist, setReciter, setReciterSlug]
+    [getCurrentAyah, isPlaying, setPlaying, setPlaylist, setReciter, setReciterSlug]
   );
 
   useEffect(() => {

@@ -19,6 +19,7 @@ import {
   X,
   ChevronRight,
   Smile,
+  MessageSquareHeart,
 } from 'lucide-react';
 import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
@@ -157,7 +158,7 @@ export function Header() {
                   href={registerHref(pathname)}
                   className="hidden h-9 items-center justify-center rounded-full bg-[var(--accent)] px-3 text-sm font-semibold text-white transition hover:opacity-90 sm:inline-flex"
                 >
-                  Create account
+                  {t('createAccount')}
                 </Link>
               </>
             )}
@@ -171,12 +172,12 @@ export function Header() {
                     setAccountOpen((v) => !v);
                   }}
                   className="flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-2 pr-3 text-sm font-semibold text-slate-800 transition hover:border-[var(--accent)] sm:h-10"
-                  aria-label="Account menu"
+                  aria-label={t('accountMenu')}
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-white">
                     {initials}
                   </span>
-                  <span className="hidden max-w-[7rem] truncate sm:inline">{user?.name || 'Account'}</span>
+                  <span className="hidden max-w-[7rem] truncate sm:inline">{user?.name || t('account')}</span>
                 </button>
                 {accountOpen && (
                   <div
@@ -184,11 +185,18 @@ export function Header() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Link
+                      href="/feedback"
+                      className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      {t('feedback')}
+                    </Link>
+                    <Link
                       href="/my-quran"
                       className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50"
                       onClick={() => setAccountOpen(false)}
                     >
-                      My Quran
+                      {t('myQuran')}
                     </Link>
                     <Link
                       href="/bookmarks"
@@ -202,7 +210,7 @@ export function Header() {
                       className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50"
                       onClick={() => setAccountOpen(false)}
                     >
-                      Profile &amp; settings
+                      {t('profileAndSettings')}
                     </Link>
                     <button
                       type="button"
@@ -213,7 +221,7 @@ export function Header() {
                         router.push('/');
                       }}
                     >
-                      Log out
+                      {t('logOut')}
                     </button>
                   </div>
                 )}
@@ -318,8 +326,12 @@ function MobileNav({
   const router = useRouter();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" showClose={false} className="flex w-[min(100vw,460px)] max-w-none flex-col bg-white p-0 text-slate-800 sm:w-[460px] sm:max-w-[460px]">
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4 sm:h-[88px] sm:px-6">
+      <SheetContent
+        side="right"
+        showClose={false}
+        className="flex h-full max-h-dvh w-[min(100vw,460px)] max-w-none flex-col overflow-hidden bg-white p-0 text-slate-800 sm:w-[460px] sm:max-w-[460px]"
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4 sm:h-[72px] sm:px-6">
           <SheetTitle className="font-serif text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">QuranPilot</SheetTitle>
           <div className="flex items-center gap-2 sm:gap-3">
             {!isAuthenticated ? (
@@ -336,7 +348,7 @@ function MobileNav({
                 onClick={() => onOpenChange(false)}
                 className="max-w-[8rem] truncate rounded-full bg-[var(--accent)]/10 px-3 py-1.5 text-sm font-semibold text-[var(--accent)] sm:px-4 sm:py-2"
               >
-                {user?.name || 'Account'}
+                {user?.name || t('account')}
               </Link>
             )}
             <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label={t('close')}>
@@ -345,90 +357,95 @@ function MobileNav({
           </div>
         </div>
 
-        {lastRead && (
-          <div className="mx-4 mt-4 sm:mx-7 sm:mt-5">
-            <Link
-              href={getSurahPath(lastRead.surahNumber)}
-              onClick={() => onOpenChange(false)}
-              className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-[var(--accent)]"
-            >
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-[var(--accent)]">{t('continueReading')}</p>
-                <p className="mt-0.5 truncate text-sm font-semibold text-slate-800">{lastRead.surahName}</p>
-                <p className="text-xs text-slate-500">{t('ayah')} {lastRead.ayahNumber}</p>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 rtl:rotate-180" />
-            </Link>
-          </div>
-        )}
-
-        <nav className="flex-1 overflow-auto px-4 py-4 sm:px-7 sm:py-5" aria-label="Main navigation">
-          {[
-            { label: t('read'), href: '/surahs', icon: Home, id: 'read' },
-            { label: t('learn'), href: '/learning-plans', icon: GraduationCap, id: 'learn' },
-            { label: t('myQuran'), href: '/my-quran', icon: Bookmark, id: 'my-quran' },
-            { label: 'Hifz', href: '/hifz', icon: BookOpen, id: 'hifz' },
-            { label: t('bookmarks'), href: '/bookmarks', icon: BookOpen, id: 'bookmarks' },
-            { label: 'Tajweed', href: '/tajweed', icon: GraduationCap, id: 'tajweed' },
-            { label: t('quranInYear'), href: '/quran-in-year', icon: LayoutGrid, id: 'quran-year' },
-            { label: t('settings'), href: '/settings', icon: Settings, id: 'settings' },
-            ...(isAuthenticated
-              ? [{ label: 'Profile', href: '/profile', icon: Smile, id: 'profile' }]
-              : [
-                  { label: t('signIn'), href: loginHref(pathname), icon: Smile, id: 'login' },
-                  { label: 'Create account', href: registerHref(pathname), icon: Smile, id: 'register' },
-                ]),
-          ].map((item) => (
-            <Link
-              key={item.id}
-              href={item.href}
-              onClick={() => onOpenChange(false)}
-              className={cn(
-                'flex items-center gap-4 rounded-xl px-3 py-3 text-lg font-semibold transition sm:gap-6 sm:py-4 sm:text-xl',
-                isActive(item.href)
-                  ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                  : 'text-slate-800 hover:bg-slate-50'
-              )}
-            >
-              <item.icon className="h-5 w-5 shrink-0 text-slate-300 sm:h-6 sm:w-6" />
-              {item.label}
-            </Link>
-          ))}
-          {isAuthenticated && (
-            <button
-              type="button"
-              onClick={async () => {
-                onOpenChange(false);
-                await logout();
-                router.push('/');
-              }}
-              className="mt-2 flex w-full items-center gap-4 rounded-xl px-3 py-3 text-lg font-semibold text-red-700 hover:bg-red-50 sm:gap-6 sm:py-4 sm:text-xl"
-            >
-              Log out
-            </button>
+        {/* Single scroll region so nav links stay reachable on short phones */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {lastRead && (
+            <div className="mx-4 mt-4 sm:mx-7 sm:mt-5">
+              <Link
+                href={getSurahPath(lastRead.surahNumber)}
+                onClick={() => onOpenChange(false)}
+                className="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-[var(--accent)]"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-[var(--accent)]">{t('continueReading')}</p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-slate-800">{lastRead.surahName}</p>
+                  <p className="text-xs text-slate-500">{t('ayah')} {lastRead.ayahNumber}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 rtl:rotate-180" />
+              </Link>
+            </div>
           )}
-        </nav>
 
-        <div className="shrink-0 border-t border-slate-100 px-4 py-4 sm:px-7 sm:py-5">
-          <div className="mb-4 sm:mb-5">
+          <nav className="px-4 py-4 sm:px-7 sm:py-5" aria-label={t('mainNavigation')}>
+            {[
+              { label: t('read'), href: '/surahs', icon: Home, id: 'read' },
+              { label: t('learn'), href: '/learning-plans', icon: GraduationCap, id: 'learn' },
+              { label: t('myQuran'), href: '/my-quran', icon: Bookmark, id: 'my-quran' },
+              { label: t('hifz'), href: '/hifz', icon: BookOpen, id: 'hifz' },
+              { label: t('bookmarks'), href: '/bookmarks', icon: BookOpen, id: 'bookmarks' },
+              { label: t('tajweed'), href: '/tajweed', icon: GraduationCap, id: 'tajweed' },
+              { label: t('quranInYear'), href: '/quran-in-year', icon: LayoutGrid, id: 'quran-year' },
+              { label: t('settings'), href: '/settings', icon: Settings, id: 'settings' },
+              { label: t('feedback'), href: '/feedback', icon: MessageSquareHeart, id: 'feedback' },
+              ...(isAuthenticated
+                ? [{ label: t('profile'), href: '/profile', icon: Smile, id: 'profile' }]
+                : [
+                    { label: t('signIn'), href: loginHref(pathname), icon: Smile, id: 'login' },
+                    { label: t('createAccount'), href: registerHref(pathname), icon: Smile, id: 'register' },
+                  ]),
+            ].map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                onClick={() => onOpenChange(false)}
+                className={cn(
+                  'flex items-center gap-4 rounded-xl px-3 py-3 text-lg font-semibold transition sm:gap-6 sm:py-4 sm:text-xl',
+                  isActive(item.href)
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
+                    : 'text-slate-800 hover:bg-slate-50'
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0 text-slate-300 sm:h-6 sm:w-6" />
+                {item.label}
+              </Link>
+            ))}
+            {isAuthenticated && (
+              <button
+                type="button"
+                onClick={async () => {
+                  onOpenChange(false);
+                  await logout();
+                  router.push('/');
+                }}
+                className="mt-2 flex w-full items-center gap-4 rounded-xl px-3 py-3 text-lg font-semibold text-red-700 hover:bg-red-50 sm:gap-6 sm:py-4 sm:text-xl"
+              >
+                {t('logOut')}
+              </button>
+            )}
+          </nav>
+
+          <div className="border-t border-slate-100 px-4 py-4 sm:px-7 sm:py-5">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{t('chooseProfile')}</p>
             <AgeModeSelector variant="list" onSelect={() => onOpenChange(false)} />
+            <div className="mt-4 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={onLanguageOpen}
+                className="flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 px-4 text-base font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                <Globe className="h-5 w-5 shrink-0" />
+                <span>{languageLabel}</span>
+              </button>
+              <ThemeToggle variant="labeled" />
+            </div>
           </div>
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={onLanguageOpen}
-              className="flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-slate-200 px-4 text-base font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]"
-            >
-              <Globe className="h-5 w-5 shrink-0" />
-              <span>{languageLabel}</span>
-            </button>
-            <ThemeToggle variant="labeled" />
-          </div>
+        </div>
+
+        <div className="shrink-0 border-t border-slate-100 px-4 py-3 sm:px-7 sm:py-4">
           <Link
             href="/quran-in-year"
             onClick={() => onOpenChange(false)}
-            className="mt-4 flex w-full items-center justify-center rounded-full bg-[var(--accent)] px-5 py-3 text-center text-sm font-bold text-white transition hover:opacity-90 sm:text-base"
+            className="flex w-full items-center justify-center rounded-full bg-[var(--accent)] px-5 py-3 text-center text-sm font-bold text-white transition hover:opacity-90 sm:text-base"
           >
             {experienceMode === 'kids' ? t('startAdventure') : t('startJourney')}
           </Link>

@@ -28,6 +28,7 @@ export function AudioBar() {
     duration,
     playbackRate,
     continuous,
+    playbackNotice,
     getCurrentAyah,
     setPlaying,
     setPlaybackRate,
@@ -163,6 +164,11 @@ export function AudioBar() {
             <p className="text-xs text-[var(--muted)]">
               {formatTime(currentTime)} / {formatTime(duration)}
             </p>
+            {playbackNotice && (
+              <p className="mt-0.5 truncate text-xs font-medium text-amber-700 dark:text-amber-300" role="status">
+                {playbackNotice}
+              </p>
+            )}
           </div>
 
           {/* Mobile expand toggle */}

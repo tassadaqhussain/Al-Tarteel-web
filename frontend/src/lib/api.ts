@@ -278,6 +278,23 @@ export const hifzApi = {
     }>(`/hifz/progress/${surahNumber}`),
 };
 
+export type FeedbackCategory = 'bug' | 'idea' | 'hifz' | 'translation' | 'other';
+
+export const feedbackApi = {
+  submit: (body: {
+    name?: string;
+    email?: string;
+    category: FeedbackCategory;
+    message: string;
+    rating?: number;
+    pageUrl?: string;
+  }) =>
+    api<{ ok: boolean; id: number; message: string }>('/feedback', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+};
+
 export const quranApi = {
   surahs: () => api<Awaited<ReturnType<typeof getSurahs>>>('/quran/surahs'),
   surah: (number: number) => api<Surah>(`/quran/surahs/${number}`),

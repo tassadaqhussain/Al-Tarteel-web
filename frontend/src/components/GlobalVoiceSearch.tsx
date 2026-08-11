@@ -181,8 +181,16 @@ export function GlobalVoiceSearch() {
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => executeLowConfidenceAction('search')}
+                onClick={() => executeLowConfidenceAction('ask_ai')}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-emerald-700"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Ask AI
+              </button>
+              <button
+                type="button"
+                onClick={() => executeLowConfidenceAction('search')}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700"
               >
                 <Search className="h-3.5 w-3.5" />
                 Search Quran

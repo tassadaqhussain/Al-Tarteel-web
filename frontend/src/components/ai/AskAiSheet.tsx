@@ -13,6 +13,7 @@ import {
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { aiApi } from '@/lib/api';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useAskAiStore } from '@/stores/askAiStore';
 import { cn } from '@/lib/utils';
 
 type SpeechRecognitionCtor = new () => {
@@ -189,6 +190,20 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
       setLoading(false);
     }
   };
+
+  // Voice / external entry: open sheet with a ready-made question.
+  useEffect(() => {
+    if (!open) return;
+    const pending = useAskAiStore.getState().consumePendingPrompt();
+    if (!pending) return;
+    if (pending.autoAsk) {
+      void ask(pending.prompt);
+    } else {
+      setInput(pending.prompt);
+    }
+    // Intentionally only when `open` flips true with a queued prompt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();

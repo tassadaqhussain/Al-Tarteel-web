@@ -133,6 +133,7 @@ export default async function HomePage() {
                 <li><Link href="/" className="text-slate-500 hover:text-emerald-800">Home</Link></li>
                 <li><Link href="/surahs" className="text-slate-500 hover:text-emerald-800">Chapters</Link></li>
                 <li><Link href="/learning-plans" className="text-slate-500 hover:text-emerald-800">Learning Plans</Link></li>
+                <li><Link href="/feedback" className="text-slate-500 hover:text-emerald-800">Feedback</Link></li>
               </ul>
             </div>
 
@@ -141,6 +142,7 @@ export default async function HomePage() {
               <ul className="mt-4 space-y-2 text-sm">
                 <li><Link href="/quran-in-year" className="text-slate-500 hover:text-emerald-800">Quran in a Year</Link></li>
                 <li><Link href="/search" className="text-slate-500 hover:text-emerald-800">Search</Link></li>
+                <li><Link href="/donate" className="text-slate-500 hover:text-emerald-800">Donate</Link></li>
               </ul>
             </div>
           </div>

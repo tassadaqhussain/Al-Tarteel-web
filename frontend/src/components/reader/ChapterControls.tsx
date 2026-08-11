@@ -60,8 +60,7 @@ export function ChapterControls({ translationCount, surahNumber, surahName }: Pr
           ? Math.max(0, items.findIndex((a) => a.ayahId === current.ayahId))
           : 0;
       setContinuous(false);
-      setPlaylist(items);
-      useAudioStore.setState({ currentIndex: startIdx >= 0 ? startIdx : 0 });
+      setPlaylist(items, startIdx >= 0 ? startIdx : 0);
       setPlaying(true);
       void loadWordTimings(surahNumber, activeReciter);
     } catch {
