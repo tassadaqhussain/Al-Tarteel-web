@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { DonationsModule } from './donations/donations.module';
 import { AiModule } from './ai/ai.module';
 import { HifzModule } from './hifz/hifz.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { HifzModule } from './hifz/hifz.module';
     DonationsModule,
     AiModule,
     HifzModule,
+    FeedbackModule,
   ],
 })
 export class AppModule {}

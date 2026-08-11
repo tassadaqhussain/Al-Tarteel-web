@@ -172,8 +172,7 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
           return false;
         }
         setContinuous(true);
-        setPlaylist(items);
-        setCurrentIndex(0);
+        setPlaylist(items, 0);
         if (startPlaying) setPlaying(true);
         return true;
       } catch {
@@ -187,7 +186,6 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
     [
       resolveReciter,
       setContinuous,
-      setCurrentIndex,
       setPlaylist,
       setPlaying,
       setReciter,

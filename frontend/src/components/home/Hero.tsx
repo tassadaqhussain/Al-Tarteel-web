@@ -130,8 +130,7 @@ export function Hero() {
         }
         // Continuous loops a surah; radio advances to the next surah when it ends.
         setContinuous(!radioModeRef.current);
-        setPlaylist(items);
-        setCurrentIndex(0);
+        setPlaylist(items, 0);
         if (startPlaying) setPlaying(true);
         return true;
       } catch {
@@ -146,7 +145,6 @@ export function Hero() {
     [
       resolveReciter,
       setContinuous,
-      setCurrentIndex,
       setPlaylist,
       setPlaying,
       setReciter,

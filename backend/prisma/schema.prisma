@@ -413,3 +413,23 @@ model MotivationalMessage {
   @@index([isActive, status, language, category])
   @@map("motivational_messages")
 }
+
+/// Public site feedback submissions.
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  name      String?  @db.VarChar(120)
+  email     String?  @db.VarChar(255)
+  /// bug | idea | hifz | translation | other
+  category  String   @default("other") @db.VarChar(40)
+  message   String   @db.Text
+  /// 1–5 optional
+  rating    Int?
+  userId    Int?     @map("user_id")
+  pageUrl   String?  @map("page_url") @db.VarChar(500)
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@index([category])
+  @@map("feedback")
+}

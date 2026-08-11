@@ -17,6 +17,7 @@ export const LANGUAGES: { code: UiLocale; label: string }[] = [
   { code: 'bn', label: 'বাংলা' },
   { code: 'fa', label: 'فارسی' },
   { code: 'fr', label: 'Français' },
+  { code: 'hi', label: 'हिन्दी' },
   { code: 'id', label: 'Indonesia' },
   { code: 'it', label: 'Italiano' },
   { code: 'nl', label: 'Dutch' },

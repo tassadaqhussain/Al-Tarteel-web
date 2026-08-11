@@ -27,8 +27,10 @@ export interface AudioState {
   wordTimingsByAyah: Record<number, WordTiming[]> | null;
   timingsSurahNumber: number | null;
   timingsReciterSlug: string | null;
+  /** Transient player message (e.g. offline) — not persisted. */
+  playbackNotice: string | null;
   setReciter: (slug: string | null) => void;
-  setPlaylist: (list: AudioAyahRef[]) => void;
+  setPlaylist: (list: AudioAyahRef[], startIndex?: number) => void;
   setCurrentIndex: (i: number) => void;
   setPlaying: (v: boolean) => void;
   setCurrentTime: (t: number) => void;
@@ -41,6 +43,7 @@ export interface AudioState {
     reciterSlug: string,
     timings: Record<number, WordTiming[]> | null,
   ) => void;
+  setPlaybackNotice: (notice: string | null) => void;
   getCurrentAyah: () => AudioAyahRef | null;
   next: () => void;
   prev: () => void;
@@ -60,10 +63,22 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   wordTimingsByAyah: null,
   timingsSurahNumber: null,
   timingsReciterSlug: null,
+  playbackNotice: null,
   setReciter: (reciterSlug) => set({ reciterSlug }),
-  setPlaylist: (playlist) => set({ playlist, currentIndex: 0 }),
+  setPlaylist: (playlist, startIndex = 0) => {
+    const idx =
+      playlist.length === 0
+        ? 0
+        : Math.min(Math.max(0, startIndex), playlist.length - 1);
+    set({ playlist, currentIndex: idx, playbackNotice: null });
+  },
   setCurrentIndex: (currentIndex) => set({ currentIndex }),
-  setPlaying: (isPlaying) => set({ isPlaying }),
+  setPlaying: (isPlaying) =>
+    set((s) => ({
+      isPlaying,
+      // Clear offline notice when user resumes.
+      playbackNotice: isPlaying ? null : s.playbackNotice,
+    })),
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
   setPlaybackRate: (playbackRate) => set({ playbackRate }),
@@ -72,6 +87,7 @@ export const useAudioStore = create<AudioState>((set, get) => ({
     set({ lastAyahKey: `${surahNumber}:${ayahNumber}` }),
   setWordTimings: (timingsSurahNumber, timingsReciterSlug, wordTimingsByAyah) =>
     set({ timingsSurahNumber, timingsReciterSlug, wordTimingsByAyah }),
+  setPlaybackNotice: (playbackNotice) => set({ playbackNotice }),
   getCurrentAyah: () => {
     const { playlist, currentIndex } = get();
     return playlist[currentIndex] ?? null;
@@ -100,5 +116,6 @@ export const useAudioStore = create<AudioState>((set, get) => ({
       wordTimingsByAyah: null,
       timingsSurahNumber: null,
       timingsReciterSlug: null,
+      playbackNotice: null,
     }),
 }));

@@ -1,9 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useAudioStore } from '@/stores/audioStore';
+import { useAskAiStore } from '@/stores/askAiStore';
 import { cn } from '@/lib/utils';
 
 const AskAiSheet = dynamic(
@@ -13,9 +14,14 @@ const AskAiSheet = dynamic(
 
 /** Global floating entry point for Ask AI (text + voice). Sheet JS loads on demand. */
 export function AskAiFab() {
-  const [open, setOpen] = useState(false);
+  const open = useAskAiStore((s) => s.open);
+  const setOpen = useAskAiStore((s) => s.setOpen);
   const [loaded, setLoaded] = useState(false);
   const hasPlaylist = useAudioStore((s) => s.playlist.length > 0);
+
+  useEffect(() => {
+    if (open) setLoaded(true);
+  }, [open]);
 
   return (
     <>

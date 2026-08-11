@@ -3,8 +3,19 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { VoiceSpeechRecognizer, type VoiceLanguage } from '@/lib/voice/speechRecognition';
-import { parseVoiceIntent, type VoiceIntent } from '@/lib/voice/parseVoiceIntent';
+import { parseVoiceIntent, type VoiceIntent, type VoiceIntentType } from '@/lib/voice/parseVoiceIntent';
 import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
+import { useAskAiStore } from '@/stores/askAiStore';
+
+/** Discrete app commands — everything else falls back to Ask AI. */
+const VOICE_COMMAND_TYPES = new Set<VoiceIntentType>([
+  'OPEN_SURAH',
+  'OPEN_AYAH',
+  'NAVIGATION',
+  'PLAYER_COMMAND',
+  'TRANSLATION_COMMAND',
+  'BOOKMARK_COMMAND',
+]);
 
 export interface LowConfidenceData {
   transcript: string;
@@ -27,7 +38,7 @@ export interface VoiceSearchContextType {
   closeOverlay: () => void;
   setLanguage: (lang: VoiceLanguage) => void;
   processRawQuery: (query: string) => void;
-  executeLowConfidenceAction: (action: 'search' | 'retry' | 'cancel') => void;
+  executeLowConfidenceAction: (action: 'ask_ai' | 'search' | 'retry' | 'cancel') => void;
 }
 
 const VoiceSearchContext = createContext<VoiceSearchContextType | null>(null);
@@ -67,27 +78,44 @@ export function VoiceSearchProvider({ children }: { children: React.ReactNode })
 
   const handleParsedIntent = useCallback(
     (spokenText: string) => {
-      setIsProcessing(true);
-      const parsed = parseVoiceIntent(spokenText);
-      setIntent(parsed);
-
-      // Low confidence guardrail check
-      if (parsed.confidence < 0.6 || parsed.type === 'UNKNOWN') {
+      const text = spokenText.trim();
+      if (!text) {
         setIsProcessing(false);
-        setLowConfidenceData({ transcript: spokenText, intent: parsed });
         return;
       }
 
-      // High confidence intent execution
-      setTimeout(() => {
-        executeVoiceCommand({
-          intent: parsed,
-          router,
-          onFeedback: (msg) => setFeedbackMessage(msg),
-        });
+      setIsProcessing(true);
+      const parsed = parseVoiceIntent(text);
+      setIntent(parsed);
+
+      const openAskAi = (prompt: string) => {
+        setFeedbackMessage('Asking AI…');
+        useAskAiStore.getState().openWithPrompt(prompt, { autoAsk: true });
         setIsProcessing(false);
-        setTimeout(() => closeOverlay(), 1200);
-      }, 400);
+        setTimeout(() => closeOverlay(), 500);
+      };
+
+      // Known voice commands with enough confidence → run them.
+      if (VOICE_COMMAND_TYPES.has(parsed.type) && parsed.confidence >= 0.6) {
+        setTimeout(() => {
+          const executed = executeVoiceCommand({
+            intent: parsed,
+            router,
+            onFeedback: (msg) => setFeedbackMessage(msg),
+          });
+          setIsProcessing(false);
+          if (executed) {
+            setTimeout(() => closeOverlay(), 1200);
+            return;
+          }
+          // Command recognized but could not run → Ask AI with spoken text.
+          openAskAi(text);
+        }, 400);
+        return;
+      }
+
+      // Not a discrete command (search / unknown / low confidence) → Ask AI.
+      openAskAi(parsed.searchQuery || parsed.query || text);
     },
     [router, closeOverlay]
   );
@@ -167,7 +195,7 @@ export function VoiceSearchProvider({ children }: { children: React.ReactNode })
   );
 
   const executeLowConfidenceAction = useCallback(
-    (action: 'search' | 'retry' | 'cancel') => {
+    (action: 'ask_ai' | 'search' | 'retry' | 'cancel') => {
       if (action === 'cancel') {
         closeOverlay();
         return;
@@ -177,8 +205,13 @@ export function VoiceSearchProvider({ children }: { children: React.ReactNode })
         startListening();
         return;
       }
+      const text = lowConfidenceData?.transcript || transcript;
+      if (action === 'ask_ai') {
+        closeOverlay();
+        if (text) useAskAiStore.getState().openWithPrompt(text, { autoAsk: true });
+        return;
+      }
       if (action === 'search') {
-        const text = lowConfidenceData?.transcript || transcript;
         closeOverlay();
         if (text) {
           router.push(`/search?q=${encodeURIComponent(text)}`);

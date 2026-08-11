@@ -156,8 +156,7 @@ export function CompareVerseModal() {
       const idx = items.findIndex((a) => a.ayahNumber === ayahNumber);
       if (idx < 0) return;
       setContinuous(false);
-      setPlaylist(items);
-      useAudioStore.setState({ currentIndex: idx });
+      setPlaylist(items, idx);
       setPlaying(true);
       void loadWordTimings(surahNumber, activeReciter);
     } catch {
