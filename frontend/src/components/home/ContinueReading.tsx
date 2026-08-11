@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Bookmark, ChevronRight, Sparkles, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
+import { useT } from '@/lib/i18n';
 
 const DEFAULT_CONTINUE = {
   surahNumber: 1,
@@ -14,6 +15,7 @@ const DEFAULT_CONTINUE = {
 };
 
 export function ContinueReading() {
+  const { t } = useT();
   const lastRead = useSettingsStore((s) => s.lastRead);
   const meta = lastRead
     ? getSurahMeta(lastRead.surahNumber, lastRead.surahName)
@@ -28,13 +30,13 @@ export function ContinueReading() {
   return (
     <section className="w-full px-3 py-4 sm:px-4 sm:py-5 md:px-6">
       <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
-        <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">Continue Reading</h2>
+        <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">{t('continueReading')}</h2>
         <Link
           href="/my-quran"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-[var(--accent)]"
         >
           <Bookmark className="h-4 w-4" />
-          My Quran
+          {t('myQuran')}
         </Link>
       </div>
 
@@ -56,7 +58,7 @@ export function ContinueReading() {
               {meaning ? ` (${meaning})` : ''}
             </p>
             <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[var(--accent)] transition group-hover:gap-1.5">
-              Verse {ayahNumber}
+              {t('verse')} {ayahNumber}
               <ChevronRight className="h-4 w-4" />
             </span>
           </div>
@@ -71,10 +73,8 @@ export function ContinueReading() {
               <Target className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-slate-800">Achieve Your Quran Goals</p>
-              <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-                Track Streaks, Create Custom Goals, Stay Consistent.
-              </p>
+              <p className="font-semibold text-slate-800">{t('achieveQuranGoals')}</p>
+              <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">{t('achieveQuranGoalsBody')}</p>
             </div>
             <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
           </Link>
@@ -87,15 +87,8 @@ export function ContinueReading() {
               <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-slate-800">
-                Build Your{' '}
-                <span className="underline decoration-[var(--accent)]/40 underline-offset-4">
-                  Quran Experience
-                </span>
-              </p>
-              <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
-                Fonts, translations, reciters, and reading preferences.
-              </p>
+              <p className="font-semibold text-slate-800">{t('buildQuranExperience')}</p>
+              <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">{t('buildQuranExperienceBody')}</p>
             </div>
             <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
           </Link>

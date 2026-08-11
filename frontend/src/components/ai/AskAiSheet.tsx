@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { aiApi } from '@/lib/api';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAskAiStore } from '@/stores/askAiStore';
+import { useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 type SpeechRecognitionCtor = new () => {
@@ -57,6 +58,7 @@ function useIsMobileSheet(maxWidthPx = 639) {
 }
 
 export function AskAiSheet({ open, onOpenChange }: Props) {
+  const { t } = useT();
   const locale = useSettingsStore((s) => s.uiLocale);
   const isMobile = useIsMobileSheet();
   const [input, setInput] = useState('');
@@ -246,7 +248,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
                 <Sparkles className="h-4 w-4" />
               </span>
-              Ask AI
+              {t('askAi')}
             </SheetTitle>
             <p className="mt-1 text-xs text-slate-500">
               Questions about the Quran & Islam
