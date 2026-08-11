@@ -18,7 +18,8 @@ import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
 import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { breadcrumbJsonLd, surahJsonLd, surahSeo } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { surahJsonLd, surahSeo } from '@/lib/seo';
 import {
   clampSurahPage,
   getSurahAyahCount,
@@ -213,24 +214,14 @@ export default async function SurahPage({ params, searchParams }: Props) {
   return (
     <div className="min-h-screen bg-[#f7f7f7] pb-32">
       <JsonLd
-        data={[
-          surahJsonLd({
-            number: surahNumber,
-            name: surah.nameSimple,
-            arabic: arabicName,
-            meaning: SURAH_MEANINGS[surahNumber],
-            ayahCount,
-            path: surahPath,
-          }),
-          breadcrumbJsonLd([
-            { name: 'Home', path: '/' },
-            { name: 'Surahs', path: '/surahs' },
-            { name: `Surah ${surah.nameSimple}`, path: surahPath },
-            ...(page > 1
-              ? [{ name: `Verses ${range.start}–${range.end}`, path: `${surahPath}?page=${page}` }]
-              : []),
-          ]),
-        ]}
+        data={surahJsonLd({
+          number: surahNumber,
+          name: surah.nameSimple,
+          arabic: arabicName,
+          meaning: SURAH_MEANINGS[surahNumber],
+          ayahCount,
+          path: surahPath,
+        })}
       />
       <Header />
 
@@ -270,33 +261,16 @@ export default async function SurahPage({ params, searchParams }: Props) {
       <CleanTranslationUrl />
 
       <main className="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-6">
-        <nav aria-label="Breadcrumb" className="mb-3 text-xs text-slate-500">
-          <ol className="flex flex-wrap items-center gap-1.5">
-            <li><Link href="/" className="hover:text-emerald-800">Home</Link></li>
-            <li aria-hidden="true">/</li>
-            <li><Link href="/surahs" className="hover:text-emerald-800">Surahs</Link></li>
-            <li aria-hidden="true">/</li>
-            <li>
-              {page > 1 ? (
-                <Link href={surahPath} className="hover:text-emerald-800">
-                  Surah {surah.nameSimple}
-                </Link>
-              ) : (
-                <span className="font-medium text-slate-700" aria-current="page">
-                  Surah {surah.nameSimple}
-                </span>
-              )}
-            </li>
-            {page > 1 && (
-              <>
-                <li aria-hidden="true">/</li>
-                <li className="font-medium text-slate-700" aria-current="page">
-                  Verses {range.start}–{range.end}
-                </li>
-              </>
-            )}
-          </ol>
-        </nav>
+        <Breadcrumbs
+          items={[
+            { name: 'Home', path: '/' },
+            { name: 'Surahs', path: '/surahs' },
+            { name: `Surah ${surah.nameSimple}`, path: surahPath },
+            ...(page > 1
+              ? [{ name: `Verses ${range.start}–${range.end}`, path: `${surahPath}?page=${page}` }]
+              : []),
+          ]}
+        />
 
         <ReadingTracker
           surahNumber={surahNumber}

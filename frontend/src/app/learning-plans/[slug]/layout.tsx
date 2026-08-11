@@ -13,13 +13,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const plan = getLearningPlan(slug);
   if (!plan) {
     return buildPageMetadata({
-      title: 'Learning Plan',
+      title: 'Learning Plan | QuranPilot',
       description: 'Quran learning plan on QuranPilot.',
       path: `/learning-plans/${slug}`,
     });
   }
   return buildPageMetadata({
-    title: plan.title,
+    title: `${plan.title} | QuranPilot`,
     description: plan.summary,
     path: `/learning-plans/${plan.slug}`,
     keywords: [plan.title, 'Quran learning plan', `${plan.days} day plan`],

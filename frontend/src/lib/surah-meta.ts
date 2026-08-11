@@ -361,6 +361,46 @@ export const SURAH_ARABIC: Record<number, string> = {
 
 export const POPULAR_SURAHS = [67, 36, 18, 56, 55, 112, 113, 114, 1, 78];
 
+/**
+ * Common alternate Latin spellings that do not match strip-article fuzzy match.
+ * Values are surah numbers; paths permanently redirect to the canonical slug.
+ */
+export const SURAH_SLUG_ALIASES: Record<string, number> = {
+  // Al-Fatihah
+  fatiha: 1,
+  fateha: 1,
+  fatehah: 1,
+  alfatiha: 1,
+  alfatihah: 1,
+  // Al-Baqarah
+  baqara: 2,
+  baqarah: 2,
+  // Ya-Sin
+  yasin: 36,
+  yaseen: 36,
+  yaaseen: 36,
+  // Al-Kahf
+  kahf: 18,
+  // Ar-Rahman
+  rahman: 55,
+  rehman: 55,
+  // Al-Waqiah
+  waqiah: 56,
+  waqia: 56,
+  waqiya: 56,
+  waqiiah: 56,
+  // Al-Mulk
+  mulk: 67,
+  // Al-Ikhlas
+  ikhlas: 112,
+  ikhlaas: 112,
+  // Short popular
+  nas: 114,
+  falaq: 113,
+  kafirun: 109,
+  kawthar: 108,
+};
+
 export function getSurahSlug(number: number): string {
   return (SURAH_SIMPLE_NAMES[number] || `surah-${number}`)
     .toLowerCase()
@@ -409,10 +449,19 @@ export function getSurahNumberFromSlug(slug: string): number | null {
     if (getSurahSlug(number) === normalized) return number;
   }
 
+  const aliasKey = normalized.replace(/[^a-z0-9]/g, '');
+  if (aliasKey && SURAH_SLUG_ALIASES[aliasKey]) {
+    return SURAH_SLUG_ALIASES[aliasKey];
+  }
+
   const needle = stripSlugArticle(normalized);
   if (needle) {
     for (let number = 1; number <= 114; number += 1) {
       if (stripSlugArticle(getSurahSlug(number)) === needle) return number;
+    }
+    const compactNeedle = needle.replace(/[^a-z0-9]/g, '');
+    if (compactNeedle && SURAH_SLUG_ALIASES[compactNeedle]) {
+      return SURAH_SLUG_ALIASES[compactNeedle];
     }
   }
 

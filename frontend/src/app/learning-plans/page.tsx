@@ -4,9 +4,10 @@ import { Header } from '@/components/Header';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { BookOpen } from 'lucide-react';
 import { buildPageMetadata } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 
 export const metadata: Metadata = buildPageMetadata({
-  title: 'Quran Learning Plans',
+  title: 'Quran Learning Plans | QuranPilot',
   description:
     'Free guided Quran learning plans — short daily lessons to understand surahs, deepen reflection, and stay consistent with the Holy Quran.',
   path: '/learning-plans',
@@ -19,6 +20,12 @@ export default function LearningPlansPage() {
       <Header />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14">
+        <Breadcrumbs
+          items={[
+            { name: 'Home', path: '/' },
+            { name: 'Learning Plans', path: '/learning-plans' },
+          ]}
+        />
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
             <BookOpen className="h-6 w-6" />

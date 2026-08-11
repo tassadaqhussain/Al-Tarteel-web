@@ -18,6 +18,8 @@ export default function robots(): MetadataRoute.Robots {
           '/my-quran',
           '/reading-goal',
           '/hifz',
+          '/feedback',
+          '/search',
           '/donate/checkout',
           '/donate/success',
           '/api/',
