@@ -7,6 +7,9 @@ interface Props {
   searchParams: Promise<{ page?: string; trans?: string }>;
 }
 
+export const revalidate = 3600;
+export const dynamic = 'force-static';
+
 export function generateStaticParams() {
   return Array.from({ length: 114 }, (_, index) => ({ slug: getSurahSlug(index + 1) }));
 }

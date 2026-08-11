@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { quranApi } from '@/lib/api';
 import { Header } from '@/components/Header';
@@ -16,7 +15,7 @@ import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
-import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
+import { resolveTranslations } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
@@ -51,6 +50,9 @@ interface Props {
 
 export const revalidate = 3600;
 
+/** Prefer static/ISR HTML for crawlers; translation cookie is applied client-side. */
+export const dynamic = 'force-static';
+
 export async function generateStaticParams() {
   return Array.from({ length: 114 }, (_, i) => ({ number: String(i + 1) }));
 }
@@ -77,9 +79,10 @@ export default async function SurahPage({ params, searchParams }: Props) {
   const surahNumber = parseInt(number, 10);
   if (Number.isNaN(surahNumber) || surahNumber < 1 || surahNumber > 114) notFound();
 
-  const cookieStore = await cookies();
+  // Do not read cookies() here — it forces fully dynamic/private responses and
+  // slows Google crawling. Default + ?trans= SSR; cookie preference via CleanTranslationUrl.
   const effectiveTranslations = resolveTranslations({
-    cookieValue: cookieStore.get(TRANSLATION_COOKIE)?.value,
+    cookieValue: undefined,
     queryTrans: trans,
   });
 

@@ -3,67 +3,106 @@ import { ARTICLES } from '@/lib/articles';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { getSurahPath } from '@/lib/surah-meta';
 import { SITE_URL } from '@/lib/seo';
-import { getSurahAyahCount, surahTotalPages } from '@/lib/surah-pagination';
 
 /**
- * Sitemap of canonical, indexable URLs only.
- * Omit lastModified unless a real content change date is known (avoid fake timestamps).
+ * Sitemap index of canonical URLs only.
+ * - No `?page=` URLs (paginated slices are linked from surah pages; query URLs
+ *   confuse Discovery / “referring sitemap” reporting in Search Console).
+ * - Split shards so GSC can show which child sitemap listed a URL.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPages: MetadataRoute.Sitemap = [
-    { url: SITE_URL, changeFrequency: 'weekly', priority: 1 },
-    { url: `${SITE_URL}/surahs`, changeFrequency: 'weekly', priority: 0.95 },
-    { url: `${SITE_URL}/articles`, changeFrequency: 'daily', priority: 0.75 },
-    { url: `${SITE_URL}/learning-plans`, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${SITE_URL}/quran-in-year`, changeFrequency: 'monthly', priority: 0.65 },
-    { url: `${SITE_URL}/donate`, changeFrequency: 'yearly', priority: 0.3 },
-  ];
+export async function generateSitemaps() {
+  return [{ id: 0 }, { id: 1 }, { id: 2 }];
+}
 
-  const surahs: MetadataRoute.Sitemap = [];
-  for (let number = 1; number <= 114; number += 1) {
-    const path = getSurahPath(number);
-    const pages = surahTotalPages(getSurahAyahCount(number));
-    surahs.push({
-      url: `${SITE_URL}${path}`,
-      changeFrequency: 'monthly',
-      priority: number <= 10 ? 0.9 : 0.8,
-    });
-    // Additional verse slices for long surahs (unique content pages).
-    for (let page = 2; page <= pages; page += 1) {
-      surahs.push({
-        url: `${SITE_URL}${path}?page=${page}`,
+type SitemapId = 0 | 1 | 2;
+
+export default async function sitemap(props: {
+  id: Promise<string>;
+}): Promise<MetadataRoute.Sitemap> {
+  const id = Number(await props.id) as SitemapId;
+  const now = new Date();
+
+  if (id === 0) {
+    // Core hubs + juz + tajweed
+    return [
+      { url: SITE_URL, lastModified: now, changeFrequency: 'weekly', priority: 1 },
+      {
+        url: `${SITE_URL}/surahs`,
+        lastModified: now,
+        changeFrequency: 'weekly',
+        priority: 0.95,
+      },
+      {
+        url: `${SITE_URL}/articles`,
+        lastModified: now,
+        changeFrequency: 'daily',
+        priority: 0.75,
+      },
+      {
+        url: `${SITE_URL}/learning-plans`,
+        lastModified: now,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      },
+      {
+        url: `${SITE_URL}/quran-in-year`,
+        lastModified: now,
         changeFrequency: 'monthly',
         priority: 0.65,
-      });
-    }
+      },
+      {
+        url: `${SITE_URL}/tajweed`,
+        lastModified: now,
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      },
+      {
+        url: `${SITE_URL}/donate`,
+        lastModified: now,
+        changeFrequency: 'yearly',
+        priority: 0.3,
+      },
+      ...Array.from({ length: 30 }, (_, i) => ({
+        url: `${SITE_URL}/juz/${i + 1}`,
+        lastModified: now,
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      })),
+      ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
+        url: `${SITE_URL}/tajweed/${slug}`,
+        lastModified: now,
+        changeFrequency: 'monthly' as const,
+        priority: 0.55,
+      })),
+    ];
   }
 
-  const juz: MetadataRoute.Sitemap = Array.from({ length: 30 }, (_, i) => ({
-    url: `${SITE_URL}/juz/${i + 1}`,
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
+  if (id === 1) {
+    // All 114 canonical surah URLs (no query strings)
+    return Array.from({ length: 114 }, (_, i) => {
+      const number = i + 1;
+      return {
+        url: `${SITE_URL}${getSurahPath(number)}`,
+        lastModified: now,
+        changeFrequency: 'monthly' as const,
+        priority: number <= 10 ? 0.9 : 0.8,
+      };
+    });
+  }
 
-  const plans: MetadataRoute.Sitemap = LEARNING_PLANS.map((plan) => ({
-    url: `${SITE_URL}/learning-plans/${plan.slug}`,
-    changeFrequency: 'monthly' as const,
-    priority: plan.featured ? 0.65 : 0.55,
-  }));
-
-  const articles: MetadataRoute.Sitemap = ARTICLES.map((article) => ({
-    url: `${SITE_URL}/articles/${article.slug}`,
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }));
-
-  const tajweed: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
-    ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
-      url: `${SITE_URL}/tajweed/${slug}`,
+  // Learning plans + articles
+  return [
+    ...LEARNING_PLANS.map((plan) => ({
+      url: `${SITE_URL}/learning-plans/${plan.slug}`,
+      lastModified: now,
       changeFrequency: 'monthly' as const,
-      priority: 0.55,
+      priority: plan.featured ? 0.65 : 0.55,
+    })),
+    ...ARTICLES.map((article) => ({
+      url: `${SITE_URL}/articles/${article.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
     })),
   ];
-
-  return [...staticPages, ...surahs, ...juz, ...plans, ...articles, ...tajweed];
 }
