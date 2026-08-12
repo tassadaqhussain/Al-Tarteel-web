@@ -228,7 +228,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
           'flex flex-col gap-0 overflow-hidden border-slate-200 bg-white p-0 text-slate-800',
           isMobile
             ? [
-                'inset-x-0 top-auto z-[55] h-[min(78dvh,calc(100dvh-var(--audio-bar-height,0px)-0.75rem))]',
+                'inset-x-0 top-auto h-[min(78dvh,calc(100dvh-var(--audio-bar-height,0px)-0.75rem))]',
                 'max-h-[calc(100dvh-var(--audio-bar-height,0px)-0.75rem)] w-full max-w-none',
                 'bottom-[var(--audio-bar-height,0px)] rounded-t-2xl border-x-0 border-b-0 border-t',
                 'pb-[max(0.25rem,env(safe-area-inset-bottom,0px))]',

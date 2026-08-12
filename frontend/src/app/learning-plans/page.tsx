@@ -48,7 +48,7 @@ export default function LearningPlansPage() {
               className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/50 hover:shadow-md"
             >
               <div
-                className={`relative flex h-36 items-end bg-gradient-to-br ${plan.imageTone} p-4`}
+                className={`relative flex h-36 items-end bg-slate-800 bg-gradient-to-br ${plan.imageTone} p-4`}
               >
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.22),transparent_45%)]" />
                 {plan.featured && (
