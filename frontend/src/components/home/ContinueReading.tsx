@@ -5,6 +5,7 @@ import { Bookmark, ChevronRight, Sparkles, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { useT } from '@/lib/i18n';
+import { PageSection } from '@/components/layout/MainContainer';
 
 const DEFAULT_CONTINUE = {
   surahNumber: 1,
@@ -28,8 +29,8 @@ export function ContinueReading() {
   const ayahNumber = lastRead?.ayahNumber ?? DEFAULT_CONTINUE.ayahNumber;
 
   return (
-    <section className="w-full px-3 py-4 sm:px-4 sm:py-5 md:px-6">
-      <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
+    <PageSection>
+      <div className="mb-5 flex items-center justify-between gap-2 sm:mb-6">
         <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">{t('continueReading')}</h2>
         <Link
           href="/my-quran"
@@ -94,6 +95,6 @@ export function ContinueReading() {
           </Link>
         </div>
       </div>
-    </section>
+    </PageSection>
   );
 }

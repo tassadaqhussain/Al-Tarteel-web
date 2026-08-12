@@ -6,14 +6,15 @@ import {
   weekReadingHref,
 } from '@/lib/quranic-calendar';
 import { getSurahPath } from '@/lib/surah-meta';
+import { PageSection } from '@/components/layout/MainContainer';
 
 export function QuranInYear() {
   const weekNum = getCurrentProgramWeek();
   const week = getCalendarWeek(weekNum) ?? getCalendarWeek(1)!;
 
   return (
-    <section className="w-full px-3 py-3 sm:px-4 sm:py-4 md:px-6" id="quran-in-year">
-      <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
+    <PageSection id="quran-in-year">
+      <div className="mb-5 flex items-center justify-between gap-2 sm:mb-6">
         <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">Quran in a Year</h2>
         <Link
           href="/quran-in-year"
@@ -92,6 +93,6 @@ export function QuranInYear() {
           </div>
         </div>
       </div>
-    </section>
+    </PageSection>
   );
 }

@@ -3,6 +3,7 @@
 import { Bookmark, Search, Volume2 } from 'lucide-react';
 import { useT } from '@/lib/i18n';
 import type { MessageKey } from '@/lib/i18n/messages';
+import { PageSection } from '@/components/layout/MainContainer';
 
 const FEATURES: { icon: typeof Search; labelKey: MessageKey }[] = [
   { icon: Search, labelKey: 'appsFeatureSearch' },
@@ -14,8 +15,8 @@ export function QuranApps() {
   const { t } = useT();
 
   return (
-    <section className="w-full px-3 py-3 sm:px-4 sm:py-4 md:px-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <PageSection className="border-t border-slate-100 bg-gradient-to-b from-emerald-50/60 to-[#fcfdfd] pb-14 sm:pb-16">
+      <div className="rounded-2xl border border-emerald-100/80 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">
@@ -40,6 +41,6 @@ export function QuranApps() {
           ))}
         </ul>
       </div>
-    </section>
+    </PageSection>
   );
 }

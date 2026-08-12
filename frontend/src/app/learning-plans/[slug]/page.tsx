@@ -44,7 +44,7 @@ export default function LearningPlanDetailPage() {
     <div className="min-h-screen bg-[#f7f7f7] text-slate-800">
       <Header />
 
-      <div className={`bg-gradient-to-br ${plan.imageTone}`}>
+      <div className={`bg-slate-800 bg-gradient-to-br ${plan.imageTone}`}>
         <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
           <button
             type="button"
