@@ -6,6 +6,8 @@ export interface AudioAyahRef {
   ayahNumber: number;
   url: string;
   duration?: number;
+  reciterSlug?: string;
+  trackKind?: 'arabic' | 'translation';
 }
 
 export interface WordTiming {

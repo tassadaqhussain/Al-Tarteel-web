@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server';
  * SEO headers for URLs that should not enter the organic index:
  * - /search?q=… (internal search result URLs)
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const response = NextResponse.next();
 

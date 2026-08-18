@@ -18,7 +18,8 @@ export function SiteLogo({ size = 28, className, priority = false, alt = 'QuranP
       height={size}
       className={cn('object-contain', className)}
       priority={priority}
-      sizes={`${size}px`}
+      quality={95}
+      sizes={`${Math.max(size, 32) * 2}px`}
     />
   );
 }

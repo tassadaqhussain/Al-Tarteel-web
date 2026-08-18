@@ -13,7 +13,7 @@ export function TajweedToggle({ enabled, onChange, className, disabled }: Props)
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1',
+        'inline-flex items-center gap-1 rounded-[4px] border border-slate-200 bg-white p-1',
         className,
       )}
       role="group"
@@ -26,7 +26,7 @@ export function TajweedToggle({ enabled, onChange, className, disabled }: Props)
         aria-pressed={!enabled}
         onClick={() => onChange(false)}
         className={cn(
-          'rounded-full px-3 py-1.5 text-xs font-semibold transition sm:text-sm',
+          'rounded-[3px] px-2.5 py-1.5 text-xs font-semibold transition sm:text-sm',
           !enabled ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50',
           disabled && 'opacity-50',
         )}
@@ -39,7 +39,7 @@ export function TajweedToggle({ enabled, onChange, className, disabled }: Props)
         aria-pressed={enabled}
         onClick={() => onChange(true)}
         className={cn(
-          'rounded-full px-3 py-1.5 text-xs font-semibold transition sm:text-sm',
+          'rounded-[3px] px-2.5 py-1.5 text-xs font-semibold transition sm:text-sm',
           enabled ? 'bg-[var(--accent)] text-white' : 'text-slate-600 hover:bg-slate-50',
           disabled && 'opacity-50',
         )}

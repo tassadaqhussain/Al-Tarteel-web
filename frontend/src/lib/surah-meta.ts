@@ -1,5 +1,8 @@
 /** Lightweight surah metadata for landing-page UI. */
 
+// Keep this module dependency-free because next.config.ts imports it for redirects.
+const READER_PAGE_SIZE = 40;
+
 export type SurahMeta = {
   nameSimple: string;
   nameArabic: string;
@@ -421,8 +424,11 @@ export function getSurahPath(number: number): string {
 /** Canonical reader href (slug URL). Optional hash targets a mounted ayah block. */
 export function getSurahHref(number: number, opts?: { ayahId?: number | string; ayahNumber?: number }): string {
   const base = getSurahPath(number);
-  if (opts?.ayahId != null) return `${base}#ayah-${opts.ayahId}`;
-  if (opts?.ayahNumber != null) return `${base}#ayah-${opts.ayahNumber}`;
+  const ayahNumber = opts?.ayahNumber;
+  const page = ayahNumber ? Math.floor((ayahNumber - 1) / READER_PAGE_SIZE) + 1 : 1;
+  const path = page > 1 ? `${base}?page=${page}` : base;
+  if (opts?.ayahId != null) return `${path}#ayah-${opts.ayahId}`;
+  if (ayahNumber != null) return `${path}#ayah-number-${ayahNumber}`;
   return base;
 }
 

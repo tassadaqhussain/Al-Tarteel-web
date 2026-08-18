@@ -5,11 +5,11 @@
 
 /* ── QuranPilot design tokens (light Quran.com-style by default) ────── */
 :root {
-  --bg: #f7f7f7;
+  --bg: #f6f8f6;
   /* Height of the fixed AudioBar; 0 when no playlist is active. */
   --audio-bar-height: 0px;
   --fg: #0f172a;
-  --muted: #64748b;
+  --muted: #475569;
   --border: #e2e8f0;
   --accent: rgb(6 95 70);
   --accent-gold: #c08829;
@@ -18,7 +18,7 @@
   --surface: #ffffff;
   --ayah-highlight: rgba(6, 95, 70, 0.06);
   --header-bg: rgba(255, 255, 255, 0.92);
-  --radius: 0.75rem;
+  --radius: 0.25rem;
 
   --background: 0 0% 97%;
   --foreground: 222 47% 11%;
@@ -139,34 +139,64 @@
   }
 
   body {
-    background-color: var(--bg);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(246, 248, 246, 1) 18rem),
+      var(--bg);
     color: var(--fg);
     font-feature-settings: "rlig" 1, "calt" 1;
     overflow-x: clip;
     @apply antialiased;
+  }
+
+  :where(a, button, input, select, textarea, [role='button']):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+}
+
+/* Keep content cards crisp throughout the app while preserving pill controls. */
+:where(div, section, article, aside, li, a)[class*='border'][class~='rounded-xl'],
+:where(div, section, article, aside, li, a)[class*='border'][class~='rounded-2xl'],
+:where(div, section, article, aside, li, a)[class*='border'][class~='rounded-3xl'] {
+  border-radius: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 .font-arabic {
   font-family: var(--font-amiri-quran), var(--font-amiri), 'Amiri Quran', serif;
   line-height: 2;
-  font-size: clamp(1.25rem, 4vw, 1.75rem);
 }
 
 .ayah-arabic {
   direction: rtl;
   text-align: right;
-  word-spacing: 0.2em;
+  word-spacing: 0.15em;
+  color: #0f172a;
 }
 
-.ayah-font-sm  .ayah-arabic { font-size: 1.125rem; }
-.ayah-font-md  .ayah-arabic { font-size: 1.375rem; }
-.ayah-font-lg  .ayah-arabic { font-size: 1.75rem;  }
-.ayah-font-xl  .ayah-arabic { font-size: 2.25rem;  }
+.ayah-font-sm  .ayah-arabic { font-size: 1.5rem; }
+.ayah-font-md  .ayah-arabic { font-size: 1.85rem; }
+.ayah-font-lg  .ayah-arabic { font-size: 2.25rem;  }
+.ayah-font-xl  .ayah-arabic { font-size: 2.75rem;  }
 
 .ayah-current {
-  background-color: var(--ayah-highlight);
-  border-radius: 0.375rem;
+  background-color: rgba(6, 95, 70, 0.06);
+  box-shadow: inset 3px 0 0 rgb(6 95 70);
+  border-radius: 0.75rem;
 }
 
 /* Keep recited ayah clear of sticky header + audio bar during auto-scroll */
@@ -299,32 +329,31 @@
 
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0); }
 
-/* ── Kids Mode Styling ── */
+/* ── Kids Explorer ── */
 .experience-kids {
-  --bg: #f0fdfa;
+  --bg: #f3f8f5;
+  --fg: #16342e;
+  --muted: #52675f;
   --surface: #ffffff;
-  --border: #bae6fd; /* sky-200 */
-  --accent: #0ea5e9; /* sky-500 */
-  --accent-gold: #f59e0b;
-  --radius: 1.5rem;
+  --border: #cfe2d9;
+  --accent: #08705f;
+  --accent-gold: #d79a2f;
+  --ayah-highlight: rgba(8, 112, 95, 0.09);
+  --header-bg: rgba(255, 255, 255, 0.96);
+  --radius: 0.25rem;
 }
 
 .experience-kids body,
-.experience-kids main,
-.experience-kids header,
-.experience-kids footer,
 .experience-kids .font-sans,
 .experience-kids h1,
 .experience-kids h2,
 .experience-kids h3,
 .experience-kids h4,
-.experience-kids p,
-.experience-kids span,
 .experience-kids button,
 .experience-kids a,
 .experience-kids input,
 .experience-kids label {
-  font-family: 'Fredoka', 'Quicksand', 'Comic Sans MS', cursive, sans-serif !important;
+  font-family: 'Fredoka', 'Quicksand', var(--font-outfit), sans-serif !important;
 }
 
 /* Fredoka has no Quranic glyphs — restore Amiri Quran for Arabic text */
@@ -336,81 +365,45 @@
   font-family: var(--font-amiri-quran), var(--font-amiri), 'Amiri Quran', serif !important;
 }
 
-.experience-kids .rounded-2xl,
-.experience-kids .rounded-xl,
-.experience-kids .rounded-lg {
-  border-radius: 1.5rem !important;
-}
-
-.experience-kids .border-slate-200,
-.experience-kids .border-slate-200\/80,
-.experience-kids .border-slate-100 {
-  border-width: 2px !important;
-  border-color: var(--border) !important;
-}
-
-.experience-kids .bg-white,
-.experience-kids .bg-\[var\(--surface\)\] {
-  border: 2px solid #e0f2fe !important; /* sky-100 */
-  box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.12), 0 8px 16px -6px rgba(236, 72, 153, 0.08) !important;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
-}
-
-.experience-kids .bg-white:hover,
-.experience-kids .bg-\[var\(--surface\)\]:hover {
-  transform: translateY(-4px) scale(1.008);
-  border-color: #bae6fd !important;
-  box-shadow: 0 20px 35px -10px rgba(14, 165, 233, 0.22), 0 12px 20px -8px rgba(236, 72, 153, 0.15) !important;
-}
-
-/* Kids mode background adjustments with a stunning pastel gradient */
+/* Bright, calm surfaces keep the experience youthful without feeling toy-like. */
 .experience-kids,
 .experience-kids .bg-\[\#f7f7f7\],
 .experience-kids .bg-\[\#f7f7f7\]\/95 {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%) !important;
+  background-color: var(--bg) !important;
+  background-image: none !important;
 }
 
-/* Kids headings color adjustment for readability and theme matching */
 .experience-kids h1,
 .experience-kids h2,
 .experience-kids h3 {
-  color: #0369a1 !important; /* sky-700 */
+  color: #12483d !important;
 }
 
-/* Large playful button hover effects - cartoon capsule style */
-.experience-kids button.bg-\[var\(--accent\)\],
-.experience-kids button.bg-slate-100,
-.experience-kids button.bg-white,
-.experience-kids button.bg-slate-800,
-.experience-kids button.inline-flex.h-9,
-.experience-kids a.bg-\[var\(--accent\)\] {
-  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important; /* sky-400 to sky-600 */
-  border-radius: 9999px !important; /* capsule */
-  border: 2px solid #ffffff !important;
-  box-shadow: 0 6px 16px 0 rgba(14, 165, 233, 0.35) !important;
+.experience-kids :where(div, section, article, aside, li, a)[class*='border'][class*='bg-white'],
+.experience-kids :where(div, section, article, aside, li, a)[class*='border'][class*='bg-[var(--surface)]'] {
+  border-color: var(--border) !important;
+  box-shadow: 0 8px 22px -18px rgba(18, 72, 61, 0.55);
+}
+
+.experience-kids :is(button, a).bg-\[var\(--accent\)\] {
+  background-color: var(--accent) !important;
   color: #ffffff !important;
   font-weight: 700 !important;
-  transition: all 0.2s ease;
+  box-shadow: 0 5px 12px -8px rgba(8, 112, 95, 0.75);
 }
 
-.experience-kids button.bg-\[var\(--accent\)\]:hover,
-.experience-kids button.bg-slate-100:hover,
-.experience-kids button.bg-white:hover,
-.experience-kids button.bg-slate-800:hover,
-.experience-kids button.inline-flex.h-9:hover,
-.experience-kids a.bg-\[var\(--accent\)\]:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px 0 rgba(14, 165, 233, 0.45) !important;
+.experience-kids :is(button, a).bg-\[var\(--accent\)\]:hover {
+  background-color: #075f52 !important;
 }
 
-.experience-kids button.bg-\[var\(--accent\)\]:active,
-.experience-kids button.bg-slate-100:active,
-.experience-kids button.bg-white:active,
-.experience-kids button.bg-slate-800:active,
-.experience-kids button.inline-flex.h-9:active,
-.experience-kids a.bg-\[var\(--accent\)\]:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 8px 0 rgba(14, 165, 233, 0.3) !important;
+.experience-kids :is(button, a).h-9,
+.experience-kids :is(button, a).h-10 {
+  min-height: 2.75rem;
+}
+
+.experience-kids .text-amber-500,
+.experience-kids .text-amber-600 {
+  color: #b86d23 !important;
 }
 
 /* Reset reader buttons in Kids Mode to prevent capsule overrides on words */
@@ -449,10 +442,25 @@
 .experience-elderly body,
 .experience-elderly main,
 .experience-elderly header,
-.experience-elderly footer,
 .experience-elderly .bg-\[\#f7f7f7\] {
   background-color: var(--bg) !important;
   color: var(--fg) !important;
+}
+
+/* Keep shared site chrome legible against Easy Read's paper surfaces. */
+.experience-elderly footer[data-site-footer] {
+  background-color: #063a32 !important;
+  color: #ffffff !important;
+}
+
+.experience-elderly footer[data-site-footer] h2 {
+  color: #f5c451 !important;
+}
+
+.experience-elderly footer[data-site-footer] p,
+.experience-elderly footer[data-site-footer] a,
+.experience-elderly footer[data-site-footer] li {
+  color: #d9eee8 !important;
 }
 
 /* Force global text scaling */
@@ -495,16 +503,43 @@
 
 /* Enlarge touch targets to avoid misclicks */
 .experience-elderly button,
-.experience-elderly a,
 .experience-elderly input,
-.experience-elderly select {
+.experience-elderly select,
+.experience-elderly a[class*='rounded'] {
   min-height: 3.25rem !important;
   padding-left: 1.5rem !important;
   padding-right: 1.5rem !important;
-  display: inline-flex !important;
+}
+
+/* Enlarged Browse Chapters controls need their own row and protected icon space. */
+.experience-elderly [data-surah-toolbar] {
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
+.experience-elderly [data-surah-toolbar-controls] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.8fr);
   align-items: center !important;
-  justify-content: center !important;
-  gap: 0.5rem !important;
+  width: 100%;
+}
+
+.experience-elderly [data-surah-search] {
+  width: 100% !important;
+}
+
+.experience-elderly [data-surah-search] input {
+  padding-left: 3.5rem !important;
+  padding-right: 1rem !important;
+}
+
+.experience-elderly [data-surah-grid] {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.experience-elderly [data-surah-grid] .font-arabic {
+  font-size: 2rem !important;
+  line-height: 1.55 !important;
 }
 
 /* Don't resurrect intentionally hidden controls (e.g. sheet close) */
@@ -607,12 +642,17 @@
 /* ── Mobile + Easy Read: keep touch targets usable without breaking layout ── */
 @media (max-width: 640px) {
   .experience-elderly button,
-  .experience-elderly a,
   .experience-elderly input,
-  .experience-elderly select {
+  .experience-elderly select,
+  .experience-elderly a[class*='rounded'] {
     min-height: 2.75rem !important;
     padding-left: 0.875rem !important;
     padding-right: 0.875rem !important;
+  }
+
+  .experience-elderly [data-surah-toolbar-controls],
+  .experience-elderly [data-surah-grid] {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .experience-elderly article button {

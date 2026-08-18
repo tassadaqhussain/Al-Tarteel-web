@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bookmark, ChevronRight, Sparkles, Target } from 'lucide-react';
+import { Bookmark, ChevronRight, Settings, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { useT } from '@/lib/i18n';
@@ -31,7 +31,9 @@ export function ContinueReading() {
   return (
     <PageSection>
       <div className="mb-5 flex items-center justify-between gap-2 sm:mb-6">
-        <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">{t('continueReading')}</h2>
+        <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">
+          {lastRead ? t('continueReading') : t('startReading')}
+        </h2>
         <Link
           href="/my-quran"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 transition hover:text-[var(--accent)]"
@@ -59,8 +61,17 @@ export function ContinueReading() {
               {meaning ? ` (${meaning})` : ''}
             </p>
             <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[var(--accent)] transition group-hover:gap-1.5">
-              {t('verse')} {ayahNumber}
-              <ChevronRight className="h-4 w-4" />
+              {lastRead ? (
+                <>
+                  {t('verse')} {ayahNumber}
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  {t('startReading')}
+                  <ChevronRight className="h-4 w-4" />
+                </>
+              )}
             </span>
           </div>
         </Link>
@@ -85,7 +96,7 @@ export function ContinueReading() {
             className="group flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/40 hover:shadow-md sm:gap-4 sm:p-5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 sm:h-12 sm:w-12">
-              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-slate-800">{t('buildQuranExperience')}</p>

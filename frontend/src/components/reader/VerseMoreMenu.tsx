@@ -2,10 +2,14 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
+  BookMarked,
+  BookOpen,
   Check,
   ClipboardCopy,
   Code2,
+  GraduationCap,
   Languages,
+  MessageCircle,
   MessageSquarePlus,
   Pin,
   Repeat2,
@@ -15,6 +19,11 @@ import {
 import { cn } from '@/lib/utils';
 
 export type VerseMoreAction =
+  | 'tafsir'
+  | 'lessons'
+  | 'reflections'
+  | 'hadith'
+  | 'related'
   | 'pin'
   | 'advanced-copy'
   | 'word-by-word'
@@ -37,6 +46,11 @@ const ITEMS: {
   label: string;
   icon: ReactNode;
 }[] = [
+  { id: 'tafsir', label: 'Tafsir', icon: <BookOpen className="h-4 w-4" /> },
+  { id: 'lessons', label: 'Lessons', icon: <GraduationCap className="h-4 w-4" /> },
+  { id: 'reflections', label: 'Reflections', icon: <MessageCircle className="h-4 w-4" /> },
+  { id: 'hadith', label: 'Hadith', icon: <BookMarked className="h-4 w-4" /> },
+  { id: 'related', label: 'Related content', icon: <BookMarked className="h-4 w-4" /> },
   { id: 'pin', label: 'Pin & compare', icon: <Pin className="h-4 w-4" /> },
   { id: 'advanced-copy', label: 'Advanced Copy', icon: <ClipboardCopy className="h-4 w-4" /> },
   { id: 'word-by-word', label: 'Word By Word', icon: <Search className="h-4 w-4" /> },

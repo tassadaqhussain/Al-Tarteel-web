@@ -10,6 +10,7 @@ import { useDailyMotivationStore } from '@/stores/dailyMotivationStore';
 import { cn } from '@/lib/utils';
 
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
+import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 
 export { SURAH_PAGE_SIZE };
 
@@ -48,6 +49,9 @@ export function SurahAyahFeed({
   const isPlaying = useAudioStore((s) => s.isPlaying);
   const current = useAudioStore((s) => s.playlist[s.currentIndex] ?? null);
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
+  const translationSlugs = useSettingsStore((s) => s.translationSlugs);
+  const requestedTranslations =
+    translationSlugs.length > 0 ? translationSlugs.join(',') : translations || DEFAULT_TRANSLATION;
 
   useEffect(() => {
     setAyahs(initialAyahs);
@@ -56,6 +60,36 @@ export function SurahAyahFeed({
     ayahsRef.current = initialAyahs;
     setError(null);
   }, [initialAyahs, initialPage, surahNumber, translations]);
+
+  useEffect(() => {
+    const missing = initialAyahs.some((ayah) => !ayah.translations?.some((item) => item.text?.trim()));
+    if (!missing) return;
+    let cancelled = false;
+    void quranApi
+      .ayahsBySurah(surahNumber, {
+        page: initialPage,
+        limit: SURAH_PAGE_SIZE,
+        translations: requestedTranslations,
+        words: true,
+      })
+      .then((batch) => {
+        if (cancelled || !Array.isArray(batch) || !batch.length) return;
+        setAyahs((prev) => {
+          if (prev.length > batch.length) {
+            const byId = new Map(batch.map((ayah) => [ayah.id, ayah]));
+            return prev.map((ayah) => byId.get(ayah.id) ?? ayah);
+          }
+          ayahsRef.current = batch;
+          return batch;
+        });
+      })
+      .catch(() => {
+        /* keep SSR ayahs */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialAyahs, initialPage, requestedTranslations, surahNumber]);
 
   useEffect(() => {
     pageRef.current = page;
@@ -99,7 +133,7 @@ export function SurahAyahFeed({
           const batch = await quranApi.ayahsBySurah(surahNumber, {
             page: p,
             limit: SURAH_PAGE_SIZE,
-            translations,
+            translations: requestedTranslations,
             words: true,
           });
           const list = Array.isArray(batch) ? batch : [];
@@ -125,7 +159,7 @@ export function SurahAyahFeed({
         setLoading(false);
       }
     },
-    [surahNumber, syncUrlPage, totalPages, translations]
+    [surahNumber, syncUrlPage, totalPages, requestedTranslations]
   );
 
   const loadNext = useCallback(() => {
@@ -202,11 +236,12 @@ export function SurahAyahFeed({
       <div
         ref={feedRef}
         className={cn(
-          readerViewMode === 'verse' && 'divide-y divide-slate-200 border-t border-slate-200',
+          readerViewMode === 'verse' &&
+            'divide-y divide-slate-200 border-y border-slate-200 bg-white px-4 sm:px-6',
           readerViewMode === 'arabic' &&
-            'arabic-mushaf-feed rounded-2xl bg-white px-3 py-8 text-center shadow-sm sm:px-8 sm:py-10',
+            'arabic-mushaf-feed rounded-[4px] bg-white px-3 py-8 text-center shadow-sm sm:px-8 sm:py-10',
           readerViewMode === 'translation' &&
-            'space-y-1 rounded-2xl bg-white px-3 py-4 shadow-sm sm:px-6'
+            'space-y-1 rounded-[4px] bg-white px-3 py-4 shadow-sm sm:px-6'
         )}
       >
         {ayahs.map((ayah) => (
@@ -230,7 +265,7 @@ export function SurahAyahFeed({
             <button
               type="button"
               onClick={loadNext}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              className="rounded-[4px] border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
               Load more verses
             </button>

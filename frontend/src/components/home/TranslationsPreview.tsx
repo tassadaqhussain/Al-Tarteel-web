@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Play,
@@ -13,13 +13,21 @@ import {
 } from 'lucide-react';
 import { audioApi, quranApi, type AyahWithRelations, type Surah } from '@/lib/api';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
+import {
+  ayahPreviewUi,
+  normalizeAyahList,
+  PREVIEW_AYAHS,
+  PREVIEW_FETCH_LIMIT,
+  translationAttribution,
+  type PreviewAyah,
+} from '@/lib/quran/ayah-preview';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
+import { SITE_SHELL } from '@/components/layout/MainContainer';
 
 const PREVIEW_COUNT = 6;
-const PREVIEW_AYAHS = 5;
 const PREFERRED_RECITER = 'alafasy';
 const DEFAULT_RECITER_NAME = 'Mishary Rashid Alafasy';
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
@@ -63,7 +71,17 @@ function translationText(ayah: AyahWithRelations) {
   return preferred?.trim() || '';
 }
 
-export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
+type Props = {
+  surahs?: Surah[];
+  initialSurahNumber?: number;
+  initialAyahs?: PreviewAyah[];
+};
+
+export function TranslationsPreview({
+  surahs = [],
+  initialSurahNumber,
+  initialAyahs = [],
+}: Props) {
   const list = useMemo(() => {
     const source = surahs.length > 0 ? surahs : FALLBACK_SURAHS;
     return source.slice(0, PREVIEW_COUNT).map((s) => ({
@@ -72,9 +90,17 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
     }));
   }, [surahs]);
 
-  const [activeSurah, setActiveSurah] = useState(list[0]?.number ?? 1);
-  const [ayahs, setAyahs] = useState<AyahWithRelations[]>([]);
-  const [loadingText, setLoadingText] = useState(false);
+  const seededAyahs = useMemo(
+    () => normalizeAyahList(initialAyahs) as AyahWithRelations[],
+    [initialAyahs],
+  );
+  const defaultSurah = initialSurahNumber ?? list[0]?.number ?? 1;
+
+  const [activeSurah, setActiveSurah] = useState(defaultSurah);
+  const [ayahs, setAyahs] = useState<AyahWithRelations[]>(
+    seededAyahs.length > 0 ? seededAyahs : [],
+  );
+  const [loadingText, setLoadingText] = useState(seededAyahs.length === 0);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [reciterName, setReciterName] = useState(DEFAULT_RECITER_NAME);
   const [error, setError] = useState<string | null>(null);
@@ -112,32 +138,46 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
     if (ayahs.length <= PREVIEW_AYAHS + 2) return ayahs;
     return ayahs.slice(0, PREVIEW_AYAHS);
   }, [ayahs]);
+  const previewUi = ayahPreviewUi({ loading: loadingText, ayahs: previewAyahs });
+  const translatorLabel =
+    translationAttribution(previewAyahs) ?? 'Saheeh International';
 
-  useEffect(() => {
-    let cancelled = false;
+  const ayahCache = useRef<Record<number, AyahWithRelations[]>>(
+    seededAyahs.length > 0 ? { [defaultSurah]: seededAyahs } : {},
+  );
+
+  const loadAyahs = useCallback(async (surahNumber: number, force = false) => {
+    const cached = ayahCache.current[surahNumber];
+    if (!force && cached?.length) {
+      setAyahs(cached);
+      setLoadingText(false);
+      setError(null);
+      return;
+    }
     setLoadingText(true);
     setError(null);
-    quranApi
-      .ayahsBySurah(activeSurah, {
+    try {
+      const rows = await quranApi.ayahsBySurah(surahNumber, {
         translations: DEFAULT_TRANSLATION,
-        limit: Math.max(PREVIEW_AYAHS + 2, 12),
-      })
-      .then((rows) => {
-        if (!cancelled) setAyahs(Array.isArray(rows) ? rows : []);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAyahs([]);
-          setError('Could not load verses for this chapter.');
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingText(false);
+        limit: PREVIEW_FETCH_LIMIT,
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeSurah]);
+      const next = normalizeAyahList(rows) as AyahWithRelations[];
+      if (next.length > 0) ayahCache.current[surahNumber] = next;
+      setAyahs(next);
+      if (next.length === 0) {
+        setError('Could not load verses for this chapter.');
+      }
+    } catch {
+      setAyahs([]);
+      setError('Could not load verses for this chapter.');
+    } finally {
+      setLoadingText(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadAyahs(activeSurah);
+  }, [activeSurah, loadAyahs]);
 
   useEffect(() => {
     const el = document.querySelector('audio');
@@ -241,10 +281,10 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
     : 'Recitation - Verse 1';
 
   return (
-    <section className="w-full bg-[#f4fbf9] px-4 py-16 md:px-6">
-      <div className="mx-auto max-w-[1200px]">
+    <section className="w-full bg-[#f4fbf9] py-16 2xl:py-20">
+      <div className={SITE_SHELL}>
         <div className="mb-10 text-center lg:text-left">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl 2xl:text-5xl">
             Hear the Quran <br className="sm:hidden" />
             <span className="text-emerald-800">accompanied by translations.</span>
           </h2>
@@ -312,7 +352,7 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
                   <h3 className="text-lg font-bold text-slate-900">
                     {activeMeta?.nameSimple ?? 'Surah'}
                   </h3>
-                  <p className="text-xs text-slate-400">English - Sahih International</p>
+                  <p className="text-xs text-slate-400">English — {translatorLabel}</p>
                 </div>
                 <Link
                   href={getSurahPath(activeSurah)}
@@ -323,12 +363,29 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
               </div>
 
               <div className="my-auto flex min-h-[200px] flex-col items-center justify-center py-4 text-center">
-                {loadingText ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-emerald-800" />
-                ) : previewAyahs.length === 0 ? (
-                  <p className="text-sm text-slate-500">
-                    {error || 'No verses available for this chapter yet.'}
-                  </p>
+                {previewUi === 'loading' ? (
+                  <VersePreviewSkeleton />
+                ) : previewUi === 'retry' ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm text-slate-500">
+                      {error || 'Could not load verses for this chapter.'}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void loadAyahs(activeSurah, true)}
+                        className="rounded-full bg-emerald-800 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-900"
+                      >
+                        Try again
+                      </button>
+                      <Link
+                        href={getSurahPath(activeSurah)}
+                        className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-800/20"
+                      >
+                        Open reader
+                      </Link>
+                    </div>
+                  </div>
                 ) : (
                   <div className="w-full max-w-xl space-y-6">
                     {previewAyahs.map((ayah) => {
@@ -337,14 +394,14 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
                         isThisSurah && current?.ayahNumber === ayah.number;
                       return (
                         <div
-                          key={ayah.id}
+                          key={ayah.id ?? ayah.number}
                           className={cn(
                             'rounded-2xl px-2 py-1 transition',
                             isActiveVerse && 'bg-emerald-800/5'
                           )}
                         >
                           <p
-                            className="font-arabic text-2xl leading-loose text-slate-800"
+                            className="font-arabic text-2xl leading-loose text-slate-800 2xl:text-3xl"
                             dir="rtl"
                             lang="ar"
                           >
@@ -452,7 +509,7 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
                 </div>
               </div>
 
-              {error && !loadingText && (
+              {error && previewUi === 'ready' && (
                 <p className="mt-3 text-center text-xs text-red-600" role="alert">
                   {error}
                 </p>
@@ -462,5 +519,19 @@ export function TranslationsPreview({ surahs = [] }: { surahs?: Surah[] }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function VersePreviewSkeleton() {
+  return (
+    <div className="w-full max-w-xl space-y-6" aria-busy="true" aria-label="Loading verses">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="space-y-3">
+          <div className="ml-auto h-7 w-4/5 animate-pulse rounded-full bg-slate-100" />
+          <div className="ml-auto h-7 w-3/5 animate-pulse rounded-full bg-slate-100" />
+          <div className="mx-auto h-3 w-2/3 animate-pulse rounded-full bg-slate-100" />
+        </div>
+      ))}
+    </div>
   );
 }

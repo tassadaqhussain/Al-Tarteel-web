@@ -16,10 +16,15 @@ function resolveReciterSlug(): string {
 
 function cachePartsFor(item: AudioAyahRef) {
   return {
-    reciterSlug: resolveReciterSlug(),
+    reciterSlug: item.reciterSlug || resolveReciterSlug(),
     surahNumber: item.surahNumber,
     ayahNumber: item.ayahNumber,
-  } as const;
+    audioType: item.trackKind === 'translation' ? 'translation' as const : 'arabic' as const,
+  };
+}
+
+function trackKey(item: AudioAyahRef) {
+  return `${item.ayahId}:${item.trackKind ?? 'arabic'}:${item.url}`;
 }
 
 function cacheKeyFor(item: AudioAyahRef): string {
@@ -29,7 +34,7 @@ function cacheKeyFor(item: AudioAyahRef): string {
 export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSurahRef = useRef<number | null>(null);
-  const loadedAyahIdRef = useRef<number | null>(null);
+  const loadedTrackRef = useRef<string | null>(null);
 
   const {
     playlist,
@@ -66,14 +71,14 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       if (!el) return;
       if (!item?.url) {
         el.removeAttribute('src');
-        loadedAyahIdRef.current = null;
+        loadedTrackRef.current = null;
         setCurrentTime(0);
         setDuration(0);
         return;
       }
 
-      // Same ayah already loaded — do not reset src (avoids restart on rate-only updates).
-      if (loadedAyahIdRef.current === item.ayahId && el.getAttribute('src')) {
+      // Same track already loaded — do not reset src (avoids restart on rate-only updates).
+      if (loadedTrackRef.current === trackKey(item) && el.getAttribute('src')) {
         el.playbackRate = playbackRate;
         setLastAyah(item.surahNumber, item.ayahNumber);
         return;
@@ -85,7 +90,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       setCurrentTime(0);
       setDuration(item.duration ?? 0);
       el.src = src;
-      loadedAyahIdRef.current = item.ayahId;
+      loadedTrackRef.current = trackKey(item);
       el.playbackRate = playbackRate;
       setLastAyah(item.surahNumber, item.ayahNumber);
     },
@@ -99,12 +104,12 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     if (prev != null && surah != null && prev !== surah) {
       temporaryAudioCache.cancelPending();
       temporaryAudioCache.clearSurah(prev);
-      loadedAyahIdRef.current = null;
+      loadedTrackRef.current = null;
     }
     if (playlist.length === 0) {
       temporaryAudioCache.clearSession();
       lastSurahRef.current = null;
-      loadedAyahIdRef.current = null;
+      loadedTrackRef.current = null;
       return;
     }
     lastSurahRef.current = surah;
@@ -113,7 +118,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     load(current);
     if (current) preloadAhead(currentIndex);
-  }, [current?.ayahId, current?.url, currentIndex, load, preloadAhead, current]);
+  }, [current?.ayahId, current?.url, current?.trackKind, currentIndex, load, preloadAhead, current]);
 
   // Warm current ayah into cache (does not swap mid-play; next advance benefits).
   useEffect(() => {
@@ -130,7 +135,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     } else {
       el.pause();
     }
-  }, [isPlaying, current?.ayahId, setPlaying]);
+  }, [isPlaying, current?.ayahId, current?.url, current?.trackKind, setPlaying]);
 
   useEffect(() => {
     const el = audioRef.current;

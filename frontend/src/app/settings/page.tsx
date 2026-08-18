@@ -24,6 +24,7 @@ import { TranslationSheet } from '@/components/reader/TranslationSheet';
 import { useSettingsStore, type FontSize, type MushafType, type ReadingMode } from '@/stores/settingsStore';
 import { useTheme } from '@/components/ThemeProvider';
 import { quranApi, audioApi, type TafsirSource, type Reciter, type Translator } from '@/lib/api';
+import { catalogTranslationReciters } from '@/lib/audio/translation-reciters';
 import { cn } from '@/lib/utils';
 
 // ── Section wrapper ────────────────────────────────────────────────────────────
@@ -129,6 +130,8 @@ export default function SettingsPage() {
     setTafsirSlug,
     reciterSlug,
     setReciterSlug,
+    translationReciterSlug,
+    setTranslationReciterSlug,
   } = useSettingsStore();
 
   const [translators, setTranslators] = useState<Translator[]>([]);
@@ -150,14 +153,20 @@ export default function SettingsPage() {
         setTafsirError('Could not load tafsir sources. Check your connection and try again.');
       })
       .finally(() => setTafsirLoading(false));
-    audioApi.reciters().then(setReciters).catch(() => {});
+    audioApi.reciters().then((data) => {
+      const list = Array.isArray(data) ? data : [];
+      const hasTranslations = list.some((item) => item.kind === 'translation');
+      setReciters(hasTranslations ? list : [...list, ...catalogTranslationReciters()]);
+    }).catch(() => setReciters(catalogTranslationReciters()));
   }, []);
 
   const activeTranslators = translationSlugs
     .map((slug) => translators.find((t) => t.slug === slug))
     .filter(Boolean) as Translator[];
 
-  const activeReciter = reciters.find((r) => r.slug === reciterSlug);
+  const arabicReciters = reciters.filter((r) => r.kind !== 'translation');
+  const translationReciters = reciters.filter((r) => r.kind === 'translation');
+  const activeReciter = arabicReciters.find((r) => r.slug === reciterSlug);
   const activeTafsir = tafsirSources.find((s) => s.slug === tafsirSlug);
 
   return (
@@ -364,7 +373,7 @@ export default function SettingsPage() {
               <div className="px-5 py-4">
                 <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Available Reciters</p>
                 <div className="space-y-1">
-                  {reciters.map((r) => (
+                  {arabicReciters.map((r) => (
                     <button
                       key={r.slug}
                       type="button"
@@ -383,6 +392,48 @@ export default function SettingsPage() {
                         )}
                       </div>
                       {r.slug === reciterSlug && (
+                        <Check className="h-4 w-4 text-[var(--accent)]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="border-t border-[var(--border)] px-5 py-4">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Voice translation</p>
+                <p className="mb-3 text-xs text-[var(--muted)]">Plays after each Arabic verse when selected.</p>
+                <div className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => setTranslationReciterSlug(null)}
+                    className={cn(
+                      'flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors hover:bg-[var(--ayah-highlight)]',
+                      !translationReciterSlug && 'bg-[var(--accent)]/5'
+                    )}
+                  >
+                    <p className={cn('font-medium', !translationReciterSlug ? 'text-[var(--accent)]' : 'text-[var(--fg)]')}>
+                      Off — Arabic only
+                    </p>
+                    {!translationReciterSlug && <Check className="h-4 w-4 text-[var(--accent)]" />}
+                  </button>
+                  {translationReciters.map((r) => (
+                    <button
+                      key={r.slug}
+                      type="button"
+                      onClick={() => setTranslationReciterSlug(r.slug === translationReciterSlug ? null : r.slug)}
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition-colors hover:bg-[var(--ayah-highlight)]',
+                        r.slug === translationReciterSlug && 'bg-[var(--accent)]/5'
+                      )}
+                    >
+                      <div>
+                        <p className={cn('font-medium', r.slug === translationReciterSlug ? 'text-[var(--accent)]' : 'text-[var(--fg)]')}>
+                          {r.name}
+                        </p>
+                        <p className="mt-0.5 text-xs text-[var(--muted)]">
+                          {r.languageName}{r.style ? ` · ${r.style}` : ''}
+                        </p>
+                      </div>
+                      {r.slug === translationReciterSlug && (
                         <Check className="h-4 w-4 text-[var(--accent)]" />
                       )}
                     </button>

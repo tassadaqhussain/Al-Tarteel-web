@@ -47,7 +47,9 @@ export function AudioBar() {
     setReciterOpen,
     activeReciter,
     activeReciterName,
+    translationReciterSlug,
     changeReciter,
+    changeTranslationReciter,
   } = useReciterPicker();
   const [expanded, setExpanded] = useState(false);
 
@@ -103,14 +105,14 @@ export function AudioBar() {
   return (
     <footer
       ref={footerRef}
-      className="fixed bottom-0 left-0 right-0 z-[60] border-t border-[var(--border)] bg-[var(--bg)]/98 backdrop-blur-md safe-area-pb"
+      className="fixed bottom-0 left-0 right-0 z-[60] border-t border-slate-200 bg-white safe-area-pb"
       role="region"
       aria-label="Audio player"
     >
       {/* Full-width progress bar */}
-      <div className="relative h-1 w-full cursor-pointer bg-[var(--border)]">
+      <div className="relative h-1 w-full cursor-pointer bg-slate-200">
         <div
-          className="absolute left-0 top-0 h-full bg-[var(--accent)] transition-all duration-100"
+          className="absolute left-0 top-0 h-full bg-emerald-800 transition-all duration-100"
           style={{ width: `${progress}%` }}
         />
         <input
@@ -124,130 +126,135 @@ export function AudioBar() {
         />
       </div>
 
-      <div className="mx-auto max-w-4xl px-3 sm:px-4">
-        {/* Main row */}
-        <div className="flex items-center gap-2 py-2.5 sm:gap-3 sm:py-3">
-          <button
-            type="button"
-            onClick={prev}
-            disabled={currentIndex <= 0}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--fg)] disabled:opacity-30 hover:bg-[var(--ayah-highlight)] transition-colors"
-            aria-label="Previous verse"
-          >
-            <SkipBack className="h-4 w-4" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setPlaying(!isPlaying)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-md hover:opacity-90 transition-opacity"
-            aria-label={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying
-              ? <Pause className="h-5 w-5" />
-              : <Play className="h-5 w-5 translate-x-0.5" />}
-          </button>
-
-          <button
-            type="button"
-            onClick={next}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors"
-            aria-label="Next verse"
-          >
-            <SkipForward className="h-4 w-4" />
-          </button>
-
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-[var(--fg)]">
-              {current ? `Surah ${current.surahNumber} · ${current.ayahNumber}` : '—'}
-            </p>
-            <p className="text-xs text-[var(--muted)]">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </p>
-            {playbackNotice && (
-              <p className="mt-0.5 truncate text-xs font-medium text-amber-700 dark:text-amber-300" role="status">
-                {playbackNotice}
-              </p>
-            )}
-          </div>
-
-          {/* Mobile expand toggle */}
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--ayah-highlight)] md:hidden"
-            aria-label={expanded ? 'Collapse player' : 'Expand player'}
-          >
-            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-          </button>
-
-          {/* Desktop secondary controls */}
-          <div className="hidden items-center gap-2 md:flex">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
             <button
               type="button"
-              onClick={() => setContinuous(!continuous)}
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                continuous
-                  ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                  : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)]'
+              onClick={prev}
+              disabled={currentIndex <= 0}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-800 transition-colors hover:bg-slate-100 disabled:opacity-30"
+              aria-label="Previous verse"
+            >
+              <SkipBack className="h-4 w-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPlaying(!isPlaying)}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-sm transition-opacity hover:bg-emerald-900"
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? (
+                <Pause className="h-5 w-5" />
+              ) : (
+                <Play className="h-5 w-5 translate-x-0.5" />
               )}
-              aria-label={continuous ? 'Disable loop' : 'Enable loop'}
-              aria-pressed={continuous}
-            >
-              <Repeat className="h-4 w-4" />
             </button>
-
-            <select
-              value={playbackRate}
-              onChange={(e) => setPlaybackRate(Number(e.target.value))}
-              className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-xs text-[var(--fg)] hover:border-[var(--accent)] focus:outline-none"
-              aria-label="Playback speed"
-            >
-              {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
-                <option key={r} value={r}>{r}×</option>
-              ))}
-            </select>
-
-            {/* Reciter selector */}
-            <button
-              type="button"
-              onClick={() => setReciterOpen(true)}
-              className="flex max-w-[160px] items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--fg)] hover:border-[var(--accent)] transition-colors"
-              aria-label="Change reciter"
-            >
-              <Mic2 className="h-3 w-3 shrink-0 text-[var(--muted)]" />
-              <span className="truncate">{activeReciterName}</span>
-            </button>
-            <ReciterSheet
-              open={reciterOpen}
-              onOpenChange={setReciterOpen}
-              selectedSlug={activeReciter}
-              onSelect={(slug) => { void changeReciter(slug); }}
-            />
 
             <button
               type="button"
-              onClick={reset}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)] transition-colors"
-              aria-label="Close player"
+              onClick={next}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-800 transition-colors hover:bg-slate-100"
+              aria-label="Next verse"
             >
-              <X className="h-4 w-4" />
+              <SkipForward className="h-4 w-4" />
             </button>
-          </div>
-        </div>
 
-        {/* Mobile expanded controls */}
+            <div className="min-w-0 px-1">
+              <p className="truncate text-sm font-medium text-slate-900">
+                {current ? `Surah ${current.surahNumber} · ${current.ayahNumber}` : '—'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {current?.trackKind === 'translation' ? 'Translation' : formatTime(currentTime)}
+                {current?.trackKind === 'translation' ? ` · ${formatTime(currentTime)}` : ''} / {formatTime(duration)}
+              </p>
+              {playbackNotice && (
+                <p className="mt-0.5 truncate text-xs font-medium text-amber-800" role="status">
+                  {playbackNotice}
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
+              aria-label={expanded ? 'Collapse player' : 'Expand player'}
+            >
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            </button>
+
+            <div className="hidden items-center gap-2 md:flex">
+              <button
+                type="button"
+                onClick={() => setContinuous(!continuous)}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                  continuous
+                    ? 'bg-emerald-50 text-emerald-800'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                )}
+                aria-label={continuous ? 'Disable loop' : 'Enable loop'}
+                aria-pressed={continuous}
+              >
+                <Repeat className="h-4 w-4" />
+              </button>
+
+              <select
+                value={playbackRate}
+                onChange={(e) => setPlaybackRate(Number(e.target.value))}
+                className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-800 hover:border-slate-400 focus:outline-none"
+                aria-label="Playback speed"
+              >
+                {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
+                  <option key={r} value={r}>
+                    {r}×
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={() => setReciterOpen(true)}
+                className="flex max-w-[10rem] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:border-slate-400"
+                aria-label="Change reciter"
+              >
+                <Mic2 className="h-3 w-3 shrink-0 text-slate-500" />
+                <span className="truncate">{activeReciterName || 'Reciter'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={reset}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                aria-label="Close player"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+      </div>
+      <ReciterSheet
+        open={reciterOpen}
+        onOpenChange={setReciterOpen}
+        selectedSlug={activeReciter}
+        onSelect={(slug) => {
+          void changeReciter(slug);
+        }}
+        selectedTranslationSlug={translationReciterSlug}
+        onSelectTranslation={(slug) => {
+          void changeTranslationReciter(slug);
+        }}
+      />
+
         {expanded && (
-          <div className="flex flex-wrap items-center gap-3 border-t border-[var(--border)] py-3 md:hidden">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 border-t border-slate-200 px-3 py-3 md:hidden">
             <button
               type="button"
               onClick={() => setContinuous(!continuous)}
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                 continuous
-                  ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                  : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)]'
+                  ? 'bg-emerald-50 text-emerald-800'
+                  : 'text-slate-600 hover:bg-slate-100'
               )}
               aria-pressed={continuous}
             >
@@ -258,7 +265,7 @@ export function AudioBar() {
             <select
               value={playbackRate}
               onChange={(e) => setPlaybackRate(Number(e.target.value))}
-              className="rounded-lg border border-[var(--border)] bg-transparent px-2 py-1.5 text-xs text-[var(--fg)]"
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-800"
               aria-label="Playback speed"
             >
               {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
@@ -269,23 +276,22 @@ export function AudioBar() {
             <button
               type="button"
               onClick={() => setReciterOpen(true)}
-              className="flex-1 truncate rounded-lg border border-[var(--border)] px-2 py-1.5 text-left text-xs text-[var(--fg)]"
+              className="flex-1 truncate rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-left text-xs font-medium text-slate-800"
               aria-label="Reciter"
             >
-              {activeReciterName}
+              {activeReciterName || 'Reciter'}
             </button>
 
             <button
               type="button"
               onClick={reset}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--muted)] hover:bg-[var(--ayah-highlight)]"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
               aria-label="Close player"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
         )}
-      </div>
     </footer>
   );
 }

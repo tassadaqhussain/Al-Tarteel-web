@@ -1,7 +1,7 @@
 'use client';
 
 import { useSettingsStore, type ExperienceMode } from '@/stores/settingsStore';
-import { Smile, User, Eye, Check } from 'lucide-react';
+import { Monitor, Compass, Eye, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -18,30 +18,30 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
     value: ExperienceMode;
     label: string;
     description: string;
-    icon: typeof User;
+    icon: typeof Monitor;
     color: string;
     bgColor: string;
   }[] = [
     {
       value: 'default',
-      label: 'Standard Modern',
-      description: 'Elegant UI with default fonts, sleek spacing, and dynamic modes.',
-      icon: User,
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bgColor: 'bg-indigo-50 dark:bg-indigo-950/30',
+      label: 'Standard',
+      description: 'Balanced typography, focused spacing, and a calm reading experience.',
+      icon: Monitor,
+      color: 'text-emerald-800 dark:text-emerald-300',
+      bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
     },
     {
       value: 'kids',
-      label: 'Playful Kids Mode',
-      description: 'Friendly rounded font, warm pastel tones, bubbly cards, and big buttons.',
-      icon: Smile,
-      color: 'text-pink-500',
-      bgColor: 'bg-pink-50 dark:bg-pink-950/30',
+      label: 'Kids Explorer',
+      description: 'Friendly type, lively accents, clear labels, and comfortable touch targets.',
+      icon: Compass,
+      color: 'text-amber-700 dark:text-amber-300',
+      bgColor: 'bg-amber-50 dark:bg-amber-950/30',
     },
     {
       value: 'elderly',
-      label: 'Easy Read (Elderly)',
-      description: 'Max text sizes, extra-large touch buttons, and warm high-contrast paper view.',
+      label: 'Easy Read',
+      description: 'Larger text, generous controls, and a warm high-contrast reading view.',
       icon: Eye,
       color: 'text-emerald-600 dark:text-emerald-400',
       bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
@@ -62,14 +62,14 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
                 onSelect?.();
               }}
               className={cn(
-                'flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition-all duration-150 sm:items-center sm:justify-between sm:px-4',
+                'flex w-full items-start gap-3 rounded border px-3 py-3 text-left transition-all duration-150 sm:items-center sm:justify-between sm:px-4',
                 active
                   ? 'border-[var(--accent)] bg-[var(--accent)]/5'
                   : 'border-[var(--border)] bg-transparent hover:bg-slate-50 dark:hover:bg-slate-900/50'
               )}
             >
               <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
-                <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', opt.bgColor, opt.color)}>
+                <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded', opt.bgColor, opt.color)}>
                   <opt.icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -101,7 +101,7 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
                 onSelect?.();
               }}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-slate-900/40',
+                'flex items-center gap-3 rounded px-3 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-slate-900/40',
                 active ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold' : 'text-slate-700 dark:text-slate-300'
               )}
             >
@@ -130,14 +130,14 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
               onSelect?.();
             }}
             className={cn(
-              'group relative flex flex-col justify-between rounded-2xl border bg-white p-5 text-left transition-all duration-200 shadow-sm hover:shadow-md dark:bg-slate-900',
+              'group relative flex flex-col justify-between rounded border bg-white p-5 text-left transition-all duration-200 shadow-sm hover:shadow-md dark:bg-slate-900',
               active
                 ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/10'
                 : 'border-[var(--border)] hover:border-slate-300 dark:hover:border-slate-700'
             )}
           >
             <div>
-              <div className={cn('mb-4 flex h-11 w-11 items-center justify-center rounded-xl transition-colors', opt.bgColor, opt.color)}>
+              <div className={cn('mb-4 flex h-11 w-11 items-center justify-center rounded transition-colors', opt.bgColor, opt.color)}>
                 <opt.icon className="h-6 w-6" />
               </div>
               <h3 className={cn('text-base font-bold transition-colors', active ? 'text-[var(--accent)]' : 'text-slate-900 dark:text-white')}>

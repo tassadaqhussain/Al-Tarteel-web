@@ -35,6 +35,7 @@ import { SearchDrawer } from '@/components/SearchDrawer';
 import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 import { loginHref, registerHref } from '@/lib/auth-redirect';
 import { useT } from '@/lib/i18n';
+import { CHROME_SHELL } from '@/components/layout/MainContainer';
 
 type SpeechRecognitionCtor = new () => {
   lang: string;
@@ -135,13 +136,15 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
-        <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-3 px-4 sm:h-[57px] sm:px-6">
+      <header className="sticky top-0 z-50 w-full border-b border-emerald-950/10 bg-white/88 shadow-sm shadow-slate-900/[0.03] backdrop-blur-xl supports-[backdrop-filter]:bg-white/82">
+        <div className={cn(CHROME_SHELL, 'flex h-14 items-center justify-between gap-3 sm:h-[58px]')}>
           <Link
             href="/"
-            className="flex items-center gap-2.5 font-serif text-[1.35rem] font-bold tracking-tight text-slate-900 sm:text-2xl"
+            className="flex items-center gap-2.5 font-serif text-[1.35rem] font-bold tracking-tight text-slate-950 sm:text-[1.7rem]"
           >
-            <SiteLogo size={28} className="h-7 w-7" priority alt="QuranPilot" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-900/10 bg-[#f7f4ea] shadow-sm">
+              <SiteLogo size={30} className="h-7 w-7" priority alt="QuranPilot" />
+            </span>
             <span className="truncate">QuranPilot</span>
           </Link>
 
@@ -150,13 +153,13 @@ export function Header() {
               <>
                 <Link
                   href={loginHref(pathname)}
-                  className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--accent)] px-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4"
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-emerald-900/30 bg-white px-3 text-sm font-bold text-emerald-900 transition hover:bg-emerald-900 hover:text-white sm:px-5"
                 >
                   {t('signIn')}
                 </Link>
                 <Link
                   href={registerHref(pathname)}
-                  className="hidden h-9 items-center justify-center rounded-full bg-[var(--accent)] px-3 text-sm font-semibold text-white transition hover:opacity-90 sm:inline-flex"
+                  className="hidden h-10 items-center justify-center rounded-full bg-emerald-900 px-5 text-sm font-bold text-white shadow-lg shadow-emerald-950/10 transition hover:bg-emerald-950 sm:inline-flex"
                 >
                   {t('createAccount')}
                 </Link>

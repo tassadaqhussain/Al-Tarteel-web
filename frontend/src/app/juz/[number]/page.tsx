@@ -83,12 +83,12 @@ export default async function JuzPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pb-32">
+    <div className="min-h-screen bg-[#f7f7f7] pb-32 text-slate-900">
       <Header />
 
       {/* Sub-header */}
       <div className="relative sticky top-14 z-40 border-b border-slate-200 bg-white/95 backdrop-blur sm:top-[57px]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />
             Home
@@ -118,7 +118,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
       <CompareVerseModal />
       <CleanTranslationUrl />
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
         <Breadcrumbs
           items={[
             { name: 'Home', path: '/' },
@@ -132,8 +132,8 @@ export default async function JuzPage({ params, searchParams }: Props) {
 
         {/* Juz heading */}
         <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm">
-          <h1 className="font-arabic text-4xl font-bold text-[var(--fg)]">الجزء {juzNumber}</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">
+          <h1 className="font-arabic text-4xl font-bold text-slate-900">الجزء {juzNumber}</h1>
+          <p className="mt-2 text-sm text-slate-600">
             Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
           </p>
         </div>

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { BookOpen, Mic, Search, TrendingUp, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { quranApi } from '@/lib/api';
-import { getSurahPath } from '@/lib/surah-meta';
-import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
+import { getSurahHref, getSurahPath } from '@/lib/surah-meta';
+import { parseQuranPageSearch, resolveDirectSearchHref } from '@/lib/search-navigation';
 
 import { useVoiceSearch } from '@/hooks/useVoiceSearch';
 import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
@@ -48,7 +48,28 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
 
     onOpenChange(false);
 
-    // Try unified intent parser first
+    const directHref = resolveDirectSearchHref(q);
+    if (directHref) return navigate(directHref);
+
+    const pageNumber = parseQuranPageSearch(q);
+    if (pageNumber) {
+      try {
+        const ayahs = await quranApi.ayahsByPage(pageNumber, { limit: 1 });
+        const first = ayahs[0];
+        if (first?.surah?.number && first.number) {
+          return navigate(
+            getSurahHref(first.surah.number, {
+              ayahId: first.id,
+              ayahNumber: first.number,
+            })
+          );
+        }
+      } catch {
+        // Fall through to the search results page when the Quran API is unavailable.
+      }
+    }
+
+    // Try unified app commands before falling back to a translation search.
     const intent = parseVoiceIntent(q);
     const executed = executeVoiceCommand({
       intent,
@@ -56,24 +77,6 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
     });
 
     if (executed) return;
-
-    const juz = q.match(/^juz\s*(\d{1,2})$/i);
-    if (juz) {
-      const number = Number(juz[1]);
-      if (number >= 1 && number <= 30) return navigate(`/juz/${number}`);
-    }
-
-    const page = q.match(/^page\s*(\d{1,3})$/i);
-    if (page) {
-      const number = Number(page[1]);
-      if (number >= 1 && number <= 604) {
-        try {
-          const ayahs = await quranApi.ayahsByPage(number, { limit: 1 });
-          const first = ayahs[0];
-          if (first?.surah?.number) return navigate(getSurahPath(first.surah.number));
-        } catch {}
-      }
-    }
 
     navigate(`/search?q=${encodeURIComponent(q)}`);
   };
@@ -96,7 +99,14 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
       >
         <SheetTitle className="sr-only">Search the Quran</SheetTitle>
         <form onSubmit={onSubmit} className="flex h-[88px] items-center gap-4 border-b border-slate-200 px-6">
-          <Search className="h-7 w-7 shrink-0 text-slate-600" />
+          <button
+            type="submit"
+            className="rounded-full p-2 text-emerald-900 transition hover:bg-emerald-50"
+            aria-label="Run search"
+            title="Run search"
+          >
+            <Search className="h-6 w-6" />
+          </button>
           <input
             ref={inputRef}
             type="search"

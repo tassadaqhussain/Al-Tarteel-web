@@ -46,11 +46,12 @@ export default function ArticlesPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
+          {articles.map((article, index) => (
             <ArticleCard
               key={article.slug}
               article={article}
               badge={todays.has(article.slug) ? 'Today' : undefined}
+              priority={index === 0}
             />
           ))}
         </div>

@@ -4,28 +4,29 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Play,
   Pause,
-  BookMarked,
   BookOpen,
   Bookmark,
   BookmarkCheck,
   Copy,
   Check,
   Share2,
-  GraduationCap,
-  MessageCircle,
   MoreHorizontal,
-  Pencil,
   Volume2,
   X,
+  SquarePen,
+  GraduationCap,
+  MessageCircle,
+  BookMarked,
+  PanelsTopLeft,
 } from 'lucide-react';
 import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore, WORD_BY_WORD_LOCALES } from '@/stores/settingsStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
-import { audioApi, usersApi, type AyahWithRelations } from '@/lib/api';
+import { usersApi, type AyahWithRelations } from '@/lib/api';
+import { startSurahPlayback } from '@/lib/audio/playback';
 import { useRequireAuth } from '@/components/auth/AuthProvider';
 import { TajweedText } from '@/components/tajweed/TajweedText';
-import { loadWordTimings } from '@/lib/loadWordTimings';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { VerseResourcePanel, type VerseResource } from './VerseResourcePanel';
 import { HadithModal } from './HadithModal';
@@ -52,11 +53,10 @@ interface Props {
   hasTranslations?: boolean;
 }
 
-export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations = false }: Props) {
-  const { getCurrentAyah, setPlaylist, setPlaying, setReciter, setContinuous, reciterSlug } = useAudioStore();
+export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
+  const { getCurrentAyah } = useAudioStore();
   const {
     fontSize,
-    reciterSlug: settingsReciter,
     showWordByWord,
     setShowWordByWord,
     showTajweedRules,
@@ -69,7 +69,6 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     setWordByWordLocale,
     wordClickPlayAudio,
     wordClickSpeakMeaning,
-    setReciterSlug,
   } = useSettingsStore();
   const showTranslation = useSettingsStore((s) => s.showTranslation);
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
@@ -134,36 +133,11 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       return;
     }
     try {
-      const reciters = await audioApi.reciters();
-      const requestedReciter = reciterSlug ?? settingsReciter;
-      const activeReciter =
-        reciters.find((r) => r.slug === requestedReciter)?.slug ??
-        reciters.find((r) => r.isDefault)?.slug ??
-        reciters[0]?.slug;
-      if (!activeReciter) return;
-      setReciter(activeReciter);
-      setReciterSlug(activeReciter);
-      const list = await audioApi.surah(surahNumber, activeReciter);
-      const items = list
-        .filter((a) => a.url)
-        .map((a) => ({
-          ayahId: a.ayahId,
-          surahNumber: a.surahNumber,
-          ayahNumber: a.ayahNumber,
-          url: a.url!,
-          duration: a.duration ?? undefined,
-        }));
-      const idx = items.findIndex((a) => a.ayahNumber === ayah.number);
-      if (idx >= 0) {
-        setContinuous(false);
-        setPlaylist(items, idx);
-        setPlaying(true);
-        void loadWordTimings(surahNumber, activeReciter);
-      }
+      await startSurahPlayback({ surahNumber, startAyah: ayah.number });
     } catch {
       // Audio is optional; fail silently
     }
-  }, [ayah.number, isCurrent, reciterSlug, settingsReciter, surahNumber, setContinuous, setPlaylist, setPlaying, setReciter, setReciterSlug]);
+  }, [ayah.number, isCurrent, surahNumber]);
 
   // ── Feedback ─────────────────────────────────────────────────────────────
   const showToast = useCallback((message: string) => {
@@ -252,33 +226,17 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
 
   const playCurrentVerseOnly = useCallback(async (repeat: boolean) => {
     try {
-      const reciters = await audioApi.reciters();
-      const requestedReciter = reciterSlug ?? settingsReciter;
-      const activeReciter =
-        reciters.find((r) => r.slug === requestedReciter)?.slug ??
-        reciters.find((r) => r.isDefault)?.slug ??
-        reciters[0]?.slug;
-      if (!activeReciter) return;
-      setReciter(activeReciter);
-      setReciterSlug(activeReciter);
-      const list = await audioApi.surah(surahNumber, activeReciter);
-      const item = list.find((a) => a.ayahNumber === ayah.number && a.url);
-      if (!item?.url) return;
-      setContinuous(repeat);
-      setPlaylist([{
-        ayahId: item.ayahId,
-        surahNumber: item.surahNumber,
-        ayahNumber: item.ayahNumber,
-        url: item.url,
-        duration: item.duration ?? undefined,
-      }], 0);
-      setPlaying(true);
-      void loadWordTimings(surahNumber, activeReciter);
-      if (repeat) showToast('Repeating this verse');
+      const ok = await startSurahPlayback({
+        surahNumber,
+        startAyah: ayah.number,
+        continuous: repeat,
+        verseOnly: true,
+      });
+      if (ok && repeat) showToast('Repeating this verse');
     } catch {
       // Audio is optional
     }
-  }, [ayah.number, reciterSlug, settingsReciter, setContinuous, setPlaylist, setPlaying, setReciter, setReciterSlug, showToast, surahNumber]);
+  }, [ayah.number, showToast, surahNumber]);
 
   const handleMoreAction = useCallback(async (action: VerseMoreAction) => {
     switch (action) {
@@ -311,6 +269,21 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         break;
       case 'translations':
         setTranslationsOpen(true);
+        break;
+      case 'tafsir':
+        setTafsirStudyOpen(true);
+        break;
+      case 'lessons':
+        setLessonsStudyOpen(true);
+        break;
+      case 'reflections':
+        setResourceOpen('reflections');
+        break;
+      case 'hadith':
+        setHadithOpen(true);
+        break;
+      case 'related':
+        setRelatedContentOpen(true);
         break;
       case 'feedback': {
         const subject = encodeURIComponent(`Translation feedback — ${surahName || surahNumber}:${ayah.number}`);
@@ -434,7 +407,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
   );
 
   const playingWordPosition = (() => {
-    if (!isCurrent || !isPlaying || !ayah.words?.length) return null;
+    if (!isCurrent || !isPlaying || current?.trackKind === 'translation' || !ayah.words?.length) return null;
 
     const timed = wordTimingsByAyah?.[ayah.number];
     if (timed?.length) {
@@ -470,9 +443,21 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
     }
   }, [playingWordPosition]);
 
-  const fontSizeClass = { sm: 'text-xl', md: 'text-2xl', lg: 'text-3xl', xl: 'text-4xl' }[fontSize];
-  const translationSizeClass = { sm: 'text-sm', md: 'text-[15px]', lg: 'text-lg', xl: 'text-xl' }[translationFontSize];
+  const fontSizeClass = (
+    readerViewMode === 'verse'
+      ? { sm: 'text-3xl', md: 'text-4xl', lg: 'text-5xl', xl: 'text-6xl' }
+      : { sm: 'text-2xl', md: 'text-3xl', lg: 'text-4xl', xl: 'text-5xl' }
+  )[fontSize];
+  const translationSizeClass = { sm: 'text-base', md: 'text-lg', lg: 'text-xl', xl: 'text-2xl' }[translationFontSize];
   const wordSizeClass = { sm: 'text-[10px]', md: 'text-xs', lg: 'text-sm', xl: 'text-base' }[wordByWordFontSize];
+  const verseProgress =
+    current?.surahNumber === surahNumber
+      ? current.ayahNumber > ayah.number
+        ? 100
+        : isCurrent && duration > 0
+          ? Math.min(100, Math.max(0, (currentTime / duration) * 100))
+          : 0
+      : 0;
 
   const arabicTextNode = ayah.words && ayah.words.length > 0 ? (
     <div
@@ -534,14 +519,14 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
               readerViewMode === 'arabic'
                 ? 'inline px-0.5 align-baseline'
                 : 'inline-flex flex-col items-center justify-center align-middle',
-              readerViewMode === 'verse' && showWordByWord
+              readerViewMode === 'verse' && showWordByWord && wordByWordDisplay === 'inline'
                 ? 'min-w-[3.25rem] px-1.5 py-1'
-                : readerViewMode !== 'arabic' && 'px-1 py-0.5',
+                : readerViewMode !== 'arabic' && 'px-0.5 py-0.5',
               isSelected
                 ? 'text-[var(--accent)]'
                 : isPlayingWord
                   ? 'word-reciting text-[var(--accent)]'
-                  : 'text-[var(--fg)] hover:bg-[var(--ayah-highlight)]',
+                  : 'text-slate-900 hover:bg-emerald-50',
             )}
             aria-label={`Word ${word.position}${meaning ? `: ${meaning}` : ''}`}
             aria-pressed={isSelected || isPlayingWord}
@@ -655,7 +640,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         showColors={showTajweedRules}
         interactive={showTajweedRules}
         className={cn(
-          'font-arabic ayah-arabic leading-loose text-[var(--fg)]',
+          'font-arabic ayah-arabic leading-loose text-slate-900',
           fontSizeClass,
           readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right',
         )}
@@ -669,7 +654,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
   ) : (
     <span
       className={cn(
-        'font-arabic ayah-arabic leading-loose text-[var(--fg)]',
+        'font-arabic ayah-arabic leading-loose text-slate-900',
         fontSizeClass,
         readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right'
       )}
@@ -687,19 +672,27 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
   );
 
   const translationBody = ayah.translations && ayah.translations.length > 0 ? (
-    <div className="space-y-3">
+    <div className={cn('space-y-3', readerViewMode === 'verse' && 'space-y-8')}>
       {ayah.translations.map((t) => {
         const rtl = /^(ur|fa|ar|ps|sd)-/.test(t.translatorSlug) || t.translatorSlug.includes('bayan-ul-quran');
         return (
-          <div key={t.translatorId} className="min-w-0 max-w-full" dir={rtl ? 'rtl' : 'ltr'}>
-            <p className={cn('max-w-full break-words leading-7 text-slate-700 [overflow-wrap:anywhere]', rtl && 'text-right', translationSizeClass)}>
+          <div
+            key={t.translatorId}
+            className={cn(
+              'min-w-0 max-w-full',
+              readerViewMode === 'verse' && 'max-w-3xl',
+              readerViewMode === 'verse' && (rtl ? 'ml-auto' : 'mr-auto'),
+            )}
+            dir={rtl ? 'rtl' : 'ltr'}
+          >
+            <p className={cn('max-w-full break-words leading-8 text-slate-800 [overflow-wrap:anywhere]', rtl && 'text-right', translationSizeClass)}>
               {readerViewMode === 'translation' && (
                 <span className="me-1.5 font-semibold text-slate-900">{ayah.number}.</span>
               )}
               {t.text}
             </p>
             {readerViewMode === 'verse' && (
-              <p className={cn('mt-1 max-w-full break-words text-[10px] text-slate-400', rtl && 'text-right')}>
+              <p className={cn('mt-1 max-w-full break-words text-xs text-slate-500', rtl && 'text-right')}>
                 — {t.translatorName || t.translatorSlug.replaceAll('-', ' ')}
               </p>
             )}
@@ -708,7 +701,13 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
       })}
     </div>
   ) : (
-    <p className="text-sm text-slate-400">Select a translation to read the meaning.</p>
+    <button
+      type="button"
+      onClick={() => setTranslationsOpen(true)}
+      className="text-sm font-medium text-emerald-800 underline-offset-2 hover:underline"
+    >
+      Choose a translation
+    </button>
   );
 
   return (
@@ -722,16 +721,21 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         onClick={readerViewMode !== 'verse' ? () => void handlePlay() : undefined}
         className={cn(
           'group relative transition-colors duration-200',
-          readerViewMode === 'verse' && 'py-9 lg:py-12',
+          readerViewMode === 'verse' && 'py-8 sm:py-12',
           readerViewMode === 'arabic' && 'inline',
           readerViewMode === 'translation' && 'rounded-md px-2 py-2 sm:px-3',
-          readerViewMode === 'verse' && isCurrent && 'ayah-current rounded-xl px-4 -mx-4',
+          readerViewMode === 'verse' && isCurrent && 'ayah-current -mx-4 border-l-[3px] border-emerald-800 bg-emerald-50/55 px-[13px] sm:-mx-6 sm:px-[21px]',
           readerViewMode === 'translation' && isCurrent && 'ayah-current-teal',
           readerViewMode === 'arabic' && isCurrent && 'ayah-current-arabic',
-          versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30 bg-[var(--accent)]/[0.03] rounded-xl px-4 -mx-4',
+          versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30 bg-[var(--accent)]/[0.03] rounded-[4px] px-4 -mx-4',
           readerViewMode !== 'verse' && 'cursor-pointer'
         )}
       >
+        <span
+          id={`ayah-number-${ayah.number}`}
+          className="scroll-mt-36"
+          aria-hidden
+        />
         {pinned && versePinned && readerViewMode !== 'arabic' && (
           <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent)]">
             <span>Pinned for compare</span>
@@ -745,10 +749,10 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
         )}
 
         {readerViewMode === 'verse' ? (
-          <>
-            <div className="mb-5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 min-w-[3.25rem] items-center justify-center text-base font-medium tabular-nums text-slate-400">
+          <div className="mx-auto max-w-5xl">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-1 text-slate-400">
+                <span className="min-w-[3.75rem] text-sm font-medium tabular-nums">
                   {surahNumber}:{ayah.number}
                 </span>
                 <button
@@ -757,10 +761,10 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
                   aria-label={isCurrent && isPlaying ? 'Pause verse' : `Play verse ${ayah.number}`}
                   aria-pressed={isCurrent}
                   className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                    'flex h-9 w-9 items-center justify-center rounded-[4px] transition-colors',
                     isCurrent
-                      ? 'bg-[var(--accent)]/15 text-[var(--accent)] hover:bg-[var(--accent)]/25'
-                      : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]'
+                      ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                      : 'hover:bg-slate-100 hover:text-slate-800',
                   )}
                 >
                   {isCurrent && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -771,72 +775,65 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
                   aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark verse'}
                   aria-pressed={bookmarked}
                   className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                    bookmarked
-                      ? 'text-[var(--accent)] hover:bg-[var(--accent)]/10'
-                      : 'text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]'
+                    'flex h-9 w-9 items-center justify-center rounded-[4px] transition-colors hover:bg-slate-100 hover:text-slate-800',
+                    bookmarked && 'bg-emerald-50 text-emerald-800',
                   )}
                 >
                   {bookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                 </button>
                 {isCurrent && isPlaying && (
-                  <div className="flex items-center gap-0.5">
+                  <div className="ml-1 flex items-center gap-0.5" aria-label="Playing">
                     {[0, 1, 2].map((i) => (
                       <div
                         key={i}
-                        className="h-3 w-0.5 animate-bounce rounded-full bg-[var(--accent)]"
+                        className="h-3 w-0.5 animate-bounce rounded-full bg-emerald-800"
                         style={{ animationDelay: `${i * 100}ms` }}
                       />
                     ))}
                   </div>
                 )}
               </div>
+
               <div
-                className="relative flex items-center gap-1 text-slate-400"
+                className="relative flex shrink-0 items-center gap-1 text-slate-500 sm:opacity-50 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
                 role="toolbar"
-                aria-label={`More actions for verse ${ayah.number}`}
+                aria-label={`Actions for verse ${ayah.number}`}
               >
-                {(ayah.juz || ayah.page) && (
-                  <div className="mr-1 hidden items-center gap-1.5 sm:flex">
-                    {ayah.juz && (
-                      <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
-                        Juz {ayah.juz}
-                      </span>
-                    )}
-                    {ayah.page && (
-                      <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
-                        P.{ayah.page}
-                      </span>
-                    )}
-                  </div>
-                )}
                 <button
                   type="button"
                   onClick={handleCopy}
                   aria-label={copied ? 'Copied!' : 'Copy verse'}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900"
                 >
-                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                 </button>
                 <button
                   type="button"
                   onClick={handleShare}
                   aria-label="Share verse"
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900"
                 >
-                  <Share2 className="h-3.5 w-3.5" />
+                  <Share2 className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => setMoreOpen((v) => !v)}
+                  onClick={() => setNoteOpen(true)}
+                  aria-label="Add verse note"
+                  className="flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <SquarePen className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((value) => !value)}
                   aria-label="More verse options"
                   aria-expanded={moreOpen}
                   className={cn(
-                    'flex h-7 w-7 items-center justify-center rounded-full transition-colors hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)]',
-                    moreOpen ? 'bg-[var(--ayah-highlight)] text-[var(--fg)]' : 'text-[var(--muted)]'
+                    'flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900',
+                    moreOpen && 'bg-slate-100 text-slate-900',
                   )}
                 >
-                  <MoreHorizontal className="h-3.5 w-3.5" />
+                  <MoreHorizontal className="h-4 w-4" />
                 </button>
                 <VerseMoreMenu
                   open={moreOpen}
@@ -848,37 +845,59 @@ export function AyahBlock({ ayah, surahNumber, surahName = '', hasTranslations =
               </div>
             </div>
 
-            <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-14">
-              <div className="order-2 flex min-h-20 min-w-0 max-w-full flex-col justify-center overflow-hidden lg:order-1">
-                {showTranslation && hasTranslations ? translationBody : (
-                  <p className="hidden text-sm text-slate-400 lg:block">Select a translation to read the meaning.</p>
-                )}
-              </div>
-              <div className="order-1 flex min-h-20 min-w-0 max-w-full items-center justify-end overflow-visible lg:order-2">
-                {arabicTextNode}
-              </div>
+            <div
+              className="mt-4 h-0.5 overflow-hidden bg-slate-100"
+              role="progressbar"
+              aria-label={`Playback progress for ayah ${ayah.number}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(verseProgress)}
+            >
+              <div
+                className="h-full bg-emerald-700 transition-[width] duration-200 ease-linear"
+                style={{ width: `${verseProgress}%` }}
+              />
             </div>
 
-            <div className="mt-9 flex items-center gap-3 overflow-x-auto pb-1 text-slate-400 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-5 [&::-webkit-scrollbar]:hidden">
-              <button type="button" onClick={() => setTafsirStudyOpen(true)} className="flex shrink-0 items-center gap-2 text-sm transition-colors hover:text-[var(--accent)]">
+            <div className="ml-auto mt-7 flex min-h-24 max-w-4xl items-center justify-end px-1 text-right sm:mt-10 sm:min-h-32 sm:px-5">
+              {arabicTextNode}
+            </div>
+
+            {showTranslation && (
+              <div className="mt-8 w-full sm:mt-11">
+                {translationBody}
+              </div>
+            )}
+
+            <div className="mt-9 flex items-center gap-3 overflow-x-auto pb-1 text-sm text-slate-400 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden">
+              <button type="button" onClick={() => setTafsirStudyOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
                 <BookOpen className="h-4 w-4" /> Tafsirs
               </button>
-              <span className="h-5 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setLessonsStudyOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><GraduationCap className="h-4 w-4" />Lessons</button>
-              <span className="h-5 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setResourceOpen('reflections')} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><MessageCircle className="h-4 w-4" />Reflections</button>
-              <span className="h-5 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setHadithOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><BookMarked className="h-4 w-4" />Hadith</button>
-              <span className="h-5 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setRelatedContentOpen(true)} className="flex shrink-0 items-center gap-2 text-sm hover:text-[var(--accent)]"><Copy className="h-4 w-4" />Related Content</button>
+              <span className="h-4 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setLessonsStudyOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
+                <GraduationCap className="h-4 w-4" /> Lessons
+              </button>
+              <span className="h-4 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setResourceOpen('reflections')} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
+                <MessageCircle className="h-4 w-4" /> Reflections
+              </button>
+              <span className="h-4 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setHadithOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
+                <BookMarked className="h-4 w-4" /> Hadith
+              </button>
+              <span className="h-4 w-px shrink-0 bg-slate-200" />
+              <button type="button" onClick={() => setRelatedContentOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
+                <PanelsTopLeft className="h-4 w-4" /> Related content
+              </button>
               {(ayah.juz || ayah.page) && (
-                <div className="ml-auto flex items-center gap-1.5 sm:hidden">
-                  {ayah.juz && <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">Juz {ayah.juz}</span>}
-                  {ayah.page && <span className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">P.{ayah.page}</span>}
-                </div>
+                <span className="ml-auto hidden shrink-0 text-xs lg:inline">
+                  {ayah.juz ? `Juz ${ayah.juz}` : ''}
+                  {ayah.juz && ayah.page ? ' · ' : ''}
+                  {ayah.page ? `Page ${ayah.page}` : ''}
+                </span>
               )}
             </div>
-          </>
+          </div>
         ) : readerViewMode === 'arabic' ? (
           arabicTextNode
         ) : (

@@ -2,10 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { MessageCircle } from 'lucide-react';
 import { useAudioStore } from '@/stores/audioStore';
 import { useAskAiStore } from '@/stores/askAiStore';
 import { useT } from '@/lib/i18n';
+import { isQuranReaderPath } from '@/lib/reader-path';
 import { cn } from '@/lib/utils';
 
 const AskAiSheet = dynamic(
@@ -20,6 +22,7 @@ export function AskAiFab() {
   const setOpen = useAskAiStore((s) => s.setOpen);
   const [loaded, setLoaded] = useState(false);
   const hasPlaylist = useAudioStore((s) => s.playlist.length > 0);
+  const onReader = isQuranReaderPath(usePathname());
 
   useEffect(() => {
     if (open) setLoaded(true);
@@ -34,8 +37,10 @@ export function AskAiFab() {
           setOpen(true);
         }}
         className={cn(
-          'fixed right-4 z-[55] flex h-12 items-center gap-2 rounded-full bg-[var(--accent)] px-3.5 text-sm font-bold text-white shadow-lg shadow-[var(--accent)]/25 transition hover:scale-[1.03] hover:bg-[var(--accent)]/90 active:scale-95 sm:right-6 sm:h-14 sm:px-4',
-          // Sit just above the audio bar (or a comfortable default when no player).
+          'fixed right-4 z-[55] flex items-center rounded-full transition active:scale-95 sm:right-6',
+          onReader
+            ? 'h-11 w-11 justify-center border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50'
+            : 'h-12 w-12 justify-center bg-emerald-800 text-sm font-bold text-white shadow-lg hover:bg-emerald-900 sm:h-14 sm:w-auto sm:gap-2 sm:px-4',
           hasPlaylist
             ? 'bottom-[calc(var(--audio-bar-height,0px)+0.75rem)]'
             : 'bottom-[max(1.25rem,env(safe-area-inset-bottom,0px)+0.75rem)] sm:bottom-8',
@@ -45,11 +50,12 @@ export function AskAiFab() {
         aria-hidden={open}
         tabIndex={open ? -1 : 0}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15">
-          <Sparkles className="h-4 w-4" />
+        <span className={cn('flex items-center justify-center', onReader ? '' : 'h-8 w-8 rounded-full bg-white/15')}>
+          <MessageCircle className="h-4 w-4" />
         </span>
-        <span className="hidden min-[380px]:inline">{t('askAi')}</span>
-        <span className="min-[380px]:hidden">{t('askAiShort')}</span>
+        {!onReader && (
+          <span className="hidden sm:inline">{t('askAi')}</span>
+        )}
       </button>
       {loaded && <AskAiSheet open={open} onOpenChange={setOpen} />}
     </>

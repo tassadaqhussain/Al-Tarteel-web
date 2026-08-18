@@ -3,10 +3,10 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import {
   Loader2,
+  MessageCircle,
   Mic,
   MicOff,
   Send,
-  Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
@@ -246,7 +246,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
           <div className="min-w-0">
             <SheetTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
-                <Sparkles className="h-4 w-4" />
+                <MessageCircle className="h-4 w-4" />
               </span>
               {t('askAi')}
             </SheetTitle>

@@ -4,6 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import {
+  TRANSLATION_RECITERS,
+  getTranslationReciter,
+  translationVerseUrl,
+} from './translation-reciters';
 
 const CACHE_TTL = 86400; // 24h for reciters
 
@@ -79,9 +84,27 @@ export class AudioService {
   }
 
   private getVerifiedAyahAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
+    const translationUrl = translationVerseUrl(reciterSlug, surahNumber, ayahNumber);
+    if (translationUrl) return translationUrl;
     const base = RECITER_CDN_BASE[reciterSlug];
     if (!base) return null;
     return `${base}/${this.verseFileName(surahNumber, ayahNumber)}`;
+  }
+
+  private translationReciterPayload() {
+    return TRANSLATION_RECITERS.map((reciter) => ({
+      id: -reciter.sortOrder,
+      name: reciter.name,
+      nameArabic: null,
+      slug: reciter.slug,
+      style: reciter.style,
+      languageCode: reciter.languageCode,
+      languageName: reciter.languageName,
+      kind: 'translation' as const,
+      baseUrl: reciter.baseUrl,
+      isDefault: false,
+      sortOrder: 1000 + reciter.sortOrder,
+    }));
   }
 
   private getLocalAyahAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
@@ -93,7 +116,7 @@ export class AudioService {
   }
 
   async getReciters() {
-    const key = 'audio:reciters';
+    const key = 'audio:reciters:v2';
     const cached = await this.cache.get(key);
     if (cached) return JSON.parse(cached);
     const reciters = await this.prisma.reciter.findMany({
@@ -109,8 +132,15 @@ export class AudioService {
         sortOrder: true,
       },
     });
-    await this.cache.set(key, JSON.stringify(reciters), CACHE_TTL);
-    return reciters;
+    const arabic = reciters.map((reciter) => ({
+      ...reciter,
+      kind: 'reciter' as const,
+      languageCode: 'ar',
+      languageName: 'Arabic',
+    }));
+    const payload = [...arabic, ...this.translationReciterPayload()];
+    await this.cache.set(key, JSON.stringify(payload), CACHE_TTL);
+    return payload;
   }
 
   async getAudioForAyah(ayahId: number, reciterSlug?: string) {
@@ -127,8 +157,26 @@ export class AudioService {
         : await this.prisma.reciter.findFirst({ where: { isDefault: true } })
           ?? await this.prisma.reciter.findFirst({ orderBy: { sortOrder: 'asc' } });
 
-    if (reciterSlug && !reciter) throw new NotFoundException(`Reciter ${reciterSlug} not found`);
+    if (reciterSlug && !reciter && !getTranslationReciter(reciterSlug)) {
+      throw new NotFoundException(`Reciter ${reciterSlug} not found`);
+    }
     if (reciter) where.reciterId = reciter.id;
+
+    const spoken = reciterSlug ? getTranslationReciter(reciterSlug) : null;
+    if (!reciter && spoken) {
+      const url = translationVerseUrl(spoken.slug, ayah.surah.number, ayah.number);
+      if (!url) throw new NotFoundException('No audio found for this ayah');
+      return [{
+        id: 0,
+        ayahId: ayah.id,
+        reciterId: 0,
+        url,
+        duration: null,
+        format: 'mp3',
+        reciter: { id: 0, name: spoken.name, slug: spoken.slug },
+        ayah: { number: ayah.number, surah: { number: ayah.surah.number } },
+      }];
+    }
 
     const files = await this.prisma.audioFile.findMany({
       where,
@@ -171,26 +219,29 @@ export class AudioService {
     const surah = await this.prisma.surah.findUnique({ where: { number: surahNumber } });
     if (!surah) throw new NotFoundException(`Surah ${surahNumber} not found`);
     const reciter = await this.prisma.reciter.findUnique({ where: { slug: reciterSlug } });
-    if (!reciter) throw new NotFoundException(`Reciter ${reciterSlug} not found`);
+    const spoken = getTranslationReciter(reciterSlug);
+    if (!reciter && !spoken) throw new NotFoundException(`Reciter ${reciterSlug} not found`);
     const ayahs = await this.prisma.ayah.findMany({
       where: { surahId: surah.id },
       orderBy: { number: 'asc' },
       select: { id: true, number: true, surahId: true },
     });
-    const audioFiles = await this.prisma.audioFile.findMany({
-      where: {
-        ayahId: { in: ayahs.map((a) => a.id) },
-        reciterId: reciter.id,
-      },
-      include: { ayah: { select: { id: true, number: true, surahId: true } } },
-    });
+    const audioFiles = reciter
+      ? await this.prisma.audioFile.findMany({
+          where: {
+            ayahId: { in: ayahs.map((a) => a.id) },
+            reciterId: reciter.id,
+          },
+          include: { ayah: { select: { id: true, number: true, surahId: true } } },
+        })
+      : [];
     const byAyah = new Map(audioFiles.map((f) => [f.ayah.id, f]));
     return ayahs.map((a) => {
       const stored = byAyah.get(a.id);
-      let url: string | null = this.getLocalAyahAudioUrl(reciter.slug, surahNumber, a.number)
-        ?? this.getVerifiedAyahAudioUrl(reciter.slug, surahNumber, a.number);
+      let url: string | null = this.getLocalAyahAudioUrl(reciterSlug, surahNumber, a.number)
+        ?? this.getVerifiedAyahAudioUrl(reciterSlug, surahNumber, a.number);
       if (!url) url = stored?.url ?? null;
-      if (!url && reciter.baseUrl) {
+      if (!url && reciter?.baseUrl) {
         const s = String(surahNumber).padStart(3, '0');
         const v = String(a.number).padStart(3, '0');
         url = `${reciter.baseUrl.replace(/\/?$/, '/')}${s}${v}.mp3`;

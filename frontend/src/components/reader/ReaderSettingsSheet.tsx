@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { Check, ChevronDown, ChevronRight, Minus, Plus } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { audioApi, quranApi, type Reciter, type Translator } from '@/lib/api';
+import { catalogTranslationReciters } from '@/lib/audio/translation-reciters';
 import { useSettingsStore, WORD_BY_WORD_LOCALES, type FontSize, type MushafType } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { TranslationSheet } from './TranslationSheet';
 import { ReciterSheet } from './ReciterSheet';
+import { rebuildActivePlayback } from '@/lib/audio/playback';
 
 type SettingsTab = 'arabic' | 'translation' | 'word';
 const FONT_SIZES: FontSize[] = ['sm', 'md', 'lg', 'xl'];
@@ -29,6 +31,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
     fontSize, setFontSize, mushafLines, setMushafLines, mushafType, setMushafType,
     showTranslation, setShowTranslation, showWordByWord, setShowWordByWord,
     translationSlugs, setTranslationSlugs, reciterSlug, setReciterSlug,
+    translationReciterSlug, setTranslationReciterSlug,
     showTajweedRules, setShowTajweedRules, copyVerseAsGlyphs, setCopyVerseAsGlyphs,
     translationFontSize, setTranslationFontSize,
     wordByWordFontSize, setWordByWordFontSize, wordByWordDisplay, setWordByWordDisplay,
@@ -40,12 +43,17 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    audioApi.reciters().then((data) => setReciters(Array.isArray(data) ? data : [])).catch(() => setReciters([]));
+    audioApi.reciters().then((data) => {
+      const list = Array.isArray(data) ? data : [];
+      const hasTranslations = list.some((item) => item.kind === 'translation');
+      setReciters(hasTranslations ? list : [...list, ...catalogTranslationReciters()]);
+    }).catch(() => setReciters(catalogTranslationReciters()));
     quranApi.translators().then((data) => setTranslators(Array.isArray(data) ? data : [])).catch(() => setTranslators([]));
   }, [open]);
 
   const fontIndex = FONT_SIZES.indexOf(fontSize);
-  const activeReciter = reciters.find((r) => r.slug === reciterSlug) || reciters.find((r) => r.isDefault) || reciters[0];
+  const activeReciter = reciters.find((r) => r.slug === reciterSlug && r.kind !== 'translation') || reciters.find((r) => r.isDefault) || reciters.find((r) => r.kind !== 'translation') || reciters[0];
+  const activeTranslationReciter = reciters.find((r) => r.slug === translationReciterSlug);
 
   const reset = () => {
     setMushafType('uthmani'); setFontSize('md'); setMushafLines(15);
@@ -168,7 +176,15 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
                   open={recitersOpen}
                   onOpenChange={setRecitersOpen}
                   selectedSlug={activeReciter?.slug}
-                  onSelect={(slug) => setReciterSlug(slug)}
+                  onSelect={(slug) => {
+                    setReciterSlug(slug);
+                    void rebuildActivePlayback({ arabicSlug: slug, keepPlaying: true });
+                  }}
+                  selectedTranslationSlug={translationReciterSlug}
+                  onSelectTranslation={(slug) => {
+                    setTranslationReciterSlug(slug);
+                    void rebuildActivePlayback({ translationSlug: slug, keepPlaying: true });
+                  }}
                 />
               </div>
             </div>
@@ -188,6 +204,22 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
 
               <button type="button" onClick={() => setTranslationPickerOpen(true)} className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left transition hover:bg-slate-100">
                 <span className="min-w-0 pr-4"><span className="block text-base text-slate-500">Selected Translations</span><span className="mt-1 block truncate text-lg font-bold capitalize">{selectedTranslationSummary}</span></span>
+                <ChevronRight className="h-7 w-7 shrink-0 text-slate-500" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRecitersOpen(true)}
+                className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left transition hover:bg-slate-100"
+              >
+                <span className="min-w-0 pr-4">
+                  <span className="block text-base text-slate-500">Voice translation</span>
+                  <span className="mt-1 block truncate text-lg font-bold">
+                    {activeTranslationReciter
+                      ? `${activeTranslationReciter.languageName || 'Translation'} · ${activeTranslationReciter.name}`
+                      : 'Off — tap to play after each verse'}
+                  </span>
+                </span>
                 <ChevronRight className="h-7 w-7 shrink-0 text-slate-500" />
               </button>
 

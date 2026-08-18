@@ -16,6 +16,7 @@ const API = 'https://api.quran.com/api/v4';
 const EXPECTED_AYAHS = 6236;
 const TRANSLATION_ID = 20; // Sahih International
 const FORCE = process.env.FORCE === '1' || process.argv.includes('--force');
+const METADATA_ONLY = process.env.METADATA_ONLY === '1' || process.argv.includes('--metadata-only');
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -114,8 +115,15 @@ async function downloadFullQuran() {
     where: { translator: { slug: 'en-sahih-international' } },
   });
   const existingTajweed = await prisma.ayah.count({ where: { textTajweed: { not: null } } });
-  console.log(`Current ayah count: ${existing}; Sahih translations: ${existingTranslations}; Tajweed: ${existingTajweed}`);
-  if (!FORCE && existing >= EXPECTED_AYAHS && existingTranslations >= EXPECTED_AYAHS && existingTajweed >= EXPECTED_AYAHS) {
+  const existingMetadata = await prisma.ayah.count({
+    where: { page: { gt: 0 }, numberInQuran: { gt: 0 } },
+  });
+  console.log(`Current ayah count: ${existing}; Sahih translations: ${existingTranslations}; Tajweed: ${existingTajweed}; metadata: ${existingMetadata}`);
+  if (!FORCE && METADATA_ONLY && existingMetadata >= EXPECTED_AYAHS) {
+    console.log('Quran navigation metadata already present. Skipping.');
+    return;
+  }
+  if (!FORCE && !METADATA_ONLY && existing >= EXPECTED_AYAHS && existingTranslations >= EXPECTED_AYAHS && existingTajweed >= EXPECTED_AYAHS && existingMetadata >= EXPECTED_AYAHS) {
     console.log('Quran text, translations, and Tajweed data already present. Skipping (use FORCE=1 to re-download).');
     return;
   }
@@ -168,15 +176,18 @@ async function downloadFullQuran() {
     const tajweed = await prisma.ayah.count({
       where: { surahId: surah.id, textTajweed: { not: null } },
     });
-    if (!FORCE && have >= ch.verses_count && translated >= ch.verses_count && tajweed >= ch.verses_count) {
-      console.log(`already have ${have} ayahs, ${translated} translations, and ${tajweed} Tajweed verses, skip`);
+    const metadata = await prisma.ayah.count({
+      where: { surahId: surah.id, page: { gt: 0 }, numberInQuran: { gt: 0 } },
+    });
+    if (!FORCE && metadata >= ch.verses_count && (METADATA_ONLY || (have >= ch.verses_count && translated >= ch.verses_count && tajweed >= ch.verses_count))) {
+      console.log(`already have ${metadata} navigation metadata rows, skip`);
       continue;
     }
 
     process.stdout.write('downloading... ');
     const [verses, translations] = await Promise.all([
       fetchChapterVerses(ch.id),
-      fetchChapterTranslations(ch.id),
+      METADATA_ONLY ? Promise.resolve([]) : fetchChapterTranslations(ch.id),
     ]);
 
     for (let i = 0; i < verses.length; i++) {
@@ -206,6 +217,8 @@ async function downloadFullQuran() {
           textTajweed: v.text_uthmani_tajweed ?? null,
         },
       });
+
+      if (METADATA_ONLY) continue;
 
       const translationText = translations[i];
       if (translationText) {

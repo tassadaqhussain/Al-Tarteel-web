@@ -9,6 +9,7 @@ import { AskAiFab } from '@/components/ai/AskAiFab';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { BackToTopButton } from '@/components/BackToTopButton';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_KEYWORDS,
@@ -128,7 +129,6 @@ export const viewport: Viewport = {
 
 import { VoiceSearchProvider } from '@/providers/VoiceSearchProvider';
 import { GlobalVoiceSearch } from '@/components/GlobalVoiceSearch';
-import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 
 export default function RootLayout({
   children,
@@ -136,7 +136,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${amiri.variable} ${amiriQuran.variable} ${outfit.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
         <TajweedStyles />
@@ -149,8 +149,8 @@ export default function RootLayout({
                   {children}
                 </div>
                 <AudioBar />
+                <BackToTopButton />
                 <AskAiFab />
-                <VoiceSearchButton variant="fab" className="sm:hidden" />
                 <GlobalVoiceSearch />
               </VoiceSearchProvider>
             </AudioPlayerProvider>

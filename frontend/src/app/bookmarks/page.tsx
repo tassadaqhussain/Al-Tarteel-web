@@ -156,7 +156,10 @@ function BookmarksContent() {
 
                       {/* Open verse */}
                       <Link
-                        href={getSurahHref(bm.surahNumber, { ayahId: bm.ayahId })}
+                        href={getSurahHref(bm.surahNumber, {
+                          ayahId: bm.ayahId,
+                          ayahNumber: bm.ayahNumber,
+                        })}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)] transition-colors"
                         aria-label="Open verse"
                       >

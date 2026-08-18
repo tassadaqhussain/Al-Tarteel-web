@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { BookOpen, Layers3, Search, SortAsc } from 'lucide-react';
 import type { Surah } from '@/lib/api';
 import { getSurahArabicName, getSurahMeaning, getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
+import { SITE_SHELL } from '@/components/layout/MainContainer';
 
 type Tab = 'surah' | 'juz' | 'revelation';
 
@@ -13,7 +14,7 @@ const JUZ_START_SURAHS = [
   1, 2, 2, 3, 4, 4, 5, 6, 7, 8, 9, 11, 12, 15, 17, 18, 21, 23, 25, 27, 29, 33, 36, 39, 41, 46, 51, 58, 67, 78,
 ];
 
-export function SurahGrid({ surahs }: { surahs: Surah[] }) {
+export function SurahGrid({ surahs, embedded = false }: { surahs: Surah[]; embedded?: boolean }) {
   const [tab, setTab] = useState<Tab>('surah');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -46,62 +47,68 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
   }, [surahs, tab, searchQuery]);
 
   return (
-    <section className="w-full px-4 py-12 md:px-6">
-      <div className="mx-auto max-w-[1200px]">
-        {/* Section Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-            Let&apos;s start the journey of <br className="sm:hidden" />
-            <span className="text-emerald-800">Enlightenment</span>
-          </h2>
-        </div>
-
+    <section data-surah-browser className="w-full py-8 md:py-10">
+      <div className={embedded ? 'w-full' : SITE_SHELL}>
         {/* Filter Toolbar */}
-        <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-5 rounded border border-emerald-900/10 bg-white p-4 shadow-sm sm:p-5">
+          <div data-surah-toolbar className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">
+                Browse chapters
+              </h2>
+              <p className="mt-1 text-sm font-medium text-slate-500">
+                Choose a Surah, Juz, or revelation order.
+              </p>
+            </div>
+
           {/* Tabs */}
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                ['surah', 'Surah'],
-                ['juz', 'Juz'],
-                ['revelation', 'Revelation Order'],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => {
-                  setTab(id);
-                  setSearchQuery(''); // reset search on tab change
-                }}
-                className={cn(
-                  'rounded-full px-4 py-2 text-xs font-bold transition-all duration-200',
-                  tab === id
-                    ? 'bg-emerald-800 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+            <div data-surah-toolbar-controls className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-100 p-1">
+                {(
+                  [
+                    ['surah', 'Surah', BookOpen],
+                    ['juz', 'Juz', Layers3],
+                    ['revelation', 'Order', SortAsc],
+                  ] as const
+                ).map(([id, label, Icon]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setTab(id);
+                      setSearchQuery('');
+                    }}
+                    className={cn(
+                      'inline-flex h-10 items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-bold transition',
+                      tab === id
+                        ? 'bg-emerald-900 text-white shadow-sm'
+                        : 'text-slate-500 hover:bg-white hover:text-slate-800'
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden />
+                    {label}
+                  </button>
+                ))}
+              </div>
 
           {/* Inline search bar on the right */}
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Type surah name, page or verse..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-full border border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-slate-400 outline-none transition focus:border-emerald-800/40 focus:ring-4 focus:ring-emerald-800/5"
-            />
+              <div data-surah-search className="relative w-full sm:w-80">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search surah name or number..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-11 w-full rounded border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none transition focus:border-emerald-800/40 focus:ring-4 focus:ring-emerald-800/5"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Grid Area */}
         {tab === 'juz' ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div data-surah-grid className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 30 }, (_, i) => i + 1)
               .filter((juz) => searchQuery === '' || `juz ${juz}`.includes(searchQuery.toLowerCase()) || juz.toString() === searchQuery)
               .map((juz) => {
@@ -111,7 +118,7 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
                   <Link
                     key={juz}
                     href={`/juz/${juz}`}
-                    className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-emerald-800/30 hover:shadow-lg hover:-translate-y-0.5"
+                    className="group flex min-h-[96px] items-center gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-800/30 hover:shadow-md"
                   >
                     <DiamondNumber n={juz} isActive={false} />
                     <div className="min-w-0 flex-1">
@@ -125,7 +132,7 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
               })}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div data-surah-grid className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredSurahs.map((surah) => {
               const meaning = getSurahMeaning(surah.number);
 
@@ -133,7 +140,7 @@ export function SurahGrid({ surahs }: { surahs: Surah[] }) {
                 <Link
                   key={surah.number}
                   href={getSurahPath(surah.number)}
-                  className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-emerald-800/30 hover:shadow-lg hover:-translate-y-0.5"
+                  className="group flex min-h-[96px] items-center gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-800/30 hover:shadow-md"
                 >
                   <DiamondNumber n={surah.number} isActive={false} />
 

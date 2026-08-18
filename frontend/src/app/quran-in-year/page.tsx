@@ -31,6 +31,8 @@ export default function QuranInYearPage() {
     <div className="min-h-screen bg-white text-slate-800">
       <Header />
 
+      <main>
+
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-slate-100 bg-[#f3f4f6]">
         <div
@@ -152,6 +154,7 @@ export default function QuranInYearPage() {
 
       <MyProgress currentWeek={week.week} />
       <FaqSection />
+      </main>
 
       <footer className="border-t border-slate-200 bg-[#f7f7f7] py-10">
         <div className="mx-auto max-w-6xl px-6 text-center">

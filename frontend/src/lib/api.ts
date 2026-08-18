@@ -211,8 +211,10 @@ export const usersApi = {
 
 export type HifzWordDiff = {
   expected: string;
+  expectedNormalized?: string;
   heard: string | null;
   status: 'match' | 'mismatch' | 'missing' | 'extra';
+  similarity?: number;
 };
 
 export type HifzCheckResult = {
@@ -593,6 +595,9 @@ export interface Reciter {
   baseUrl: string | null;
   isDefault: boolean;
   sortOrder: number;
+  kind?: 'reciter' | 'translation';
+  languageCode?: string;
+  languageName?: string;
 }
 
 export interface AudioFile {

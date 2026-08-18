@@ -2,17 +2,17 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookMarked, Hash, Search, Sparkles, X } from 'lucide-react';
+import { BookMarked, Hash, Search, X } from 'lucide-react';
 import {
   correctSearchQuery,
   getSearchSuggestions,
   type SearchSuggestion,
 } from '@/lib/search-intelligence';
-import { getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
 import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
+import { resolveDirectSearchHref } from '@/lib/search-navigation';
 
 const SUGGEST_MIN_CHARS = 3;
 
@@ -71,18 +71,22 @@ export function SmartSearchBox({
     if (!typed) return;
     setSuggestOpen(false);
 
-    // Try unified intent parser first
+    // Try structured Quran/navigation intents first, but keep generic searches
+    // available for direct typed resolution below.
     const intent = parseVoiceIntent(typed);
-    const executed = executeVoiceCommand({ intent, router });
-    if (executed) return;
+    if (intent.type !== 'QURAN_SEARCH' && intent.type !== 'UNKNOWN') {
+      const executed = executeVoiceCommand({ intent, router });
+      if (executed) return;
+    }
+
+    const directHref = resolveDirectSearchHref(typed);
+    if (directHref) {
+      router.push(directHref);
+      return;
+    }
 
     const correction = correctSearchQuery(typed);
     const q = correction.didCorrect ? correction.corrected : typed;
-    if (correction.bestSurah && correction.reason === 'surah' && correction.didCorrect) {
-      // Strong surah typo → open the chapter directly from home
-      router.push(getSurahPath(correction.bestSurah.number));
-      return;
-    }
     if (onSearchNavigate) {
       onSearchNavigate(q);
       return;
@@ -97,11 +101,7 @@ export function SmartSearchBox({
       return;
     }
     setQuery(s.query);
-    if (onSearchNavigate) {
-      onSearchNavigate(s.query);
-      return;
-    }
-    router.push(`/search?q=${encodeURIComponent(s.query)}`);
+    goSearch(s.query);
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -123,6 +123,10 @@ export function SmartSearchBox({
       }
       if (e.key === 'Enter' && suggestions[activeSuggest]) {
         e.preventDefault();
+        if (resolveDirectSearchHref(query)) {
+          goSearch(query);
+          return;
+        }
         applySuggestion(suggestions[activeSuggest]);
         return;
       }
@@ -146,7 +150,7 @@ export function SmartSearchBox({
           className={cn(
             'relative flex items-center',
             variant === 'hero'
-              ? 'overflow-visible rounded-full border border-slate-200 bg-white/90 p-1.5 shadow-md backdrop-blur-sm focus-within:border-emerald-800/40 focus-within:ring-4 focus-within:ring-emerald-800/5'
+              ? 'overflow-visible rounded-[1.75rem] border border-slate-200 bg-white/90 p-1.5 shadow-md backdrop-blur-sm focus-within:border-emerald-800/40 focus-within:ring-4 focus-within:ring-emerald-800/5 sm:rounded-full'
               : 'rounded-full border border-slate-200 bg-white px-4 py-3 shadow-sm focus-within:border-[var(--accent)]',
           )}
         >
@@ -195,9 +199,10 @@ export function SmartSearchBox({
           {variant === 'hero' && (
             <button
               type="submit"
-              className="rounded-full bg-emerald-800 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-900"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-sm font-semibold text-white transition hover:bg-emerald-900 sm:w-auto sm:px-6 sm:py-2.5"
             >
-              {searchButtonLabel}
+              <Search className="h-4 w-4 sm:hidden" aria-hidden />
+              <span className="sr-only sm:not-sr-only">{searchButtonLabel}</span>
             </button>
           )}
         </div>
@@ -237,7 +242,7 @@ export function SmartSearchBox({
                   ) : s.kind === 'topic' ? (
                     <Hash className="h-4 w-4" />
                   ) : (
-                    <Sparkles className="h-4 w-4" />
+                    <Search className="h-4 w-4" />
                   )}
                 </span>
                 <span className="min-w-0 flex-1">

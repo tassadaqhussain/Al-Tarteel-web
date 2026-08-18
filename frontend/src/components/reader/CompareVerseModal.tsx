@@ -25,9 +25,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { audioApi, quranApi, type AyahFull } from '@/lib/api';
+import { quranApi, type AyahFull } from '@/lib/api';
+import { startSurahPlayback } from '@/lib/audio/playback';
 import { SURAH_SIMPLE_NAMES, getSurahHref } from '@/lib/surah-meta';
-import { loadWordTimings } from '@/lib/loadWordTimings';
 import { useAudioStore } from '@/stores/audioStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
@@ -45,10 +45,7 @@ export function CompareVerseModal() {
   const isPinned = useComparePinStore((s) => s.isPinned);
 
   const translationSlugs = useSettingsStore((s) => s.translationSlugs);
-  const settingsReciter = useSettingsStore((s) => s.reciterSlug);
-  const setReciterSlug = useSettingsStore((s) => s.setReciterSlug);
-  const { setPlaylist, setPlaying, setReciter, setContinuous, reciterSlug, getCurrentAyah, isPlaying } =
-    useAudioStore();
+  const { getCurrentAyah, isPlaying } = useAudioStore();
   const { add: addBookmark, remove: removeBookmark, isBookmarked } = useBookmarksStore();
 
   const activePin = pins.find((p) => p.ayahId === activeAyahId) ?? pins[0] ?? null;
@@ -134,47 +131,11 @@ export function CompareVerseModal() {
       return;
     }
     try {
-      const reciters = await audioApi.reciters();
-      const requestedReciter = reciterSlug ?? settingsReciter;
-      const activeReciter =
-        reciters.find((r) => r.slug === requestedReciter)?.slug ??
-        reciters.find((r) => r.isDefault)?.slug ??
-        reciters[0]?.slug;
-      if (!activeReciter) return;
-      setReciter(activeReciter);
-      setReciterSlug(activeReciter);
-      const list = await audioApi.surah(surahNumber, activeReciter);
-      const items = list
-        .filter((a) => a.url)
-        .map((a) => ({
-          ayahId: a.ayahId,
-          surahNumber: a.surahNumber,
-          ayahNumber: a.ayahNumber,
-          url: a.url!,
-          duration: a.duration ?? undefined,
-        }));
-      const idx = items.findIndex((a) => a.ayahNumber === ayahNumber);
-      if (idx < 0) return;
-      setContinuous(false);
-      setPlaylist(items, idx);
-      setPlaying(true);
-      void loadWordTimings(surahNumber, activeReciter);
+      await startSurahPlayback({ surahNumber, startAyah: ayahNumber });
     } catch {
       // optional
     }
-  }, [
-    ayahNumber,
-    isCurrent,
-    reciterSlug,
-    settingsReciter,
-    setContinuous,
-    setPlaylist,
-    setPlaying,
-    setReciter,
-    setReciterSlug,
-    surahNumber,
-    verse,
-  ]);
+  }, [ayahNumber, isCurrent, surahNumber, verse]);
 
   const handleBookmark = () => {
     if (!verse) return;
@@ -220,7 +181,10 @@ export function CompareVerseModal() {
 
   const handleShare = async () => {
     if (!verse) return;
-    const url = `${window.location.origin}${getSurahHref(surahNumber, { ayahId: verse.id })}`;
+    const url = `${window.location.origin}${getSurahHref(surahNumber, {
+      ayahId: verse.id,
+      ayahNumber,
+    })}`;
     if (navigator.share) {
       await navigator.share({ title: `${surahName} ${surahNumber}:${ayahNumber}`, url }).catch(() => null);
     } else {

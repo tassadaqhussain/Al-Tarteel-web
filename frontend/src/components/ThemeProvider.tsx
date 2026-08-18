@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSettingsStore, type ExperienceMode } from '@/stores/settingsStore';
-import { getSurahNumberFromSlug } from '@/lib/surah-meta';
+import { isQuranReaderPath } from '@/lib/reader-path';
 import { isRtlLocale } from '@/lib/i18n/messages';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -16,9 +16,7 @@ const ThemeContext = createContext<{
 
 /** Kids/elderly chrome stays on browse pages; reader uses calm default styling. */
 function experienceForPath(pathname: string, preferred: ExperienceMode): ExperienceMode {
-  if (pathname.startsWith('/surah/') || pathname.startsWith('/juz/')) return 'default';
-  const slug = pathname.replace(/^\//, '').split('/')[0] ?? '';
-  if (slug && !slug.includes('.') && getSurahNumberFromSlug(slug)) return 'default';
+  if (isQuranReaderPath(pathname)) return 'default';
   return preferred;
 }
 
@@ -51,21 +49,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    const root = document.documentElement;
-    const dark =
-      theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setResolved(dark ? 'dark' : 'light');
-    if (dark) root.classList.add('dark');
-    else root.classList.remove('dark');
-  }, [theme, mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const m = window.matchMedia('(prefers-color-scheme: dark)');
-    const on = () => setResolved(theme === 'system' ? 'dark' : theme === 'dark' ? 'dark' : 'light');
-    m.addEventListener('change', on);
-    return () => m.removeEventListener('change', on);
-  }, [mounted, theme]);
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      // Dark tokens on the light mushaf make Arabic near-invisible.
+      const forceLight = isQuranReaderPath(pathname);
+      const dark =
+        !forceLight && (theme === 'dark' || (theme === 'system' && media.matches));
+      setResolved(dark ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', dark);
+    };
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, [theme, mounted, pathname]);
 
   useEffect(() => {
     if (!mounted) return;

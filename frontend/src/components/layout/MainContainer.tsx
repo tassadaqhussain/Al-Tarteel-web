@@ -1,5 +1,16 @@
 import { cn } from '@/lib/utils';
 
+/** Shared content column — keep marketing/home sections composed on wide displays. */
+export const SITE_SHELL =
+  'mx-auto w-full max-w-[1120px] px-4 sm:px-6 lg:px-8';
+
+/** Wider site chrome — avoids oversized blank bands around navigation and footer. */
+export const CHROME_SHELL =
+  'mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 2xl:px-12';
+
+/** Mushaf reading column — keep ayahs readable on wide displays. */
+export const READER_SHELL = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8';
+
 type MainContainerProps = {
   as?: 'div' | 'section' | 'main' | 'article';
   id?: string;
@@ -7,10 +18,10 @@ type MainContainerProps = {
   children: React.ReactNode;
 };
 
-/** Centered content column — matches header/footer max width (1200px). */
+/** Centered content column — matches header/footer max width. */
 export function MainContainer({ as: Tag = 'div', id, className, children }: MainContainerProps) {
   return (
-    <Tag id={id} className={cn('mx-auto w-full max-w-[1200px] px-4 sm:px-6', className)}>
+    <Tag id={id} className={cn(SITE_SHELL, className)}>
       {children}
     </Tag>
   );
@@ -26,7 +37,7 @@ type PageSectionProps = {
 /** Full-width section with contained inner content and consistent vertical rhythm. */
 export function PageSection({ id, className, containerClassName, children }: PageSectionProps) {
   return (
-    <section id={id} className={cn('w-full py-10 sm:py-12', className)}>
+    <section id={id} className={cn('w-full py-10 sm:py-12 2xl:py-16', className)}>
       <MainContainer className={containerClassName}>{children}</MainContainer>
     </section>
   );

@@ -188,7 +188,7 @@ export function juzSeo(juzNumber: number, page = 1) {
  */
 export function websiteJsonLd() {
   return {
-    '@context': 'https://schema.org',
+    '@context': 'https://.org',
     '@type': 'WebSite',
     name: SITE_NAME,
     url: SITE_URL,
