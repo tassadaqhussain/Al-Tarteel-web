@@ -124,20 +124,30 @@ ok "Containers started"
 log "Waiting for web + API"
 ready_web=0
 ready_api=0
-for _ in $(seq 1 90); do
-  if [[ "${ready_web}" -eq 0 ]] && curl -fsS "http://127.0.0.1:${WEB_PORT}/" >/dev/null 2>&1; then
+for _ in $(seq 1 180); do
+  if [[ "${ready_web}" -eq 0 ]] && curl -fsS --max-time 5 "http://127.0.0.1:${WEB_PORT}/" >/dev/null 2>&1; then
     ok "Web → 127.0.0.1:${WEB_PORT}"
     ready_web=1
   fi
-  if [[ "${ready_api}" -eq 0 ]] && curl -fsS "http://127.0.0.1:${API_PORT}/api/v1/quran/surahs" >/dev/null 2>&1; then
+  if [[ "${ready_api}" -eq 0 ]] && curl -fsS --max-time 5 "http://127.0.0.1:${API_PORT}/api/v1/quran/surahs" >/dev/null 2>&1; then
     ok "API → 127.0.0.1:${API_PORT}"
     ready_api=1
   fi
   [[ "${ready_web}" -eq 1 && "${ready_api}" -eq 1 ]] && break
-  sleep 2
+  sleep 3
 done
-[[ "${ready_web}" -eq 1 ]] || die "Web not ready. Check: ${COMPOSE[*]} logs web --tail=80"
-[[ "${ready_api}" -eq 1 ]] || die "API not ready. Check: ${COMPOSE[*]} logs api --tail=80"
+if [[ "${ready_web}" -ne 1 ]]; then
+  "${COMPOSE[@]}" logs web --tail=80 || true
+  die "Web not ready on 127.0.0.1:${WEB_PORT}"
+fi
+if [[ "${ready_api}" -ne 1 ]]; then
+  echo "API curl: $(curl -sS -o /tmp/qp-api-wait.txt -w '%{http_code}' --max-time 5 "http://127.0.0.1:${API_PORT}/api/v1/quran/surahs" || true)"
+  echo "----- api logs -----"
+  "${COMPOSE[@]}" logs api --tail=120 || true
+  echo "----- api ps -----"
+  "${COMPOSE[@]}" ps api || true
+  die "API not ready on 127.0.0.1:${API_PORT}"
+fi
 
 log "Download all 6236 ayahs into Postgres (skips if already complete)"
 "${COMPOSE[@]}" exec -T api npm run quran:download
