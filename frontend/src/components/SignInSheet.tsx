@@ -63,7 +63,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="absolute right-3 top-3 rounded-full p-2 text-slate-500 transition hover:bg-white/80 hover:text-slate-800"
+            className="absolute right-3 top-3 rounded-full p-2 text-ink-muted transition hover:bg-surface/80 hover:text-ink"
             aria-label={t('close')}
           >
             <X className="h-5 w-5" />
@@ -72,33 +72,33 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
             <Lock className="h-5 w-5" />
           </div>
-          <DialogTitle className="mt-4 text-center text-xl font-bold tracking-tight text-slate-900">
+          <DialogTitle className="mt-4 text-center text-xl font-bold tracking-tight text-ink">
             {t('signInComingSoon')}
           </DialogTitle>
-          <DialogDescription className="mt-2 text-center text-sm leading-relaxed text-slate-600">
+          <DialogDescription className="mt-2 text-center text-sm leading-relaxed text-ink-3">
             {t('signInComingSoonBody')}
           </DialogDescription>
         </div>
 
         <div className="px-6 py-5">
           {saved ? (
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 px-4 py-5 text-center">
-              <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-600" />
-              <p className="mt-3 text-sm font-semibold text-emerald-900">{t('onTheList')}</p>
-              <p className="mt-1 text-sm text-emerald-800/80">
+            <div className="rounded-2xl border border-brand/20 bg-brand/[0.08] px-4 py-5 text-center">
+              <CheckCircle2 className="mx-auto h-8 w-8 text-brand" />
+              <p className="mt-3 text-sm font-semibold text-brand">{t('onTheList')}</p>
+              <p className="mt-1 text-sm text-brand/80">
                 <span className="font-medium">{email}</span>
               </p>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="mt-5 w-full rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--accent)]/90"
+                className="mt-5 w-full rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-brand-contrast transition hover:bg-[var(--accent)]/90"
               >
                 {t('continueReadingCta')}
               </button>
               <button
                 type="button"
                 onClick={() => setSaved(false)}
-                className="mt-2 text-xs font-medium text-slate-500 hover:text-slate-700"
+                className="mt-2 text-xs font-medium text-ink-muted hover:text-ink-2"
               >
                 {t('differentEmail')}
               </button>
@@ -106,7 +106,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
           ) : (
             <form onSubmit={onSubmit} className="space-y-3">
               <label className="block text-sm">
-                <span className="mb-1.5 block font-medium text-slate-700">{t('email')}</span>
+                <span className="mb-1.5 block font-medium text-ink-2">{t('email')}</span>
                 <input
                   type="email"
                   required
@@ -118,19 +118,19 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
                     setError(null);
                   }}
                   className={cn(
-                    'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition',
-                    'placeholder:text-slate-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15'
+                    'w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink outline-none transition',
+                    'placeholder:text-ink-faint focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15'
                   )}
                 />
               </label>
               {error && (
-                <p className="text-sm text-red-600" role="alert">
+                <p className="text-sm text-danger" role="alert">
                   {error}
                 </p>
               )}
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--accent)]/90"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-brand-contrast transition hover:bg-[var(--accent)]/90"
               >
                 <Bell className="h-4 w-4" />
                 {t('notifyMe')}
@@ -138,7 +138,7 @@ export function SignInSheet({ open, onOpenChange }: SignInSheetProps) {
             </form>
           )}
 
-          <p className="mt-4 text-center text-xs leading-relaxed text-slate-500">{t('keepUsing')}</p>
+          <p className="mt-4 text-center text-xs leading-relaxed text-ink-muted">{t('keepUsing')}</p>
         </div>
       </DialogContent>
     </Dialog>

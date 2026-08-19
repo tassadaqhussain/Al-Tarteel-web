@@ -5,21 +5,74 @@
 
 /* ── QuranPilot design tokens (light Quran.com-style by default) ────── */
 :root {
-  --bg: #f6f8f6;
-  /* Height of the fixed AudioBar; 0 when no playlist is active. */
-  --audio-bar-height: 0px;
-  --fg: #0f172a;
-  --muted: #475569;
-  --border: #e2e8f0;
-  --accent: rgb(6 95 70);
-  --accent-gold: #c08829;
+  color-scheme: light;
+
+  /* ── Source of truth: raw RGB channels so Tailwind can apply /opacity ──
+     Every themed colour in the app derives from these. Override them in
+     .dark (and in the experience-* modes) — never redefine colours ad hoc. */
+
+  /* Surfaces: app bg → section → card → elevated (modal/popover) */
+  --c-bg: 246 248 246;
+  --c-surface-2: 248 250 252;
+  --c-surface: 255 255 255;
+  --c-surface-3: 241 245 249;
+  --c-surface-raised: 255 255 255;
+
+  /* Text: primary → secondary → tertiary → muted → faint */
+  --c-ink: 15 23 42;
+  --c-ink-2: 51 65 85;
+  --c-ink-3: 71 85 105;
+  /* Both pass WCAG AA on --c-surface (5.9:1 and 4.6:1). The previous values
+     were slate-500/400; slate-400 failed at 2.6:1 wherever it carried real
+     content (verse counts, lesson labels, translator credits). */
+  --c-ink-muted: 90 101 116;
+  --c-ink-faint: 103 118 138;
+
+  /* Borders */
+  --c-line: 226 232 240;
+  --c-line-subtle: 241 245 249;
+  --c-line-strong: 203 213 225;
+
+  /* Brand */
+  --c-accent: 6 95 70;
+  --c-accent-contrast: 255 255 255;
+  /* Tooltips/toasts: classic inverted chip on light, elevated surface on dark
+     (a white chip inside a dark reader reads as a rendering bug). */
+  --c-tooltip: 15 23 42;
+  --c-tooltip-ink: 255 255 255;
+  --c-gold: 192 136 41;
+  --c-gold-contrast: 255 255 255;
+
+  /* Status */
+  --c-success: 22 101 52;
+  --c-success-surface: 240 253 244;
+  --c-warning: 180 83 9;
+  --c-warning-surface: 255 251 235;
+  --c-danger: 185 28 28;
+  --c-danger-surface: 254 242 242;
+  --c-info: 29 78 216;
+  --c-info-surface: 239 246 255;
+
+  /* ── Derived aliases (kept for existing bg-[var(--surface)] call sites) ── */
+  --bg: rgb(var(--c-bg));
+  --fg: rgb(var(--c-ink));
+  --muted: rgb(var(--c-ink-muted));
+  --border: rgb(var(--c-line));
+  --surface: rgb(var(--c-surface));
+  --accent: rgb(var(--c-accent));
+  --accent-contrast: rgb(var(--c-accent-contrast));
+  --accent-gold: rgb(var(--c-gold));
   /* Primary action / highlight — keep in sync with --accent app-wide */
   --recite-highlight: var(--accent);
-  --surface: #ffffff;
-  --ayah-highlight: rgba(6, 95, 70, 0.06);
-  --header-bg: rgba(255, 255, 255, 0.92);
+  --ayah-highlight: rgb(var(--c-accent) / 0.06);
+  --header-bg: rgb(var(--c-surface) / 0.92);
+  --page-glow: rgb(255 255 255 / 0.92);
+
+  /* Height of the fixed AudioBar; 0 when no playlist is active. */
+  --audio-bar-height: 0px;
   --radius: 0.25rem;
 
+  /* ── shadcn/ui HSL tokens ── */
   --background: 0 0% 97%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -47,7 +100,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.5rem;
-  background: rgb(241 245 249);
+  background: rgb(var(--c-surface-3));
+  color: rgb(var(--c-ink-2));
 }
 .control-button svg { width: 1.125rem; height: 1.125rem; }
 .nav-button {
@@ -55,7 +109,7 @@
   height: 2.75rem;
   align-items: center;
   gap: .5rem;
-  border: 1px solid rgb(226 232 240);
+  border: 1px solid rgb(var(--c-line));
   border-radius: .75rem;
   padding: 0 1rem;
   font-size: .875rem;
@@ -66,7 +120,7 @@
 .nav-button svg { width: 1rem; height: 1rem; }
 .tafsir-study-content h1,
 .tafsir-study-content h2,
-.tafsir-study-content h3 { color: rgb(15 23 42); font-weight: 700; line-height: 1.3; margin: 1.5rem 0 .75rem; }
+.tafsir-study-content h3 { color: rgb(var(--c-ink)); font-weight: 700; line-height: 1.3; margin: 1.5rem 0 .75rem; }
 .tafsir-study-content h2 { font-size: 1.75em; }
 .tafsir-study-content h3 { font-size: 1.35em; }
 .tafsir-study-content p { margin: .8rem 0; }
@@ -95,36 +149,85 @@
 .tajweed-text.tajweed-disabled tajweed,
 .tajweed-text.tajweed-disabled .tajweed-mark { color: inherit; }
 
+/* Dark equivalents of the same fallback (mirrors colorDark in lib/tajweed/rules.ts) */
+.dark .tajweed-text tajweed.ham_wasl, .dark .tajweed-text .tajweed-mark.ham_wasl { color: #9ca3af; }
+.dark .tajweed-text tajweed.laam_shamsiyah, .dark .tajweed-text .tajweed-mark.laam_shamsiyah { color: #9ca3af; }
+.dark .tajweed-text tajweed.madda_normal, .dark .tajweed-text .tajweed-mark.madda_normal { color: #60a5fa; }
+.dark .tajweed-text tajweed.madda_permissible, .dark .tajweed-text .tajweed-mark.madda_permissible { color: #93c5fd; }
+.dark .tajweed-text tajweed.madda_necessary, .dark .tajweed-text .tajweed-mark.madda_necessary { color: #bfdbfe; }
+.dark .tajweed-text tajweed.ghunnah, .dark .tajweed-text .tajweed-mark.ghunnah { color: #f9a8d4; }
+.dark .tajweed-text tajweed.qalqalah, .dark .tajweed-text .tajweed-mark.qalqalah { color: #67e8f9; }
+.dark .tajweed-text tajweed.ikhafa, .dark .tajweed-text .tajweed-mark.ikhafa { color: #6ee7b7; }
+.dark .tajweed-text tajweed.ikhafa_shafawi, .dark .tajweed-text .tajweed-mark.ikhafa_shafawi { color: #6ee7b7; }
+.dark .tajweed-text tajweed.idgham_shafawi, .dark .tajweed-text .tajweed-mark.idgham_shafawi { color: #fca5a5; }
+.dark .tajweed-text tajweed.iqlab, .dark .tajweed-text .tajweed-mark.iqlab { color: #5eead4; }
+.dark .tajweed-text tajweed.idgham_with_ghunnah, .dark .tajweed-text .tajweed-mark.idgham_with_ghunnah { color: #86efac; }
+.dark .tajweed-text tajweed.idgham_without_ghunnah, .dark .tajweed-text .tajweed-mark.idgham_without_ghunnah { color: #4ade80; }
+.dark .tajweed-text tajweed.idgham_mutajanisayn, .dark .tajweed-text .tajweed-mark.idgham_mutajanisayn { color: #fcd34d; }
+.dark .tajweed-text tajweed.idgham_mutaqaribayn, .dark .tajweed-text .tajweed-mark.idgham_mutaqaribayn { color: #fbbf24; }
+.dark .tajweed-text tajweed.silent, .dark .tajweed-text .tajweed-mark.silent { color: #9ca3af; }
+
 .dark {
-  --bg: #0b1214;
-  --fg: #f1f5f9;
-  --muted: #94a3b8;
-  --border: #1e2d32;
-  --accent: #d9a64b;
-  --accent-gold: #f0b656;
-  --recite-highlight: var(--accent);
-  --surface: #111b1e;
-  --ayah-highlight: rgba(217, 166, 75, 0.15);
-  --header-bg: rgba(11, 18, 20, 0.9);
+  color-scheme: dark;
+
+  /* Stepped dark surfaces — never pure black, so cards/modals stay readable
+     against the app background (see the visual-hierarchy note in the audit). */
+  --c-bg: 11 18 20;
+  --c-surface-2: 14 22 25;
+  --c-surface: 17 27 30;
+  --c-surface-3: 23 36 42;
+  --c-surface-raised: 22 35 42;
+
+  --c-ink: 232 238 240;
+  --c-ink-2: 203 214 218;
+  --c-ink-3: 179 193 198;
+  --c-ink-muted: 139 155 161;
+  --c-ink-faint: 122 139 146;
+
+  --c-line: 30 45 50;
+  --c-line-subtle: 22 34 38;
+  --c-line-strong: 43 61 68;
+
+  /* Teal reads as "active" on dark far better than the light-mode green, and
+     keeps 7.4:1 on --c-bg. Contrast colour is dark so accent buttons pass AA. */
+  --c-accent: 67 179 185;
+  --c-accent-contrast: 4 24 26;
+  --c-tooltip: 28 43 51;
+  --c-tooltip-ink: 232 238 240;
+  --c-gold: 240 182 86;
+  --c-gold-contrast: 26 18 5;
+
+  --c-success: 74 222 128;
+  --c-success-surface: 20 45 33;
+  --c-warning: 251 191 36;
+  --c-warning-surface: 51 38 12;
+  --c-danger: 248 113 113;
+  --c-danger-surface: 55 24 24;
+  --c-info: 96 165 250;
+  --c-info-surface: 22 38 61;
+
+  --ayah-highlight: rgb(var(--c-accent) / 0.12);
+  --header-bg: rgb(var(--c-bg) / 0.88);
+  --page-glow: rgb(var(--c-surface) / 0.55);
 
   --background: 195 30% 6%;
   --foreground: 210 40% 96%;
-  --card: 195 25% 8%;
+  --card: 195 25% 9%;
   --card-foreground: 210 40% 96%;
-  --popover: 195 25% 8%;
+  --popover: 196 31% 13%;
   --popover-foreground: 210 40% 96%;
-  --primary: 38 65% 57%;
-  --primary-foreground: 0 0% 100%;
+  --primary: 183 47% 49%;
+  --primary-foreground: 185 73% 6%;
   --secondary: 195 20% 14%;
   --secondary-foreground: 210 40% 96%;
   --muted-hsl: 195 15% 14%;
-  --muted-foreground: 215 20% 55%;
-  --accent-hsl: 38 65% 57%;
-  --accent-foreground: 0 0% 100%;
+  --muted-foreground: 190 9% 59%;
+  --accent-hsl: 183 47% 49%;
+  --accent-foreground: 185 73% 6%;
   --destructive: 0 62% 50%;
   --destructive-foreground: 0 0% 98%;
   --input: 195 20% 16%;
-  --ring: 38 65% 57%;
+  --ring: 183 47% 49%;
 }
 
 @layer base {
@@ -140,7 +243,7 @@
 
   body {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(246, 248, 246, 1) 18rem),
+      linear-gradient(180deg, var(--page-glow) 0%, rgb(var(--c-bg)) 18rem),
       var(--bg);
     color: var(--fg);
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -155,6 +258,38 @@
 
   ::selection {
     background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: rgb(var(--c-ink));
+  }
+
+  /* Chrome paints its own near-white autofill background; repaint it with an
+     inset shadow (background-color itself is not overridable here). */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: rgb(var(--c-ink));
+    -webkit-box-shadow: 0 0 0 1000px rgb(var(--c-surface)) inset;
+    box-shadow: 0 0 0 1000px rgb(var(--c-surface)) inset;
+    caret-color: rgb(var(--c-ink));
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  ::placeholder {
+    color: rgb(var(--c-ink-faint));
+    opacity: 1;
+  }
+
+  :disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  /* Native pickers (date/time/colour) render light glyphs on dark surfaces */
+  .dark input[type='date']::-webkit-calendar-picker-indicator,
+  .dark input[type='time']::-webkit-calendar-picker-indicator,
+  .dark input[type='datetime-local']::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.7);
   }
 }
 
@@ -181,11 +316,29 @@
   line-height: 2;
 }
 
+/* Chapter title in Arabic — tighter than the global arabic leading so the
+   header card stays compact; roomier on phones where it sits above the title. */
+.chapter-arabic-name {
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .chapter-arabic-name {
+    line-height: 1.2;
+  }
+}
+
+/* Verse arabic sits on a compact line box so the ayah row keeps a tight rhythm. */
+.ayah-arabic-block.font-arabic,
+.ayah-arabic-block .font-arabic {
+  line-height: 1.45;
+}
+
 .ayah-arabic {
   direction: rtl;
   text-align: right;
   word-spacing: 0.15em;
-  color: #0f172a;
+  color: rgb(var(--c-ink));
 }
 
 .ayah-font-sm  .ayah-arabic { font-size: 1.5rem; }
@@ -194,8 +347,8 @@
 .ayah-font-xl  .ayah-arabic { font-size: 2.75rem;  }
 
 .ayah-current {
-  background-color: rgba(6, 95, 70, 0.06);
-  box-shadow: inset 3px 0 0 rgb(6 95 70);
+  background-color: var(--ayah-highlight);
+  box-shadow: inset 3px 0 0 var(--accent);
   border-radius: 0.75rem;
 }
 
@@ -217,26 +370,29 @@
   border-radius: 0.375rem;
 }
 
-/* Ornate-ish circular ayah end marker (Quran.com) */
+/* Ornate circular ayah end marker (Quran.com style) */
 .ayah-verse-marker {
   display: inline-flex;
-  height: 1.75rem;
-  width: 1.75rem;
+  height: 1.85rem;
+  width: 1.85rem;
+  min-width: 1.85rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   margin-inline: 0.35rem;
   border-radius: 9999px;
-  border: 1.5px solid color-mix(in srgb, var(--recite-highlight) 55%, #64748b);
+  border: 1.5px solid rgb(var(--c-line-strong));
   background:
-    radial-gradient(circle at center, transparent 55%, color-mix(in srgb, var(--recite-highlight) 12%, transparent) 56%),
-    #fff;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #334155;
+    radial-gradient(circle at center, transparent 58%, rgb(var(--c-accent) / 0.08) 60%),
+    rgb(var(--c-surface));
+  font-family: var(--font-amiri-quran), var(--font-amiri), system-ui, sans-serif;
   vertical-align: middle;
   user-select: none;
+  transition: all 0.15s ease;
+}
+
+.ayah-verse-marker:hover {
+  border-color: var(--accent);
 }
 
 /* Active word while audio is reciting — match player accent color */
@@ -300,17 +456,17 @@
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgb(var(--c-surface) / 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(6, 95, 70, 0.12);
+  border: 1px solid rgb(var(--c-accent) / 0.12);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgb(var(--c-surface) / 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid rgb(var(--c-ink) / 0.08);
 }
 
 @keyframes fade-in-up {
@@ -322,25 +478,49 @@
   animation: fade-in-up 0.6s ease-out forwards;
 }
 
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--c-line-strong)) transparent; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-line-strong)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-ink-faint)); }
+::-webkit-scrollbar-corner { background: transparent; }
 
 .safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 0); }
 
 /* ── Kids Explorer ── */
+/* Experience modes retint the channel vars only, so they inherit every
+   surface/ink/line rule instead of re-declaring a parallel palette. */
 .experience-kids {
-  --bg: #f3f8f5;
-  --fg: #16342e;
-  --muted: #52675f;
-  --surface: #ffffff;
-  --border: #cfe2d9;
-  --accent: #08705f;
-  --accent-gold: #d79a2f;
-  --ayah-highlight: rgba(8, 112, 95, 0.09);
-  --header-bg: rgba(255, 255, 255, 0.96);
+  --c-bg: 243 248 245;
+  --c-ink: 22 52 46;
+  --c-ink-muted: 82 103 95;
+  --c-surface: 255 255 255;
+  --c-line: 207 226 217;
+  --c-accent: 8 112 95;
+  --c-gold: 215 154 47;
+  --c-gold-contrast: 255 255 255;
+  --c-heading: 18 72 61;
+  --ayah-highlight: rgb(var(--c-accent) / 0.09);
+  --header-bg: rgb(var(--c-surface) / 0.96);
   --radius: 0.25rem;
+}
+
+.dark.experience-kids {
+  --c-bg: 9 20 18;
+  --c-surface-2: 12 25 23;
+  --c-surface: 16 33 30;
+  --c-surface-3: 22 45 41;
+  --c-surface-raised: 21 43 39;
+  --c-ink: 226 240 236;
+  --c-ink-muted: 143 168 160;
+  --c-line: 30 58 52;
+  --c-line-strong: 44 79 71;
+  --c-accent: 84 209 184;
+  --c-accent-contrast: 4 30 26;
+  --c-gold: 240 190 100;
+  --c-gold-contrast: 26 18 5;
+  --c-heading: 168 226 213;
+  --header-bg: rgb(var(--c-bg) / 0.9);
 }
 
 .experience-kids body,
@@ -353,7 +533,7 @@
 .experience-kids a,
 .experience-kids input,
 .experience-kids label {
-  font-family: 'Fredoka', 'Quicksand', var(--font-outfit), sans-serif !important;
+  font-family: 'Fredoka', 'Quicksand', var(--font-ui), sans-serif !important;
 }
 
 /* Fredoka has no Quranic glyphs — restore Amiri Quran for Arabic text */
@@ -365,10 +545,9 @@
   font-family: var(--font-amiri-quran), var(--font-amiri), 'Amiri Quran', serif !important;
 }
 
-/* Bright, calm surfaces keep the experience youthful without feeling toy-like. */
-.experience-kids,
-.experience-kids .bg-\[\#f7f7f7\],
-.experience-kids .bg-\[\#f7f7f7\]\/95 {
+/* Bright, calm surfaces keep the experience youthful without feeling toy-like.
+   Surface classes are token-driven now, so only the root needs forcing. */
+.experience-kids {
   background-color: var(--bg) !important;
   background-image: none !important;
 }
@@ -376,10 +555,10 @@
 .experience-kids h1,
 .experience-kids h2,
 .experience-kids h3 {
-  color: #12483d !important;
+  color: rgb(var(--c-heading)) !important;
 }
 
-.experience-kids :where(div, section, article, aside, li, a)[class*='border'][class*='bg-white'],
+.experience-kids :where(div, section, article, aside, li, a)[class*='border'][class*='bg-surface'],
 .experience-kids :where(div, section, article, aside, li, a)[class*='border'][class*='bg-[var(--surface)]'] {
   border-color: var(--border) !important;
   box-shadow: 0 8px 22px -18px rgba(18, 72, 61, 0.55);
@@ -387,13 +566,17 @@
 
 .experience-kids :is(button, a).bg-\[var\(--accent\)\] {
   background-color: var(--accent) !important;
-  color: #ffffff !important;
+  color: var(--accent-contrast) !important;
   font-weight: 700 !important;
   box-shadow: 0 5px 12px -8px rgba(8, 112, 95, 0.75);
 }
 
 .experience-kids :is(button, a).bg-\[var\(--accent\)\]:hover {
-  background-color: #075f52 !important;
+  background-color: color-mix(in srgb, var(--accent) 85%, black) !important;
+}
+
+.dark.experience-kids :is(button, a).bg-\[var\(--accent\)\]:hover {
+  background-color: color-mix(in srgb, var(--accent) 85%, white) !important;
 }
 
 .experience-kids :is(button, a).h-9,
@@ -403,7 +586,7 @@
 
 .experience-kids .text-amber-500,
 .experience-kids .text-amber-600 {
-  color: #b86d23 !important;
+  color: rgb(var(--c-gold)) !important;
 }
 
 /* Reset reader buttons in Kids Mode to prevent capsule overrides on words */
@@ -430,19 +613,46 @@
 
 /* ── Elderly / Easy Read Mode Styling ── */
 .experience-elderly {
-  --bg: #fdfbf7; /* warm high contrast cream */
-  --fg: #000000;
-  --muted: #27272a;
-  --border: #71717a;
-  --accent: #09090b;
-  --surface: #ffffff;
+  --c-bg: 253 251 247; /* warm high contrast cream */
+  --c-ink: 0 0 0;
+  --c-ink-2: 24 24 27;
+  --c-ink-3: 39 39 42;
+  --c-ink-muted: 39 39 42;
+  --c-ink-faint: 63 63 70;
+  --c-line: 113 113 122;
+  --c-line-subtle: 161 161 170;
+  --c-line-strong: 82 82 91;
+  --c-accent: 9 9 11;
+  --c-accent-contrast: 255 255 255;
+  --c-surface: 255 255 255;
+  --c-surface-2: 250 248 243;
+  --c-surface-3: 240 237 230;
+  --c-surface-raised: 255 255 255;
   --radius: 0.5rem;
+}
+
+/* Easy Read at night: maximum contrast the other way round, not a dimmed cream. */
+.dark.experience-elderly {
+  --c-bg: 0 0 0;
+  --c-surface-2: 10 10 10;
+  --c-surface: 20 20 22;
+  --c-surface-3: 32 32 35;
+  --c-surface-raised: 28 28 31;
+  --c-ink: 255 255 255;
+  --c-ink-2: 244 244 245;
+  --c-ink-3: 228 228 231;
+  --c-ink-muted: 228 228 231;
+  --c-ink-faint: 212 212 216;
+  --c-line: 148 148 158;
+  --c-line-subtle: 100 100 110;
+  --c-line-strong: 180 180 190;
+  --c-accent: 255 255 255;
+  --c-accent-contrast: 0 0 0;
 }
 
 .experience-elderly body,
 .experience-elderly main,
-.experience-elderly header,
-.experience-elderly .bg-\[\#f7f7f7\] {
+.experience-elderly header {
   background-color: var(--bg) !important;
   color: var(--fg) !important;
 }

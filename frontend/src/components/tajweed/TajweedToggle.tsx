@@ -13,13 +13,13 @@ export function TajweedToggle({ enabled, onChange, className, disabled }: Props)
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-[4px] border border-slate-200 bg-white p-1',
+        'inline-flex items-center gap-1 rounded-[4px] border border-line bg-surface p-1',
         className,
       )}
       role="group"
       aria-label="Tajweed highlighting"
     >
-      <span className="hidden px-2 text-xs font-semibold text-slate-500 sm:inline">Tajweed</span>
+      <span className="hidden px-2 text-xs font-semibold text-ink-muted sm:inline">Tajweed</span>
       <button
         type="button"
         disabled={disabled}
@@ -27,7 +27,7 @@ export function TajweedToggle({ enabled, onChange, className, disabled }: Props)
         onClick={() => onChange(false)}
         className={cn(
           'rounded-[3px] px-2.5 py-1.5 text-xs font-semibold transition sm:text-sm',
-          !enabled ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50',
+          !enabled ? 'bg-ink text-surface' : 'text-ink-3 hover:bg-surface-2',
           disabled && 'opacity-50',
         )}
       >
@@ -40,7 +40,7 @@ export function TajweedToggle({ enabled, onChange, className, disabled }: Props)
         onClick={() => onChange(true)}
         className={cn(
           'rounded-[3px] px-2.5 py-1.5 text-xs font-semibold transition sm:text-sm',
-          enabled ? 'bg-[var(--accent)] text-white' : 'text-slate-600 hover:bg-slate-50',
+          enabled ? 'bg-[var(--accent)] text-brand-contrast' : 'text-ink-3 hover:bg-surface-2',
           disabled && 'opacity-50',
         )}
       >

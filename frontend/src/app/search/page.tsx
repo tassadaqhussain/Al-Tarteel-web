@@ -85,7 +85,7 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f4f7f6] text-slate-500">
+        <div className="flex min-h-screen items-center justify-center bg-surface-2 text-ink-muted">
           Loading search…
         </div>
       }
@@ -340,21 +340,21 @@ function SearchPageContent() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f6f8f6]">
+    <div className="flex min-h-screen flex-col bg-surface-app">
       <Header />
 
       <main className="mx-auto w-full max-w-[1120px] flex-1 px-4 pb-16 pt-8 sm:px-6 sm:pt-12 lg:px-8">
-        <header className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <header className="mb-6 flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">
             Search
             </p>
-            <h1 className="text-3xl font-bold text-slate-950 sm:text-4xl">Search the Quran</h1>
-            <p className="mt-2 text-sm text-slate-600 sm:text-base">
+            <h1 className="text-3xl font-bold text-ink sm:text-4xl">Search the Quran</h1>
+            <p className="mt-2 text-sm text-ink-3 sm:text-base">
               Find verses, translations, chapters, pages, and topics.
             </p>
           </div>
-          <p className="hidden text-sm font-medium text-slate-500 sm:block">
+          <p className="hidden text-sm font-medium text-ink-muted sm:block">
             114 Surahs <span className="px-1.5 text-amber-600">•</span> 6,236 Ayahs
           </p>
         </header>
@@ -362,10 +362,10 @@ function SearchPageContent() {
         <div className="relative mb-10" ref={boxRef}>
           <div
             className={cn(
-              'flex min-h-16 items-center gap-3 rounded border bg-white p-2 pl-4 shadow-[0_14px_40px_-30px_rgba(6,78,59,0.65)] transition-all sm:pl-5',
+              'flex min-h-16 items-center gap-3 rounded border bg-surface p-2 pl-4 shadow-[0_14px_40px_-30px_rgba(6,78,59,0.65)] transition-all sm:pl-5',
               committed || query
                 ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/10'
-                : 'border-slate-200 hover:border-slate-300'
+                : 'border-line hover:border-line-strong'
             )}
           >
             {loading ? (
@@ -390,7 +390,7 @@ function SearchPageContent() {
               }}
               onKeyDown={onKeyDown}
               placeholder="Search Surah, Ayah, page, or topic"
-              className="min-w-0 flex-1 bg-transparent text-base text-slate-950 placeholder:text-slate-400 focus:outline-none"
+              className="min-w-0 flex-1 bg-transparent text-base text-ink placeholder:text-ink-faint focus:outline-none"
               aria-label="Search the Quran"
               aria-autocomplete="list"
               aria-expanded={suggestOpen}
@@ -401,17 +401,17 @@ function SearchPageContent() {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="flex h-9 w-9 items-center justify-center rounded text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  className="flex h-9 w-9 items-center justify-center rounded text-ink-faint transition hover:bg-surface-3 hover:text-ink-2"
                   aria-label="Clear"
                 >
                   <X className="h-4 w-4" />
                 </button>
               )}
-              <span className="mx-0.5 hidden h-5 w-px bg-slate-200 sm:block" aria-hidden />
+              <span className="mx-0.5 hidden h-5 w-px bg-line sm:block" aria-hidden />
               <button
                 type="button"
                 onClick={() => startListening()}
-                className="hidden h-10 w-10 items-center justify-center rounded text-slate-500 transition hover:bg-slate-100 hover:text-[var(--accent)] sm:inline-flex"
+                className="hidden h-10 w-10 items-center justify-center rounded text-ink-muted transition hover:bg-surface-3 hover:text-[var(--accent)] sm:inline-flex"
                 aria-label="Search by voice"
                 title="Search by voice"
               >
@@ -425,8 +425,8 @@ function SearchPageContent() {
                 className={cn(
                   'hidden h-10 items-center gap-1.5 rounded px-2.5 text-xs font-semibold transition sm:inline-flex sm:px-3',
                   showFilters || surahFilter
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                    ? 'bg-[var(--accent)] text-brand-contrast'
+                    : 'text-ink-muted hover:bg-surface-3 hover:text-ink'
                 )}
               >
                 <Filter className="h-3.5 w-3.5" />
@@ -437,7 +437,7 @@ function SearchPageContent() {
                 onClick={() => query.trim() && submitSearch(query)}
                 disabled={!query.trim() || loading}
                 aria-label="Search Quran"
-                className="inline-flex h-10 items-center gap-2 rounded bg-[var(--accent)] px-3.5 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-45 sm:px-5"
+                className="inline-flex h-10 items-center gap-2 rounded bg-[var(--accent)] px-3.5 text-sm font-bold text-brand-contrast transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-45 sm:px-5"
               >
                 <span className="hidden sm:inline">Search</span>
                 <Search className="h-4 w-4 sm:hidden" />
@@ -450,7 +450,7 @@ function SearchPageContent() {
             <button
               type="button"
               onClick={() => startListening()}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded border border-slate-200 bg-white text-xs font-semibold text-slate-600 shadow-sm transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded border border-line bg-surface text-xs font-semibold text-ink-3 shadow-sm transition hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
             >
               <Mic className="h-4 w-4" />
               Voice search
@@ -462,8 +462,8 @@ function SearchPageContent() {
               className={cn(
                 'inline-flex h-10 items-center justify-center gap-2 rounded border text-xs font-semibold shadow-sm transition',
                 showFilters || surahFilter
-                  ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
+                  ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
+                  : 'border-line bg-surface text-ink-3 hover:border-[var(--accent)]/40 hover:text-[var(--accent)]'
               )}
             >
               <Filter className="h-4 w-4" />
@@ -475,9 +475,9 @@ function SearchPageContent() {
           {suggestOpen && suggestions.length > 0 && (
             <ul
               role="listbox"
-              className="absolute z-30 mt-2 max-h-80 w-full overflow-auto rounded border border-slate-200 bg-white py-2 shadow-xl"
+              className="absolute z-30 mt-2 max-h-80 w-full overflow-auto rounded border border-line bg-surface py-2 shadow-xl"
             >
-              <li className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <li className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-ink-faint">
                 Suggestions
               </li>
               {suggestions.map((s, i) => (
@@ -488,7 +488,7 @@ function SearchPageContent() {
                     onClick={() => applySuggestion(s)}
                     className={cn(
                       'flex w-full items-center gap-3 px-4 py-2.5 text-left transition',
-                      i === activeSuggest ? 'bg-[var(--accent)]/8' : 'hover:bg-slate-50'
+                      i === activeSuggest ? 'bg-[var(--accent)]/8' : 'hover:bg-surface-2'
                     )}
                   >
                     <span
@@ -497,8 +497,8 @@ function SearchPageContent() {
                         s.kind === 'surah'
                           ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
                           : s.kind === 'topic'
-                            ? 'bg-amber-50 text-amber-700'
-                            : 'bg-slate-100 text-slate-500'
+                            ? 'bg-warning-surface text-warning'
+                            : 'bg-surface-3 text-ink-muted'
                       )}
                     >
                       {s.kind === 'surah' ? (
@@ -510,11 +510,11 @@ function SearchPageContent() {
                       )}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-slate-800">
+                      <span className="block truncate text-sm font-semibold text-ink">
                         {s.label}
                       </span>
                       {s.subtitle && (
-                        <span className="block truncate text-xs text-slate-400">{s.subtitle}</span>
+                        <span className="block truncate text-xs text-ink-faint">{s.subtitle}</span>
                       )}
                     </span>
                     {s.href && (
@@ -529,9 +529,9 @@ function SearchPageContent() {
           )}
 
           {showFilters && (
-            <div className="mt-3 rounded border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mt-3 rounded border border-line bg-surface p-4 shadow-sm">
               <div className="flex flex-wrap items-center gap-3">
-                <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <label className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
                   Limit to Surah
                 </label>
                 <input
@@ -541,7 +541,7 @@ function SearchPageContent() {
                   value={surahFilter}
                   onChange={(e) => setSurahFilter(e.target.value)}
                   placeholder="1–114"
-                  className="w-24 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
+                  className="w-24 rounded border border-line bg-surface-2 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]"
                 />
                 {surahFilter && (
                   <button
@@ -559,14 +559,14 @@ function SearchPageContent() {
 
         {/* Spelling correction banner */}
         {correctedFrom && hasResults && !loading && (
-          <div className="mb-5 rounded border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-4 py-3 text-sm text-slate-700">
+          <div className="mb-5 rounded border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-4 py-3 text-sm text-ink-2">
             Showing results for{' '}
             <span className="font-bold text-[var(--accent)]">“{usedQuery}”</span>
-            <span className="text-slate-400"> · </span>
+            <span className="text-ink-faint"> · </span>
             searched as correction for “{correctedFrom}”.{' '}
             <button
               type="button"
-              className="font-semibold text-slate-800 underline decoration-[var(--accent)]/40 underline-offset-2 hover:text-[var(--accent)]"
+              className="font-semibold text-ink underline decoration-[var(--accent)]/40 underline-offset-2 hover:text-[var(--accent)]"
               onClick={() => void runSearch(correctedFrom, { forceExact: true, closeSuggest: true })}
             >
               Search instead for “{correctedFrom}”
@@ -580,8 +580,8 @@ function SearchPageContent() {
               {recent.length > 0 && (
                 <section>
                 <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-                    <Clock className="h-4 w-4 text-slate-400" />
+                  <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                    <Clock className="h-4 w-4 text-ink-faint" />
                     Recent
                   </div>
                   <button
@@ -590,7 +590,7 @@ function SearchPageContent() {
                       clearRecent();
                       setRecent([]);
                     }}
-                    className="text-xs text-slate-400 hover:text-[var(--accent)]"
+                    className="text-xs text-ink-faint hover:text-[var(--accent)]"
                   >
                     Clear all
                   </button>
@@ -601,9 +601,9 @@ function SearchPageContent() {
                       key={r}
                       type="button"
                       onClick={() => setQuery(r)}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 shadow-sm hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2 text-sm text-ink-2 shadow-sm hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
                     >
-                      <Clock className="h-3 w-3 text-slate-400" />
+                      <Clock className="h-3 w-3 text-ink-faint" />
                       {r}
                     </button>
                   ))}
@@ -612,7 +612,7 @@ function SearchPageContent() {
               )}
 
               <section>
-              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
                 <TrendingUp className="h-4 w-4 text-[var(--accent)]" />
                 Popular searches
               </div>
@@ -622,7 +622,7 @@ function SearchPageContent() {
                     key={p.q}
                     type="button"
                     onClick={() => setQuery(p.q)}
-                    className="rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5 hover:text-[var(--accent)]"
+                    className="rounded-full border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink-2 shadow-sm transition hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5 hover:text-[var(--accent)]"
                   >
                     {p.label}
                   </button>
@@ -633,13 +633,13 @@ function SearchPageContent() {
 
             <section>
               <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <div className="flex items-center gap-2 text-sm font-semibold text-ink">
                   <BookOpen className="h-4 w-4 text-[var(--accent)]" />
                   Popular chapters
                 </div>
                 <Link
                   href="/surahs"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--accent)] hover:text-emerald-800"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--accent)] hover:text-brand"
                 >
                   View all <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -649,20 +649,20 @@ function SearchPageContent() {
                   <Link
                     key={s.number}
                     href={getSurahPath(s.number)}
-                    className="group grid min-h-[92px] grid-cols-[48px_minmax(0,1fr)_minmax(64px,0.7fr)_20px] items-center gap-3 rounded border border-slate-200 bg-white px-3.5 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md"
+                    className="group grid min-h-[92px] grid-cols-[48px_minmax(0,1fr)_minmax(64px,0.7fr)_20px] items-center gap-3 rounded border border-line bg-surface px-3.5 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md"
                   >
-                    <span className="flex h-12 w-12 items-center justify-center rounded border border-emerald-100 bg-emerald-50 text-xs font-bold text-[var(--accent)]">
+                    <span className="flex h-12 w-12 items-center justify-center rounded border border-brand/20 bg-brand/10 text-xs font-bold text-[var(--accent)]">
                       {String(s.number).padStart(2, '0')}
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-800 group-hover:text-[var(--accent)]">
+                      <p className="truncate text-sm font-semibold text-ink group-hover:text-[var(--accent)]">
                         {s.name}
                       </p>
                     </div>
-                    <span className="flex min-h-10 items-center justify-end overflow-visible whitespace-nowrap font-arabic text-xl !leading-[1.5] text-slate-500" dir="rtl" lang="ar">
+                    <span className="flex min-h-10 items-center justify-end overflow-visible whitespace-nowrap font-arabic text-xl !leading-[1.5] text-ink-muted" dir="rtl" lang="ar">
                       {getSurahArabicName(s.number)}
                     </span>
-                    <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
+                    <ArrowRight className="h-4 w-4 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
                   </Link>
                 ))}
               </div>
@@ -673,7 +673,7 @@ function SearchPageContent() {
         {loading && (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded border border-slate-200 bg-white p-5 shadow-sm">
+              <div key={i} className="rounded border border-line bg-surface p-5 shadow-sm">
                 <Skeleton className="mb-3 h-4 w-28" />
                 <Skeleton className="mb-2 h-7 w-full" />
                 <Skeleton className="h-4 w-3/4" />
@@ -685,7 +685,7 @@ function SearchPageContent() {
         {committed && !loading && hasResults && (
           <>
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+              <div className="flex gap-1 rounded-full border border-line bg-surface p-1 shadow-sm">
                 {(['all', 'arabic', 'translation'] as Tab[]).map((t) => (
                   <button
                     key={t}
@@ -694,16 +694,16 @@ function SearchPageContent() {
                     className={cn(
                       'rounded-full px-3.5 py-1.5 text-sm font-semibold capitalize transition',
                       tab === t
-                        ? 'bg-[var(--accent)] text-white'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-[var(--accent)] text-brand-contrast'
+                        : 'text-ink-muted hover:text-ink'
                     )}
                   >
                     {t}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-slate-500">
-                <span className="font-semibold text-slate-800">
+              <p className="text-sm text-ink-muted">
+                <span className="font-semibold text-ink">
                   {ayahs.length + uniqueTranslations.length}
                 </span>{' '}
                 results for “{usedQuery || committed}”
@@ -713,7 +713,7 @@ function SearchPageContent() {
             {visibleAyahs.length > 0 && (
               <section className="mb-8">
                 {tab === 'all' && (
-                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-faint">
                     Arabic · {ayahs.length}
                   </p>
                 )}
@@ -725,14 +725,14 @@ function SearchPageContent() {
                         ayahId: a.id,
                         ayahNumber: a.number,
                       })}
-                      className="group block rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md sm:p-5"
+                      className="group block rounded border border-line bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md sm:p-5"
                     >
                       <div className="mb-2 flex flex-wrap items-center gap-2">
                         <span className="rounded-full bg-[var(--accent)]/10 px-2.5 py-0.5 text-xs font-bold text-[var(--accent)]">
                           {a.surah.nameSimple} · {a.number}
                         </span>
                         <span
-                          className="font-arabic text-sm text-slate-400"
+                          className="font-arabic text-sm text-ink-faint"
                           dir="rtl"
                           lang="ar"
                         >
@@ -740,14 +740,14 @@ function SearchPageContent() {
                         </span>
                       </div>
                       <p
-                        className="font-arabic ayah-arabic text-xl leading-loose text-slate-900"
+                        className="font-arabic ayah-arabic text-xl leading-loose text-ink"
                         lang="ar"
                         dir="rtl"
                       >
                         {highlightText(a.textUthmani, usedQuery || committed)}
                       </p>
                       {a.translations?.length > 0 && (
-                        <p className="mt-2 line-clamp-2 text-sm text-slate-500">
+                        <p className="mt-2 line-clamp-2 text-sm text-ink-muted">
                           {highlightText(a.translations[0].text.slice(0, 160), usedQuery || committed)}
                           {a.translations[0].text.length > 160 && '…'}
                         </p>
@@ -761,7 +761,7 @@ function SearchPageContent() {
             {visibleTranslations.length > 0 && (
               <section>
                 {tab === 'all' && (
-                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-faint">
                     Translations · {uniqueTranslations.length}
                   </p>
                 )}
@@ -773,15 +773,15 @@ function SearchPageContent() {
                         ayahId: t.ayahId,
                         ayahNumber: t.ayahNumber,
                       })}
-                      className="group block rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md sm:p-5"
+                      className="group block rounded border border-line bg-surface p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/35 hover:shadow-md sm:p-5"
                     >
                       <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600">
+                        <span className="rounded-full bg-surface-3 px-2.5 py-0.5 text-xs font-bold text-ink-3">
                           {t.surah.nameSimple} · {t.ayahNumber}
                         </span>
-                        <span className="text-xs text-slate-400">{t.translator.name}</span>
+                        <span className="text-xs text-ink-faint">{t.translator.name}</span>
                       </div>
-                      <p className="text-sm leading-relaxed text-slate-800">
+                      <p className="text-sm leading-relaxed text-ink">
                         {highlightText(t.text, usedQuery || committed)}
                       </p>
                     </Link>
@@ -793,21 +793,21 @@ function SearchPageContent() {
         )}
 
         {showEmpty && (
-          <div className="relative overflow-hidden rounded border border-slate-200 bg-white px-6 py-12 text-center shadow-sm sm:px-10 sm:py-14">
+          <div className="relative overflow-hidden rounded border border-line bg-surface px-6 py-12 text-center shadow-sm sm:px-10 sm:py-14">
             <div className="relative mx-auto flex max-w-lg flex-col items-center">
               <div className="mb-5 flex h-16 w-16 items-center justify-center rounded bg-[var(--accent)]/10 text-[var(--accent)]">
                 <Compass className="h-8 w-8" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 No results for “{committed}”
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              <p className="mt-2 text-sm leading-relaxed text-ink-muted">
                 Check the suggestions below — we often catch spelling mistakes.
               </p>
 
               {surahSuggestions.length > 0 && (
                 <div className="mt-8 w-full text-left">
-                  <p className="mb-3 text-center text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <p className="mb-3 text-center text-xs font-bold uppercase tracking-wider text-ink-faint">
                     Did you mean
                   </p>
                   <div className="grid gap-2">
@@ -816,15 +816,15 @@ function SearchPageContent() {
                         key={s.id}
                         type="button"
                         onClick={() => applySuggestion(s)}
-                        className="group flex w-full items-center justify-between rounded border border-slate-200 bg-slate-50/80 px-4 py-3 text-left transition hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
+                        className="group flex w-full items-center justify-between rounded border border-line bg-surface-2/80 px-4 py-3 text-left transition hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
                       >
                         <div>
-                          <p className="text-sm font-bold text-slate-800 group-hover:text-[var(--accent)]">
+                          <p className="text-sm font-bold text-ink group-hover:text-[var(--accent)]">
                             {s.label}
                           </p>
-                          <p className="text-xs text-slate-400">{s.subtitle || 'Open chapter'}</p>
+                          <p className="text-xs text-ink-faint">{s.subtitle || 'Open chapter'}</p>
                         </div>
-                        <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-[var(--accent)]" />
+                        <ArrowRight className="h-4 w-4 text-ink-faint group-hover:text-[var(--accent)]" />
                       </button>
                     ))}
                   </div>
@@ -837,7 +837,7 @@ function SearchPageContent() {
                     key={p.q}
                     type="button"
                     onClick={() => setQuery(p.q)}
-                    className="rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
+                    className="rounded-full border border-line bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink-3 hover:border-[var(--accent)]/40 hover:text-[var(--accent)]"
                   >
                     Try “{p.label}”
                   </button>
@@ -846,7 +846,7 @@ function SearchPageContent() {
 
               <Link
                 href="/surahs"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-[var(--accent)]/90"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-bold text-brand-contrast shadow-md hover:bg-[var(--accent)]/90"
               >
                 Browse all chapters
                 <ArrowRight className="h-4 w-4" />

@@ -25,7 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const uiLocale = useSettingsStore((state) => state.uiLocale);
   const experienceMode = useSettingsStore((state) => state.experienceMode);
   const readerViewMode = useSettingsStore((state) => state.readerViewMode);
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [resolved, setResolved] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -43,7 +43,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = (localStorage.getItem('theme') as Theme) || 'light';
+    const stored = (localStorage.getItem('theme') as Theme) || 'system';
     setThemeState(stored);
   }, []);
 
@@ -51,17 +51,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!mounted) return;
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
-      // Dark tokens on the light mushaf make Arabic near-invisible.
-      const forceLight = isQuranReaderPath(pathname);
-      const dark =
-        !forceLight && (theme === 'dark' || (theme === 'system' && media.matches));
+      const dark = theme === 'dark' || (theme === 'system' && media.matches);
       setResolved(dark ? 'dark' : 'light');
       document.documentElement.classList.toggle('dark', dark);
     };
     apply();
     media.addEventListener('change', apply);
     return () => media.removeEventListener('change', apply);
-  }, [theme, mounted, pathname]);
+  }, [theme, mounted]);
 
   useEffect(() => {
     if (!mounted) return;

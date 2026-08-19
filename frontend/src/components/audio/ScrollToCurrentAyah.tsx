@@ -49,94 +49,51 @@ export function ScrollToCurrentAyah() {
   const isPlaying = useAudioStore((s) => s.isPlaying);
   const current = useAudioStore((s) => s.playlist[s.currentIndex] ?? null);
   const navigatingTo = useRef<string | null>(null);
-  const lastScrolledAyah = useRef<number | null>(null);
+  const lastScrolledAyah = useRef<string | null>(null);
 
   useEffect(() => {
     if (!current || !isPlaying) return;
 
-    let cancelled = false;
-    let attempts = 0;
-    let timer: number | null = null;
+    const ayahKey = `${current.surahNumber}:${current.ayahNumber}`;
 
-    const ensureAndScroll = () => {
-      if (cancelled) return true;
-      const el = document.getElementById(`ayah-${current.ayahId}`);
-      if (el) {
-        navigatingTo.current = null;
-        // Re-scroll when the recited ayah changes (or first attach).
-        if (lastScrolledAyah.current !== current.ayahId) {
-          lastScrolledAyah.current = current.ayahId;
-          // Wait a frame so layout after highlight classes settles.
-          requestAnimationFrame(() => {
-            if (!cancelled) scrollAyahIntoView(el);
-          });
+    const findTargetElement = (): HTMLElement | null => {
+      return (
+        document.getElementById(`ayah-${current.ayahId}`) ||
+        document.querySelector<HTMLElement>(`[data-surah="${current.surahNumber}"][data-ayah-number="${current.ayahNumber}"]`) ||
+        document.querySelector<HTMLElement>(`[data-ayah-number="${current.ayahNumber}"]`) ||
+        document.getElementById(`ayah-number-${current.ayahNumber}`)
+      );
+    };
+
+    const performScroll = () => {
+      const el = findTargetElement();
+      if (!el) return false;
+
+      const rect = el.getBoundingClientRect();
+      // Position active verse comfortably below the sticky subheader (~100px from top)
+      const targetScrollY = window.scrollY + rect.top - 110;
+
+      window.scrollTo({
+        top: Math.max(0, targetScrollY),
+        behavior: 'smooth',
+      });
+      return true;
+    };
+
+    if (lastScrolledAyah.current !== ayahKey) {
+      lastScrolledAyah.current = ayahKey;
+      requestAnimationFrame(() => {
+        if (!performScroll()) {
+          let attempts = 0;
+          const timer = window.setInterval(() => {
+            attempts += 1;
+            if (performScroll() || attempts > 25) {
+              window.clearInterval(timer);
+            }
+          }, 100);
         }
-        return true;
-      }
-
-      const pageSurah = surahNumberFromPath(pathname);
-      if (pageSurah && pageSurah === current.surahNumber) {
-        window.dispatchEvent(
-          new CustomEvent('quranpilot:ensure-ayah', {
-            detail: {
-              surahNumber: current.surahNumber,
-              ayahNumber: current.ayahNumber,
-              ayahId: current.ayahId,
-            },
-          }),
-        );
-        return false;
-      }
-
-      const juzMatch = pathname.match(/^\/juz\/(\d+)/);
-      if (juzMatch) {
-        const articles = document.querySelectorAll<HTMLElement>('[data-ayah-id]');
-        if (!articles.length) return false;
-
-        const firstId = Number(articles[0].getAttribute('data-ayah-id'));
-        const lastId = Number(articles[articles.length - 1].getAttribute('data-ayah-id'));
-        const currentPage = Math.max(
-          1,
-          parseInt(new URLSearchParams(window.location.search).get('page') || '1', 10),
-        );
-
-        let targetPage = currentPage;
-        if (Number.isFinite(lastId) && current.ayahId > lastId) targetPage = currentPage + 1;
-        else if (Number.isFinite(firstId) && current.ayahId < firstId && currentPage > 1) {
-          targetPage = currentPage - 1;
-        } else return false;
-
-        const href = buildUrl(pathname, targetPage);
-        if (navigatingTo.current !== href) {
-          navigatingTo.current = href;
-          router.replace(href, { scroll: false });
-        }
-      }
-      return false;
-    };
-
-    if (ensureAndScroll()) return;
-
-    timer = window.setInterval(() => {
-      attempts += 1;
-      if (ensureAndScroll() || attempts > 40) {
-        if (timer != null) window.clearInterval(timer);
-      }
-    }, 120);
-
-    const onMounted = (event: Event) => {
-      const ayahId = (event as CustomEvent<{ ayahId?: number }>).detail?.ayahId;
-      if (ayahId != null && ayahId !== current.ayahId) return;
-      lastScrolledAyah.current = null; // force scroll once DOM caught up
-      ensureAndScroll();
-    };
-    window.addEventListener('quranpilot:ayah-mounted', onMounted);
-
-    return () => {
-      cancelled = true;
-      if (timer != null) window.clearInterval(timer);
-      window.removeEventListener('quranpilot:ayah-mounted', onMounted);
-    };
+      });
+    }
   }, [current, currentIndex, isPlaying, pathname, router]);
 
   useEffect(() => {

@@ -353,7 +353,7 @@ export function HifzPracticeSession({
               ? 'Surah revealed — mashaAllah'
               : `Learning ayah ${ayah?.number ?? '—'} · ${learnedCount}/${ayahs.length} revealed`}
           </p>
-          <div className="mt-2 h-2 w-52 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+          <div className="mt-2 h-2 w-52 overflow-hidden rounded-full bg-line">
             <div
               className="h-full rounded-full bg-[var(--accent)] transition-all"
               style={{ width: `${progress}%` }}
@@ -369,7 +369,7 @@ export function HifzPracticeSession({
             }}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 text-sm font-medium',
-              mode === 'type' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]',
+              mode === 'type' ? 'bg-[var(--accent)] text-brand-contrast' : 'text-[var(--muted)]',
             )}
           >
             <Type className="h-4 w-4" /> Type
@@ -386,7 +386,7 @@ export function HifzPracticeSession({
             }}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 text-sm font-medium',
-              mode === 'speech' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]',
+              mode === 'speech' ? 'bg-[var(--accent)] text-brand-contrast' : 'text-[var(--muted)]',
             )}
           >
             <Mic className="h-4 w-4" /> Speak
@@ -411,18 +411,18 @@ export function HifzPracticeSession({
                 className={cn(
                   'flex w-full items-start gap-3 rounded-[4px] px-3 py-3 text-right transition',
                   isCurrent && 'bg-[var(--accent)]/10 ring-2 ring-[var(--accent)]/40',
-                  isLearned && !isCurrent && 'bg-emerald-50/60 dark:bg-emerald-950/20',
-                  !isLearned && !isCurrent && 'hover:bg-slate-50 dark:hover:bg-slate-900/30',
+                  isLearned && !isCurrent && 'bg-brand/[0.06]',
+                  !isLearned && !isCurrent && 'hover:bg-surface-2',
                 )}
               >
                 <span
                   className={cn(
                     'mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold',
                     isLearned
-                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
                       : isCurrent
                         ? 'border-[var(--accent)] text-[var(--accent)]'
-                        : 'border-slate-200 text-transparent',
+                        : 'border-line text-transparent',
                   )}
                   aria-hidden={!isLearned}
                 >
@@ -433,7 +433,7 @@ export function HifzPracticeSession({
                     'min-w-0 flex-1 font-arabic text-xl leading-[2.1] sm:text-2xl',
                     isLearned || (isCurrent && (liveFill?.filledCount ?? 0) > 0)
                       ? 'text-[var(--fg)]'
-                      : 'select-none text-slate-300 dark:text-slate-600',
+                      : 'select-none text-ink-faint',
                   )}
                 >
                   {isLearned
@@ -494,14 +494,14 @@ export function HifzPracticeSession({
                       : 'Tap the microphone and recite the complete ayah'}
               </p>
               {liveFill?.mistakeExpected && liveFill.mistakeHeard && !feedback && (
-                <div className="flex w-full flex-wrap items-center gap-3 rounded-[4px] border border-amber-300 bg-amber-50 px-4 py-3 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
+                <div className="flex w-full flex-wrap items-center gap-3 rounded-[4px] border border-amber-300 bg-warning-surface px-4 py-3 text-amber-950">
                   <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden="true" />
                   <span className="text-sm font-semibold">Check this word</span>
-                  <span className="text-xs text-amber-800 dark:text-amber-200">Expected</span>
+                  <span className="text-xs text-warning">Expected</span>
                   <span dir="rtl" lang="ar" className="font-arabic text-xl">
                     {liveFill.mistakeExpected}
                   </span>
-                  <span className="text-xs text-amber-800 dark:text-amber-200">Heard</span>
+                  <span className="text-xs text-warning">Heard</span>
                   <span dir="rtl" lang="ar" className="font-arabic text-lg">
                     {liveFill.mistakeHeard}
                   </span>
@@ -511,7 +511,7 @@ export function HifzPracticeSession({
                 <p
                   dir="rtl"
                   lang="ar"
-                  className="w-full rounded-[4px] bg-slate-50 px-4 py-3 font-arabic text-lg dark:bg-slate-900/40"
+                  className="w-full rounded-[4px] bg-surface-2 px-4 py-3 font-arabic text-lg"
                 >
                   {transcript}
                 </p>
@@ -532,7 +532,7 @@ export function HifzPracticeSession({
       )}
 
       {error && (
-        <p className="rounded-[4px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
+        <p className="rounded-[4px] border border-danger/30 bg-danger-surface px-4 py-3 text-sm text-rose-800">
           {error}
         </p>
       )}
@@ -542,13 +542,13 @@ export function HifzPracticeSession({
           className={cn(
             'rounded-[4px] border p-5',
             feedback.isCorrect
-              ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30'
-              : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950/40',
+              ? 'border-brand/25 bg-brand/10'
+              : 'border-line-strong bg-surface',
           )}
         >
           <div className="flex flex-wrap items-start gap-3">
             {feedback.isCorrect ? (
-              <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 text-brand" />
             ) : (
               <Ear className="mt-0.5 h-5 w-5 text-[var(--accent)]" />
             )}
@@ -583,7 +583,7 @@ export function HifzPracticeSession({
                       <span
                         key={`${word.expected}-${index}`}
                         lang="ar"
-                        className="px-1 py-2 font-arabic text-xl text-emerald-800 dark:text-emerald-300"
+                        className="px-1 py-2 font-arabic text-xl text-brand"
                       >
                         {word.expected}
                       </span>
@@ -597,9 +597,9 @@ export function HifzPracticeSession({
                       key={`${word.expected}-${word.heard}-${index}`}
                       className={cn(
                         'flex min-w-[7rem] flex-col rounded-[4px] border px-3 py-2 text-right',
-                        isChanged && 'border-rose-300 bg-rose-50 text-rose-950 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-100',
-                        isMissed && 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100',
-                        word.status === 'extra' && 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
+                        isChanged && 'border-rose-300 bg-danger-surface text-rose-950',
+                        isMissed && 'border-amber-300 bg-warning-surface text-amber-950',
+                        word.status === 'extra' && 'border-line-strong bg-surface-3 text-ink-2',
                       )}
                     >
                       <span lang="ar" className={cn('font-arabic text-xl', word.status === 'extra' && 'line-through')}>
@@ -637,7 +637,7 @@ export function HifzPracticeSession({
                 <button
                   type="button"
                   onClick={retryCurrentAyah}
-                  className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-brand-contrast hover:opacity-90"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Try again
@@ -655,7 +655,7 @@ export function HifzPracticeSession({
               type="button"
               disabled={busy}
               onClick={submitTyped}
-              className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-brand-contrast hover:opacity-90 disabled:opacity-50"
             >
               <Send className="h-4 w-4" />
               {busy ? 'Checking…' : 'Check'}
@@ -665,7 +665,7 @@ export function HifzPracticeSession({
       )}
 
       {complete && (
-        <div className="rounded-[4px] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+        <div className="rounded-[4px] border border-brand/25 bg-brand/10 px-5 py-4 text-sm text-brand">
           Full surah unlocked. Tap any ayah to re-practice; daily accuracy is still recorded.
         </div>
       )}

@@ -107,14 +107,14 @@ export function LanguagePanel({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full max-w-[320px] flex-col gap-0 border-l border-slate-200 bg-white p-0 text-slate-800 [&>button]:hidden sm:max-w-[340px]"
+        className="flex w-full max-w-[320px] flex-col gap-0 border-l border-line bg-surface p-0 text-ink [&>button]:hidden sm:max-w-[340px]"
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <SheetTitle className="text-base font-bold text-slate-900">{t('selectLanguage')}</SheetTitle>
+        <div className="flex items-center justify-between border-b border-line px-5 py-4">
+          <SheetTitle className="text-base font-bold text-ink">{t('selectLanguage')}</SheetTitle>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface-3 hover:text-ink"
             aria-label={t('close')}
           >
             <X className="h-4 w-4" />
@@ -131,8 +131,8 @@ export function LanguagePanel({ open, onOpenChange }: Props) {
                 onClick={() => void applyLanguage(lang.code)}
                 disabled={applying !== null}
                 className={cn(
-                  'flex w-full items-center px-5 py-3 text-left text-[15px] transition hover:bg-slate-50',
-                  active ? 'font-semibold text-[var(--accent)]' : 'text-slate-800'
+                  'flex w-full items-center px-5 py-3 text-left text-[15px] transition hover:bg-surface-2',
+                  active ? 'font-semibold text-[var(--accent)]' : 'text-ink'
                 )}
               >
                 <span>{lang.label}</span>

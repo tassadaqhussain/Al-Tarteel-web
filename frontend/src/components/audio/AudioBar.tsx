@@ -105,12 +105,12 @@ export function AudioBar() {
   return (
     <footer
       ref={footerRef}
-      className="fixed bottom-0 left-0 right-0 z-[60] border-t border-slate-200 bg-white safe-area-pb"
+      className="fixed bottom-0 left-0 right-0 z-[60] border-t border-line bg-surface-raised text-ink safe-area-pb"
       role="region"
       aria-label="Audio player"
     >
       {/* Full-width progress bar */}
-      <div className="relative h-1 w-full cursor-pointer bg-slate-200">
+      <div className="relative h-1 w-full cursor-pointer bg-line">
         <div
           className="absolute left-0 top-0 h-full bg-emerald-800 transition-all duration-100"
           style={{ width: `${progress}%` }}
@@ -131,7 +131,7 @@ export function AudioBar() {
               type="button"
               onClick={prev}
               disabled={currentIndex <= 0}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-800 transition-colors hover:bg-slate-100 disabled:opacity-30"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3 disabled:opacity-30"
               aria-label="Previous verse"
             >
               <SkipBack className="h-4 w-4" />
@@ -153,22 +153,22 @@ export function AudioBar() {
             <button
               type="button"
               onClick={next}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-800 transition-colors hover:bg-slate-100"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3"
               aria-label="Next verse"
             >
               <SkipForward className="h-4 w-4" />
             </button>
 
             <div className="min-w-0 px-1">
-              <p className="truncate text-sm font-medium text-slate-900">
+              <p className="truncate text-sm font-medium text-ink">
                 {current ? `Surah ${current.surahNumber} · ${current.ayahNumber}` : '—'}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-muted">
                 {current?.trackKind === 'translation' ? 'Translation' : formatTime(currentTime)}
                 {current?.trackKind === 'translation' ? ` · ${formatTime(currentTime)}` : ''} / {formatTime(duration)}
               </p>
               {playbackNotice && (
-                <p className="mt-0.5 truncate text-xs font-medium text-amber-800" role="status">
+                <p className="mt-0.5 truncate text-xs font-medium text-warning" role="status">
                   {playbackNotice}
                 </p>
               )}
@@ -177,7 +177,7 @@ export function AudioBar() {
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 md:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3 md:hidden"
               aria-label={expanded ? 'Collapse player' : 'Expand player'}
             >
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
@@ -190,8 +190,8 @@ export function AudioBar() {
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
                   continuous
-                    ? 'bg-emerald-50 text-emerald-800'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                    ? 'bg-brand/10 text-brand'
+                    : 'text-ink-muted hover:bg-surface-3 hover:text-ink'
                 )}
                 aria-label={continuous ? 'Disable loop' : 'Enable loop'}
                 aria-pressed={continuous}
@@ -202,7 +202,7 @@ export function AudioBar() {
               <select
                 value={playbackRate}
                 onChange={(e) => setPlaybackRate(Number(e.target.value))}
-                className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-800 hover:border-slate-400 focus:outline-none"
+                className="rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-xs font-medium text-ink hover:border-line-strong focus:outline-none"
                 aria-label="Playback speed"
               >
                 {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
@@ -215,17 +215,17 @@ export function AudioBar() {
               <button
                 type="button"
                 onClick={() => setReciterOpen(true)}
-                className="flex max-w-[10rem] items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 hover:border-slate-400"
+                className="flex max-w-[10rem] items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:border-line-strong"
                 aria-label="Change reciter"
               >
-                <Mic2 className="h-3 w-3 shrink-0 text-slate-500" />
+                <Mic2 className="h-3 w-3 shrink-0 text-ink-muted" />
                 <span className="truncate">{activeReciterName || 'Reciter'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={reset}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3 hover:text-ink"
                 aria-label="Close player"
               >
                 <X className="h-4 w-4" />
@@ -246,15 +246,15 @@ export function AudioBar() {
       />
 
         {expanded && (
-          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 border-t border-slate-200 px-3 py-3 md:hidden">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 border-t border-line px-3 py-3 md:hidden">
             <button
               type="button"
               onClick={() => setContinuous(!continuous)}
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                 continuous
-                  ? 'bg-emerald-50 text-emerald-800'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-brand/10 text-brand'
+                  : 'text-ink-3 hover:bg-surface-3'
               )}
               aria-pressed={continuous}
             >
@@ -265,7 +265,7 @@ export function AudioBar() {
             <select
               value={playbackRate}
               onChange={(e) => setPlaybackRate(Number(e.target.value))}
-              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-800"
+              className="rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-xs font-medium text-ink"
               aria-label="Playback speed"
             >
               {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
@@ -276,7 +276,7 @@ export function AudioBar() {
             <button
               type="button"
               onClick={() => setReciterOpen(true)}
-              className="flex-1 truncate rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-left text-xs font-medium text-slate-800"
+              className="flex-1 truncate rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-left text-xs font-medium text-ink"
               aria-label="Reciter"
             >
               {activeReciterName || 'Reciter'}
@@ -285,7 +285,7 @@ export function AudioBar() {
             <button
               type="button"
               onClick={reset}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3"
               aria-label="Close player"
             >
               <X className="h-4 w-4" />

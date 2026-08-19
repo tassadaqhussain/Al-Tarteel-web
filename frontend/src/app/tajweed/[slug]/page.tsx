@@ -46,11 +46,11 @@ export default async function TajweedLessonPage({ params }: Props) {
         <Link href="/tajweed" className="text-sm font-semibold text-[var(--accent)] hover:underline">
           ← All lessons
         </Link>
-        <h1 className="mt-3 font-serif text-3xl font-bold text-slate-900 sm:text-4xl">{lesson.name}</h1>
-        <p className="mt-1 font-arabic text-2xl text-slate-600" lang="ar" dir="rtl">
+        <h1 className="mt-3 font-serif text-3xl font-bold text-ink sm:text-4xl">{lesson.name}</h1>
+        <p className="mt-1 font-arabic text-2xl text-ink-3" lang="ar" dir="rtl">
           {lesson.nameArabic}
         </p>
-        <p className="mt-3 max-w-2xl text-sm text-slate-600 leading-relaxed">
+        <p className="mt-3 max-w-2xl text-sm text-ink-3 leading-relaxed">
           Motivation here is educational encouragement only — never presented as Quran or Hadith.
           Annotation colours in the reader remain dataset-backed and separate from this lesson flow.
         </p>
@@ -59,7 +59,7 @@ export default async function TajweedLessonPage({ params }: Props) {
 
         {lesson.relatedSlugs.length > 0 && (
           <section className="mt-10">
-            <h2 className="text-sm font-semibold text-slate-500">Related lessons</h2>
+            <h2 className="text-sm font-semibold text-ink-muted">Related lessons</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {lesson.relatedSlugs.map((rel) => {
                 const related = getTajweedLesson(rel);
@@ -68,7 +68,7 @@ export default async function TajweedLessonPage({ params }: Props) {
                   <Link
                     key={rel}
                     href={`/tajweed/${rel}`}
-                    className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium hover:border-[var(--accent)]"
+                    className="rounded-full border border-line px-3 py-1.5 text-sm font-medium hover:border-[var(--accent)]"
                   >
                     {related.name}
                   </Link>

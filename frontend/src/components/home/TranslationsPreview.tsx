@@ -281,18 +281,18 @@ export function TranslationsPreview({
     : 'Recitation - Verse 1';
 
   return (
-    <section className="w-full bg-[#f4fbf9] py-16 2xl:py-20">
+    <section className="w-full bg-brand/[0.06] py-16 2xl:py-20">
       <div className={SITE_SHELL}>
         <div className="mb-10 text-center lg:text-left">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl 2xl:text-5xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
             Hear the Quran <br className="sm:hidden" />
-            <span className="text-emerald-800">accompanied by translations.</span>
+            <span className="text-brand">accompanied by translations.</span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="flex flex-col gap-2 lg:col-span-4">
-            <div className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+            <div className="rounded-2xl border border-line-subtle bg-surface p-3 shadow-sm">
               {list.map((s) => (
                 <button
                   key={s.number}
@@ -306,37 +306,37 @@ export function TranslationsPreview({
                   className={cn(
                     'flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all duration-200',
                     activeSurah === s.number
-                      ? 'bg-emerald-800/10 font-bold text-emerald-900'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-emerald-800/10 font-bold text-brand'
+                      : 'text-ink-3 hover:bg-surface-2'
                   )}
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-400">
+                    <p className="text-xs font-semibold text-ink-faint">
                       {String(s.number).padStart(2, '0')}
                     </p>
                     <p
                       className={cn(
                         'text-sm font-bold',
-                        activeSurah === s.number ? 'text-emerald-900' : 'text-slate-800'
+                        activeSurah === s.number ? 'text-brand' : 'text-ink'
                       )}
                     >
                       {s.nameSimple}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-arabic text-sm text-slate-800" dir="rtl">
+                    <p className="font-arabic text-sm text-ink" dir="rtl">
                       {s.nameArabic}
                     </p>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] text-ink-faint">
                       {s.numberOfAyahs || '—'} Verses
                     </p>
                   </div>
                 </button>
               ))}
-              <div className="mt-2 border-t border-slate-100 pt-2 text-center">
+              <div className="mt-2 border-t border-line-subtle pt-2 text-center">
                 <Link
                   href="/surahs"
-                  className="inline-flex items-center gap-1.5 py-2 text-xs font-bold text-emerald-800 hover:underline"
+                  className="inline-flex items-center gap-1.5 py-2 text-xs font-bold text-brand hover:underline"
                 >
                   View More Chapters
                   <ArrowRight className="h-3 w-3" />
@@ -346,17 +346,17 @@ export function TranslationsPreview({
           </div>
 
           <div className="lg:col-span-8">
-            <div className="flex h-full min-h-[420px] flex-col justify-between rounded-3xl border border-slate-100 bg-white p-6 shadow-lg md:p-8">
-              <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex h-full min-h-[420px] flex-col justify-between rounded-3xl border border-line-subtle bg-surface p-6 shadow-lg md:p-8">
+              <div className="mb-6 flex items-center justify-between border-b border-line-subtle pb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">
+                  <h3 className="text-lg font-bold text-ink">
                     {activeMeta?.nameSimple ?? 'Surah'}
                   </h3>
-                  <p className="text-xs text-slate-400">English — {translatorLabel}</p>
+                  <p className="text-xs text-ink-faint">English — {translatorLabel}</p>
                 </div>
                 <Link
                   href={getSurahPath(activeSurah)}
-                  className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-emerald-800 transition hover:bg-emerald-800/20"
+                  className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-brand transition hover:bg-emerald-800/20"
                 >
                   Open Reader
                 </Link>
@@ -367,7 +367,7 @@ export function TranslationsPreview({
                   <VersePreviewSkeleton />
                 ) : previewUi === 'retry' ? (
                   <div className="flex flex-col items-center gap-3">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-ink-muted">
                       {error || 'Could not load verses for this chapter.'}
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-2">
@@ -380,7 +380,7 @@ export function TranslationsPreview({
                       </button>
                       <Link
                         href={getSurahPath(activeSurah)}
-                        className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-800/20"
+                        className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-brand hover:bg-emerald-800/20"
                       >
                         Open reader
                       </Link>
@@ -401,17 +401,17 @@ export function TranslationsPreview({
                           )}
                         >
                           <p
-                            className="font-arabic text-2xl leading-loose text-slate-800 2xl:text-3xl"
+                            className="font-arabic text-2xl leading-loose text-ink 2xl:text-3xl"
                             dir="rtl"
                             lang="ar"
                           >
                             {ayah.textUthmani}{' '}
-                            <span className="ml-2 inline-flex h-6 w-6 items-center justify-center align-middle rounded-full border border-emerald-800/30 font-sans text-[10px] font-bold text-emerald-800">
+                            <span className="ml-2 inline-flex h-6 w-6 items-center justify-center align-middle rounded-full border border-emerald-800/30 font-sans text-[10px] font-bold text-brand">
                               {toArabicNum(ayah.number)}
                             </span>
                           </p>
                           {en && (
-                            <p className="mt-2 text-sm italic text-slate-500">
+                            <p className="mt-2 text-sm italic text-ink-muted">
                               &ldquo;{en}&rdquo;
                             </p>
                           )}
@@ -422,7 +422,7 @@ export function TranslationsPreview({
                       (activeMeta?.numberOfAyahs ?? 0) > previewAyahs.length) && (
                       <Link
                         href={getSurahPath(activeSurah)}
-                        className="inline-flex text-xs font-bold text-emerald-800 hover:underline"
+                        className="inline-flex text-xs font-bold text-brand hover:underline"
                       >
                         Continue in full reader →
                       </Link>
@@ -431,12 +431,12 @@ export function TranslationsPreview({
                 )}
               </div>
 
-              <div className="mt-8 flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 md:flex-row md:items-center">
+              <div className="mt-8 flex flex-col justify-between gap-4 rounded-2xl border border-line-subtle bg-surface-2 p-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => void onPrev()}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-white hover:text-emerald-800"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface hover:text-brand"
                     aria-label="Previous verse"
                   >
                     <SkipBack className="h-4 w-4" />
@@ -459,24 +459,24 @@ export function TranslationsPreview({
                   <button
                     type="button"
                     onClick={() => void onNext()}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-white hover:text-emerald-800"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface hover:text-brand"
                     aria-label="Next verse"
                   >
                     <SkipForward className="h-4 w-4" />
                   </button>
                   <div>
-                    <p className="text-xs font-bold text-slate-800">{verseLabel}</p>
-                    <p className="text-[10px] text-slate-400">{reciterName}</p>
+                    <p className="text-xs font-bold text-ink">{verseLabel}</p>
+                    <p className="text-[10px] text-ink-faint">{reciterName}</p>
                   </div>
                 </div>
 
                 <div className="flex flex-1 items-center gap-3">
-                  <span className="text-[10px] font-medium text-slate-400">
+                  <span className="text-[10px] font-medium text-ink-faint">
                     {formatTime(displayTime)}
                   </span>
                   <button
                     type="button"
-                    className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"
+                    className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-line"
                     aria-label="Seek"
                     onClick={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
@@ -489,13 +489,13 @@ export function TranslationsPreview({
                       style={{ width: `${progressPct}%` }}
                     />
                   </button>
-                  <span className="text-[10px] font-medium text-slate-400">
+                  <span className="text-[10px] font-medium text-ink-faint">
                     {formatTime(displayDuration)}
                   </span>
                 </div>
 
                 <div className="hidden items-center gap-2 md:flex">
-                  <Volume2 className="h-4 w-4 text-slate-400" />
+                  <Volume2 className="h-4 w-4 text-ink-faint" />
                   <input
                     type="range"
                     min={0}
@@ -510,7 +510,7 @@ export function TranslationsPreview({
               </div>
 
               {error && previewUi === 'ready' && (
-                <p className="mt-3 text-center text-xs text-red-600" role="alert">
+                <p className="mt-3 text-center text-xs text-danger" role="alert">
                   {error}
                 </p>
               )}
@@ -527,9 +527,9 @@ function VersePreviewSkeleton() {
     <div className="w-full max-w-xl space-y-6" aria-busy="true" aria-label="Loading verses">
       {[0, 1, 2].map((i) => (
         <div key={i} className="space-y-3">
-          <div className="ml-auto h-7 w-4/5 animate-pulse rounded-full bg-slate-100" />
-          <div className="ml-auto h-7 w-3/5 animate-pulse rounded-full bg-slate-100" />
-          <div className="mx-auto h-3 w-2/3 animate-pulse rounded-full bg-slate-100" />
+          <div className="ml-auto h-7 w-4/5 animate-pulse rounded-full bg-surface-3" />
+          <div className="ml-auto h-7 w-3/5 animate-pulse rounded-full bg-surface-3" />
+          <div className="mx-auto h-3 w-2/3 animate-pulse rounded-full bg-surface-3" />
         </div>
       ))}
     </div>

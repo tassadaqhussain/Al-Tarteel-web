@@ -70,7 +70,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     >
       <span
         className={cn(
-          'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
+          'inline-block h-4 w-4 transform rounded-full bg-surface shadow-sm transition-transform',
           checked ? 'translate-x-6' : 'translate-x-1'
         )}
       />
@@ -170,11 +170,11 @@ export default function SettingsPage() {
   const activeTafsir = tafsirSources.find((s) => s.slug === tafsirSlug);
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pb-16">
+    <div className="min-h-screen bg-surface-app pb-16">
       <Header />
 
       {/* Sub-header */}
-      <div className="sticky top-[57px] z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="sticky top-[57px] z-40 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
           <Link
             href="/"
@@ -183,7 +183,7 @@ export default function SettingsPage() {
             <ChevronLeft className="h-4 w-4" />
             Home
           </Link>
-          <h1 className="text-sm font-semibold text-slate-800">Settings</h1>
+          <h1 className="text-sm font-semibold text-ink">Settings</h1>
           <div className="w-16" />
         </div>
       </div>
@@ -306,7 +306,7 @@ export default function SettingsPage() {
             </div>
           ) : tafsirError ? (
             <div className="px-5 py-4">
-              <p className="text-sm text-red-600">{tafsirError}</p>
+              <p className="text-sm text-danger">{tafsirError}</p>
             </div>
           ) : tafsirSources.length === 0 ? (
             <div className="px-5 py-4">

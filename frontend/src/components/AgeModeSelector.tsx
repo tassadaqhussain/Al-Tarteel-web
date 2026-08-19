@@ -27,24 +27,24 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
       label: 'Standard',
       description: 'Balanced typography, focused spacing, and a calm reading experience.',
       icon: Monitor,
-      color: 'text-emerald-800 dark:text-emerald-300',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+      color: 'text-brand',
+      bgColor: 'bg-brand/10',
     },
     {
       value: 'kids',
       label: 'Kids Explorer',
       description: 'Friendly type, lively accents, clear labels, and comfortable touch targets.',
       icon: Compass,
-      color: 'text-amber-700 dark:text-amber-300',
-      bgColor: 'bg-amber-50 dark:bg-amber-950/30',
+      color: 'text-warning',
+      bgColor: 'bg-warning-surface',
     },
     {
       value: 'elderly',
       label: 'Easy Read',
       description: 'Larger text, generous controls, and a warm high-contrast reading view.',
       icon: Eye,
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+      color: 'text-brand',
+      bgColor: 'bg-brand/10',
     },
   ];
 
@@ -65,7 +65,7 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
                 'flex w-full items-start gap-3 rounded border px-3 py-3 text-left transition-all duration-150 sm:items-center sm:justify-between sm:px-4',
                 active
                   ? 'border-[var(--accent)] bg-[var(--accent)]/5'
-                  : 'border-[var(--border)] bg-transparent hover:bg-slate-50 dark:hover:bg-slate-900/50'
+                  : 'border-[var(--border)] bg-transparent hover:bg-surface-2'
               )}
             >
               <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
@@ -73,10 +73,10 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
                   <opt.icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={cn('text-sm font-semibold', active ? 'text-[var(--accent)]' : 'text-slate-800 dark:text-slate-200')}>
+                  <p className={cn('text-sm font-semibold', active ? 'text-[var(--accent)]' : 'text-ink')}>
                     {opt.label}
                   </p>
-                  <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-slate-500">{opt.description}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-ink-muted">{opt.description}</p>
                 </div>
               </div>
               {active && <Check className="mt-1 h-5 w-5 shrink-0 text-[var(--accent)] sm:mt-0" />}
@@ -101,11 +101,11 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
                 onSelect?.();
               }}
               className={cn(
-                'flex items-center gap-3 rounded px-3 py-2 text-left text-sm transition hover:bg-slate-50 dark:hover:bg-slate-900/40',
-                active ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold' : 'text-slate-700 dark:text-slate-300'
+                'flex items-center gap-3 rounded px-3 py-2 text-left text-sm transition hover:bg-surface-2',
+                active ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold' : 'text-ink-2'
               )}
             >
-              <opt.icon className={cn('h-4 w-4 shrink-0', active ? 'text-[var(--accent)]' : 'text-slate-400')} />
+              <opt.icon className={cn('h-4 w-4 shrink-0', active ? 'text-[var(--accent)]' : 'text-ink-faint')} />
               <div className="flex-1 min-w-0">
                 <p className="truncate text-sm font-medium">{opt.label}</p>
               </div>
@@ -130,25 +130,25 @@ export function AgeModeSelector({ className, variant = 'grid', onSelect }: Props
               onSelect?.();
             }}
             className={cn(
-              'group relative flex flex-col justify-between rounded border bg-white p-5 text-left transition-all duration-200 shadow-sm hover:shadow-md dark:bg-slate-900',
+              'group relative flex flex-col justify-between rounded border bg-surface p-5 text-left transition-all duration-200 shadow-sm hover:shadow-md',
               active
                 ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/10'
-                : 'border-[var(--border)] hover:border-slate-300 dark:hover:border-slate-700'
+                : 'border-[var(--border)] hover:border-line-strong'
             )}
           >
             <div>
               <div className={cn('mb-4 flex h-11 w-11 items-center justify-center rounded transition-colors', opt.bgColor, opt.color)}>
                 <opt.icon className="h-6 w-6" />
               </div>
-              <h3 className={cn('text-base font-bold transition-colors', active ? 'text-[var(--accent)]' : 'text-slate-900 dark:text-white')}>
+              <h3 className={cn('text-base font-bold transition-colors', active ? 'text-[var(--accent)]' : 'text-ink')}>
                 {opt.label}
               </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-xs leading-relaxed text-ink-muted">
                 {opt.description}
               </p>
             </div>
             {active && (
-              <span className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-white">
+              <span className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-brand-contrast">
                 <Check className="h-3.5 w-3.5" />
               </span>
             )}

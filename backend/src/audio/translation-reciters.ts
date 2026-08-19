@@ -1,4 +1,6 @@
-/** Spoken verse translations (everyayah.com SSSAAA.mp3). Not stored in DB. */
+import { rukuForAyah } from './ruku-map';
+
+/** Spoken translations. Most publish one file per verse; some, per ruku. */
 export type TranslationReciter = {
   slug: string;
   name: string;
@@ -7,7 +9,17 @@ export type TranslationReciter = {
   languageName: string;
   baseUrl: string;
   sortOrder: number;
+  /**
+   * 'ayah' (default) — one MP3 per verse, named SSSAAA.mp3.
+   * 'ruku' — one MP3 per section, named ruku-NNN.mp3 (global ruku 1-558).
+   */
+  granularity?: 'ayah' | 'ruku';
+  /** Served from our own storage; baseUrl is resolved from AUDIO_PUBLIC_BASE_URL. */
+  selfHosted?: boolean;
 };
+
+const localAudioBase = () =>
+  (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
 
 export const TRANSLATION_RECITERS: TranslationReciter[] = [
   {
@@ -25,8 +37,9 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     style: 'Urdu translation',
     languageCode: 'ur',
     languageName: 'Urdu',
-    baseUrl: 'https://everyayah.com/data/translations/urdu_shamshad_ali_khan_46kbps',
+    baseUrl: 'ur-shamshad-ali-khan',
     sortOrder: 2,
+    selfHosted: true,
   },
   {
     slug: 'ur-farhat-hashmi',
@@ -34,8 +47,9 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     style: 'Urdu translation',
     languageCode: 'ur',
     languageName: 'Urdu',
-    baseUrl: 'https://everyayah.com/data/translations/urdu_farhat_hashmi',
+    baseUrl: 'ur-farhat-hashmi',
     sortOrder: 3,
+    selfHosted: true,
   },
   {
     slug: 'fa-makarem',
@@ -55,7 +69,26 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     baseUrl: 'https://everyayah.com/data/translations/Fooladvand_Hedayatfar_40Kbps',
     sortOrder: 5,
   },
+  {
+    // Mirrored into local storage: the origin is HTTP-only with no CORS, so it
+    // cannot be played from an HTTPS page. See scripts/fetch-pashto-audio.mjs.
+    slug: 'ps-shafeeq-ur-rahman',
+    name: 'Shafeeq ur Rahman',
+    style: 'Pashto translation (recitation by Mishari Alafasy)',
+    languageCode: 'ps',
+    languageName: 'Pashto',
+    baseUrl: 'ps-shafeeq-ur-rahman',
+    sortOrder: 6,
+    granularity: 'ruku',
+    selfHosted: true,
+  },
 ];
+
+export function translationBaseUrl(reciter: TranslationReciter): string {
+  return reciter.selfHosted
+    ? `${localAudioBase()}/${reciter.baseUrl}`
+    : reciter.baseUrl.replace(/\/$/, '');
+}
 
 export function getTranslationReciter(slug: string): TranslationReciter | undefined {
   return TRANSLATION_RECITERS.find((item) => item.slug === slug);
@@ -64,6 +97,11 @@ export function getTranslationReciter(slug: string): TranslationReciter | undefi
 export function translationVerseUrl(slug: string, surahNumber: number, ayahNumber: number): string | null {
   const reciter = getTranslationReciter(slug);
   if (!reciter) return null;
+  if (reciter.granularity === 'ruku') {
+    const ruku = rukuForAyah(surahNumber, ayahNumber);
+    if (!ruku) return null;
+    return `${translationBaseUrl(reciter)}/ruku-${String(ruku).padStart(3, '0')}.mp3`;
+  }
   const file = `${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
-  return `${reciter.baseUrl.replace(/\/$/, '')}/${file}`;
+  return `${translationBaseUrl(reciter)}/${file}`;
 }

@@ -30,7 +30,7 @@ const COUNTRIES = [
 ];
 
 const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15';
+  'w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-faint focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15';
 
 export function DonateCheckoutForm() {
   const router = useRouter();
@@ -148,44 +148,44 @@ export function DonateCheckoutForm() {
 
   if (!draft || !configLoaded) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-500">
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-ink-muted">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] pb-16">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-surface-2 pb-16">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface">
         <div className="relative mx-auto flex h-14 max-w-3xl items-center px-4 sm:px-6">
           <Link
             href="/donate"
-            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+            className="inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink"
           >
             <ChevronLeft className="h-4 w-4" /> Back
           </Link>
-          <p className="pointer-events-none absolute inset-x-0 text-center text-sm font-extrabold tracking-[0.14em] text-slate-900">
+          <p className="pointer-events-none absolute inset-x-0 text-center text-sm font-extrabold tracking-[0.14em] text-ink">
             QURANPILOT
           </p>
         </div>
       </header>
 
       <main className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-        <div className="overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
-          <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-7">
+        <div className="overflow-hidden rounded-2xl bg-surface shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+          <div className="flex items-start justify-between gap-4 border-b border-line-subtle px-5 py-4 sm:px-7">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Checkout</p>
-              <h1 className="mt-1 text-lg font-bold text-slate-900">Complete your donation</h1>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Checkout</p>
+              <h1 className="mt-1 text-lg font-bold text-ink">Complete your donation</h1>
               {demoMode && (
-                <p className="mt-2 inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                <p className="mt-2 inline-flex rounded-full bg-warning-surface px-2.5 py-0.5 text-[11px] font-semibold text-warning">
                   Demo payment — add Stripe keys for live checkout
                 </p>
               )}
             </div>
-            <p className="shrink-0 text-right text-sm font-semibold text-slate-800">{summary}</p>
+            <p className="shrink-0 text-right text-sm font-semibold text-ink">{summary}</p>
           </div>
 
-          <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4 sm:px-7">
+          <div className="flex items-center gap-2 border-b border-line-subtle px-5 py-4 sm:px-7">
             {[
               { n: 1, label: 'Your info' },
               { n: 2, label: 'Payment' },
@@ -197,7 +197,7 @@ export function DonateCheckoutForm() {
                   <div
                     className={cn(
                       'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                      active || done ? 'bg-[var(--accent)] text-white' : 'bg-slate-200 text-slate-500'
+                      active || done ? 'bg-[var(--accent)] text-brand-contrast' : 'bg-line text-ink-muted'
                     )}
                   >
                     {s.n}
@@ -205,12 +205,12 @@ export function DonateCheckoutForm() {
                   <span
                     className={cn(
                       'truncate text-sm font-medium',
-                      active ? 'text-slate-900' : 'text-slate-500'
+                      active ? 'text-ink' : 'text-ink-muted'
                     )}
                   >
                     {s.label}
                   </span>
-                  {i === 0 && <div className="mx-1 h-px flex-1 bg-slate-200" />}
+                  {i === 0 && <div className="mx-1 h-px flex-1 bg-line" />}
                 </div>
               );
             })}
@@ -218,14 +218,14 @@ export function DonateCheckoutForm() {
 
           {step === 1 ? (
             <form onSubmit={onSubmitInfo} className="px-5 py-6 sm:px-7">
-              <h2 className="text-base font-bold text-slate-900">Your info</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="text-base font-bold text-ink">Your info</h2>
+              <p className="mt-1 text-sm text-ink-muted">
                 Next you&apos;ll pay securely with Stripe (cards, Apple Pay, Google Pay).
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <label className="block text-sm">
-                  <span className="mb-1.5 block font-medium text-slate-700">First Name</span>
+                  <span className="mb-1.5 block font-medium text-ink-2">First Name</span>
                   <input
                     required
                     value={info.firstName}
@@ -235,7 +235,7 @@ export function DonateCheckoutForm() {
                   />
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1.5 block font-medium text-slate-700">Last Name</span>
+                  <span className="mb-1.5 block font-medium text-ink-2">Last Name</span>
                   <input
                     required
                     value={info.lastName}
@@ -247,7 +247,7 @@ export function DonateCheckoutForm() {
               </div>
 
               <label className="mt-3 block text-sm">
-                <span className="mb-1.5 block font-medium text-slate-700">Email</span>
+                <span className="mb-1.5 block font-medium text-ink-2">Email</span>
                 <input
                   required
                   type="email"
@@ -259,7 +259,7 @@ export function DonateCheckoutForm() {
               </label>
 
               <label className="mt-3 block text-sm">
-                <span className="mb-1.5 block font-medium text-slate-700">Address</span>
+                <span className="mb-1.5 block font-medium text-ink-2">Address</span>
                 <input
                   value={info.address}
                   onChange={(e) => setInfo((p) => ({ ...p, address: e.target.value }))}
@@ -271,7 +271,7 @@ export function DonateCheckoutForm() {
 
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 <label className="block text-sm">
-                  <span className="mb-1.5 block font-medium text-slate-700">Zip code</span>
+                  <span className="mb-1.5 block font-medium text-ink-2">Zip code</span>
                   <input
                     value={info.zip}
                     onChange={(e) => setInfo((p) => ({ ...p, zip: e.target.value }))}
@@ -280,7 +280,7 @@ export function DonateCheckoutForm() {
                   />
                 </label>
                 <label className="block text-sm sm:col-span-2">
-                  <span className="mb-1.5 block font-medium text-slate-700">City</span>
+                  <span className="mb-1.5 block font-medium text-ink-2">City</span>
                   <input
                     value={info.city}
                     onChange={(e) => setInfo((p) => ({ ...p, city: e.target.value }))}
@@ -292,7 +292,7 @@ export function DonateCheckoutForm() {
 
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <label className="block text-sm">
-                  <span className="mb-1.5 block font-medium text-slate-700">State</span>
+                  <span className="mb-1.5 block font-medium text-ink-2">State</span>
                   <input
                     value={info.state}
                     onChange={(e) => setInfo((p) => ({ ...p, state: e.target.value }))}
@@ -301,7 +301,7 @@ export function DonateCheckoutForm() {
                   />
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1.5 block font-medium text-slate-700">Country</span>
+                  <span className="mb-1.5 block font-medium text-ink-2">Country</span>
                   <select
                     value={info.country}
                     onChange={(e) => setInfo((p) => ({ ...p, country: e.target.value }))}
@@ -316,22 +316,22 @@ export function DonateCheckoutForm() {
                 </label>
               </div>
 
-              <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+              <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-ink-2">
                 <input
                   type="checkbox"
                   checked={info.hideName}
                   onChange={(e) => setInfo((p) => ({ ...p, hideName: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-[var(--accent)] focus:ring-[var(--accent)]"
+                  className="h-4 w-4 rounded border-line-strong text-[var(--accent)] focus:ring-[var(--accent)]"
                 />
                 Hide my name from the public
               </label>
 
-              <label className="mt-2.5 flex cursor-pointer items-center gap-2.5 text-sm text-slate-700">
+              <label className="mt-2.5 flex cursor-pointer items-center gap-2.5 text-sm text-ink-2">
                 <input
                   type="checkbox"
                   checked={info.asOrganization}
                   onChange={(e) => setInfo((p) => ({ ...p, asOrganization: e.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-[var(--accent)] focus:ring-[var(--accent)]"
+                  className="h-4 w-4 rounded border-line-strong text-[var(--accent)] focus:ring-[var(--accent)]"
                 />
                 Donate as an organization
               </label>
@@ -346,30 +346,30 @@ export function DonateCheckoutForm() {
               )}
 
               {error && (
-                <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+                <p className="mt-4 rounded-xl bg-danger-surface px-3 py-2 text-sm text-danger" role="alert">
                   {error}
                 </p>
               )}
 
               <button
                 type="submit"
-                className="mt-6 w-full rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent)]/90"
+                className="mt-6 w-full rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-brand-contrast transition hover:bg-[var(--accent)]/90"
               >
                 Continue to payment
               </button>
 
-              <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-emerald-700">
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-brand">
                 <ShieldCheck className="h-3.5 w-3.5" /> Payments are processed securely by Stripe.
               </p>
             </form>
           ) : (
             <div className="px-5 py-6 sm:px-7">
-              <h2 className="text-base font-bold text-slate-900">Payment</h2>
-              <p className="mt-2 text-sm text-slate-600">
+              <h2 className="text-base font-bold text-ink">Payment</h2>
+              <p className="mt-2 text-sm text-ink-3">
                 Pay with card, Apple Pay, or Google Pay — powered by Stripe.
               </p>
 
-              <div className="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <div className="mt-5 rounded-xl bg-surface-2 px-4 py-3 text-sm text-ink-2">
                 <p>
                   <span className="font-semibold">Donor:</span> {info.firstName} {info.lastName}
                 </p>
@@ -385,7 +385,7 @@ export function DonateCheckoutForm() {
               </div>
 
               {error && (
-                <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+                <p className="mt-4 rounded-xl bg-danger-surface px-3 py-2 text-sm text-danger" role="alert">
                   {error}
                 </p>
               )}
@@ -402,7 +402,7 @@ export function DonateCheckoutForm() {
                   type="button"
                   onClick={() => void completeDemoPayment()}
                   disabled={loading}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-brand-contrast transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
                 >
                   {loading ? (
                     <>
@@ -421,7 +421,7 @@ export function DonateCheckoutForm() {
                   setStep(1);
                 }}
                 disabled={loading}
-                className="mt-3 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300"
+                className="mt-3 w-full rounded-full border border-line px-5 py-3 text-sm font-semibold text-ink-2 hover:border-line-strong"
               >
                 Back to your info
               </button>
@@ -429,7 +429,7 @@ export function DonateCheckoutForm() {
           )}
         </div>
 
-        <p className="mt-5 px-2 text-center text-xs leading-relaxed text-slate-500">
+        <p className="mt-5 px-2 text-center text-xs leading-relaxed text-ink-muted">
           QuranPilot uses Stripe as its payment gateway. Your card details never touch our servers.
         </p>
       </main>

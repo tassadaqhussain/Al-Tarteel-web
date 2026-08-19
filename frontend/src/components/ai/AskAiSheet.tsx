@@ -225,7 +225,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
         showClose={false}
         overlayClassName="max-sm:bottom-[var(--audio-bar-height,0px)]"
         className={cn(
-          'flex flex-col gap-0 overflow-hidden border-slate-200 bg-white p-0 text-slate-800',
+          'flex flex-col gap-0 overflow-hidden border-line bg-surface p-0 text-ink',
           isMobile
             ? [
                 'inset-x-0 top-auto h-[min(78dvh,calc(100dvh-var(--audio-bar-height,0px)-0.75rem))]',
@@ -239,18 +239,18 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
       >
         {isMobile && (
           <div className="flex justify-center pb-1 pt-2" aria-hidden>
-            <span className="h-1 w-10 rounded-full bg-slate-300" />
+            <span className="h-1 w-10 rounded-full bg-line-strong" />
           </div>
         )}
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3 sm:px-5 sm:py-4">
           <div className="min-w-0">
-            <SheetTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
+            <SheetTitle className="flex items-center gap-2 text-base font-bold text-ink">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
                 <MessageCircle className="h-4 w-4" />
               </span>
               {t('askAi')}
             </SheetTitle>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-ink-muted">
               Questions about the Quran & Islam
               {promptLimit > 0 && promptsRemaining !== null
                 ? ` · ${promptsRemaining} of ${promptLimit} free prompts left`
@@ -265,7 +265,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
                   setMessages([]);
                   setError(null);
                 }}
-                className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-full p-2 text-ink-faint transition hover:bg-surface-3 hover:text-ink-2"
                 aria-label="Clear chat"
               >
                 <Trash2 className="h-4 w-4" />
@@ -274,7 +274,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              className="rounded-full p-2 text-ink-muted transition hover:bg-surface-3 hover:text-ink"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -288,7 +288,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
         >
           {messages.length === 0 && (
             <div className="space-y-3">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-ink-3">
                 {limitReached
                   ? `Free Ask AI limit reached (${promptLimit} prompts).`
                   : 'Ask in writing or tap the mic. Try one of these:'}
@@ -300,7 +300,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
                       key={s}
                       type="button"
                       onClick={() => void ask(s)}
-                      className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-left text-sm text-slate-700 transition hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
+                      className="rounded-2xl border border-line bg-surface-2 px-3.5 py-2.5 text-left text-sm text-ink-2 transition hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5"
                     >
                       {s}
                     </button>
@@ -316,8 +316,8 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
               className={cn(
                 'max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
                 m.role === 'user'
-                  ? 'ml-auto bg-[var(--accent)] text-white'
-                  : 'mr-auto border border-slate-200 bg-slate-50 text-slate-800',
+                  ? 'ml-auto bg-[var(--accent)] text-brand-contrast'
+                  : 'mr-auto border border-line bg-surface-2 text-ink',
               )}
             >
               {m.content}
@@ -325,21 +325,21 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
           ))}
 
           {loading && (
-            <div className="mr-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-500">
+            <div className="mr-auto flex items-center gap-2 rounded-2xl border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-ink-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Thinking…
             </div>
           )}
         </div>
 
         {error && (
-          <p className="mx-4 mb-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 sm:mx-5" role="alert">
+          <p className="mx-4 mb-2 rounded-xl bg-danger-surface px-3 py-2 text-sm text-danger sm:mx-5" role="alert">
             {error}
           </p>
         )}
 
         <form
           onSubmit={onSubmit}
-          className="sticky bottom-0 border-t border-slate-200 bg-white px-3 py-3 sm:px-4"
+          className="sticky bottom-0 border-t border-line bg-surface px-3 py-3 sm:px-4"
         >
           <div className="flex items-end gap-2">
             {voiceSupported && (
@@ -350,8 +350,8 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
                 className={cn(
                   'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition',
                   listening
-                    ? 'border-red-200 bg-red-50 text-red-600'
-                    : 'border-slate-200 text-slate-600 hover:border-[var(--accent)] hover:text-[var(--accent)]',
+                    ? 'border-danger/30 bg-danger-surface text-danger'
+                    : 'border-line text-ink-3 hover:border-[var(--accent)] hover:text-[var(--accent)]',
                   limitReached && 'opacity-50',
                 )}
                 aria-label={listening ? 'Stop listening' : 'Ask by voice'}
@@ -371,7 +371,7 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
                     ? 'Listening…'
                     : 'Ask anything about the Quran…'
               }
-              className="max-h-28 min-h-[2.75rem] flex-1 resize-none rounded-2xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-slate-50 disabled:text-slate-400"
+              className="max-h-28 min-h-[2.75rem] flex-1 resize-none rounded-2xl border border-line px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15 disabled:bg-surface-2 disabled:text-ink-faint"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -382,13 +382,13 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
             <button
               type="submit"
               disabled={loading || limitReached || !input.trim()}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white transition hover:bg-[var(--accent)]/90 disabled:opacity-50"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-brand-contrast transition hover:bg-[var(--accent)]/90 disabled:opacity-50"
               aria-label="Send"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
           </div>
-          <p className="mt-2 text-center text-[10px] text-slate-400">
+          <p className="mt-2 text-center text-[10px] text-ink-faint">
             AI can make mistakes. Verify important matters with trusted scholars.
           </p>
         </form>

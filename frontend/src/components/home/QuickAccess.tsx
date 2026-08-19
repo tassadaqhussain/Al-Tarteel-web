@@ -56,11 +56,11 @@ export function QuickAccess() {
                   Continue Reading
                 </p>
                 <h3 className="mt-0.5 text-lg font-bold text-white">{lastRead.surahName}</h3>
-                <p className="text-sm text-slate-400">Ayah {lastRead.ayahNumber}</p>
+                <p className="text-sm text-ink-faint">Ayah {lastRead.ayahNumber}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-400">
+            <div className="flex items-center gap-2 text-ink-faint">
               <span className="hidden text-sm sm:block">Resume</span>
               <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </div>
@@ -70,7 +70,7 @@ export function QuickAccess() {
 
       {/* Quick access grid */}
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-muted">
           {recentSurahs.length > 0 ? 'Recently Read' : 'Quick Access'}
         </h2>
       </div>
@@ -99,7 +99,7 @@ export function QuickAccess() {
                 <h3 className="font-semibold text-slate-200 group-hover:text-white">
                   {item.title}
                 </h3>
-                <p className="text-sm text-slate-500">{item.subtitle}</p>
+                <p className="text-sm text-ink-muted">{item.subtitle}</p>
               </div>
             </div>
           </Link>

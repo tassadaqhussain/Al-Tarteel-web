@@ -45,8 +45,8 @@ export function VoiceSearchButton({ className, variant = 'icon', label }: VoiceS
         type="button"
         onClick={handleClick}
         className={cn(
-          'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)]',
-          isListening && 'border-emerald-600 bg-emerald-50 text-emerald-800 animate-pulse',
+          'inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-2 shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)]',
+          isListening && 'border-emerald-600 bg-brand/10 text-brand animate-pulse',
           className
         )}
         aria-label="Voice Search"
@@ -62,8 +62,8 @@ export function VoiceSearchButton({ className, variant = 'icon', label }: VoiceS
       type="button"
       onClick={handleClick}
       className={cn(
-        'relative flex h-9 w-9 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 sm:h-10 sm:w-10',
-        isListening && 'bg-emerald-100 text-emerald-800 ring-2 ring-emerald-500 animate-pulse',
+        'relative flex h-9 w-9 items-center justify-center rounded-full text-ink-2 transition hover:bg-surface-3 sm:h-10 sm:w-10',
+        isListening && 'bg-brand/15 text-brand ring-2 ring-emerald-500 animate-pulse',
         className
       )}
       aria-label="Global Voice Search"

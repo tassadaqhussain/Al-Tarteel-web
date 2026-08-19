@@ -39,28 +39,28 @@ export default async function SurahsPage() {
   const list = Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs();
 
   return (
-    <div className="min-h-screen bg-[#f7f8f7]">
+    <div className="min-h-screen bg-surface-2">
       <Header />
       <main className="mx-auto w-full max-w-[1120px] px-4 py-7 sm:px-6 lg:px-8">
         <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Surahs', path: '/surahs' }]} />
-        <header className="relative mt-5 overflow-hidden rounded border border-emerald-900/10 bg-[#fbfcfa] shadow-sm">
+        <header className="relative mt-5 overflow-hidden rounded border border-emerald-900/10 bg-surface-2 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-950 via-emerald-700 to-amber-500" />
           <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:p-10">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand">
                 Quran index
               </p>
-              <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              <h1 className="mt-3 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl">
                 All 114 Surahs of the Holy Quran
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
+              <p className="mt-4 max-w-2xl text-base leading-8 text-ink-3">
                 Open any chapter to read Uthmani Arabic text with translation and verse-by-verse audio.
                 Browse by{' '}
-                <Link href="/juz/1" className="font-bold text-emerald-800 hover:underline">
+                <Link href="/juz/1" className="font-bold text-brand hover:underline">
                   Juz
                 </Link>{' '}
                 or{' '}
-                <Link href="/search" className="font-bold text-emerald-800 hover:underline">
+                <Link href="/search" className="font-bold text-brand hover:underline">
                   search the Quran
                 </Link>
                 .
@@ -73,15 +73,15 @@ export default async function SurahsPage() {
                 <p className="mt-4 text-2xl font-extrabold">114</p>
                 <p className="text-xs font-semibold text-emerald-50/80">Surahs</p>
               </div>
-              <div className="rounded border border-amber-200/60 bg-[#f7f0e2] p-4 text-slate-900">
-                <Languages className="h-5 w-5 text-amber-700" aria-hidden />
+              <div className="rounded border border-warning/[0.18] bg-brand-gold/15 p-4 text-ink">
+                <Languages className="h-5 w-5 text-warning" aria-hidden />
                 <p className="mt-4 text-sm font-extrabold">Meaning</p>
-                <p className="text-xs font-semibold text-slate-500">Translations</p>
+                <p className="text-xs font-semibold text-ink-muted">Translations</p>
               </div>
-              <div className="rounded border border-slate-200 bg-white p-4 text-slate-900">
-                <Headphones className="h-5 w-5 text-emerald-800" aria-hidden />
+              <div className="rounded border border-line bg-surface p-4 text-ink">
+                <Headphones className="h-5 w-5 text-brand" aria-hidden />
                 <p className="mt-4 text-sm font-extrabold">Audio</p>
-                <p className="text-xs font-semibold text-slate-500">Verse by verse</p>
+                <p className="text-xs font-semibold text-ink-muted">Verse by verse</p>
               </div>
             </div>
           </div>

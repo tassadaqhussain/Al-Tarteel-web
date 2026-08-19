@@ -16,7 +16,7 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function LearningPlansPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f7f7] text-slate-800">
+    <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14">
@@ -30,10 +30,10 @@ export default function LearningPlansPage() {
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
             <BookOpen className="h-6 w-6" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
             Learning Plans
           </h1>
-          <p className="mt-4 text-base leading-relaxed text-slate-500 sm:text-lg">
+          <p className="mt-4 text-base leading-relaxed text-ink-muted sm:text-lg">
             Boost your knowledge with easy-to-follow lessons that keep you growing in your journey
             with the Quran. Start a Learning Plan today! Your progress is tracked until you reach
             the finish line.
@@ -45,7 +45,7 @@ export default function LearningPlansPage() {
             <Link
               key={plan.slug}
               href={`/learning-plans/${plan.slug}`}
-              className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/50 hover:shadow-md"
+              className="group overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--accent)]/50 hover:shadow-md"
             >
               <div
                 className={`relative flex h-36 items-end bg-slate-800 bg-gradient-to-br ${plan.imageTone} p-4`}
@@ -61,7 +61,7 @@ export default function LearningPlansPage() {
                 </p>
               </div>
               <div className="p-4">
-                <p className="line-clamp-2 text-sm text-slate-500">{plan.summary}</p>
+                <p className="line-clamp-2 text-sm text-ink-muted">{plan.summary}</p>
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
                   {plan.days}-day plan
                 </p>

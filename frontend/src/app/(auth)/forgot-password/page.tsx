@@ -35,21 +35,21 @@ export default function ForgotPasswordPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
       <div className="mb-8 text-center">
-        <Link href="/" className="inline-flex items-center gap-2.5 font-serif text-2xl font-bold text-slate-900">
+        <Link href="/" className="inline-flex items-center gap-2.5 font-serif text-2xl font-bold text-ink">
           <SiteLogo size={36} priority alt="QuranPilot" />
           QuranPilot
         </Link>
-        <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Forgot password</h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-ink">Forgot password</h1>
+        <p className="mt-2 text-sm text-ink-3">
           Enter your email and we&apos;ll send a reset link if an account exists.
         </p>
       </div>
 
       <form
         onSubmit={onSubmit}
-        className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur"
+        className="rounded-2xl border border-line bg-surface/90 p-6 shadow-sm backdrop-blur"
       >
-        <label className="block text-sm font-medium text-slate-700" htmlFor="email">
+        <label className="block text-sm font-medium text-ink-2" htmlFor="email">
           Email
         </label>
         <input
@@ -59,16 +59,16 @@ export default function ForgotPasswordPage() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
+          className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
         />
 
         {message && (
-          <p role="status" className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <p role="status" className="mt-4 rounded-xl bg-brand/10 px-3 py-2 text-sm text-brand">
             {message}
           </p>
         )}
         {error && (
-          <p role="alert" className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p role="alert" className="mt-4 rounded-xl bg-danger-surface px-3 py-2 text-sm text-danger">
             {error}
           </p>
         )}
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
           type="submit"
           disabled={submitting}
           className={cn(
-            'mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white hover:opacity-90',
+            'mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-sm font-bold text-brand-contrast hover:opacity-90',
             submitting && 'opacity-70',
           )}
         >

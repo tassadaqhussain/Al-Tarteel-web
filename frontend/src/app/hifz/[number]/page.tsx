@@ -75,7 +75,7 @@ export default function HifzSurahPracticePage() {
 
         {loading && <p className="text-sm text-[var(--muted)]">Loading blank surah…</p>}
         {error && (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          <p className="rounded-xl border border-danger/30 bg-danger-surface px-4 py-3 text-sm text-rose-800">
             {error}
           </p>
         )}

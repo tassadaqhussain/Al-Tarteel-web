@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   Play,
   Pause,
@@ -27,6 +27,7 @@ import { usersApi, type AyahWithRelations } from '@/lib/api';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useRequireAuth } from '@/components/auth/AuthProvider';
 import { TajweedText } from '@/components/tajweed/TajweedText';
+import { splitTajweedIntoWords, alignsWithWords } from '@/lib/tajweed/word-split';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { VerseResourcePanel, type VerseResource } from './VerseResourcePanel';
 import { HadithModal } from './HadithModal';
@@ -40,11 +41,16 @@ import { TranslationSheet } from './TranslationSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { cn } from '@/lib/utils';
 import { getSurahPath } from '@/lib/surah-meta';
+import { toArabicNumber } from '@/lib/arabic-number';
 import {
   cancelWordMeaningSpeech,
+  cancelServerSpeech,
   speakWordMeaning,
+  speakWordMeaningRemote,
+  serverCanSpeak,
   warmSpeechVoices,
 } from '@/lib/speakWordMeaning';
+import { useHasSpeechVoice } from '@/hooks/useHasSpeechVoice';
 
 interface Props {
   ayah: AyahWithRelations;
@@ -109,6 +115,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
     wordAudioRef.current?.pause();
     cancelWordMeaningSpeech();
+      cancelServerSpeech();
   }, []);
 
   useEffect(() => {
@@ -315,14 +322,27 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     [wordByWordLocale],
   );
 
+  // Several desktop OSes ship no Urdu/Persian voice; don't offer a control
+  // that SpeechSynthesis would silently ignore.
+  const hasLocalVoice = useHasSpeechVoice(wordByWordLocale);
+  // Our Piper service covers the languages desktops ship no voice for.
+  const canSpeakLocale = hasLocalVoice || serverCanSpeak(wordByWordLocale);
+
   const speakMeaningForWord = useCallback(
     (word: NonNullable<AyahWithRelations['words']>[number], locale = wordByWordLocale) => {
       if (!wordClickSpeakMeaning) return;
       const meaning = resolveWordMeaning(word, locale);
       if (!meaning) return;
-      speakWordMeaning(meaning, locale);
+      // Prefer the device voice (instant, offline); fall back to our own Piper
+      // service for languages the OS ships no voice for.
+      if (speakWordMeaning(meaning, locale)) return;
+      void speakWordMeaningRemote(meaning, locale).then((spoken) => {
+        if (!spoken) {
+          showToast(`No ${locale.toUpperCase()} speech voice available`);
+        }
+      });
     },
-    [resolveWordMeaning, wordByWordLocale, wordClickSpeakMeaning],
+    [resolveWordMeaning, showToast, wordByWordLocale, wordClickSpeakMeaning],
   );
 
   const handleWordClick = useCallback(
@@ -459,11 +479,36 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
           : 0
       : 0;
 
+  const endMarkerNode = (
+    <span
+      className="ayah-verse-marker select-none inline-flex items-center justify-center align-middle mx-1.5"
+      aria-label={`Verse ${ayah.number}`}
+      title={`Ayah ${ayah.number}`}
+    >
+      <span className="font-arabic text-[12px] font-bold leading-none text-ink-2">
+        {toArabicNumber(ayah.number)}
+      </span>
+    </span>
+  );
+
+  /**
+   * Tajweed colours for the word-by-word view. The tajweed markup and
+   * `ayah.words` use different Uthmani orthographies, so they align by word
+   * index, not by character. If the counts disagree for a verse we render the
+   * words uncoloured rather than risk mis-colouring the text.
+   */
+  const tajweedByWord = useMemo(() => {
+    if (!showTajweedRules || !ayah.textTajweed || !ayah.words?.length) return null;
+    const split = splitTajweedIntoWords(ayah.textTajweed);
+    return alignsWithWords(split, ayah.words.length) ? split : null;
+  }, [showTajweedRules, ayah.textTajweed, ayah.words]);
+
   const arabicTextNode = ayah.words && ayah.words.length > 0 ? (
     <div
       ref={wordsContainerRef}
       className={cn(
-        'min-w-0 max-w-full leading-[2.2]',
+        'ayah-arabic-block min-w-0 max-w-full leading-[2]',
+        tajweedByWord && 'tajweed-text',
         readerViewMode === 'arabic' ? 'inline text-center' : 'w-full text-right'
       )}
       dir="rtl"
@@ -526,19 +571,29 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                 ? 'text-[var(--accent)]'
                 : isPlayingWord
                   ? 'word-reciting text-[var(--accent)]'
-                  : 'text-slate-900 hover:bg-emerald-50',
+                  : 'text-ink hover:bg-brand/10',
             )}
             aria-label={`Word ${word.position}${meaning ? `: ${meaning}` : ''}`}
             aria-pressed={isSelected || isPlayingWord}
             aria-current={isPlayingWord ? 'true' : undefined}
           >
             <span className={cn('font-arabic leading-loose', fontSizeClass)}>
-              {word.textUthmani || word.textArabic}
+              {tajweedByWord?.[word.position - 1]
+                ? tajweedByWord[word.position - 1].spans.map((span, spanIndex) =>
+                    span.ruleId ? (
+                      <span key={spanIndex} className={cn('tajweed-mark', span.ruleId)}>
+                        {span.text}
+                      </span>
+                    ) : (
+                      <span key={spanIndex}>{span.text}</span>
+                    ),
+                  )
+                : word.textUthmani || word.textArabic}
             </span>
             {showInlineTranslation && (
               <span
                 dir={rtlMeaning ? 'rtl' : 'ltr'}
-                className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-500', wordSizeClass)}
+                className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-ink-muted', wordSizeClass)}
               >
                 {meaning}
               </span>
@@ -546,7 +601,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
             {showInlineTransliteration && (
               <span
                 dir="ltr"
-                className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-slate-400', wordSizeClass)}
+                className={cn('mt-0.5 max-w-[5.5rem] truncate text-center text-ink-faint', wordSizeClass)}
               >
                 {word.transliteration}
               </span>
@@ -554,22 +609,22 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
             {showClickPopover && (
               <span
                 role="tooltip"
-                className="absolute bottom-full left-1/2 z-30 mb-2 flex w-max max-w-[16rem] -translate-x-1/2 flex-col items-stretch gap-1.5 rounded-xl bg-slate-900 px-2.5 py-2 text-left text-[11px] font-medium text-white shadow-lg"
+                className="absolute bottom-full left-1/2 z-30 mb-2 flex w-max max-w-[16rem] -translate-x-1/2 flex-col items-stretch gap-1.5 rounded-xl bg-tooltip px-2.5 py-2 text-left text-[11px] font-medium text-tooltip-ink shadow-lg"
                 onClick={(event) => event.stopPropagation()}
                 onKeyDown={(event) => event.stopPropagation()}
               >
                 {(wordClickPlayAudio || wordClickSpeakMeaning) && (
-                  <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[10px] font-normal text-white/70">
+                  <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[10px] font-normal text-tooltip-ink/70">
                     {wordClickPlayAudio && (
                       <span className="inline-flex items-center gap-1">
                         <Volume2 className="h-3 w-3" aria-hidden />
                         Arabic
                       </span>
                     )}
-                    {wordClickSpeakMeaning && meaning && (
+                    {wordClickSpeakMeaning && canSpeakLocale && meaning && (
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-white/90 hover:bg-white/20"
+                        className="inline-flex items-center gap-1 rounded-full bg-tooltip-ink/10 px-2 py-0.5 text-tooltip-ink/90 hover:bg-tooltip-ink/20"
                         onClick={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
@@ -589,12 +644,12 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                   </span>
                 )}
                 {word.transliteration && (
-                  <span dir="ltr" className="w-full text-center text-[10px] font-normal text-white/80">
+                  <span dir="ltr" className="w-full text-center text-[10px] font-normal text-tooltip-ink/80">
                     {word.transliteration}
                   </span>
                 )}
                 {availableLocales.length > 1 && (
-                  <span className="flex max-w-[15rem] flex-wrap justify-center gap-1 border-t border-white/10 pt-1.5">
+                  <span className="flex max-w-[15rem] flex-wrap justify-center gap-1 border-t border-tooltip-ink/10 pt-1.5">
                     {availableLocales.map((locale) => {
                       const active = wordByWordLocale === locale.code;
                       return (
@@ -609,8 +664,8 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                           className={cn(
                             'cursor-pointer rounded-full px-2 py-0.5 text-[10px] font-semibold transition',
                             active
-                              ? 'bg-white text-slate-900'
-                              : 'bg-white/10 text-white/90 hover:bg-white/20',
+                              ? 'bg-surface text-ink'
+                              : 'bg-surface/10 text-surface/90 hover:bg-surface/20',
                           )}
                           aria-pressed={active}
                           title={`${locale.label}${wordClickSpeakMeaning ? ' — tap to hear meaning' : ''}`}
@@ -626,73 +681,71 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
           </div>
         );
       })}
-      {readerViewMode === 'arabic' && (
-        <span className="ayah-verse-marker" aria-label={`Verse ${ayah.number}`}>
-          {ayah.number}
-        </span>
-      )}
+      {endMarkerNode}
     </div>
   ) : showTajweedRules && ayah.textTajweed ? (
-    <>
+    <div className={cn('ayah-arabic-block', readerViewMode === 'arabic' ? 'inline text-center' : 'w-full text-right')} dir="rtl" lang="ar">
       <TajweedText
         textTajweed={ayah.textTajweed}
         textUthmani={ayah.textUthmani}
         showColors={showTajweedRules}
         interactive={showTajweedRules}
         className={cn(
-          'font-arabic ayah-arabic leading-loose text-slate-900',
+          'font-arabic ayah-arabic leading-loose text-ink',
           fontSizeClass,
-          readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right',
+          'inline',
         )}
       />
-      {readerViewMode === 'arabic' && (
-        <span className="ayah-verse-marker" aria-label={`Verse ${ayah.number}`}>
-          {ayah.number}
-        </span>
-      )}
-    </>
+      {endMarkerNode}
+    </div>
   ) : (
-    <span
+    <div
       className={cn(
-        'font-arabic ayah-arabic leading-loose text-slate-900',
+        'ayah-arabic-block font-arabic ayah-arabic text-ink',
         fontSizeClass,
-        readerViewMode === 'arabic' ? 'inline text-center' : 'block text-right'
+        readerViewMode === 'arabic' ? 'inline text-center' : 'w-full text-right'
       )}
       lang="ar"
       dir="rtl"
       translate="no"
     >
-      {ayah.textUthmani}
-      {readerViewMode === 'arabic' && (
-        <span className="ayah-verse-marker" aria-label={`Verse ${ayah.number}`}>
-          {ayah.number}
-        </span>
-      )}
-    </span>
+      <span>{ayah.textUthmani}</span>
+      {endMarkerNode}
+    </div>
   );
 
   const translationBody = ayah.translations && ayah.translations.length > 0 ? (
-    <div className={cn('space-y-3', readerViewMode === 'verse' && 'space-y-8')}>
+    <div className={cn('space-y-4', readerViewMode === 'verse' && 'space-y-6')}>
       {ayah.translations.map((t) => {
-        const rtl = /^(ur|fa|ar|ps|sd)-/.test(t.translatorSlug) || t.translatorSlug.includes('bayan-ul-quran');
+        const rtl = /^(ur|fa|ar|ps|sd)-/.test(t.translatorSlug) || t.translatorSlug.includes('bayan-ul-quran') || t.translatorSlug.includes('urdu');
         return (
           <div
             key={t.translatorId}
             className={cn(
               'min-w-0 max-w-full',
-              readerViewMode === 'verse' && 'max-w-3xl',
-              readerViewMode === 'verse' && (rtl ? 'ml-auto' : 'mr-auto'),
+              readerViewMode === 'verse' && (rtl ? 'text-right' : 'text-left'),
             )}
             dir={rtl ? 'rtl' : 'ltr'}
           >
-            <p className={cn('max-w-full break-words leading-8 text-slate-800 [overflow-wrap:anywhere]', rtl && 'text-right', translationSizeClass)}>
+            <p
+              className={cn(
+                'max-w-full break-words leading-relaxed text-ink [overflow-wrap:anywhere]',
+                rtl ? 'font-arabic text-lg sm:text-xl leading-loose' : 'font-sans',
+                translationSizeClass,
+              )}
+            >
               {readerViewMode === 'translation' && (
-                <span className="me-1.5 font-semibold text-slate-900">{ayah.number}.</span>
+                <span className="me-1.5 font-semibold text-ink">{ayah.number}.</span>
               )}
               {t.text}
             </p>
             {readerViewMode === 'verse' && (
-              <p className={cn('mt-1 max-w-full break-words text-xs text-slate-500', rtl && 'text-right')}>
+              <p
+                className={cn(
+                  'mt-1.5 max-w-full break-words text-xs text-ink-faint tracking-wide font-normal',
+                  rtl && 'text-right',
+                )}
+              >
                 — {t.translatorName || t.translatorSlug.replaceAll('-', ' ')}
               </p>
             )}
@@ -704,7 +757,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     <button
       type="button"
       onClick={() => setTranslationsOpen(true)}
-      className="text-sm font-medium text-emerald-800 underline-offset-2 hover:underline"
+      className="text-sm font-medium text-brand underline-offset-2 hover:underline"
     >
       Choose a translation
     </button>
@@ -720,11 +773,11 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
         data-ayah-number={ayah.number}
         onClick={readerViewMode !== 'verse' ? () => void handlePlay() : undefined}
         className={cn(
-          'group relative transition-colors duration-200',
-          readerViewMode === 'verse' && 'py-8 sm:py-12',
+          'group relative transition-all duration-200',
+          readerViewMode === 'verse' && 'py-[30px]',
           readerViewMode === 'arabic' && 'inline',
           readerViewMode === 'translation' && 'rounded-md px-2 py-2 sm:px-3',
-          readerViewMode === 'verse' && isCurrent && 'ayah-current -mx-4 border-l-[3px] border-emerald-800 bg-emerald-50/55 px-[13px] sm:-mx-6 sm:px-[21px]',
+          readerViewMode === 'verse' && isCurrent && 'ayah-current -mx-4 border-l-[3px] border-emerald-700 bg-brand/[0.045] px-[13px] sm:-mx-6 sm:px-[21px]',
           readerViewMode === 'translation' && isCurrent && 'ayah-current-teal',
           readerViewMode === 'arabic' && isCurrent && 'ayah-current-arabic',
           versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30 bg-[var(--accent)]/[0.03] rounded-[4px] px-4 -mx-4',
@@ -743,16 +796,16 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
           </div>
         )}
         {pinned && !versePinned && readerViewMode !== 'arabic' && (
-          <div className="mb-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+          <div className="mb-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink-muted">
             Comparing with {pinned.surahName} {pinned.surahNumber}:{pinned.ayahNumber}
           </div>
         )}
 
         {readerViewMode === 'verse' ? (
-          <div className="mx-auto max-w-5xl">
+          <div className="mx-auto max-w-[1064px]">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1 text-slate-400">
-                <span className="min-w-[3.75rem] text-sm font-medium tabular-nums">
+              <div className="flex items-center gap-1.5 text-ink-faint">
+                <span className="me-1 text-xl font-medium text-ink-faint tabular-nums">
                   {surahNumber}:{ayah.number}
                 </span>
                 <button
@@ -761,13 +814,14 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                   aria-label={isCurrent && isPlaying ? 'Pause verse' : `Play verse ${ayah.number}`}
                   aria-pressed={isCurrent}
                   className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-[4px] transition-colors',
-                    isCurrent
-                      ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                      : 'hover:bg-slate-100 hover:text-slate-800',
+                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                    isCurrent && isPlaying
+                      ? 'bg-brand/15 text-brand'
+                      : 'text-ink-faint hover:bg-surface-3 hover:text-ink-2',
                   )}
+                  title={isCurrent && isPlaying ? 'Pause verse' : 'Play verse'}
                 >
-                  {isCurrent && isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  {isCurrent && isPlaying ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
                 </button>
                 <button
                   type="button"
@@ -775,19 +829,22 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                   aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark verse'}
                   aria-pressed={bookmarked}
                   className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-[4px] transition-colors hover:bg-slate-100 hover:text-slate-800',
-                    bookmarked && 'bg-emerald-50 text-emerald-800',
+                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                    bookmarked
+                      ? 'text-brand bg-brand/10'
+                      : 'text-ink-faint hover:bg-surface-3 hover:text-ink-2',
                   )}
+                  title="Bookmark verse"
                 >
-                  {bookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
+                  {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 fill-current text-brand" /> : <Bookmark className="h-3.5 w-3.5" />}
                 </button>
                 {isCurrent && isPlaying && (
                   <div className="ml-1 flex items-center gap-0.5" aria-label="Playing">
                     {[0, 1, 2].map((i) => (
                       <div
                         key={i}
-                        className="h-3 w-0.5 animate-bounce rounded-full bg-emerald-800"
-                        style={{ animationDelay: `${i * 100}ms` }}
+                        className="h-3 w-0.5 animate-bounce rounded-full bg-emerald-700"
+                        style={{ animationDelay: `${i * 120}ms` }}
                       />
                     ))}
                   </div>
@@ -795,7 +852,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
               </div>
 
               <div
-                className="relative flex shrink-0 items-center gap-1 text-slate-500 sm:opacity-50 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                className="relative flex shrink-0 items-center gap-1 text-ink-faint sm:opacity-60 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
                 role="toolbar"
                 aria-label={`Actions for verse ${ayah.number}`}
               >
@@ -803,25 +860,28 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                   type="button"
                   onClick={handleCopy}
                   aria-label={copied ? 'Copied!' : 'Copy verse'}
-                  className="flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors"
+                  title="Copy verse"
                 >
-                  {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                  {copied ? <Check className="h-3.5 w-3.5 text-brand" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
                 <button
                   type="button"
                   onClick={handleShare}
                   aria-label="Share verse"
-                  className="flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors"
+                  title="Share verse"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setNoteOpen(true)}
                   aria-label="Add verse note"
-                  className="flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors"
+                  title="Add note"
                 >
-                  <SquarePen className="h-4 w-4" />
+                  <SquarePen className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
@@ -829,11 +889,12 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
                   aria-label="More verse options"
                   aria-expanded={moreOpen}
                   className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-[4px] hover:bg-slate-100 hover:text-slate-900',
-                    moreOpen && 'bg-slate-100 text-slate-900',
+                    'flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors',
+                    moreOpen && 'bg-surface-3 text-ink-2',
                   )}
+                  title="More options"
                 >
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
                 <VerseMoreMenu
                   open={moreOpen}
@@ -845,52 +906,74 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
               </div>
             </div>
 
-            <div
-              className="mt-4 h-0.5 overflow-hidden bg-slate-100"
-              role="progressbar"
-              aria-label={`Playback progress for ayah ${ayah.number}`}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(verseProgress)}
-            >
+            {isCurrent && (
               <div
-                className="h-full bg-emerald-700 transition-[width] duration-200 ease-linear"
-                style={{ width: `${verseProgress}%` }}
-              />
-            </div>
+                className="mt-3.5 h-0.5 overflow-hidden bg-surface-3"
+                role="progressbar"
+                aria-label={`Playback progress for ayah ${ayah.number}`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(verseProgress)}
+              >
+                <div
+                  className="h-full bg-emerald-700 transition-[width] duration-200 ease-linear"
+                  style={{ width: `${verseProgress}%` }}
+                />
+              </div>
+            )}
 
-            <div className="ml-auto mt-7 flex min-h-24 max-w-4xl items-center justify-end px-1 text-right sm:mt-10 sm:min-h-32 sm:px-5">
+            <div className="mt-[50px] flex w-full items-center justify-end text-right">
               {arabicTextNode}
             </div>
 
             {showTranslation && (
-              <div className="mt-8 w-full sm:mt-11">
+              <div className="mt-4 w-full">
                 {translationBody}
               </div>
             )}
 
-            <div className="mt-9 flex items-center gap-3 overflow-x-auto pb-1 text-sm text-slate-400 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden">
-              <button type="button" onClick={() => setTafsirStudyOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
-                <BookOpen className="h-4 w-4" /> Tafsirs
+            <div className="mt-[50px] flex items-center gap-2 overflow-x-auto pb-1 text-xs sm:text-sm text-ink-faint [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-3 [&::-webkit-scrollbar]:hidden">
+              <button
+                type="button"
+                onClick={() => setTafsirStudyOpen(true)}
+                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
+              >
+                <BookOpen className="h-3.5 w-3.5" /> Tafsirs
               </button>
-              <span className="h-4 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setLessonsStudyOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
-                <GraduationCap className="h-4 w-4" /> Lessons
+              <span className="h-3.5 w-px shrink-0 bg-line" />
+              <button
+                type="button"
+                onClick={() => setLessonsStudyOpen(true)}
+                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
+              >
+                <GraduationCap className="h-3.5 w-3.5" /> Lessons
               </button>
-              <span className="h-4 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setResourceOpen('reflections')} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
-                <MessageCircle className="h-4 w-4" /> Reflections
+              <span className="h-3.5 w-px shrink-0 bg-line" />
+              <button
+                type="button"
+                onClick={() => setResourceOpen('reflections')}
+                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
+              >
+                <MessageCircle className="h-3.5 w-3.5" /> Reflections
               </button>
-              <span className="h-4 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setHadithOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
-                <BookMarked className="h-4 w-4" /> Hadith
+              <span className="h-3.5 w-px shrink-0 bg-line" />
+              <button
+                type="button"
+                onClick={() => setHadithOpen(true)}
+                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
+              >
+                <BookMarked className="h-3.5 w-3.5" /> Hadith
               </button>
-              <span className="h-4 w-px shrink-0 bg-slate-200" />
-              <button type="button" onClick={() => setRelatedContentOpen(true)} className="inline-flex shrink-0 items-center gap-1.5 font-medium hover:text-emerald-800">
-                <PanelsTopLeft className="h-4 w-4" /> Related content
+              <span className="h-3.5 w-px shrink-0 bg-line" />
+              <button
+                type="button"
+                onClick={() => setRelatedContentOpen(true)}
+                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
+              >
+                <PanelsTopLeft className="h-3.5 w-3.5" /> Related content
               </button>
               {(ayah.juz || ayah.page) && (
-                <span className="ml-auto hidden shrink-0 text-xs lg:inline">
+                <span className="ml-auto hidden shrink-0 text-xs text-ink-faint lg:inline">
                   {ayah.juz ? `Juz ${ayah.juz}` : ''}
                   {ayah.juz && ayah.page ? ' · ' : ''}
                   {ayah.page ? `Page ${ayah.page}` : ''}
@@ -942,11 +1025,11 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
       <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
         <DialogContent className="max-w-md p-0">
           <div className="relative px-6 py-6">
-            <button type="button" onClick={() => setNoteOpen(false)} className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-100" aria-label="Close note">
+            <button type="button" onClick={() => setNoteOpen(false)} className="absolute right-4 top-4 rounded-full p-2 text-ink-faint hover:bg-surface-3" aria-label="Close note">
               <X className="h-4 w-4" />
             </button>
-            <DialogTitle className="text-xl font-bold text-slate-900">Verse note</DialogTitle>
-            <DialogDescription className="mt-1 text-sm text-slate-500">
+            <DialogTitle className="text-xl font-bold text-ink">Verse note</DialogTitle>
+            <DialogDescription className="mt-1 text-sm text-ink-muted">
               {surahName || `Surah ${surahNumber}`} {surahNumber}:{ayah.number}
             </DialogDescription>
             <textarea
@@ -954,9 +1037,9 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
               onChange={(e) => setNoteDraft(e.target.value)}
               rows={5}
               placeholder="Write a personal note for this verse…"
-              className="mt-4 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none focus:border-[var(--accent)] focus:bg-white"
+              className="mt-4 w-full resize-none rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm text-ink outline-none focus:border-[var(--accent)] focus:bg-surface"
             />
-            <button type="button" onClick={handleSaveNote} className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white">
+            <button type="button" onClick={handleSaveNote} className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-brand-contrast">
               Save note
             </button>
           </div>
@@ -964,7 +1047,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
       </Dialog>
 
       {toast && (
-        <div className="pointer-events-none fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm text-white shadow-lg">
+        <div className="pointer-events-none fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 rounded-full bg-tooltip px-4 py-2 text-sm text-tooltip-ink shadow-lg">
           {toast}
         </div>
       )}

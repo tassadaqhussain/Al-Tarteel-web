@@ -79,13 +79,13 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-none flex-col bg-white p-0 text-slate-800 [&>button]:hidden sm:w-[460px] sm:max-w-[460px]">
+      <SheetContent side="right" className="flex w-full max-w-none flex-col bg-surface p-0 text-ink [&>button]:hidden sm:w-[460px] sm:max-w-[460px]">
         <SheetTitle className="sr-only">Reader settings</SheetTitle>
-        <div className="grid grid-cols-3 border-b border-slate-200" role="tablist" aria-label="Reader settings sections">
+        <div className="grid grid-cols-3 border-b border-line" role="tablist" aria-label="Reader settings sections">
           {([
             ['arabic', 'Arabic'], ['translation', 'Translation'], ['word', 'Word By Word'],
           ] as const).map(([value, label]) => (
-            <button key={value} type="button" role="tab" aria-selected={tab === value} data-state={tab === value ? 'active' : 'inactive'} onPointerUp={(event) => { event.preventDefault(); selectTab(value); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTab(value); } }} className={cn('touch-manipulation select-none border-b-2 px-2 py-6 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-[-2px]', tab === value ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-slate-500 hover:text-slate-800')}>
+            <button key={value} type="button" role="tab" aria-selected={tab === value} data-state={tab === value ? 'active' : 'inactive'} onPointerUp={(event) => { event.preventDefault(); selectTab(value); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectTab(value); } }} className={cn('touch-manipulation select-none border-b-2 px-2 py-6 text-base font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent)] focus-visible:outline-offset-[-2px]', tab === value ? 'border-[var(--accent)] text-[var(--accent)]' : 'border-transparent text-ink-muted hover:text-ink')}>
               {label}
             </button>
           ))}
@@ -94,20 +94,20 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           {tab === 'arabic' && (
             <div className="space-y-6">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Preview:</p>
-                <div className="my-3 h-px bg-slate-200" />
+              <div className="rounded-2xl bg-surface-2 p-4">
+                <p className="text-sm text-ink-muted">Preview:</p>
+                <div className="my-3 h-px bg-line" />
                 <div className="py-4 text-center">
-                  <span className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-white">the Most Gracious</span>
+                  <span className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-brand-contrast">the Most Gracious</span>
                   <p className="mt-4 font-arabic text-4xl leading-loose" dir="rtl">
-                    {mushafType === 'simple' && copyVerseAsGlyphs && <span className="ml-2 text-3xl text-emerald-700">۝</span>}
-                    بِسْمِ ٱللَّهِ <span className={cn(showTajweedRules || mushafType !== 'simple' ? 'text-[var(--accent)]' : 'text-slate-900')}>ٱلرَّحْمَـٰنِ</span> ٱلرَّحِيمِ
+                    {mushafType === 'simple' && copyVerseAsGlyphs && <span className="ml-2 text-3xl text-brand">۝</span>}
+                    بِسْمِ ٱللَّهِ <span className={cn(showTajweedRules || mushafType !== 'simple' ? 'text-[var(--accent)]' : 'text-ink')}>ٱلرَّحْمَـٰنِ</span> ٱلرَّحِيمِ
                   </p>
-                  <p className="mt-3 text-left text-xl leading-8 text-slate-800">In the Name of Allah—the Most Compassionate, Most Merciful.</p>
+                  <p className="mt-3 text-left text-xl leading-8 text-ink">In the Name of Allah—the Most Compassionate, Most Merciful.</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 rounded-full bg-slate-100 p-1.5">
+              <div className="grid grid-cols-3 rounded-full bg-surface-3 p-1.5">
                 {SCRIPTS.map((script) => (
                   <button
                     key={script.value}
@@ -116,7 +116,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
                       setMushafType(script.value);
                       if (script.value === 'simple') setShowTajweedRules(true);
                     }}
-                    className={cn('rounded-full px-2 py-2.5 text-base transition', mushafType === script.value ? 'bg-white font-medium text-slate-900 shadow' : 'text-slate-500')}
+                    className={cn('rounded-full px-2 py-2.5 text-base transition', mushafType === script.value ? 'bg-surface font-medium text-ink shadow' : 'text-ink-muted')}
                   >
                     {script.label}
                   </button>
@@ -128,7 +128,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
                 checked={showTajweedRules}
                 onChange={setShowTajweedRules}
               />
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-ink-muted">
                 Uses verified Quran.com Uthmani tajweed annotations. Canonical Arabic text is never rewritten.
               </p>
 
@@ -140,7 +140,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-medium">Lines</span>
                   <label className="relative">
-                    <select value={mushafLines} onChange={(e) => setMushafLines(Number(e.target.value))} className="appearance-none rounded-lg bg-slate-100 py-3 pl-5 pr-12 text-lg outline-none">
+                    <select value={mushafLines} onChange={(e) => setMushafLines(Number(e.target.value))} className="appearance-none rounded-lg bg-surface-3 py-3 pl-5 pr-12 text-lg outline-none">
                       {[10, 12, 15, 16].map((n) => <option key={n} value={n}>{n} Lines</option>)}
                     </select>
                     <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2" />
@@ -161,70 +161,56 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
                 <button
                   type="button"
                   onClick={() => setRecitersOpen(true)}
-                  className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left ring-1 ring-transparent transition hover:bg-slate-100 focus-visible:ring-[var(--accent)]"
+                  className="flex w-full items-center justify-between rounded-2xl bg-surface-2 px-5 py-5 text-left ring-1 ring-transparent transition hover:bg-surface-3 focus-visible:ring-[var(--accent)]"
                 >
                   <span>
-                    <span className="block text-sm text-slate-500">Selected Reciter</span>
+                    <span className="block text-sm text-ink-muted">Selected Reciter</span>
                     <span className="mt-1 block text-lg font-bold">
                       {activeReciter?.name || 'Choose a reciter'}
                       {activeReciter?.style ? ` · ${activeReciter.style}` : ''}
                     </span>
                   </span>
-                  <ChevronRight className="text-slate-500" />
+                  <ChevronRight className="text-ink-muted" />
                 </button>
-                <ReciterSheet
-                  open={recitersOpen}
-                  onOpenChange={setRecitersOpen}
-                  selectedSlug={activeReciter?.slug}
-                  onSelect={(slug) => {
-                    setReciterSlug(slug);
-                    void rebuildActivePlayback({ arabicSlug: slug, keepPlaying: true });
-                  }}
-                  selectedTranslationSlug={translationReciterSlug}
-                  onSelectTranslation={(slug) => {
-                    setTranslationReciterSlug(slug);
-                    void rebuildActivePlayback({ translationSlug: slug, keepPlaying: true });
-                  }}
-                />
               </div>
             </div>
           )}
 
           {tab === 'translation' && (
             <div className="space-y-7">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Preview:</p>
-                <div className="my-3 h-px bg-slate-200" />
+              <div className="rounded-2xl bg-surface-2 p-4">
+                <p className="text-sm text-ink-muted">Preview:</p>
+                <div className="my-3 h-px bg-line" />
                 <div className="py-4 text-center">
-                  <span className="inline-block rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-white">the Most Gracious</span>
+                  <span className="inline-block rounded-lg bg-[var(--accent)] px-4 py-2 text-sm text-brand-contrast">the Most Gracious</span>
                   <p className="mt-4 font-arabic text-4xl leading-loose" dir="rtl">بِسْمِ ٱللَّهِ <span className="text-[var(--accent)]">ٱلرَّحْمَـٰنِ</span> ٱلرَّحِيمِ</p>
-                  <p className={cn('mt-3 text-left leading-relaxed text-slate-800', { sm: 'text-lg', md: 'text-xl', lg: 'text-2xl', xl: 'text-3xl' }[translationFontSize])}>In the Name of Allah—the Most Compassionate, Most Merciful.</p>
+                  <p className={cn('mt-3 text-left leading-relaxed text-ink', { sm: 'text-lg', md: 'text-xl', lg: 'text-2xl', xl: 'text-3xl' }[translationFontSize])}>In the Name of Allah—the Most Compassionate, Most Merciful.</p>
                 </div>
               </div>
 
-              <button type="button" onClick={() => setTranslationPickerOpen(true)} className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left transition hover:bg-slate-100">
-                <span className="min-w-0 pr-4"><span className="block text-base text-slate-500">Selected Translations</span><span className="mt-1 block truncate text-lg font-bold capitalize">{selectedTranslationSummary}</span></span>
-                <ChevronRight className="h-7 w-7 shrink-0 text-slate-500" />
+              <button type="button" onClick={() => setTranslationPickerOpen(true)} className="flex w-full items-center justify-between rounded-2xl bg-surface-2 px-5 py-5 text-left transition hover:bg-surface-3">
+                <span className="min-w-0 pr-4"><span className="block text-base text-ink-muted">Selected Translations</span><span className="mt-1 block truncate text-lg font-bold capitalize">{selectedTranslationSummary}</span></span>
+                <ChevronRight className="h-7 w-7 shrink-0 text-ink-muted" />
               </button>
 
               <button
                 type="button"
                 onClick={() => setRecitersOpen(true)}
-                className="flex w-full items-center justify-between rounded-2xl bg-slate-50 px-5 py-5 text-left transition hover:bg-slate-100"
+                className="flex w-full items-center justify-between rounded-2xl bg-surface-2 px-5 py-5 text-left transition hover:bg-surface-3"
               >
                 <span className="min-w-0 pr-4">
-                  <span className="block text-base text-slate-500">Voice translation</span>
+                  <span className="block text-base text-ink-muted">Voice translation</span>
                   <span className="mt-1 block truncate text-lg font-bold">
                     {activeTranslationReciter
                       ? `${activeTranslationReciter.languageName || 'Translation'} · ${activeTranslationReciter.name}`
                       : 'Off — tap to play after each verse'}
                   </span>
                 </span>
-                <ChevronRight className="h-7 w-7 shrink-0 text-slate-500" />
+                <ChevronRight className="h-7 w-7 shrink-0 text-ink-muted" />
               </button>
 
               <SizeSetting label="Font size" value={translationFontSize} onChange={setTranslationFontSize} />
-              {!showTranslation && <button type="button" onClick={() => setShowTranslation(true)} className="w-full rounded-xl border border-slate-200 px-4 py-3 font-medium text-[var(--accent)]">Show translations while reading</button>}
+              {!showTranslation && <button type="button" onClick={() => setShowTranslation(true)} className="w-full rounded-xl border border-line px-4 py-3 font-medium text-[var(--accent)]">Show translations while reading</button>}
             </div>
           )}
           {tab === 'word' && (
@@ -232,7 +218,7 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
               <TogglePanel title="Word By Word" description="Tap a word for Arabic audio plus its meaning spoken in your language. Switch EN/UR/BN/ID/TR/FA/HI chips when those translations are imported." checked={showWordByWord} onChange={setShowWordByWord} />
               <div><p className="mb-3 text-lg font-medium">Display</p><Segmented options={[['tooltip', 'Tooltip'], ['inline', 'Inline']]} value={wordByWordDisplay} onChange={(v) => setWordByWordDisplay(v as 'tooltip' | 'inline')} /></div>
               <div className="space-y-4"><p className="text-lg font-medium">Type</p><CheckSetting label="Translation" checked={wordByWordShowTranslation} onChange={setWordByWordShowTranslation} /><CheckSetting label="Transliteration" checked={wordByWordShowTransliteration} onChange={setWordByWordShowTransliteration} /></div>
-              <label className="flex items-center justify-between"><span className="text-lg font-medium">Word By Word Language</span><select value={wordByWordLocale} onChange={(e) => setWordByWordLocale(e.target.value as typeof wordByWordLocale)} className="rounded-lg bg-slate-100 px-4 py-3">{WORD_BY_WORD_LOCALES.map((locale) => <option key={locale.code} value={locale.code}>{locale.label}</option>)}</select></label>
+              <label className="flex items-center justify-between"><span className="text-lg font-medium">Word By Word Language</span><select value={wordByWordLocale} onChange={(e) => setWordByWordLocale(e.target.value as typeof wordByWordLocale)} className="rounded-lg bg-surface-3 px-4 py-3">{WORD_BY_WORD_LOCALES.map((locale) => <option key={locale.code} value={locale.code}>{locale.label}</option>)}</select></label>
               <SizeSetting label="Word font size" value={wordByWordFontSize} onChange={setWordByWordFontSize} />
               <CheckSetting label="Play Arabic word audio when clicked" checked={wordClickPlayAudio} onChange={setWordClickPlayAudio} />
               <CheckSetting label="Speak word meaning in selected language" checked={wordClickSpeakMeaning} onChange={setWordClickSpeakMeaning} />
@@ -240,10 +226,26 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-200 px-7 py-5">
-          <button type="button" onClick={reset} className="text-lg font-semibold text-slate-500">Reset</button>
-          <button type="button" onClick={() => onOpenChange(false)} className="rounded-xl bg-slate-950 px-6 py-3 text-lg font-bold text-white">Done</button>
+        <div className="flex items-center justify-between border-t border-line px-7 py-5">
+          <button type="button" onClick={reset} className="text-lg font-semibold text-ink-muted">Reset</button>
+          <button type="button" onClick={() => onOpenChange(false)} className="rounded-xl bg-ink px-6 py-3 text-lg font-bold text-surface">Done</button>
         </div>
+        {/* Mounted outside the tab blocks: the Arabic tab and the Translation
+            tab ("Voice translation") both open this picker. */}
+        <ReciterSheet
+          open={recitersOpen}
+          onOpenChange={setRecitersOpen}
+          selectedSlug={activeReciter?.slug}
+          onSelect={(slug) => {
+            setReciterSlug(slug);
+            void rebuildActivePlayback({ arabicSlug: slug, keepPlaying: true });
+          }}
+          selectedTranslationSlug={translationReciterSlug}
+          onSelectTranslation={(slug) => {
+            setTranslationReciterSlug(slug);
+            void rebuildActivePlayback({ translationSlug: slug, keepPlaying: true });
+          }}
+        />
         <TranslationSheet open={translationPickerOpen} onOpenChange={setTranslationPickerOpen} />
       </SheetContent>
     </Sheet>
@@ -251,14 +253,14 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
 }
 
 function TogglePanel({ title, description, checked, onChange }: { title: string; description: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return <div className="rounded-2xl bg-slate-50 p-5"><div className="flex items-center justify-between gap-4"><div><h2 className="text-xl font-bold">{title}</h2><p className="mt-1 text-sm leading-6 text-slate-500">{description}</p></div><button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={cn('relative h-7 w-12 rounded-full transition', checked ? 'bg-[var(--accent)]' : 'bg-slate-300')}><span className={cn('absolute top-1 h-5 w-5 rounded-full bg-white transition', checked ? 'left-6' : 'left-1')} /></button></div></div>;
+  return <div className="rounded-2xl bg-surface-2 p-5"><div className="flex items-center justify-between gap-4"><div><h2 className="text-xl font-bold">{title}</h2><p className="mt-1 text-sm leading-6 text-ink-muted">{description}</p></div><button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={cn('relative h-7 w-12 rounded-full transition', checked ? 'bg-[var(--accent)]' : 'bg-line-strong')}><span className={cn('absolute top-1 h-5 w-5 rounded-full bg-surface transition', checked ? 'left-6' : 'left-1')} /></button></div></div>;
 }
 
 function CheckSetting({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-lg font-medium">{label}</span>
-      <button type="button" role="checkbox" aria-checked={checked} onClick={() => onChange(!checked)} className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-[var(--accent)] transition', checked ? 'bg-[var(--accent)] text-white' : 'bg-slate-100 text-transparent')}>
+      <button type="button" role="checkbox" aria-checked={checked} onClick={() => onChange(!checked)} className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-[var(--accent)] transition', checked ? 'bg-[var(--accent)] text-brand-contrast' : 'bg-surface-3 text-transparent')}>
         <Check className="h-5 w-5" />
       </button>
     </div>
@@ -271,5 +273,5 @@ function SizeSetting({ label, value, onChange }: { label: string; value: FontSiz
 }
 
 function Segmented({ options, value, onChange }: { options: [string, string][]; value: string; onChange: (value: string) => void }) {
-  return <div className="grid grid-cols-2 rounded-full bg-slate-100 p-1.5">{options.map(([key, label]) => <button key={key} type="button" onClick={() => onChange(key)} className={cn('rounded-full px-3 py-2.5 transition', value === key ? 'bg-white font-medium shadow' : 'text-slate-500')}>{label}</button>)}</div>;
+  return <div className="grid grid-cols-2 rounded-full bg-surface-3 p-1.5">{options.map(([key, label]) => <button key={key} type="button" onClick={() => onChange(key)} className={cn('rounded-full px-3 py-2.5 transition', value === key ? 'bg-surface font-medium shadow' : 'text-ink-muted')}>{label}</button>)}</div>;
 }

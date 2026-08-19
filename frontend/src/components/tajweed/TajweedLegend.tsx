@@ -22,17 +22,17 @@ export function TajweedLegend({ open, onOpenChange, onSelectRule }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-lg overflow-hidden p-0 sm:rounded-2xl">
-        <div className="relative border-b border-slate-100 px-5 py-4">
+        <div className="relative border-b border-line-subtle px-5 py-4">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="absolute right-3 top-3 rounded-full p-2 text-slate-500 hover:bg-slate-100"
+            className="absolute right-3 top-3 rounded-full p-2 text-ink-muted hover:bg-surface-3"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
           </button>
-          <DialogTitle className="text-xl font-bold text-slate-900">Tajweed Guide</DialogTitle>
-          <DialogDescription className="mt-1 text-sm text-slate-600">
+          <DialogTitle className="text-xl font-bold text-ink">Tajweed Guide</DialogTitle>
+          <DialogDescription className="mt-1 text-sm text-ink-3">
             Colours follow the verified Quran.com Uthmani tajweed annotations. Colour is never the only cue—tap a
             rule for its name and explanation.
           </DialogDescription>
@@ -47,7 +47,7 @@ export function TajweedLegend({ open, onOpenChange, onSelectRule }: Props) {
                   onOpenChange(false);
                 }}
                 className={cn(
-                  'flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-slate-50',
+                  'flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-surface-2',
                 )}
               >
                 <span
@@ -56,17 +56,17 @@ export function TajweedLegend({ open, onOpenChange, onSelectRule }: Props) {
                   aria-hidden
                 />
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-slate-900">{rule.name}</span>
-                  <span className="block font-arabic text-sm text-slate-500" lang="ar" dir="rtl">
+                  <span className="block text-sm font-semibold text-ink">{rule.name}</span>
+                  <span className="block font-arabic text-sm text-ink-muted" lang="ar" dir="rtl">
                     {rule.nameArabic}
                   </span>
-                  <span className="mt-0.5 block text-xs text-slate-500">{rule.shortLabel}</span>
+                  <span className="mt-0.5 block text-xs text-ink-muted">{rule.shortLabel}</span>
                 </span>
               </button>
             </li>
           ))}
         </ul>
-        <div className="border-t border-slate-100 px-5 py-3">
+        <div className="border-t border-line-subtle px-5 py-3">
           <Link
             href="/tajweed"
             onClick={() => onOpenChange(false)}

@@ -63,26 +63,26 @@ function LoginForm() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
       <div className="mb-8 text-center">
-        <Link href="/" className="inline-flex items-center gap-2.5 font-serif text-2xl font-bold text-slate-900">
+        <Link href="/" className="inline-flex items-center gap-2.5 font-serif text-2xl font-bold text-ink">
           <SiteLogo size={36} priority alt="QuranPilot" />
           QuranPilot
         </Link>
-        <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Welcome back</h1>
-        <p className="mt-2 text-sm text-slate-600">Sign in to sync bookmarks and reading progress.</p>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-ink">Welcome back</h1>
+        <p className="mt-2 text-sm text-ink-3">Sign in to sync bookmarks and reading progress.</p>
       </div>
 
       {resetOk && (
-        <p role="status" className="mb-4 rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm text-emerald-800">
+        <p role="status" className="mb-4 rounded-xl bg-brand/10 px-3 py-2 text-center text-sm text-brand">
           Password updated. You can sign in now.
         </p>
       )}
 
       <form
         onSubmit={onSubmit}
-        className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm backdrop-blur"
+        className="rounded-2xl border border-line bg-surface/90 p-6 shadow-sm backdrop-blur"
         noValidate
       >
-        <label className="block text-sm font-medium text-slate-700" htmlFor="email">
+        <label className="block text-sm font-medium text-ink-2" htmlFor="email">
           Email
         </label>
         <input
@@ -93,10 +93,10 @@ function LoginForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
+          className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
         />
 
-        <label className="mt-4 block text-sm font-medium text-slate-700" htmlFor="password">
+        <label className="mt-4 block text-sm font-medium text-ink-2" htmlFor="password">
           Password
         </label>
         <div className="relative mt-1.5">
@@ -108,12 +108,12 @@ function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 pr-11 text-sm outline-none ring-[var(--accent)] focus:ring-2"
+            className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 pr-11 text-sm outline-none ring-[var(--accent)] focus:ring-2"
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-800"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-ink-muted hover:text-ink"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -121,12 +121,12 @@ function LoginForm() {
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-3 text-sm">
-          <label className="inline-flex items-center gap-2 text-slate-600">
+          <label className="inline-flex items-center gap-2 text-ink-3">
             <input
               type="checkbox"
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
-              className="rounded border-slate-300 text-[var(--accent)] focus:ring-[var(--accent)]"
+              className="rounded border-line-strong text-[var(--accent)] focus:ring-[var(--accent)]"
             />
             Remember me
           </label>
@@ -136,7 +136,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <p role="alert" className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p role="alert" className="mt-4 rounded-xl bg-danger-surface px-3 py-2 text-sm text-danger">
             {error}
           </p>
         )}
@@ -145,7 +145,7 @@ function LoginForm() {
           type="submit"
           disabled={submitting}
           className={cn(
-            'mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-sm font-bold text-white transition hover:opacity-90',
+            'mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-3 text-sm font-bold text-brand-contrast transition hover:opacity-90',
             submitting && 'opacity-70',
           )}
         >
@@ -154,7 +154,7 @@ function LoginForm() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-6 text-center text-sm text-ink-3">
         Don&apos;t have an account?{' '}
         <Link href={registerHref(returnUrl)} className="font-semibold text-[var(--accent)] hover:underline">
           Create account
@@ -166,7 +166,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-sm text-slate-500">Loading…</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-sm text-ink-muted">Loading…</div>}>
       <LoginForm />
     </Suspense>
   );

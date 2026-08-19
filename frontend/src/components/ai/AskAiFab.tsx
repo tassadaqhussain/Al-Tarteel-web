@@ -39,7 +39,7 @@ export function AskAiFab() {
         className={cn(
           'fixed right-4 z-[55] flex items-center rounded-full transition active:scale-95 sm:right-6',
           onReader
-            ? 'h-11 w-11 justify-center border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50'
+            ? 'h-11 w-11 justify-center border border-line bg-surface text-ink-2 shadow-sm hover:border-line-strong hover:bg-surface-2'
             : 'h-12 w-12 justify-center bg-emerald-800 text-sm font-bold text-white shadow-lg hover:bg-emerald-900 sm:h-14 sm:w-auto sm:gap-2 sm:px-4',
           hasPlaylist
             ? 'bottom-[calc(var(--audio-bar-height,0px)+0.75rem)]'

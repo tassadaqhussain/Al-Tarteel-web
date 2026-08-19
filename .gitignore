@@ -45,3 +45,5 @@ backend/prisma/*.db-journal
 
 # Downloaded recitation media (large, reproducible assets)
 backend/storage/audio/
+# Locally synthesized speech cache (regenerated on demand by services/tts)
+backend/storage/tts/

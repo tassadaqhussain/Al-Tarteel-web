@@ -193,14 +193,14 @@ export function DailyMotivation({
     return (
       <div
         className={cn(
-          'mx-auto mb-3 flex max-w-4xl items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm',
+          'mx-auto mb-3 flex max-w-4xl items-center justify-between gap-3 rounded-xl border border-line bg-surface/90 px-3 py-2 text-sm',
           className,
         )}
       >
-        <p className="min-w-0 truncate text-slate-600">
+        <p className="min-w-0 truncate text-ink-3">
           {goalIsSoft ? t('suggestedToday') : t('todaysGoal')} · {goalCurrent}/{goalTarget}
         </p>
-        <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
+        <div className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-3">
           <div className="h-full bg-[var(--accent)]" style={{ width: `${goalPct}%` }} />
         </div>
       </div>
@@ -211,59 +211,59 @@ export function DailyMotivation({
     <section className={cn('w-full', className)}>
       <div
         className={cn(
-          'rounded-2xl border border-slate-200 bg-white shadow-sm',
+          'rounded-2xl border border-line bg-surface shadow-sm',
           variant === 'compact' ? 'px-4 py-4' : 'px-5 py-6 sm:px-7 sm:py-7',
         )}
       >
         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
           {t('todaysMotivation')}
         </p>
-        <p className="mt-2 text-base leading-relaxed text-slate-700 sm:text-lg">
+        <p className="mt-2 text-base leading-relaxed text-ink-2 sm:text-lg">
           “{primaryMessage}”
         </p>
-        <p className="mt-1 text-[11px] text-slate-400">{t('motivationDisclaimer')}</p>
+        <p className="mt-1 text-[11px] text-ink-faint">{t('motivationDisclaimer')}</p>
 
         {/* Primary CTA */}
-        <div className="mt-5 rounded-xl bg-slate-50 px-4 py-4">
+        <div className="mt-5 rounded-xl bg-surface-2 px-4 py-4">
           {priority.kind === 'continue_reading' || lastRead ? (
             <>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 {t('continueReading')}
               </p>
-              <p className="mt-1 font-semibold text-slate-900">{continueLabel}</p>
+              <p className="mt-1 font-semibold text-ink">{continueLabel}</p>
               <Link
                 href={continueHref}
-                className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-brand-contrast hover:opacity-90"
               >
                 {t('continueReading')}
               </Link>
             </>
           ) : priority.kind === 'tajweed' && tjLesson ? (
             <>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 {t('continueTajweed')}
               </p>
-              <p className="mt-1 font-semibold text-slate-900">{tjLesson.name}</p>
+              <p className="mt-1 font-semibold text-ink">{tjLesson.name}</p>
               <Link
                 href={`/tajweed/${tjLesson.slug}`}
-                className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-brand-contrast hover:opacity-90"
               >
                 {t('continueTajweed')}
               </Link>
             </>
           ) : (
             <>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 {t('todaysGoal')}
               </p>
-              <p className="mt-1 font-semibold text-slate-900">
+              <p className="mt-1 font-semibold text-ink">
                 {DAILY_GOAL_OPTIONS.find(
                   (o) => o.type === displayGoal.goalType && o.value === displayGoal.goalValue,
                 )?.label[locale] || t('readNAyahs').replace('{n}', String(displayGoal.goalValue))}
               </p>
               <Link
                 href={continueHref}
-                className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+                className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-brand-contrast hover:opacity-90"
               >
                 {t('startReading')}
               </Link>
@@ -274,14 +274,14 @@ export function DailyMotivation({
         {/* Goal progress — soft local suggestion until a goal is confirmed */}
         <div className="mt-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-slate-700">
+            <span className="font-medium text-ink-2">
               {goalComplete
                 ? t('todaysGoalDone')
                 : goalIsSoft
                   ? t('suggestedToday')
                   : t('todaysGoal')}
             </span>
-            <span className="text-slate-500">
+            <span className="text-ink-muted">
               {goalCurrent} / {goalTarget}
               {displayGoal.goalType === 'read_minutes'
                 ? t('unitMin')
@@ -292,20 +292,20 @@ export function DailyMotivation({
                   : ''}
             </span>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-3">
             <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${goalPct}%` }} />
           </div>
           {goalComplete && (
-            <p className="mt-2 text-sm text-slate-600">{t('goalCompleteBody')}</p>
+            <p className="mt-2 text-sm text-ink-3">{t('goalCompleteBody')}</p>
           )}
           {goalIsSoft && isAuthenticated && (
-            <p className="mt-2 text-xs text-slate-400">{t('optionalDailyGoalHint')}</p>
+            <p className="mt-2 text-xs text-ink-faint">{t('optionalDailyGoalHint')}</p>
           )}
         </div>
 
         {showGoalPicker && isAuthenticated && (
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <div className="mt-4 border-t border-line-subtle pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
               {t('chooseDailyGoal')}
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -320,7 +320,7 @@ export function DailyMotivation({
                       'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
                       active
                         ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
-                        : 'border-slate-200 text-slate-600 hover:border-[var(--accent)]',
+                        : 'border-line text-ink-3 hover:border-[var(--accent)]',
                     )}
                   >
                     {opt.label[locale]}
@@ -333,12 +333,12 @@ export function DailyMotivation({
       </div>
 
       {variant === 'full' && showAyahOfDay && ayahCard && (
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+        <div className="mt-4 rounded-2xl border border-line bg-surface px-5 py-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
             {t('ayahOfTheDay')}
           </p>
           <p
-            className="mt-4 text-center font-arabic text-2xl leading-loose text-slate-900"
+            className="mt-4 text-center font-arabic text-2xl leading-loose text-ink"
             dir="rtl"
             lang="ar"
             translate="no"
@@ -346,17 +346,17 @@ export function DailyMotivation({
             {ayahCard.textUthmani}
           </p>
           {ayahCard.translation && (
-            <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-slate-600">
+            <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-ink-3">
               {ayahCard.translation}
             </p>
           )}
-          <p className="mt-3 text-center text-sm font-medium text-slate-500">
+          <p className="mt-3 text-center text-sm font-medium text-ink-muted">
             {ayahCard.surahName} · {ayahCard.surah}:{ayahCard.ayah}
           </p>
           <div className="mt-4 flex justify-center">
             <Link
               href={getSurahPath(ayahCard.surah)}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:border-[var(--accent)]"
+              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-[var(--accent)]"
             >
               {t('readInQuran')}
             </Link>
@@ -365,15 +365,15 @@ export function DailyMotivation({
       )}
 
       {variant === 'full' && showTajweedOfDay && tjLesson && (
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+        <div className="mt-4 rounded-2xl border border-line bg-surface px-5 py-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
             {t('todaysTajweed')}
           </p>
-          <p className="mt-2 text-lg font-bold text-slate-900">{tjLesson.name}</p>
-          <p className="mt-1 text-sm text-slate-600">{t('listenTajweedHint')}</p>
+          <p className="mt-2 text-lg font-bold text-ink">{tjLesson.name}</p>
+          <p className="mt-1 text-sm text-ink-3">{t('listenTajweedHint')}</p>
           <Link
             href={`/tajweed/${tjLesson.slug}`}
-            className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+            className="mt-3 inline-flex rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-bold text-brand-contrast hover:opacity-90"
           >
             {t('learnNamed').replace('{name}', tjLesson.name)}
           </Link>

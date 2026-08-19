@@ -95,13 +95,13 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full max-w-none overflow-y-auto border-l border-slate-200 bg-white p-0 text-slate-800 [&>button]:hidden sm:w-[460px] sm:max-w-[460px]"
+        className="w-full max-w-none overflow-y-auto border-l border-line bg-surface p-0 text-ink [&>button]:hidden sm:w-[460px] sm:max-w-[460px]"
       >
         <SheetTitle className="sr-only">Search the Quran</SheetTitle>
-        <form onSubmit={onSubmit} className="flex h-[88px] items-center gap-4 border-b border-slate-200 px-6">
+        <form onSubmit={onSubmit} className="flex h-[88px] items-center gap-4 border-b border-line px-6">
           <button
             type="submit"
-            className="rounded-full p-2 text-emerald-900 transition hover:bg-emerald-50"
+            className="rounded-full p-2 text-brand transition hover:bg-brand/10"
             aria-label="Run search"
             title="Run search"
           >
@@ -114,12 +114,12 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search"
             aria-label="Search the Quran"
-            className="min-w-0 flex-1 bg-transparent text-2xl text-slate-800 outline-none placeholder:text-slate-500"
+            className="min-w-0 flex-1 bg-transparent text-2xl text-ink outline-none placeholder:text-ink-muted"
           />
-          <button type="button" onClick={onMicClick} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label="Voice search">
+          <button type="button" onClick={onMicClick} className="rounded-full p-2 text-ink hover:bg-surface-3" aria-label="Voice search">
             <Mic className="h-7 w-7" />
           </button>
-          <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 text-slate-900 hover:bg-slate-100" aria-label="Close search">
+          <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 text-ink hover:bg-surface-3" aria-label="Close search">
             <X className="h-7 w-7" />
           </button>
         </form>
@@ -145,16 +145,16 @@ export function SearchDrawer({ open, onOpenChange }: Props) {
 function SuggestionSection({ title, className = '', children }: { title: string; className?: string; children: React.ReactNode }) {
   return (
     <section className={className}>
-      <h2 className="pb-4 text-xl font-bold text-slate-900">{title}</h2>
-      <div className="border-t border-slate-200">{children}</div>
+      <h2 className="pb-4 text-xl font-bold text-ink">{title}</h2>
+      <div className="border-t border-line">{children}</div>
     </section>
   );
 }
 
 function Suggestion({ label, icon, onClick }: { label: string; icon: React.ReactNode; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex w-full items-center gap-5 border-b border-slate-200 px-2 py-4 text-left text-xl text-slate-800 transition hover:bg-slate-50 hover:text-[var(--accent)]">
-      <span className="text-slate-300">{icon}</span>
+    <button type="button" onClick={onClick} className="flex w-full items-center gap-5 border-b border-line px-2 py-4 text-left text-xl text-ink transition hover:bg-surface-2 hover:text-[var(--accent)]">
+      <span className="text-ink-faint">{icon}</span>
       {label}
     </button>
   );

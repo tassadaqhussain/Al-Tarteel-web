@@ -25,7 +25,10 @@ export class AudioController {
     @Req() request: Request,
     @Res() response: Response,
   ) {
-    if (!/^[a-z0-9-]+$/.test(reciter) || !/^\d{6}\.mp3$/.test(file)) throw new NotFoundException('Audio not found');
+    // SSSAAA.mp3 = per-ayah; ruku-NNN.mp3 = ruku-granular translation recitations
+    // (NNN is the global ruku index 1-558, matching ayahs.ruku).
+    const validFile = /^\d{6}\.mp3$/.test(file) || /^ruku-\d{3}\.mp3$/.test(file);
+    if (!/^[a-z0-9-]+$/.test(reciter) || !validFile) throw new NotFoundException('Audio not found');
     const root = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
     const path = join(root, reciter, file);
     if (!existsSync(path)) throw new NotFoundException('Audio not found');
@@ -80,4 +83,21 @@ export class AudioController {
   ) {
     return this.audio.getWordTimingsForSurah(surahNumber, reciterSlug);
   }
+
+  @Get('speech')
+  @ApiOperation({ summary: 'Locally synthesized speech for a word-by-word meaning' })
+  async speech(
+    @Query('lang') lang: string,
+    @Query('text') text: string,
+    @Res() response: Response,
+  ) {
+    const path = await this.audio.synthesizeSpeech(lang, text);
+    const size = statSync(path).size;
+    response.setHeader('Content-Type', 'audio/wav');
+    response.setHeader('Content-Length', size);
+    // Deterministic for a (lang, text) pair, so it can be cached hard.
+    response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return createReadStream(path).pipe(response);
+  }
+
 }

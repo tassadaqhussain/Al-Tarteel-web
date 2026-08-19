@@ -94,7 +94,7 @@ export function VerseMoreMenu({
       ref={ref}
       role="menu"
       aria-label="Verse options"
-      className="absolute right-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl"
+      className="absolute right-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-surface py-1.5 shadow-xl"
     >
       {ITEMS.map((item) => {
         const active =
@@ -116,11 +116,11 @@ export function VerseMoreMenu({
               if (item.id !== 'embed') onOpenChange(false);
             }}
             className={cn(
-              'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-slate-50',
+              'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm text-ink-2 transition-colors hover:bg-surface-2',
               active && 'text-[var(--accent)]'
             )}
           >
-            <span className="flex h-5 w-5 items-center justify-center text-slate-500">
+            <span className="flex h-5 w-5 items-center justify-center text-ink-muted">
               {item.id === 'embed' && copiedEmbed ? <Check className="h-4 w-4 text-emerald-500" /> : item.icon}
             </span>
             <span className="flex-1">{item.label}</span>

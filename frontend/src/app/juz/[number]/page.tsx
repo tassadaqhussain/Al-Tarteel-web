@@ -83,11 +83,11 @@ export default async function JuzPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pb-32 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-surface text-ink">
       <Header />
 
       {/* Sub-header */}
-      <div className="relative sticky top-14 z-40 border-b border-slate-200 bg-white/95 backdrop-blur sm:top-[57px]">
+      <div className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />
@@ -95,14 +95,14 @@ export default async function JuzPage({ params, searchParams }: Props) {
           </Link>
           <div className="flex items-center gap-2 text-sm">
             {juzNumber > 1 && (
-              <Link href={`/juz/${juzNumber - 1}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">←</Link>
+              <Link href={`/juz/${juzNumber - 1}`} className="rounded px-2 py-1 text-ink-muted transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">←</Link>
             )}
-            <span className="font-semibold text-slate-800">Juz {juzNumber}</span>
+            <span className="font-semibold text-ink">Juz {juzNumber}</span>
             {juzNumber < 30 && (
-              <Link href={`/juz/${juzNumber + 1}`} className="rounded px-2 py-1 text-slate-500 transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">→</Link>
+              <Link href={`/juz/${juzNumber + 1}`} className="rounded px-2 py-1 text-ink-muted transition-colors hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]">→</Link>
             )}
           </div>
-          <span className="text-xs text-slate-500">of 30</span>
+          <span className="text-xs text-ink-muted">of 30</span>
         </div>
 
         <div className="px-4 pb-3 sm:px-6">
@@ -131,9 +131,9 @@ export default async function JuzPage({ params, searchParams }: Props) {
         />
 
         {/* Juz heading */}
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 text-center shadow-sm">
-          <h1 className="font-arabic text-4xl font-bold text-slate-900">الجزء {juzNumber}</h1>
-          <p className="mt-2 text-sm text-slate-600">
+        <div className="mb-8 rounded-2xl border border-line bg-surface px-6 py-5 text-center shadow-sm">
+          <h1 className="font-arabic text-4xl font-bold text-ink">الجزء {juzNumber}</h1>
+          <p className="mt-2 text-sm text-ink-3">
             Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
           </p>
         </div>
@@ -155,7 +155,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
               <div className="h-px flex-1 bg-[var(--border)]" />
             </div>
 
-            <div className="divide-y divide-slate-200 border-t border-slate-200">
+            <div className="divide-y divide-line border-t border-line">
               {group.ayahs.map((ayah) => (
                 <AyahBlock
                   key={ayah.id}

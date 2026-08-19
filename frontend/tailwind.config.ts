@@ -17,7 +17,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-outfit)', 'Inter', ...fontFamily.sans],
+        sans: ['var(--font-ui)', 'Figtree', ...fontFamily.sans],
         arabic: ['var(--font-amiri)', 'Amiri Quran', 'serif'],
         'arabic-uthmani': ['var(--font-amiri)', 'serif'],
       },
@@ -30,6 +30,54 @@ const config: Config = {
         gold: {
           500: '#c2a15e',
           600: '#b4944b',
+        },
+        // ── Semantic theme tokens (see :root / .dark in globals.css) ───
+        // These flip with the theme, so `bg-surface` / `text-ink-muted`
+        // need no dark: variant. Prefer them over raw slate/white.
+        surface: {
+          DEFAULT: 'rgb(var(--c-surface) / <alpha-value>)',
+          2: 'rgb(var(--c-surface-2) / <alpha-value>)',
+          3: 'rgb(var(--c-surface-3) / <alpha-value>)',
+          raised: 'rgb(var(--c-surface-raised) / <alpha-value>)',
+          app: 'rgb(var(--c-bg) / <alpha-value>)',
+        },
+        ink: {
+          DEFAULT: 'rgb(var(--c-ink) / <alpha-value>)',
+          2: 'rgb(var(--c-ink-2) / <alpha-value>)',
+          3: 'rgb(var(--c-ink-3) / <alpha-value>)',
+          muted: 'rgb(var(--c-ink-muted) / <alpha-value>)',
+          faint: 'rgb(var(--c-ink-faint) / <alpha-value>)',
+        },
+        tooltip: {
+          DEFAULT: 'rgb(var(--c-tooltip) / <alpha-value>)',
+          ink: 'rgb(var(--c-tooltip-ink) / <alpha-value>)',
+        },
+        line: {
+          DEFAULT: 'rgb(var(--c-line) / <alpha-value>)',
+          subtle: 'rgb(var(--c-line-subtle) / <alpha-value>)',
+          strong: 'rgb(var(--c-line-strong) / <alpha-value>)',
+        },
+        brand: {
+          DEFAULT: 'rgb(var(--c-accent) / <alpha-value>)',
+          contrast: 'rgb(var(--c-accent-contrast) / <alpha-value>)',
+          gold: 'rgb(var(--c-gold) / <alpha-value>)',
+          'gold-contrast': 'rgb(var(--c-gold-contrast) / <alpha-value>)',
+        },
+        success: {
+          DEFAULT: 'rgb(var(--c-success) / <alpha-value>)',
+          surface: 'rgb(var(--c-success-surface) / <alpha-value>)',
+        },
+        warning: {
+          DEFAULT: 'rgb(var(--c-warning) / <alpha-value>)',
+          surface: 'rgb(var(--c-warning-surface) / <alpha-value>)',
+        },
+        danger: {
+          DEFAULT: 'rgb(var(--c-danger) / <alpha-value>)',
+          surface: 'rgb(var(--c-danger-surface) / <alpha-value>)',
+        },
+        info: {
+          DEFAULT: 'rgb(var(--c-info) / <alpha-value>)',
+          surface: 'rgb(var(--c-info-surface) / <alpha-value>)',
         },
         // ── shadcn/ui semantic tokens (CSS-var backed) ─────────────────
         border: 'hsl(var(--border))',
@@ -100,6 +148,10 @@ const config: Config = {
           from: { opacity: '0' },
           to: { opacity: '1' },
         },
+        'overlay-hide': {
+          from: { opacity: '1' },
+          to: { opacity: '0' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -109,6 +161,7 @@ const config: Config = {
         'slide-out-right': 'slide-out-right 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         'slide-in-left': 'slide-in-left 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
         'overlay-show': 'overlay-show 0.2s ease-out',
+        'overlay-hide': 'overlay-hide 0.2s ease-in',
       },
     },
   },

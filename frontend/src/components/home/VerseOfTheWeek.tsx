@@ -49,24 +49,24 @@ export async function VerseOfTheWeek() {
   return (
     <section className="w-full px-3 py-3 sm:px-4 sm:py-4 md:px-6">
       <div className="mb-3 flex flex-col gap-1 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <h2 className="text-lg font-bold text-slate-800 sm:text-xl md:text-2xl">
+        <h2 className="text-lg font-bold text-ink sm:text-xl md:text-2xl">
           Verse of the Week
         </h2>
         <Link
           href={getSurahPath(surahNumber)}
-          className="shrink-0 text-sm font-medium text-slate-600 transition hover:text-[var(--accent)]"
+          className="shrink-0 text-sm font-medium text-ink-3 transition hover:text-[var(--accent)]"
         >
           Surah {surah.nameSimple} [{surahNumber}:{ayahNumber}]
         </Link>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 shadow-sm sm:px-8 sm:py-8 md:px-10 md:py-10">
-        <p className="mb-4 text-center text-sm text-slate-500 sm:mb-6">
+      <div className="rounded-2xl border border-line bg-surface px-4 py-6 shadow-sm sm:px-8 sm:py-8 md:px-10 md:py-10">
+        <p className="mb-4 text-center text-sm text-ink-muted sm:mb-6">
           A verse from this week&apos;s reading
         </p>
 
         <p
-          className="mb-4 text-center font-arabic text-xl leading-loose text-slate-800 sm:mb-6 sm:text-2xl md:text-3xl"
+          className="mb-4 text-center font-arabic text-xl leading-loose text-ink sm:mb-6 sm:text-2xl md:text-3xl"
           dir="rtl"
           lang="ar"
         >
@@ -74,7 +74,7 @@ export async function VerseOfTheWeek() {
         </p>
 
         {translation && (
-          <p className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-slate-600 sm:text-base">
+          <p className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-ink-3 sm:text-base">
             {translation}{' '}
             <Link
               href={getSurahPath(surahNumber)}
@@ -88,7 +88,7 @@ export async function VerseOfTheWeek() {
         <div className="mt-6 flex justify-end sm:mt-8">
           <Link
             href={getSurahPath(reading.start.surah)}
-            className="inline-flex items-center gap-1 text-sm font-medium text-slate-700 transition hover:text-[var(--accent)]"
+            className="inline-flex items-center gap-1 text-sm font-medium text-ink-2 transition hover:text-[var(--accent)]"
           >
             This Week&apos;s Reading
             <ChevronRight className="h-4 w-4" />

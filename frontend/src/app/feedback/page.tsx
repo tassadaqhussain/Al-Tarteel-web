@@ -84,19 +84,19 @@ export default function FeedbackPage() {
         </div>
 
         {done ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950/30">
+          <div className="rounded-2xl border border-brand/25 bg-brand/10 p-6">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-600" />
+              <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-brand" />
               <div>
-                <p className="font-semibold text-emerald-900 dark:text-emerald-100">{done}</p>
-                <p className="mt-2 text-sm text-emerald-800/80 dark:text-emerald-200/80">
+                <p className="font-semibold text-brand">{done}</p>
+                <p className="mt-2 text-sm text-brand/80">
                   Your note is saved. You can send another anytime.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     type="button"
                     onClick={() => setDone(null)}
-                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white"
+                    className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-brand-contrast"
                   >
                     Send more feedback
                   </button>
@@ -145,7 +145,7 @@ export default function FeedbackPage() {
                     key={n}
                     type="button"
                     onClick={() => setRating(rating === n ? null : n)}
-                    className="rounded-lg p-1.5 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="rounded-lg p-1.5 transition hover:bg-surface-3"
                     aria-label={`${n} stars`}
                   >
                     <Star
@@ -153,7 +153,7 @@ export default function FeedbackPage() {
                         'h-7 w-7',
                         rating && n <= rating
                           ? 'fill-[var(--accent-gold)] text-[var(--accent-gold)]'
-                          : 'text-slate-300',
+                          : 'text-ink-faint',
                       )}
                     />
                   </button>
@@ -207,7 +207,7 @@ export default function FeedbackPage() {
             </div>
 
             {error && (
-              <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">
+              <p role="alert" className="rounded-xl bg-danger-surface px-3 py-2 text-sm text-rose-800">
                 {error}
               </p>
             )}
@@ -216,7 +216,7 @@ export default function FeedbackPage() {
               type="submit"
               disabled={submitting}
               className={cn(
-                'inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 sm:w-auto',
+                'inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-bold text-brand-contrast hover:opacity-90 sm:w-auto',
                 submitting && 'opacity-70',
               )}
             >

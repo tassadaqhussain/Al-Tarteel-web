@@ -16,9 +16,9 @@ export function PinnedVersesBar() {
   if (!pins.length) return null;
 
   return (
-    <div className="border-b border-slate-200 bg-white px-3 py-2.5 sm:px-6">
+    <div className="border-b border-line bg-surface px-3 py-2.5 sm:px-6">
       <div className="mx-auto flex max-w-6xl items-center gap-3">
-        <p className="shrink-0 text-xs font-medium text-slate-500">Pinned verses</p>
+        <p className="shrink-0 text-xs font-medium text-ink-muted">Pinned verses</p>
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {pins.map((pin) => {
             const active = pin.ayahId === activeAyahId;
@@ -30,8 +30,8 @@ export function PinnedVersesBar() {
                   className={cn(
                     'inline-flex h-7 items-center rounded-l-full border px-2.5 text-xs font-semibold tabular-nums transition',
                     active
-                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                      : 'border-[var(--accent)]/40 bg-white text-[var(--accent)] hover:bg-[var(--accent)]/10'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
+                      : 'border-[var(--accent)]/40 bg-surface text-[var(--accent)] hover:bg-[var(--accent)]/10'
                   )}
                 >
                   {pin.surahNumber}:{pin.ayahNumber}
@@ -42,7 +42,7 @@ export function PinnedVersesBar() {
                   className={cn(
                     'inline-flex h-7 items-center rounded-r-full border border-l-0 px-1.5 transition',
                     active
-                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast hover:bg-[var(--accent)]/90'
                       : 'border-[var(--accent)]/40 text-[var(--accent)] hover:bg-[var(--accent)]/10'
                   )}
                   aria-label={`Unpin ${pin.surahNumber}:${pin.ayahNumber}`}
@@ -64,7 +64,7 @@ export function PinnedVersesBar() {
           <button
             type="button"
             onClick={() => clear()}
-            className="shrink-0 text-xs text-slate-400 hover:text-slate-600"
+            className="shrink-0 text-xs text-ink-faint hover:text-ink-3"
           >
             Clear
           </button>

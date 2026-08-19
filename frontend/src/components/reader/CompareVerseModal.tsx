@@ -201,14 +201,14 @@ export function CompareVerseModal() {
         </DialogDescription>
 
         {/* Header */}
-        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-3 sm:gap-3 sm:px-5">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-4 py-3 sm:gap-3 sm:px-5">
           <select
             value={surahNumber}
             onChange={(e) => {
               setSurahNumber(Number(e.target.value));
               setAyahNumber(1);
             }}
-            className="max-w-[10rem] truncate rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-semibold text-slate-800 sm:max-w-[14rem]"
+            className="max-w-[10rem] truncate rounded-lg border border-line bg-surface px-2 py-1.5 text-sm font-semibold text-ink sm:max-w-[14rem]"
             aria-label="Surah"
           >
             {Array.from({ length: 114 }, (_, i) => i + 1).map((n) => (
@@ -220,7 +220,7 @@ export function CompareVerseModal() {
           <select
             value={ayahNumber}
             onChange={(e) => setAyahNumber(Number(e.target.value))}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-semibold tabular-nums text-slate-800"
+            className="rounded-lg border border-line bg-surface px-2 py-1.5 text-sm font-semibold tabular-nums text-ink"
             aria-label="Verse"
           >
             {ayahOptions.map((n) => (
@@ -229,32 +229,32 @@ export function CompareVerseModal() {
           </select>
 
           <div className="ml-auto flex items-center gap-1 sm:ml-0">
-            <button type="button" onClick={goPrev} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Previous verse">
+            <button type="button" onClick={goPrev} className="rounded-full p-2 text-ink-muted hover:bg-surface-3" aria-label="Previous verse">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <button type="button" onClick={goNext} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Next verse">
+            <button type="button" onClick={goNext} className="rounded-full p-2 text-ink-muted hover:bg-surface-3" aria-label="Next verse">
               <ChevronRight className="h-5 w-5" />
             </button>
             <button
               type="button"
               onClick={handlePinToggle}
               className={cn(
-                'rounded-full p-2 hover:bg-slate-100',
-                pinnedHere ? 'text-[var(--accent)]' : 'text-slate-500'
+                'rounded-full p-2 hover:bg-surface-3',
+                pinnedHere ? 'text-[var(--accent)]' : 'text-ink-muted'
               )}
               aria-label={pinnedHere ? 'Unpin verse' : 'Pin verse'}
             >
               <Pin className={cn('h-5 w-5', pinnedHere && 'fill-current')} />
             </button>
-            <button type="button" onClick={closeModal} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Close">
+            <button type="button" onClick={closeModal} className="rounded-full p-2 text-ink-muted hover:bg-surface-3" aria-label="Close">
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
         {/* Pinned chips */}
-        <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-slate-100 px-4 py-2.5 sm:px-5">
-          <span className="shrink-0 text-xs font-medium text-slate-500">Pinned verses</span>
+        <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-line-subtle px-4 py-2.5 sm:px-5">
+          <span className="shrink-0 text-xs font-medium text-ink-muted">Pinned verses</span>
           {pins.map((p) => {
             const active = p.ayahId === (verse?.id ?? activeAyahId);
             return (
@@ -265,7 +265,7 @@ export function CompareVerseModal() {
                 className={cn(
                   'inline-flex h-7 shrink-0 items-center rounded-full border px-2.5 text-xs font-semibold tabular-nums',
                   active
-                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                    ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
                     : 'border-[var(--accent)]/40 text-[var(--accent)] hover:bg-[var(--accent)]/10'
                 )}
               >
@@ -277,12 +277,12 @@ export function CompareVerseModal() {
 
         {/* Body */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-          {loading && <p className="text-sm text-slate-400">Loading verse…</p>}
+          {loading && <p className="text-sm text-ink-faint">Loading verse…</p>}
           {!loading && verse && (
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
               <div className="order-2 space-y-4 lg:order-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-medium tabular-nums text-slate-400">
+                  <span className="text-base font-medium tabular-nums text-ink-faint">
                     {surahNumber}:{ayahNumber}
                   </span>
                   <button
@@ -290,7 +290,7 @@ export function CompareVerseModal() {
                     onClick={() => void handlePlay()}
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-full',
-                      isCurrent ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'text-slate-400 hover:bg-slate-100'
+                      isCurrent ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'text-ink-faint hover:bg-surface-3'
                     )}
                     aria-label={isCurrent && isPlaying ? 'Pause' : 'Play'}
                   >
@@ -301,7 +301,7 @@ export function CompareVerseModal() {
                     onClick={handleBookmark}
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-full',
-                      bookmarked ? 'text-[var(--accent)]' : 'text-slate-400 hover:bg-slate-100'
+                      bookmarked ? 'text-[var(--accent)]' : 'text-ink-faint hover:bg-surface-3'
                     )}
                     aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark'}
                   >
@@ -313,24 +313,24 @@ export function CompareVerseModal() {
                     const rtl = /^(ur|fa|ar|ps|sd)-/.test(t.translatorSlug);
                     return (
                       <div key={t.translatorId} dir={rtl ? 'rtl' : 'ltr'} className={rtl ? 'text-right' : ''}>
-                        <p className="text-[15px] leading-7 text-slate-700">{t.text}</p>
-                        <p className="mt-1 text-[10px] text-slate-400">
+                        <p className="text-[15px] leading-7 text-ink-2">{t.text}</p>
+                        <p className="mt-1 text-[10px] text-ink-faint">
                           — {t.translatorName || t.translatorSlug.replaceAll('-', ' ')}
                         </p>
                       </div>
                     );
                   })
                 ) : (
-                  <p className="text-sm text-slate-400">No translation selected.</p>
+                  <p className="text-sm text-ink-faint">No translation selected.</p>
                 )}
               </div>
 
               <div className="order-1 lg:order-2">
-                <div className="mb-3 flex justify-end gap-1 text-slate-400">
-                  <button type="button" onClick={() => void handleCopy()} className="rounded-full p-2 hover:bg-slate-100" aria-label="Copy">
+                <div className="mb-3 flex justify-end gap-1 text-ink-faint">
+                  <button type="button" onClick={() => void handleCopy()} className="rounded-full p-2 hover:bg-surface-3" aria-label="Copy">
                     <Copy className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => void handleShare()} className="rounded-full p-2 hover:bg-slate-100" aria-label="Share">
+                  <button type="button" onClick={() => void handleShare()} className="rounded-full p-2 hover:bg-surface-3" aria-label="Share">
                     <Share2 className="h-4 w-4" />
                   </button>
                   <span className="rounded-full p-2 opacity-40" aria-hidden>
@@ -341,21 +341,21 @@ export function CompareVerseModal() {
                   </span>
                 </div>
                 <p
-                  className="font-arabic text-center text-3xl leading-[2.2] text-slate-900 sm:text-right sm:text-4xl"
+                  className="font-arabic text-center text-3xl leading-[2.2] text-ink sm:text-right sm:text-4xl"
                   dir="rtl"
                   lang="ar"
                 >
                   {verse.textUthmani}
-                  <span className="mx-1 inline-flex font-arabic text-lg text-slate-400">﴿{ayahNumber}﴾</span>
+                  <span className="mx-1 inline-flex font-arabic text-lg text-ink-faint">﴿{ayahNumber}﴾</span>
                 </p>
-                {copied && <p className="mt-2 text-right text-xs text-emerald-600">Copied</p>}
+                {copied && <p className="mt-2 text-right text-xs text-brand">Copied</p>}
               </div>
             </div>
           )}
         </div>
 
         {/* Footer resources */}
-        <div className="flex shrink-0 items-center gap-4 overflow-x-auto border-t border-slate-100 px-4 py-3 text-sm text-slate-400 sm:gap-5 sm:px-6">
+        <div className="flex shrink-0 items-center gap-4 overflow-x-auto border-t border-line-subtle px-4 py-3 text-sm text-ink-faint sm:gap-5 sm:px-6">
           <span className="inline-flex shrink-0 items-center gap-1.5"><BookOpen className="h-4 w-4" /> Tafsirs</span>
           <span className="inline-flex shrink-0 items-center gap-1.5"><GraduationCap className="h-4 w-4" /> Lessons</span>
           <span className="inline-flex shrink-0 items-center gap-1.5"><MessageCircle className="h-4 w-4" /> Reflections</span>

@@ -1,13 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { existsSync } from 'node:fs';
+import { mkdir, writeFile, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import {
   TRANSLATION_RECITERS,
   getTranslationReciter,
   translationVerseUrl,
+  translationBaseUrl,
 } from './translation-reciters';
 
 const CACHE_TTL = 86400; // 24h for reciters
@@ -101,7 +109,8 @@ export class AudioService {
       languageCode: reciter.languageCode,
       languageName: reciter.languageName,
       kind: 'translation' as const,
-      baseUrl: reciter.baseUrl,
+      granularity: reciter.granularity ?? 'ayah',
+      baseUrl: translationBaseUrl(reciter),
       isDefault: false,
       sortOrder: 1000 + reciter.sortOrder,
     }));
@@ -116,7 +125,7 @@ export class AudioService {
   }
 
   async getReciters() {
-    const key = 'audio:reciters:v2';
+    const key = 'audio:reciters:v4';
     const cached = await this.cache.get(key);
     if (cached) return JSON.parse(cached);
     const reciters = await this.prisma.reciter.findMany({
@@ -312,4 +321,55 @@ export class AudioService {
     await this.cache.set(cacheKey, JSON.stringify(payload), CACHE_TTL);
     return payload;
   }
+
+  /**
+   * Speech for a word-by-word meaning, synthesized locally by the Piper service.
+   *
+   * The browser's SpeechSynthesis silently produces nothing for languages the
+   * OS has no voice for (Urdu and Persian on most desktops), so those are
+   * generated here instead. Results are deterministic for a (lang, text) pair,
+   * so each one is synthesized at most once and then served from disk.
+   *
+   * Returns the cached file path.
+   */
+  async synthesizeSpeech(lang: string, text: string): Promise<string> {
+    const cleanLang = (lang || '').toLowerCase();
+    const cleanText = (text || '').trim();
+    if (!/^[a-z]{2}$/.test(cleanLang)) throw new BadRequestException('Invalid language');
+    if (!cleanText) throw new BadRequestException('Text is required');
+    if (cleanText.length > 400) throw new BadRequestException('Text too long');
+
+    const root = process.env.TTS_CACHE_PATH || join(process.cwd(), 'storage', 'tts');
+    const dir = join(root, cleanLang);
+    // Hash the text so caller input can never shape the path.
+    const key = createHash('sha256').update(`${cleanLang}:${cleanText}`).digest('hex');
+    const path = join(dir, `${key}.wav`);
+
+    try {
+      const info = await stat(path);
+      if (info.size > 44) return path;
+    } catch {
+      /* not cached yet */
+    }
+
+    const base = process.env.TTS_URL || 'http://tts:5062';
+    const response = await fetch(`${base}/synthesize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang: cleanLang, text: cleanText }),
+      signal: AbortSignal.timeout(20_000),
+    }).catch((error) => {
+      throw new ServiceUnavailableException(`Speech service unreachable: ${error?.message ?? error}`);
+    });
+
+    if (response.status === 404) throw new NotFoundException(`No voice for ${cleanLang}`);
+    if (!response.ok) throw new ServiceUnavailableException(`Speech service error ${response.status}`);
+
+    const audio = Buffer.from(await response.arrayBuffer());
+    if (audio.length <= 44) throw new ServiceUnavailableException('Speech service returned empty audio');
+    await mkdir(dir, { recursive: true });
+    await writeFile(path, audio);
+    return path;
+  }
+
 }

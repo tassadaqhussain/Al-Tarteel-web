@@ -128,18 +128,18 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col bg-white p-0 text-slate-900 [&>button]:hidden sm:max-w-[560px]"
+        className="flex w-full flex-col bg-surface p-0 text-ink [&>button]:hidden sm:max-w-[560px]"
       >
-        <div className="flex h-[92px] shrink-0 items-center border-b border-slate-200 px-5 sm:px-7">
-          <button type="button" onClick={() => onOpenChange(false)} className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-slate-100" aria-label="Back"><ArrowLeft className="h-7 w-7" /></button>
+        <div className="flex h-[92px] shrink-0 items-center border-b border-line px-5 sm:px-7">
+          <button type="button" onClick={() => onOpenChange(false)} className="-ml-2 flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-surface-3" aria-label="Back"><ArrowLeft className="h-7 w-7" /></button>
           <div className="ml-2 min-w-0"><SheetTitle className="text-2xl font-medium tracking-tight sm:text-3xl">Translations</SheetTitle><SheetDescription className="sr-only">Choose one or more Quran translations</SheetDescription></div>
-          <button type="button" onClick={() => onOpenChange(false)} className="ml-auto flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-slate-100" aria-label="Close"><X className="h-7 w-7" /></button>
+          <button type="button" onClick={() => onOpenChange(false)} className="ml-auto flex h-12 w-12 items-center justify-center rounded-full transition hover:bg-surface-3" aria-label="Close"><X className="h-7 w-7" /></button>
         </div>
 
         <div className="shrink-0 px-5 pb-3 pt-7 sm:px-7">
-          <label className="flex h-[68px] items-center rounded-[28px] border border-slate-200 bg-white px-5 shadow-sm transition focus-within:border-slate-400">
-            <Search className="h-8 w-8 shrink-0 text-slate-600" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Search Translations" className="ml-4 min-w-0 flex-1 bg-transparent text-xl outline-none placeholder:text-slate-500 sm:text-2xl" />
+          <label className="flex h-[68px] items-center rounded-[28px] border border-line bg-surface px-5 shadow-sm transition focus-within:border-line-strong">
+            <Search className="h-8 w-8 shrink-0 text-ink-3" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} type="search" placeholder="Search Translations" className="ml-4 min-w-0 flex-1 bg-transparent text-xl outline-none placeholder:text-ink-muted sm:text-2xl" />
           </label>
         </div>
 
@@ -147,10 +147,10 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
         <div className="flex-1 overflow-y-auto px-0 pb-6 [scrollbar-color:#cbd5e1_transparent] [scrollbar-width:thin]">
           {loading ? (
             <div className="flex h-40 items-center justify-center">
-              <Loader2 className="h-7 w-7 animate-spin text-slate-500" />
+              <Loader2 className="h-7 w-7 animate-spin text-ink-muted" />
             </div>
           ) : visibleTranslators.length === 0 ? (
-            <div className="flex h-40 items-center justify-center px-6 text-center text-base text-slate-500">
+            <div className="flex h-40 items-center justify-center px-6 text-center text-base text-ink-muted">
               No translations match “{query.trim()}”
             </div>
           ) : (
@@ -174,14 +174,14 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
                             className={cn(
                               'mr-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors',
                               isSelected
-                                ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                                : 'border-slate-200 bg-slate-100 group-hover:border-slate-400'
+                                ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
+                                : 'border-line bg-surface-3 group-hover:border-line-strong'
                             )}
                           >
                             {isSelected && <Check className="h-6 w-6" strokeWidth={3} />}
                           </span>
                           <span className="min-w-0 text-xl leading-snug sm:text-2xl">{t.name}</span>
-                          {(t.slug.includes('sahih') || t.slug.includes('hilali') || t.languageCode !== 'en') && <Info className="ml-3 h-6 w-6 shrink-0 text-slate-300" />}
+                          {(t.slug.includes('sahih') || t.slug.includes('hilali') || t.languageCode !== 'en') && <Info className="ml-3 h-6 w-6 shrink-0 text-ink-faint" />}
                         </button>
                       );
                     })}
@@ -193,10 +193,10 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
         </div>
 
         {/* Actions */}
-        <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4 sm:px-7">
+        <div className="shrink-0 border-t border-line bg-surface px-5 py-4 sm:px-7">
           <div className="flex gap-4">
-            <button type="button" className="h-14 flex-1 rounded-2xl border-2 border-slate-300 text-lg font-semibold transition hover:bg-slate-50 disabled:opacity-40" onClick={clearAll} disabled={selected.size === 0}>Clear All</button>
-            <button type="button" className="h-14 flex-1 rounded-2xl bg-[var(--accent)] text-lg font-semibold text-white transition hover:bg-[var(--accent)]/90" onClick={apply}>Apply{selected.size > 0 ? ` (${selected.size})` : ''}</button>
+            <button type="button" className="h-14 flex-1 rounded-2xl border-2 border-line-strong text-lg font-semibold transition hover:bg-surface-2 disabled:opacity-40" onClick={clearAll} disabled={selected.size === 0}>Clear All</button>
+            <button type="button" className="h-14 flex-1 rounded-2xl bg-[var(--accent)] text-lg font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90" onClick={apply}>Apply{selected.size > 0 ? ` (${selected.size})` : ''}</button>
           </div>
         </div>
       </SheetContent>

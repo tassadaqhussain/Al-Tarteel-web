@@ -8,8 +8,11 @@ export const SITE_SHELL =
 export const CHROME_SHELL =
   'mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 2xl:px-12';
 
-/** Mushaf reading column — keep ayahs readable on wide displays. */
-export const READER_SHELL = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8';
+/** Mushaf reading column — matches the Quran.com chapter shell (~48px side inset). */
+export const READER_SHELL = 'mx-auto w-full max-w-[1400px] px-4 sm:px-8 lg:px-12';
+
+/** Sticky reader context bar — slightly tighter inset than the reading column. */
+export const READER_BAR_SHELL = 'mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10';
 
 type MainContainerProps = {
   as?: 'div' | 'section' | 'main' | 'article';

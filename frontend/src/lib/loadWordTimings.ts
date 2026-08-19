@@ -15,7 +15,7 @@ export async function loadWordTimings(surahNumber: number, reciterSlug: string) 
     const data = await audioApi.wordTimings(surahNumber, reciterSlug);
     const ayahs: Record<number, Array<{ position: number; startMs: number; endMs: number }>> = {};
     for (const [key, value] of Object.entries(data.ayahs || {})) {
-      ayahs[Number(key)] = value;
+      ayahs[Number(key)] = (value as Array<{ position: number; startMs: number; endMs: number }>) || [];
     }
     useAudioStore.getState().setWordTimings(surahNumber, reciterSlug, data.available ? ayahs : null);
   } catch {

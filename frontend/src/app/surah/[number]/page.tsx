@@ -5,12 +5,12 @@ import { Header } from '@/components/Header';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ReadingTracker } from '@/components/reader/ReadingTracker';
 import { DailyMotivationReader } from '@/components/daily/DailyMotivationReader';
-import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { ArrowRight, Bookmark, ChevronLeft, ChevronRight, RotateCcw, BookMarked, Target } from 'lucide-react';
 import { ChapterControls } from '@/components/reader/ChapterControls';
 import { ReaderBismillah } from '@/components/reader/ReaderBismillah';
 import { SurahAyahFeed } from '@/components/reader/SurahAyahFeed';
 import { SurahNavTrigger } from '@/components/reader/SurahNavTrigger';
+import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { SurahPaginationNav } from '@/components/reader/SurahPaginationNav';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
@@ -20,7 +20,8 @@ import { resolveTranslations } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
-import { CHROME_SHELL, READER_SHELL } from '@/components/layout/MainContainer';
+import { READER_BAR_SHELL, READER_SHELL } from '@/components/layout/MainContainer';
+import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
 import { cn } from '@/lib/utils';
 import {
   clampSurahPage,
@@ -117,56 +118,44 @@ export default async function SurahPage({ params, searchParams }: Props) {
   const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
 
   const endOfChapter = (
-    <div className="mt-14">
-      <div className="mb-7 flex items-center gap-4">
-        <div className="h-px flex-1 bg-[var(--border)]" />
-        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
-          End of Chapter
-        </span>
-        <div className="h-px flex-1 bg-[var(--border)]" />
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-2">
-        {prevSurah && (
+    <div className="mt-14 border-t border-line pt-10">
+      <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+        {prevSurah ? (
           <Link
             href={getSurahPath(prevSurah.number)}
-            className="group flex items-center gap-4 rounded-[4px] border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)]"
+            className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-left shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
-            <ChevronLeft className="h-5 w-5 flex-none text-[var(--muted)] transition-transform group-hover:-translate-x-0.5 group-hover:text-[var(--accent)]" />
-            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-[4px] bg-emerald-50 text-sm font-bold text-emerald-900">
-              {prevSurah.number}
+            <ChevronLeft className="h-5 w-5 text-ink-faint" />
+            <div>
+              <p className="text-xs text-ink-muted">Previous Surah</p>
+              <p className="font-semibold text-ink">{prevSurah.number}. {prevSurah.nameSimple}</p>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Previous chapter</p>
-              <p className="mt-0.5 font-semibold text-[var(--fg)] group-hover:text-[var(--accent)]">{prevSurah.nameSimple}</p>
-            </div>
-            <p className="font-arabic text-lg text-[var(--muted)]" dir="rtl" lang="ar">
-              {getSurahArabicName(prevSurah.number, prevSurah.nameArabic)}
-            </p>
           </Link>
-        )}
+        ) : <div />}
 
-        {nextSurah && (
+        <div className="text-center">
+          <p className="font-arabic text-2xl font-bold text-ink">{arabicName}</p>
+          <p className="mt-1 text-xs text-ink-muted">End of Surah {surah.nameSimple} · {ayahCount} Ayahs</p>
+        </div>
+
+        {nextSurah ? (
           <Link
             href={getSurahPath(nextSurah.number)}
-            className="group flex items-center gap-4 rounded-[4px] border border-[var(--border)] bg-[var(--surface)] p-5 transition hover:border-[var(--accent)]"
+            className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-right shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
-            <div className="flex h-10 w-10 flex-none items-center justify-center rounded-[4px] bg-emerald-50 text-sm font-bold text-emerald-900">
-              {nextSurah.number}
+            <div>
+              <p className="text-xs text-ink-muted">Next Surah</p>
+              <p className="font-semibold text-ink">{nextSurah.number}. {nextSurah.nameSimple}</p>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Next chapter</p>
-              <p className="mt-0.5 font-semibold text-[var(--fg)] group-hover:text-[var(--accent)]">{nextSurah.nameSimple}</p>
-            </div>
-            <p className="font-arabic text-lg text-[var(--muted)]" dir="rtl" lang="ar">
-              {getSurahArabicName(nextSurah.number, nextSurah.nameArabic)}
-            </p>
-            <ChevronRight className="h-5 w-5 flex-none text-[var(--muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
+            <ChevronRight className="h-5 w-5 text-ink-faint" />
           </Link>
-        )}
+        ) : <div />}
       </div>
 
-      <section className="mt-4 flex flex-col gap-5 border-y border-emerald-900/15 bg-emerald-950 px-5 py-6 text-white sm:flex-row sm:items-center sm:justify-between sm:px-7">
+      <section
+        aria-label="Daily reading habit"
+        className="mt-10 flex flex-col items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-emerald-900 to-emerald-800 p-6 text-white sm:flex-row"
+      >
         <div className="flex items-start gap-4">
           <Target className="mt-0.5 h-6 w-6 shrink-0 text-amber-300" />
           <div>
@@ -183,22 +172,11 @@ export default async function SurahPage({ params, searchParams }: Props) {
           Set a reading goal <ArrowRight className="h-4 w-4" />
         </Link>
       </section>
-
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
-        <Link href={getSurahPath(surahNumber)} className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)]">
-          <RotateCcw className="h-4 w-4" /> Read again
-        </Link>
-        <Link href="/bookmarks" className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--accent)]">
-          <BookMarked className="h-4 w-4" /> My bookmarks
-        </Link>
-        <Link href="/my-quran" className="text-[var(--muted)] hover:text-[var(--accent)]">My Quran</Link>
-        <Link href="/learning-plans" className="text-[var(--muted)] hover:text-[var(--accent)]">Learning plans</Link>
-      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pb-32 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-surface text-ink">
       <JsonLd
         data={surahJsonLd({
           number: surahNumber,
@@ -211,44 +189,34 @@ export default async function SurahPage({ params, searchParams }: Props) {
       />
       <Header />
 
-      {/* Quran.com 3-col sticky: Surah+progress | Page/Juz/Hizb | modes */}
-      <div className="sticky top-14 z-40 border-b border-slate-200 bg-white/95 backdrop-blur sm:top-[57px]">
-        <div className={cn(CHROME_SHELL, 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-2.5 lg:grid-cols-[minmax(180px,1fr)_auto_minmax(420px,1fr)] lg:gap-6 lg:py-2.5')}>
-          <div className="min-w-0 justify-self-start">
+      {/* Sticky Reader Sub-Header (Quran.com style) */}
+      <div className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
+        <div className={cn(READER_BAR_SHELL, 'flex items-center gap-4 py-0')}>
+          <div className="flex min-w-0 flex-1 items-center">
             <SurahNavTrigger surahNumber={surahNumber} surahName={surah.nameSimple} />
           </div>
 
-          <p className="col-span-2 flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap text-center text-[11px] text-slate-500 lg:col-span-1 lg:text-sm">
-            <Bookmark className="hidden h-3.5 w-3.5 shrink-0 text-slate-400 sm:block" aria-hidden />
-            <span>
-              {page > 1 ? (
-                <>Verses {range.start}–{range.end}</>
-              ) : (
-                <>
-                  Page {initialAyahs[0]?.page || '—'}{' '}
-                  <span className="text-slate-300">·</span> Juz {initialAyahs[0]?.juz || '—'}
-                  <span className="hidden xl:inline">
-                    {' '}<span className="text-slate-300">·</span> Hizb {initialAyahs[0]?.hizb || '—'}
-                  </span>
-                </>
-              )}
-            </span>
+          <p className="hidden flex-1 items-center justify-center gap-1.5 text-sm text-ink-3 md:flex">
+            <Bookmark className="h-4 w-4 text-ink-3" aria-hidden />
+            <span className="font-semibold text-ink-3">Page {initialAyahs[0]?.page || '610'}</span>
+            <span className="text-ink-faint">Juz {initialAyahs[0]?.juz || '30'} / Hizb {initialAyahs[0]?.hizb || '60'}</span>
           </p>
 
-          <div className="col-start-2 row-start-1 justify-self-end lg:col-start-3">
+          <div className="flex shrink-0 items-center justify-end gap-2 md:flex-1">
             <ReaderToolbar
               activeTranslationCount={translationCount}
               surahNumber={surahNumber}
             />
           </div>
         </div>
+        <ReadingProgressBar variant="full" className="h-[3px] bg-transparent" />
       </div>
 
       <PinnedVersesBar />
       <CompareVerseModal />
       <CleanTranslationUrl />
 
-      <main className={cn(READER_SHELL, 'py-4 sm:py-6')}>
+      <main className={cn(READER_SHELL, 'flex-1 py-4 sm:py-6 pb-16')}>
         <Breadcrumbs
           items={[
             { name: 'Home', path: '/' },
@@ -268,37 +236,39 @@ export default async function SurahPage({ params, searchParams }: Props) {
         />
         <DailyMotivationReader />
 
-        {/* Chapter identity and primary reading controls */}
+        {/* Chapter identity and primary reading controls (Quran.com style banner) */}
         <article>
-        <header className="mb-5 rounded-[4px] bg-slate-100 px-4 py-5 sm:mb-7 sm:px-7 sm:py-7">
-          <div className="grid items-center gap-5 lg:grid-cols-[auto_minmax(0,1fr)_minmax(19rem,23rem)] lg:gap-7">
-            <span
-              className="justify-self-start font-arabic text-5xl font-bold leading-[1.4] text-slate-950 lg:text-6xl"
-              dir="rtl"
-              lang="ar"
-            >
-              {arabicName}
-            </span>
+        <header className="mt-5 mb-2.5 rounded-[15px] bg-surface-2 px-5 py-5 sm:px-[30px]">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-col items-center gap-2.5 text-center sm:flex-row sm:items-center sm:text-left">
+              <span
+                className="font-arabic chapter-arabic-name shrink-0 text-4xl font-bold text-ink lg:text-[52px]"
+                dir="rtl"
+                lang="ar"
+              >
+                {arabicName}
+              </span>
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h1 className="text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
-                  {page > 1
-                    ? `${surahNumber}. Surah ${surah.nameSimple} – Verses ${range.start}–${range.end}`
-                    : `${surahNumber}. Surah ${surah.nameSimple}`}
-                </h1>
-                {SURAH_MEANINGS[surahNumber] && (
-                  <p className="text-lg text-slate-500">{SURAH_MEANINGS[surahNumber]}</p>
-                )}
+              <div className="min-w-0">
+                <div className="flex flex-col items-center gap-x-2.5 gap-y-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-start">
+                  <h1 className="text-xl font-semibold text-ink sm:text-2xl">
+                    {page > 1
+                      ? `${surahNumber}. Surah ${surah.nameSimple} – Verses ${range.start}–${range.end}`
+                      : `${surahNumber}. Surah ${surah.nameSimple}`}
+                  </h1>
+                  {SURAH_MEANINGS[surahNumber] && (
+                    <span className="text-xl font-medium text-ink-3 sm:text-2xl">
+                      {SURAH_MEANINGS[surahNumber]}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink-3 lg:truncate">
+                  Read and listen to Surah {surah.nameSimple} with translation, tafsir, audio recitation, word-by-word meaning, and transliteration.
+                </p>
               </div>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                {page > 1
-                  ? `Continue reading verses ${range.start}–${range.end} with translation and audio.`
-                  : `Read and listen with translation, tafsir, audio recitation, word-by-word meaning, and transliteration.`}
-              </p>
             </div>
 
-            <div className="order-last w-full lg:order-none lg:justify-self-end">
+            <div className="shrink-0 lg:self-center">
               <ChapterControls
                 translationCount={translationCount}
                 surahNumber={surahNumber}
@@ -315,7 +285,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
           <div className="mb-6 flex justify-center">
             <Link
               href={surahPath}
-              className="rounded-[4px] border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              className="rounded-[4px] border border-line bg-surface px-4 py-2 text-sm text-ink-3 hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
               Start from beginning
             </Link>

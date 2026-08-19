@@ -2,7 +2,8 @@ import { audioApi } from '@/lib/api';
 import { loadWordTimings } from '@/lib/loadWordTimings';
 import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { translationVerseUrl } from '@/lib/audio/translation-reciters';
+import { translationVerseUrl, translationGranularity } from '@/lib/audio/translation-reciters';
+import { isRukuEnd } from '@/lib/audio/ruku-map';
 
 function toTracks(
   list: Awaited<ReturnType<typeof audioApi.surah>>,
@@ -45,8 +46,14 @@ export async function buildSurahPlaylist(
   const arabic = toTracks(arabicList, arabicSlug, 'arabic');
   if (!translationSlug || translationSlug === arabicSlug) return arabic;
 
+  // Ruku-granular translations publish one file per section, so emitting it for
+  // every verse would replay the same audio after each ayah. Attach it to the
+  // last verse of each ruku instead: recite the section, then hear its meaning.
+  const perRuku = translationGranularity(translationSlug) === 'ruku';
+
   const fromCdn: AudioAyahRef[] = [];
   for (const verse of arabic) {
+    if (perRuku && !isRukuEnd(verse.surahNumber, verse.ayahNumber)) continue;
     const url = translationVerseUrl(translationSlug, verse.surahNumber, verse.ayahNumber);
     if (!url) continue;
     fromCdn.push({
