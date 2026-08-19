@@ -22,24 +22,42 @@ jobs:
     steps:
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          DEPLOY_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
+          APP_DIR: ${{ secrets.AWS_EC2_APP_DIR }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.AWS_EC2_HOST }}
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_SSH_KEY }}
           port: ${{ secrets.AWS_EC2_PORT || 22 }}
-          script_stop: true
           command_timeout: 60m
-          envs: DEPLOY_BRANCH,APP_DIR
+          envs: DEPLOY_BRANCH,APP_DIR,GH_REPO,GH_TOKEN
           script: |
             set -euo pipefail
-            if [ -z "${APP_DIR:-}" ]; then APP_DIR=/var/www/al-tarteel-web; fi
+            if [ -z "${APP_DIR:-}" ]; then APP_DIR=/var/www/quranpilot; fi
             if [ -z "${DEPLOY_BRANCH:-}" ]; then DEPLOY_BRANCH=main; fi
-            test -d "$APP_DIR" || { echo "Missing $APP_DIR — bootstrap with scripts/deploy-production.sh first"; exit 1; }
+            if [ -z "${GH_REPO:-}" ]; then GH_REPO=tassadaqhussain/Al-Tarteel-web; fi
+
+            sudo mkdir -p "$(dirname "$APP_DIR")"
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "Cloning $GH_REPO into $APP_DIR ($DEPLOY_BRANCH)"
+              sudo rm -rf "$APP_DIR"
+              sudo git clone --branch "$DEPLOY_BRANCH" \
+                "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git" \
+                "$APP_DIR"
+            else
+              cd "$APP_DIR"
+              sudo git fetch origin "$DEPLOY_BRANCH"
+              sudo git checkout "$DEPLOY_BRANCH"
+              sudo git pull --ff-only origin "$DEPLOY_BRANCH"
+            fi
+
             cd "$APP_DIR"
-            sudo git fetch origin "$DEPLOY_BRANCH"
-            sudo git checkout "$DEPLOY_BRANCH"
-            sudo git pull --ff-only origin "$DEPLOY_BRANCH"
-            sudo bash "$APP_DIR/scripts/run-production.sh" -y
-        env:
-          DEPLOY_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
-          APP_DIR: ${{ secrets.AWS_EC2_APP_DIR }}
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "First install: docker/nginx missing — running deploy-production.sh"
+              sudo bash "$APP_DIR/scripts/deploy-production.sh" -y --skip-ssl
+            else
+              sudo bash "$APP_DIR/scripts/run-production.sh" -y
+            fi

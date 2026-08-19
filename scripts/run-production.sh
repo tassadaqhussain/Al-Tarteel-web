@@ -5,7 +5,7 @@
 #   sudo bash scripts/deploy-production.sh -y
 #
 # Everyday start / redeploy (this script):
-#   cd /var/www/al-tarteel-web
+#   cd /var/www/quranpilot
 #   sudo bash scripts/run-production.sh -y
 #   sudo bash scripts/run-production.sh -y --pull
 #   sudo bash scripts/run-production.sh -y --import-content
@@ -138,6 +138,10 @@ for _ in $(seq 1 90); do
 done
 [[ "${ready_web}" -eq 1 ]] || die "Web not ready. Check: ${COMPOSE[*]} logs web --tail=80"
 [[ "${ready_api}" -eq 1 ]] || die "API not ready. Check: ${COMPOSE[*]} logs api --tail=80"
+
+log "Download all 6236 ayahs into Postgres (skips if already complete)"
+"${COMPOSE[@]}" exec -T api npm run quran:download
+"${COMPOSE[@]}" exec -T api npm run reciters:import
 
 if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   log "Import translations, tafsir, and study content"

@@ -23,6 +23,15 @@ for arg in "$@"; do
 done
 
 if [[ "${AUDIO_ONLY}" -eq 0 ]]; then
+  echo "==> Arabic Quran text (all 6236 ayahs)"
+  if [[ -f "${ROOT}/docker-compose.prod.yml" ]] && docker compose --env-file "${ROOT}/deploy/production.env" -f "${ROOT}/docker-compose.prod.yml" exec -T api true >/dev/null 2>&1; then
+    docker compose --env-file "${ROOT}/deploy/production.env" -f "${ROOT}/docker-compose.prod.yml" exec -T api npm run quran:download
+  elif docker compose -f "${ROOT}/docker-compose.yml" exec -T api true >/dev/null 2>&1; then
+    docker compose -f "${ROOT}/docker-compose.yml" exec -T api npm run quran:download
+  else
+    (cd "${ROOT}/backend" && npm run quran:download)
+  fi
+
   echo "==> Translations + word-by-word meanings"
   "${ROOT}/scripts/import-all-translations.sh" "${EXTRA[@]+"${EXTRA[@]}"}"
 
