@@ -1,20 +1,27 @@
 # Production deploy — quranpilot.com
 
-## One command (Ubuntu/Debian)
+## First time on a VPS (Ubuntu/Debian)
 
 ```bash
-cd /var/www/al-tarteel-web   # repo root
+cd /var/www/al-tarteel-web
 sudo bash scripts/deploy-production.sh -y
 ```
 
-The script will:
+Installs nginx, certbot, and Docker if needed, writes the vhost, builds the
+stack, and issues Let's Encrypt SSL.
 
-1. **Install** `nginx`, `certbot`, `curl`, and **Docker** if missing  
-2. Create `deploy/production.env` (defaults: `quranpilot.com` + `www`) if missing  
-3. Create Nginx vhost `/etc/nginx/sites-available/quranpilot` if missing  
-4. Proxy `/` → web `:3010`, `/api/` → API `:4010`  
-5. `docker compose -f docker-compose.prod.yml up -d --build`  
-6. Issue **Let's Encrypt SSL** for `quranpilot.com` + `www.quranpilot.com`
+## Start or redeploy the app
+
+```bash
+cd /var/www/al-tarteel-web
+sudo bash scripts/run-production.sh -y
+sudo bash scripts/run-production.sh -y --pull
+sudo bash scripts/run-production.sh -y --import-content
+```
+
+`--import-content` loads translations, tafsir, Hadith, lessons, and related Q&A
+into Postgres. Add `--import-audio` to also mirror recitation files onto the host
+(`backend/storage/audio`).
 
 ## Before first SSL run
 
@@ -50,6 +57,11 @@ Leave `WWW_DOMAIN=` empty in `deploy/production.env` to skip www entirely.
 
 ```bash
 cd /var/www/al-tarteel-web
-sudo git pull
+sudo bash scripts/run-production.sh -y --pull
+```
+
+First-time server bootstrap (nginx + SSL) is still:
+
+```bash
 sudo bash scripts/deploy-production.sh -y
 ```

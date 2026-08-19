@@ -26,8 +26,9 @@ export const TRANSLATION_RECITERS: TranslationReciterCatalog[] = [
     style: 'Sahih International',
     languageCode: 'en',
     languageName: 'English',
-    baseUrl: 'https://everyayah.com/data/English/Sahih_Intnl_Ibrahim_Walk_192kbps',
+    baseUrl: '/audio/files/en-ibrahim-walk',
     sortOrder: 1,
+    selfHosted: true,
   },
   {
     slug: 'ur-shamshad-ali-khan',
@@ -55,8 +56,9 @@ export const TRANSLATION_RECITERS: TranslationReciterCatalog[] = [
     style: 'Persian translation',
     languageCode: 'fa',
     languageName: 'Persian',
-    baseUrl: 'https://everyayah.com/data/translations/Makarem_Kabiri_16Kbps',
+    baseUrl: '/audio/files/fa-makarem',
     sortOrder: 4,
+    selfHosted: true,
   },
   {
     slug: 'fa-fooladvand',
@@ -64,8 +66,9 @@ export const TRANSLATION_RECITERS: TranslationReciterCatalog[] = [
     style: 'Persian translation',
     languageCode: 'fa',
     languageName: 'Persian',
-    baseUrl: 'https://everyayah.com/data/translations/Fooladvand_Hedayatfar_40Kbps',
+    baseUrl: '/audio/files/fa-fooladvand',
     sortOrder: 5,
+    selfHosted: true,
   },
   {
     // Mirrored into our own storage: the origin is HTTP-only with no CORS, so it

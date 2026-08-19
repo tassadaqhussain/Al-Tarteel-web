@@ -1,5 +1,7 @@
 import { BadGatewayException, BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import axios from 'axios';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import type { AyahsBySurahQueryDto, AyahsByPageQueryDto } from './dto/query.dto';
@@ -20,7 +22,13 @@ export class QuranService {
     const chapter = String(surahNumber).padStart(3, '0');
     const verse = String(ayahNumber).padStart(3, '0');
     const word = String(wordPosition).padStart(3, '0');
-    return `https://audio.qurancdn.com/wbw/${chapter}_${verse}_${word}.mp3`;
+    const file = `${chapter}_${verse}_${word}.mp3`;
+    const storageRoot = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
+    if (existsSync(join(storageRoot, 'wbw', file))) {
+      const publicBase = (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
+      return `${publicBase}/wbw/${file}`;
+    }
+    return `https://audio.qurancdn.com/wbw/${file}`;
   }
 
   private async getQuranFoundationToken(scope = 'content', force = false) {
@@ -164,7 +172,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: w.audioUrl ?? this.getWordAudioUrl(surah.number, a.number, w.position),
+            audioUrl: this.getWordAudioUrl(surah.number, a.number, w.position),
           }))
         : undefined,
       translations: a.translations?.map((t: any) => ({
@@ -210,7 +218,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: w.audioUrl ?? this.getWordAudioUrl(a.surah.number, a.number, w.position),
+            audioUrl: this.getWordAudioUrl(a.surah.number, a.number, w.position),
           }))
         : undefined,
       translations: a.translations?.map((t: any) => ({
@@ -256,7 +264,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: w.audioUrl ?? this.getWordAudioUrl(a.surah.number, a.number, w.position),
+            audioUrl: this.getWordAudioUrl(a.surah.number, a.number, w.position),
           }))
         : undefined,
       translations: a.translations?.map((t: any) => ({
@@ -295,7 +303,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: w.audioUrl ?? this.getWordAudioUrl(surah.number, ayah.number, w.position),
+            audioUrl: this.getWordAudioUrl(surah.number, ayah.number, w.position),
           }))
         : undefined,
       translations: ayah.translations?.map((t: any) => ({
@@ -340,46 +348,37 @@ export class QuranService {
       select: { id: true, name: true, slug: true, languageCode: true, author: true },
     });
     if (local.length > 0) return local;
-
-    // DB has no seeded tafsir rows — surface Quran Foundation catalog so Settings/reader work.
-    try {
-      const resources = (await this.getOfficialTafsirResources('en')) as Array<{
-        id: number;
-        name: string;
-        author_name?: string | null;
-        slug?: string | null;
-        language_name?: string;
-        translated_name?: { name?: string };
-      }>;
-      return resources
-        .map((r) => {
-          const languageName = (r.language_name || 'english').toLowerCase();
-          const languageCode =
-            languageName.startsWith('ar')
-              ? 'ar'
-              : languageName.startsWith('ur')
-                ? 'ur'
-                : languageName.startsWith('en')
-                  ? 'en'
-                  : languageName.slice(0, 2) || 'en';
-          return {
-            id: r.id,
-            name: r.translated_name?.name || r.name,
-            slug: (r.slug && String(r.slug).trim()) || `qf-${r.id}`,
-            languageCode,
-            author: r.author_name ?? null,
-          };
-        })
-        .sort((a, b) => {
-          const rank = (code: string) => (code === 'en' ? 0 : code === 'ar' ? 1 : 2);
-          return rank(a.languageCode) - rank(b.languageCode) || a.name.localeCompare(b.name);
-        });
-    } catch {
-      return [];
-    }
+    return [];
   }
 
   async getOfficialTafsirResources(language = 'en') {
+    const local = await this.prisma.tafsirSource.findMany({
+      where: { externalId: { not: null } },
+      orderBy: [{ languageCode: 'asc' }, { name: 'asc' }],
+    });
+    if (local.length > 0) {
+      const LANGUAGE_NAMES: Record<string, string> = {
+        en: 'english', ar: 'arabic', ur: 'urdu', fa: 'persian', bn: 'bengali',
+        id: 'indonesian', tr: 'turkish', fr: 'french', de: 'german', ru: 'russian',
+        bs: 'bosnian', sq: 'albanian', ms: 'malay', hi: 'hindi',
+      };
+      const wanted = language.replace(/[^a-z-]/gi, '').toLowerCase();
+      const mapped = local.map((source) => {
+        const languageName = LANGUAGE_NAMES[source.languageCode] || source.languageCode;
+        return {
+          id: source.externalId as number,
+          name: source.name,
+          author_name: source.author,
+          slug: source.slug,
+          language_name: languageName,
+          translated_name: { name: source.name, language_name: languageName },
+        };
+      });
+      // `language` is UI locale for names, not a content filter — return every source.
+      void wanted;
+      return mapped;
+    }
+
     const normalized = language.replace(/[^a-z-]/gi, '').toLowerCase() || 'en';
     const cacheKey = `quran:official-tafsir-resources:${normalized}`;
     const cached = await this.cache.get(cacheKey);
@@ -399,6 +398,32 @@ export class QuranService {
     if (surahNumber < 1 || surahNumber > 114 || ayahNumber < 1 || resourceId < 1) {
       throw new BadRequestException('Invalid Tafsir request');
     }
+
+    const source = await this.prisma.tafsirSource.findUnique({
+      where: { externalId: resourceId },
+    });
+    if (source) {
+      const ayah = await this.prisma.ayah.findFirst({
+        where: { number: ayahNumber, surah: { number: surahNumber } },
+        select: { id: true },
+      });
+      if (!ayah) throw new NotFoundException(`Ayah ${surahNumber}:${ayahNumber} not found`);
+      const row = await this.prisma.tafsir.findUnique({
+        where: { ayahId_sourceId: { ayahId: ayah.id, sourceId: source.id } },
+      });
+      if (row) {
+        const verseKey = `${surahNumber}:${ayahNumber}`;
+        return {
+          verses: { [verseKey]: { id: ayah.id } },
+          resource_id: resourceId,
+          resource_name: source.name,
+          language_id: 0,
+          slug: source.slug,
+          text: row.text,
+        };
+      }
+    }
+
     const verseKey = `${surahNumber}:${ayahNumber}`;
     const cacheKey = `quran:official-tafsir:${resourceId}:${verseKey}`;
     const cached = await this.cache.get(cacheKey);
@@ -412,6 +437,24 @@ export class QuranService {
     } catch {
       throw new BadGatewayException('Tafsir is temporarily unavailable');
     }
+  }
+
+  private async findAyahId(surahNumber: number, ayahNumber: number) {
+    const ayah = await this.prisma.ayah.findFirst({
+      where: { number: ayahNumber, surah: { number: surahNumber } },
+      select: { id: true },
+    });
+    if (!ayah) throw new NotFoundException(`Ayah ${surahNumber}:${ayahNumber} not found`);
+    return ayah.id;
+  }
+
+  private paginate<T>(items: T[], page: number, limit: number) {
+    const start = (page - 1) * limit;
+    return {
+      slice: items.slice(start, start + limit),
+      hasMore: start + limit < items.length,
+      total: items.length,
+    };
   }
 
   async getHadiths(
@@ -436,6 +479,27 @@ export class QuranService {
     const normalizedLanguage = language === 'ar' ? 'ar' : 'en';
     const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
     const normalizedLimit = Number.isFinite(limit) ? Math.min(10, Math.max(1, Math.floor(limit))) : 4;
+    const direction = normalizedLanguage === 'ar' ? 'rtl' : 'ltr';
+
+    const ayahId = await this.findAyahId(surahNumber, ayahNumber);
+    const local = await this.prisma.ayahStudySnapshot.findUnique({
+      where: { ayahId_kind_language: { ayahId, kind: 'hadith', language: normalizedLanguage } },
+    });
+    if (local) {
+      const hadiths = Array.isArray((local.payload as { hadiths?: unknown[] })?.hadiths)
+        ? (local.payload as { hadiths: unknown[] }).hadiths
+        : [];
+      const { slice, hasMore } = this.paginate(hadiths, normalizedPage, normalizedLimit);
+      return {
+        hadiths: slice,
+        page: normalizedPage,
+        limit: normalizedLimit,
+        has_more: hasMore,
+        language: normalizedLanguage,
+        direction,
+      };
+    }
+
     const verseKey = `${surahNumber}:${ayahNumber}`;
     const cacheKey = `quran:hadiths:${verseKey}:${normalizedLanguage}:${normalizedPage}:${normalizedLimit}`;
     const cached = await this.cache.get(cacheKey);
@@ -468,6 +532,27 @@ export class QuranService {
     const normalizedLanguage = Number.isFinite(languageId) ? Math.max(1, Math.floor(languageId)) : 2;
     const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
     const normalizedLimit = Number.isFinite(limit) ? Math.min(20, Math.max(1, Math.floor(limit))) : 10;
+
+    const ayahId = await this.findAyahId(surahNumber, ayahNumber);
+    const local = await this.prisma.ayahStudySnapshot.findUnique({
+      where: {
+        ayahId_kind_language: { ayahId, kind: 'lesson', language: String(normalizedLanguage) },
+      },
+    });
+    if (local) {
+      const data = Array.isArray((local.payload as { data?: unknown[] })?.data)
+        ? (local.payload as { data: unknown[] }).data
+        : [];
+      const { slice, total } = this.paginate(data, normalizedPage, normalizedLimit);
+      return {
+        total,
+        currentPage: normalizedPage,
+        limit: normalizedLimit,
+        pages: Math.max(1, Math.ceil(total / normalizedLimit)),
+        data: slice,
+      };
+    }
+
     const cacheKey = `quran:lessons:${surahNumber}:${ayahNumber}:${normalizedLanguage}:${normalizedPage}:${normalizedLimit}`;
     const cached = await this.cache.get(cacheKey);
     if (cached) return JSON.parse(cached);
@@ -505,6 +590,19 @@ export class QuranService {
     const normalizedLanguage = language === 'ar' ? 'ar' : 'en';
     const normalizedPage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
     const normalizedLimit = Number.isFinite(limit) ? Math.min(10, Math.max(1, Math.floor(limit))) : 10;
+
+    const ayahId = await this.findAyahId(surahNumber, ayahNumber);
+    const local = await this.prisma.ayahStudySnapshot.findUnique({
+      where: { ayahId_kind_language: { ayahId, kind: 'related', language: normalizedLanguage } },
+    });
+    if (local) {
+      const questions = Array.isArray((local.payload as { questions?: unknown[] })?.questions)
+        ? (local.payload as { questions: unknown[] }).questions
+        : [];
+      const { slice, total } = this.paginate(questions, normalizedPage, normalizedLimit);
+      return { questions: slice, totalCount: total };
+    }
+
     const verseKey = `${surahNumber}:${ayahNumber}`;
     const cacheKey = `quran:related-content:${verseKey}:${normalizedLanguage}:${normalizedPage}:${normalizedLimit}`;
     const cached = await this.cache.get(cacheKey);

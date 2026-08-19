@@ -17,6 +17,7 @@ import {
   translationVerseUrl,
   translationBaseUrl,
 } from './translation-reciters';
+import { rukuForAyah } from './ruku-map';
 
 const CACHE_TTL = 86400; // 24h for reciters
 
@@ -92,8 +93,6 @@ export class AudioService {
   }
 
   private getVerifiedAyahAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
-    const translationUrl = translationVerseUrl(reciterSlug, surahNumber, ayahNumber);
-    if (translationUrl) return translationUrl;
     const base = RECITER_CDN_BASE[reciterSlug];
     if (!base) return null;
     return `${base}/${this.verseFileName(surahNumber, ayahNumber)}`;
@@ -124,8 +123,22 @@ export class AudioService {
     return `${publicBase.replace(/\/$/, '')}/${encodeURIComponent(reciterSlug)}/${file}`;
   }
 
+  private getLocalTranslationAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
+    const spoken = getTranslationReciter(reciterSlug);
+    const storageRoot = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
+    const publicBase = (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
+    if (spoken?.granularity === 'ruku') {
+      const ruku = rukuForAyah(surahNumber, ayahNumber);
+      if (!ruku) return null;
+      const file = `ruku-${String(ruku).padStart(3, '0')}.mp3`;
+      if (!existsSync(join(storageRoot, reciterSlug, file))) return null;
+      return `${publicBase}/${encodeURIComponent(reciterSlug)}/${file}`;
+    }
+    return this.getLocalAyahAudioUrl(reciterSlug, surahNumber, ayahNumber);
+  }
+
   async getReciters() {
-    const key = 'audio:reciters:v4';
+    const key = 'audio:reciters:v5';
     const cached = await this.cache.get(key);
     if (cached) return JSON.parse(cached);
     const reciters = await this.prisma.reciter.findMany({
@@ -141,8 +154,10 @@ export class AudioService {
         sortOrder: true,
       },
     });
+    const publicBase = (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
     const arabic = reciters.map((reciter) => ({
       ...reciter,
+      baseUrl: `${publicBase}/${reciter.slug}`,
       kind: 'reciter' as const,
       languageCode: 'ar',
       languageName: 'Arabic',
@@ -173,7 +188,17 @@ export class AudioService {
 
     const spoken = reciterSlug ? getTranslationReciter(reciterSlug) : null;
     if (!reciter && spoken) {
-      const url = translationVerseUrl(spoken.slug, ayah.surah.number, ayah.number);
+      let url = this.getLocalTranslationAudioUrl(spoken.slug, ayah.surah.number, ayah.number);
+      if (!url && spoken.originUrl) {
+        const origin = spoken.originUrl.replace(/\/$/, '');
+        if (spoken.granularity === 'ruku') {
+          const ruku = rukuForAyah(ayah.surah.number, ayah.number);
+          if (ruku) url = `${origin}/ruku-${String(ruku).padStart(3, '0')}.mp3`;
+        } else {
+          url = `${origin}/${this.verseFileName(ayah.surah.number, ayah.number)}`;
+        }
+      }
+      if (!url) url = translationVerseUrl(spoken.slug, ayah.surah.number, ayah.number);
       if (!url) throw new NotFoundException('No audio found for this ayah');
       return [{
         id: 0,
@@ -248,12 +273,17 @@ export class AudioService {
     return ayahs.map((a) => {
       const stored = byAyah.get(a.id);
       let url: string | null = this.getLocalAyahAudioUrl(reciterSlug, surahNumber, a.number)
+        ?? this.getLocalTranslationAudioUrl(reciterSlug, surahNumber, a.number)
         ?? this.getVerifiedAyahAudioUrl(reciterSlug, surahNumber, a.number);
       if (!url) url = stored?.url ?? null;
+      if (!url && spoken) {
+        url = translationVerseUrl(spoken.slug, surahNumber, a.number)
+          ?? (spoken.originUrl
+            ? `${spoken.originUrl.replace(/\/$/, '')}/${this.verseFileName(surahNumber, a.number)}`
+            : null);
+      }
       if (!url && reciter?.baseUrl) {
-        const s = String(surahNumber).padStart(3, '0');
-        const v = String(a.number).padStart(3, '0');
-        url = `${reciter.baseUrl.replace(/\/?$/, '/')}${s}${v}.mp3`;
+        url = `${reciter.baseUrl.replace(/\/?$/, '/')}${this.verseFileName(surahNumber, a.number)}`;
       }
       return {
         ayahId: a.id,

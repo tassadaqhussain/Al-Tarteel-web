@@ -9,13 +9,11 @@ export type TranslationReciter = {
   languageName: string;
   baseUrl: string;
   sortOrder: number;
-  /**
-   * 'ayah' (default) — one MP3 per verse, named SSSAAA.mp3.
-   * 'ruku' — one MP3 per section, named ruku-NNN.mp3 (global ruku 1-558).
-   */
   granularity?: 'ayah' | 'ruku';
-  /** Served from our own storage; baseUrl is resolved from AUDIO_PUBLIC_BASE_URL. */
+  /** Served from our own storage; baseUrl is the folder under AUDIO_PUBLIC_BASE_URL. */
   selfHosted?: boolean;
+  /** Remote origin used only by the download mirror. */
+  originUrl?: string;
 };
 
 const localAudioBase = () =>
@@ -28,8 +26,10 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     style: 'Sahih International',
     languageCode: 'en',
     languageName: 'English',
-    baseUrl: 'https://everyayah.com/data/English/Sahih_Intnl_Ibrahim_Walk_192kbps',
+    baseUrl: 'en-ibrahim-walk',
+    originUrl: 'https://everyayah.com/data/English/Sahih_Intnl_Ibrahim_Walk_192kbps',
     sortOrder: 1,
+    selfHosted: true,
   },
   {
     slug: 'ur-shamshad-ali-khan',
@@ -38,6 +38,7 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     languageCode: 'ur',
     languageName: 'Urdu',
     baseUrl: 'ur-shamshad-ali-khan',
+    originUrl: 'https://everyayah.com/data/translations/urdu_shamshad_ali_khan_46kbps',
     sortOrder: 2,
     selfHosted: true,
   },
@@ -48,6 +49,7 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     languageCode: 'ur',
     languageName: 'Urdu',
     baseUrl: 'ur-farhat-hashmi',
+    originUrl: 'https://everyayah.com/data/translations/urdu_farhat_hashmi',
     sortOrder: 3,
     selfHosted: true,
   },
@@ -57,8 +59,10 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     style: 'Persian translation',
     languageCode: 'fa',
     languageName: 'Persian',
-    baseUrl: 'https://everyayah.com/data/translations/Makarem_Kabiri_16Kbps',
+    baseUrl: 'fa-makarem',
+    originUrl: 'https://everyayah.com/data/translations/Makarem_Kabiri_16Kbps',
     sortOrder: 4,
+    selfHosted: true,
   },
   {
     slug: 'fa-fooladvand',
@@ -66,12 +70,12 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
     style: 'Persian translation',
     languageCode: 'fa',
     languageName: 'Persian',
-    baseUrl: 'https://everyayah.com/data/translations/Fooladvand_Hedayatfar_40Kbps',
+    baseUrl: 'fa-fooladvand',
+    originUrl: 'https://everyayah.com/data/translations/Fooladvand_Hedayatfar_40Kbps',
     sortOrder: 5,
+    selfHosted: true,
   },
   {
-    // Mirrored into local storage: the origin is HTTP-only with no CORS, so it
-    // cannot be played from an HTTPS page. See scripts/fetch-pashto-audio.mjs.
     slug: 'ps-shafeeq-ur-rahman',
     name: 'Shafeeq ur Rahman',
     style: 'Pashto translation (recitation by Mishari Alafasy)',
@@ -86,8 +90,12 @@ export const TRANSLATION_RECITERS: TranslationReciter[] = [
 
 export function translationBaseUrl(reciter: TranslationReciter): string {
   return reciter.selfHosted
-    ? `${localAudioBase()}/${reciter.baseUrl}`
+    ? `${localAudioBase()}/${reciter.slug}`
     : reciter.baseUrl.replace(/\/$/, '');
+}
+
+export function translationOriginUrl(reciter: TranslationReciter): string | null {
+  return reciter.originUrl ? reciter.originUrl.replace(/\/$/, '') : null;
 }
 
 export function getTranslationReciter(slug: string): TranslationReciter | undefined {

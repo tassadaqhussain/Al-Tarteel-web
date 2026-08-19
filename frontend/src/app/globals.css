@@ -891,3 +891,14 @@
     min-height: 1.15rem !important;
   }
 }
+
+/* Verse targeted by a URL hash (search result / shared link) — fades out. */
+.ayah-hash-target {
+  animation: ayah-hash-flash 2.6s ease-out 1;
+  border-radius: 0.375rem;
+}
+
+@keyframes ayah-hash-flash {
+  0%, 55% { background-color: var(--ayah-highlight); }
+  100% { background-color: transparent; }
+}

@@ -367,9 +367,13 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
 
       const audio = wordAudioRef.current;
       // Verified Arabic word pronunciation CDN (language-independent).
-      const url =
-        word.audioUrl ||
-        `https://audio.qurancdn.com/wbw/${String(surahNumber).padStart(3, '0')}_${String(ayah.number).padStart(3, '0')}_${String(word.position).padStart(3, '0')}.mp3`;
+      //
+      // Only the stored URL is trusted. The CDN counts waqf/sajdah marks as
+      // their own words, so its index diverges from `position` for ~36% of the
+      // Quran (by up to 16). Deriving the file name from `position` would play
+      // a DIFFERENT word — worse than silence for Quranic text — so a missing
+      // URL simply means no pronunciation.
+      const url = word.audioUrl;
 
       if (wordClickPlayAudio && audio && url) {
         try {

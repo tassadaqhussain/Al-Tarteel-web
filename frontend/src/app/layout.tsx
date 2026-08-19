@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
 import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
+import { ScrollToHashAyah } from '@/components/reader/ScrollToHashAyah';
 import { AskAiFab } from '@/components/ai/AskAiFab';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
@@ -176,6 +177,7 @@ export default function RootLayout({
             <AudioPlayerProvider>
               <VoiceSearchProvider>
                 <ScrollToCurrentAyah />
+                <ScrollToHashAyah />
                 <div className="relative flex min-h-screen flex-col">
                   {children}
                 </div>

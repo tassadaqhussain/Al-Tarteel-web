@@ -27,7 +27,10 @@ export class AudioController {
   ) {
     // SSSAAA.mp3 = per-ayah; ruku-NNN.mp3 = ruku-granular translation recitations
     // (NNN is the global ruku index 1-558, matching ayahs.ruku).
-    const validFile = /^\d{6}\.mp3$/.test(file) || /^ruku-\d{3}\.mp3$/.test(file);
+    const validFile =
+      /^\d{6}\.mp3$/.test(file) ||
+      /^ruku-\d{3}\.mp3$/.test(file) ||
+      /^\d{3}_\d{3}_\d{3}\.mp3$/.test(file);
     if (!/^[a-z0-9-]+$/.test(reciter) || !validFile) throw new NotFoundException('Audio not found');
     const root = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
     const path = join(root, reciter, file);

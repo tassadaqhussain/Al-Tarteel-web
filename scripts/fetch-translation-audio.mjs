@@ -33,12 +33,24 @@ const API = arg('api', 'http://localhost:4010/api/v1');
 
 /** Sources we mirror. Keep slugs in sync with backend/src/audio/translation-reciters.ts */
 const SOURCES = {
+  'en-ibrahim-walk': {
+    base: 'https://everyayah.com/data/English/Sahih_Intnl_Ibrahim_Walk_192kbps',
+    granularity: 'ayah',
+  },
   'ur-shamshad-ali-khan': {
     base: 'https://everyayah.com/data/translations/urdu_shamshad_ali_khan_46kbps',
     granularity: 'ayah',
   },
   'ur-farhat-hashmi': {
     base: 'https://everyayah.com/data/translations/urdu_farhat_hashmi',
+    granularity: 'ayah',
+  },
+  'fa-makarem': {
+    base: 'https://everyayah.com/data/translations/Makarem_Kabiri_16Kbps',
+    granularity: 'ayah',
+  },
+  'fa-fooladvand': {
+    base: 'https://everyayah.com/data/translations/Fooladvand_Hedayatfar_40Kbps',
     granularity: 'ayah',
   },
 };

@@ -23,8 +23,12 @@
     "words:import:all": "ts-node -r dotenv/config prisma/import-words.ts --langs=en,ur,bn,id,tr,fa,hi",
     "translations:import": "ts-node -r dotenv/config prisma/import-reader-translations.ts",
     "translations:import:all": "ts-node -r dotenv/config prisma/import-reader-translations.ts",
-    "i18n:import:all": "npm run words:import:all && npm run translations:import:all",
-    "reciters:import": "ts-node -r dotenv/config prisma/import-reciters.ts"
+    "i18n:import:all": "npm run words:import:all && npm run translations:import:all && npm run tafsir:import && npm run study:import",
+    "reciters:import": "ts-node -r dotenv/config prisma/import-reciters.ts",
+    "tafsir:import": "ts-node -r dotenv/config prisma/import-tafsirs.ts",
+    "study:import": "ts-node -r dotenv/config prisma/import-verse-study.ts",
+    "audio:download": "node scripts/download-all-audio.mjs",
+    "content:import": "npm run translations:import:all && npm run tafsir:import && npm run study:import && npm run reciters:import"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

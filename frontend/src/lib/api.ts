@@ -325,12 +325,9 @@ export const quranApi = {
 };
 
 const DEFAULT_RECITERS: Reciter[] = [
-  { id: 1, name: 'Mishary Rashid Alafasy', nameArabic: 'مشاري راشد العفاسي', slug: 'alafasy', style: 'Murattal', baseUrl: 'https://everyayah.com/data/Alafasy_128kbps', isDefault: true, sortOrder: 1, kind: 'reciter' },
-  { id: 2, name: 'Abdul Rahman Al-Sudais', nameArabic: 'عبد الرحمن السديس', slug: 'sudais', style: 'Murattal', baseUrl: 'https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps', isDefault: false, sortOrder: 2, kind: 'reciter' },
-  { id: 3, name: 'Abdul Basit Abdus Samad', nameArabic: 'عبد الباسط عبد الصمد', slug: 'basit', style: 'Murattal', baseUrl: 'https://everyayah.com/data/Abdul_Basit_Murattal_192kbps', isDefault: false, sortOrder: 3, kind: 'reciter' },
-  { id: 4, name: 'Yasser Al-Dosari', nameArabic: 'ياسر الدوسري', slug: 'dosari', style: 'Murattal', baseUrl: 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps', isDefault: false, sortOrder: 4, kind: 'reciter' },
-  { id: 5, name: 'Abdul Aziz Bandar Balila', nameArabic: 'عبد العزيز بن بندر بليلة', slug: 'balila', style: 'Murattal', baseUrl: 'https://everyayah.com/data/Balilah_128kbps', isDefault: false, sortOrder: 5, kind: 'reciter' },
-  { id: 6, name: 'Abdur Rahman Al-Ousi', nameArabic: 'عبد الرحمن العوسي', slug: 'ousi', style: 'Murattal', baseUrl: 'https://everyayah.com/data/Abdurrashid_Sufi_128kbps', isDefault: false, sortOrder: 6, kind: 'reciter' },
+  { id: 1, name: 'Mishary Rashid Alafasy', nameArabic: 'مشاري راشد العفاسي', slug: 'alafasy', style: 'Murattal', baseUrl: '/audio/files/alafasy', isDefault: true, sortOrder: 1, kind: 'reciter' },
+  { id: 2, name: 'Abdul Rahman Al-Sudais', nameArabic: 'عبد الرحمن السديس', slug: 'sudais', style: 'Murattal', baseUrl: '/audio/files/sudais', isDefault: false, sortOrder: 2, kind: 'reciter' },
+  { id: 3, name: 'Abdul Basit Abdus Samad', nameArabic: 'عبد الباسط عبد الصمد', slug: 'abdul-basit-murattal', style: 'Murattal', baseUrl: '/audio/files/abdul-basit-murattal', isDefault: false, sortOrder: 3, kind: 'reciter' },
 ];
 
 const SURAH_AYAH_COUNTS: Record<number, number> = {
@@ -365,7 +362,7 @@ export const audioApi = {
     } catch {}
 
     const reciter = DEFAULT_RECITERS.find((r) => r.slug === reciterSlug) ?? DEFAULT_RECITERS[0];
-    const baseUrl = reciter.baseUrl || 'https://everyayah.com/data/Alafasy_128kbps';
+    const baseUrl = `${apiBase()}/audio/files/${reciter.slug}`;
     const totalAyahs = SURAH_AYAH_COUNTS[surahNumber] || 7;
     const items: AudioSurahItem[] = [];
     for (let ayahNumber = 1; ayahNumber <= totalAyahs; ayahNumber++) {
