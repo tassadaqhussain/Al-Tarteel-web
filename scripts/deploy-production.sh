@@ -462,6 +462,12 @@ done
 [[ "${ready_web}" -eq 1 ]] || warn "Web not ready — docker compose -f docker-compose.prod.yml logs web --tail=80"
 [[ "${ready_api}" -eq 1 ]] || warn "API not ready — docker compose -f docker-compose.prod.yml logs api --tail=80"
 
+if [[ "${ready_api}" -eq 1 ]]; then
+  log "Download all 6236 ayahs into Postgres (skips if already complete)"
+  "${COMPOSE[@]}" exec -T api npm run quran:download || warn "quran:download failed"
+  "${COMPOSE[@]}" exec -T api npm run reciters:import || warn "reciters:import failed"
+fi
+
 # ---------------------------------------------------------------------------
 domain_resolves() {
   local host="$1"
