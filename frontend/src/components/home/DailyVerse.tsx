@@ -116,7 +116,7 @@ export async function DailyVerse() {
             )}
           </div>
           <Link
-            href={getSurahHref(surahNumber, { ayahId: ayah.id })}
+            href={getSurahHref(surahNumber, { ayahId: ayah.id, ayahNumber })}
             className="group flex items-center gap-2 rounded-xl border border-gold-500/30 bg-gold-500/10 px-4 py-2 text-sm font-medium text-gold-500 transition-all hover:bg-gold-500/20"
           >
             <BookOpen className="h-4 w-4" />

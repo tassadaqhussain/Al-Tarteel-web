@@ -28,5 +28,10 @@ export function unlockBodyScroll() {
   style.right = '';
   style.width = '';
   style.overflow = '';
+
+  const htmlStyle = document.documentElement.style;
+  const origScrollBehavior = htmlStyle.scrollBehavior;
+  htmlStyle.scrollBehavior = 'auto';
   window.scrollTo(0, savedScrollY);
+  htmlStyle.scrollBehavior = origScrollBehavior;
 }

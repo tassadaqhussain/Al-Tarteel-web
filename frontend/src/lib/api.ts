@@ -3,7 +3,7 @@ const PUBLIC_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 const SERVER_BASE = process.env.API_URL || PUBLIC_BASE;
 
 /** Resolve API base for both browser and server. Blank NEXT_PUBLIC_API_URL used to crash `new URL()`. */
-function apiBase(): string {
+export function apiBase(): string {
   const configured = (IS_SERVER ? SERVER_BASE : PUBLIC_BASE).replace(/\/$/, '');
   if (configured) return configured;
   if (!IS_SERVER && typeof window !== 'undefined') {
@@ -211,8 +211,10 @@ export const usersApi = {
 
 export type HifzWordDiff = {
   expected: string;
+  expectedNormalized?: string;
   heard: string | null;
   status: 'match' | 'mismatch' | 'missing' | 'extra';
+  similarity?: number;
 };
 
 export type HifzCheckResult = {
@@ -322,14 +324,66 @@ export const quranApi = {
     api<RelatedContentResponse>(`/quran/surahs/${surahNumber}/ayahs/${ayahNumber}/related-content`, { params: q as Record<string, string | number | boolean | undefined> }),
 };
 
+const DEFAULT_RECITERS: Reciter[] = [
+  { id: 1, name: 'Mishary Rashid Alafasy', nameArabic: 'مشاري راشد العفاسي', slug: 'alafasy', style: 'Murattal', baseUrl: '/audio/files/alafasy', isDefault: true, sortOrder: 1, kind: 'reciter' },
+  { id: 2, name: 'Abdul Rahman Al-Sudais', nameArabic: 'عبد الرحمن السديس', slug: 'sudais', style: 'Murattal', baseUrl: '/audio/files/sudais', isDefault: false, sortOrder: 2, kind: 'reciter' },
+  { id: 3, name: 'Abdul Basit Abdus Samad', nameArabic: 'عبد الباسط عبد الصمد', slug: 'abdul-basit-murattal', style: 'Murattal', baseUrl: '/audio/files/abdul-basit-murattal', isDefault: false, sortOrder: 3, kind: 'reciter' },
+];
+
+const SURAH_AYAH_COUNTS: Record<number, number> = {
+  1: 7, 2: 286, 3: 200, 4: 176, 5: 120, 6: 165, 7: 206, 8: 75, 9: 129, 10: 109,
+  11: 123, 12: 111, 13: 43, 14: 52, 15: 99, 16: 128, 17: 111, 18: 110, 19: 98, 20: 135,
+  21: 112, 22: 78, 23: 118, 24: 64, 25: 77, 26: 227, 27: 93, 28: 88, 29: 69, 30: 60,
+  31: 34, 32: 30, 33: 73, 34: 54, 35: 45, 36: 83, 37: 182, 38: 88, 39: 75, 40: 85,
+  41: 54, 42: 53, 43: 89, 44: 59, 45: 37, 46: 35, 47: 38, 48: 29, 49: 18, 50: 45,
+  51: 60, 52: 49, 53: 62, 54: 55, 55: 78, 56: 96, 57: 29, 58: 22, 59: 24, 60: 13,
+  61: 14, 62: 11, 63: 11, 64: 18, 65: 12, 66: 12, 67: 30, 68: 52, 69: 52, 70: 44,
+  71: 28, 72: 28, 73: 20, 74: 56, 75: 40, 76: 31, 77: 50, 78: 40, 79: 46, 80: 42,
+  81: 29, 82: 19, 83: 36, 84: 25, 85: 22, 86: 17, 87: 19, 88: 26, 89: 30, 90: 20,
+  91: 15, 92: 21, 93: 11, 94: 8, 95: 8, 96: 19, 97: 5, 98: 8, 99: 8, 100: 11,
+  101: 11, 102: 8, 103: 3, 104: 9, 105: 5, 106: 4, 107: 7, 108: 3, 109: 6, 110: 3,
+  111: 5, 112: 4, 113: 5, 114: 6,
+};
+
 export const audioApi = {
-  reciters: () => api<Reciter[]>(`/audio/reciters`),
+  reciters: async () => {
+    try {
+      const list = await api<Reciter[]>(`/audio/reciters`);
+      if (Array.isArray(list) && list.length > 0) return list;
+    } catch {}
+    return DEFAULT_RECITERS;
+  },
   ayah: (ayahId: number, reciter?: string) =>
-    api<AudioFile[]>(`/audio/ayah/${ayahId}`, { params: { reciter } }),
-  surah: (surahNumber: number, reciter: string) =>
-    api<AudioSurahItem[]>(`/audio/surah/${surahNumber}`, { params: { reciter } }),
+    api<AudioFile[]>(`/audio/ayah/${ayahId}`, { params: { reciter } }).catch(() => []),
+  surah: async (surahNumber: number, reciterSlug: string) => {
+    try {
+      const list = await api<AudioSurahItem[]>(`/audio/surah/${surahNumber}`, { params: { reciter: reciterSlug } });
+      if (Array.isArray(list) && list.length > 0 && list.some((item) => Boolean(item.url))) return list;
+    } catch {}
+
+    const reciter = DEFAULT_RECITERS.find((r) => r.slug === reciterSlug) ?? DEFAULT_RECITERS[0];
+    const baseUrl = `${apiBase()}/audio/files/${reciter.slug}`;
+    const totalAyahs = SURAH_AYAH_COUNTS[surahNumber] || 7;
+    const items: AudioSurahItem[] = [];
+    for (let ayahNumber = 1; ayahNumber <= totalAyahs; ayahNumber++) {
+      const file = `${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
+      items.push({
+        ayahId: surahNumber * 1000 + ayahNumber,
+        surahNumber,
+        ayahNumber,
+        url: `${baseUrl.replace(/\/$/, '')}/${file}`,
+        duration: null,
+      });
+    }
+    return items;
+  },
   wordTimings: (surahNumber: number, reciter: string) =>
-    api<WordTimingsResponse>(`/audio/surah/${surahNumber}/word-timings`, { params: { reciter } }),
+    api<WordTimingsResponse>(`/audio/surah/${surahNumber}/word-timings`, { params: { reciter } }).catch(() => ({
+      surahNumber,
+      reciterSlug: reciter,
+      available: false,
+      ayahs: {},
+    })),
 };
 
 export const searchApi = {
@@ -593,6 +647,9 @@ export interface Reciter {
   baseUrl: string | null;
   isDefault: boolean;
   sortOrder: number;
+  kind?: 'reciter' | 'translation';
+  languageCode?: string;
+  languageName?: string;
 }
 
 export interface AudioFile {

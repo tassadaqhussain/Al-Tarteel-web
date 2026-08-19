@@ -88,6 +88,8 @@ export interface SettingsState {
 
   // Audio
   reciterSlug: string | null;
+  /** Spoken translation reciter; plays after each Arabic verse when set. */
+  translationReciterSlug: string | null;
 
   // Reading history
   lastRead: LastRead | null;
@@ -132,6 +134,7 @@ export interface SettingsState {
   toggleTranslationSlug: (slug: string) => void;
   setTafsirSlug: (slug: string | null) => void;
   setReciterSlug: (slug: string | null) => void;
+  setTranslationReciterSlug: (slug: string | null) => void;
   setLastRead: (ref: LastRead) => void;
   addRecentSurah: (number: number) => void;
   setReadingGoal: (goal: ReadingGoal | null) => void;
@@ -166,6 +169,7 @@ export const useSettingsStore = create<SettingsState>()(
       translationSlugs: [],
       tafsirSlug: null,
       reciterSlug: null,
+      translationReciterSlug: null,
       lastRead: null,
       recentSurahs: [],
       readingGoal: null,
@@ -210,6 +214,7 @@ export const useSettingsStore = create<SettingsState>()(
 
       setTafsirSlug: (tafsirSlug) => set({ tafsirSlug }),
       setReciterSlug: (reciterSlug) => set({ reciterSlug }),
+      setTranslationReciterSlug: (translationReciterSlug) => set({ translationReciterSlug }),
 
       setLastRead: (ref) => set({ lastRead: ref }),
       addRecentSurah: (number) => {

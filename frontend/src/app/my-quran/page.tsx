@@ -30,11 +30,11 @@ function MyQuranContent() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f7f7] text-slate-800">
+    <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
       {/* Title band */}
-      <div className="relative overflow-hidden border-b border-slate-100 bg-[#f7f7f7]">
+      <div className="relative overflow-hidden border-b border-line-subtle bg-surface-app">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.12]"
           style={{
@@ -46,19 +46,19 @@ function MyQuranContent() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-white hover:text-slate-900"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-ink-3 transition hover:bg-surface hover:text-ink"
             aria-label="Go back"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">My Quran</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">My Quran</h1>
         </div>
       </div>
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
         {/* Tabs */}
         <div className="mx-auto mb-10 flex max-w-md justify-center">
-          <div className="inline-flex w-full rounded-full bg-slate-100 p-1 sm:w-auto">
+          <div className="inline-flex w-full rounded-full bg-surface-3 p-1 sm:w-auto">
             {(
               [
                 ['saved', 'Saved'],
@@ -73,8 +73,8 @@ function MyQuranContent() {
                 className={cn(
                   'flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition sm:flex-none sm:px-5',
                   tab === id
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'bg-surface text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink-2'
                 )}
               >
                 {label}
@@ -86,38 +86,38 @@ function MyQuranContent() {
         {tab === 'saved' && (
           <div className="space-y-10">
             <section>
-              <h2 className="mb-4 text-xl font-bold text-slate-900">Assalamu Alaikum</h2>
+              <h2 className="mb-4 text-xl font-bold text-ink">Assalamu Alaikum</h2>
               <DailyMotivation variant="full" showGoalPicker showAyahOfDay showTajweedOfDay />
             </section>
 
             <section>
-              <h2 className="mb-4 text-xl font-bold text-slate-900">Tajweed Journey</h2>
+              <h2 className="mb-4 text-xl font-bold text-ink">Tajweed Journey</h2>
               <TajweedJourneyPanel showPersonal />
             </section>
 
             {/* Reading bookmark */}
             <section>
-              <h2 className="mb-4 text-xl font-bold text-slate-900">My Reading Bookmark</h2>
+              <h2 className="mb-4 text-xl font-bold text-ink">My Reading Bookmark</h2>
               {lastRead ? (
                 <Link
                   href={getSurahPath(lastRead.surahNumber)}
-                  className="group flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-5 transition hover:border-[var(--accent)]"
+                  className="group flex items-center justify-between rounded-2xl border border-line bg-surface px-5 py-5 transition hover:border-[var(--accent)]"
                 >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
                       Continue reading
                     </p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">
+                    <p className="mt-1 text-lg font-semibold text-ink">
                       {lastRead.surahNumber}. {lastRead.surahName}
                     </p>
-                    <p className="text-sm text-slate-500">Verse {lastRead.ayahNumber}</p>
+                    <p className="text-sm text-ink-muted">Verse {lastRead.ayahNumber}</p>
                   </div>
-                  <span className="font-arabic text-3xl text-slate-700" dir="rtl" lang="ar">
+                  <span className="font-arabic text-3xl text-ink-2" dir="rtl" lang="ar">
                     {getSurahArabicName(lastRead.surahNumber, lastRead.surahNameArabic)}
                   </span>
                 </Link>
               ) : (
-                <p className="py-10 text-center text-slate-400">
+                <p className="py-10 text-center text-ink-faint">
                   Start reading and save a Reading Bookmark!
                 </p>
               )}
@@ -126,7 +126,7 @@ function MyQuranContent() {
             {/* Saved bookmarks list */}
             <section>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-900">Saved Verses</h2>
+                <h2 className="text-xl font-bold text-ink">Saved Verses</h2>
                 {bookmarks.length > 0 && (
                   <Link href="/bookmarks" className="text-sm font-medium text-[var(--accent)] hover:underline">
                     Manage all
@@ -134,7 +134,7 @@ function MyQuranContent() {
                 )}
               </div>
               {bookmarks.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-slate-200 py-10 text-center text-slate-400">
+                <p className="rounded-2xl border border-dashed border-line py-10 text-center text-ink-faint">
                   No saved verses yet. Bookmark ayahs while reading.
                 </p>
               ) : (
@@ -143,13 +143,13 @@ function MyQuranContent() {
                     <Link
                       key={b.id}
                       href={getSurahPath(b.surahNumber)}
-                      className="block rounded-2xl border border-slate-200 px-5 py-4 transition hover:border-[var(--accent)]"
+                      className="block rounded-2xl border border-line px-5 py-4 transition hover:border-[var(--accent)]"
                     >
                       <div className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--accent)]">
                         <Bookmark className="h-4 w-4" />
                         {b.surahName} {b.surahNumber}:{b.ayahNumber}
                       </div>
-                      <p className="font-arabic text-xl leading-loose text-slate-800" dir="rtl" lang="ar">
+                      <p className="font-arabic text-xl leading-loose text-ink" dir="rtl" lang="ar">
                         {b.textUthmani}
                       </p>
                     </Link>
@@ -160,9 +160,9 @@ function MyQuranContent() {
 
             {/* Collections */}
             <section>
-              <h2 className="mb-4 text-xl font-bold text-slate-900">Collections</h2>
-              <div className="rounded-2xl border border-slate-200 px-6 py-6">
-                <ul className="space-y-3 text-sm text-slate-700">
+              <h2 className="mb-4 text-xl font-bold text-ink">Collections</h2>
+              <div className="rounded-2xl border border-line px-6 py-6">
+                <ul className="space-y-3 text-sm text-ink-2">
                   <li className="flex items-start gap-3">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" strokeWidth={3} />
                     Create custom collections
@@ -179,7 +179,7 @@ function MyQuranContent() {
                   </li>
                 </ul>
                 {readingGoal && (
-                  <p className="mt-4 text-sm text-slate-500">
+                  <p className="mt-4 text-sm text-ink-muted">
                     Active goal:{' '}
                     <Link href="/reading-goal" className="font-medium text-[var(--accent)] hover:underline">
                       {readingGoal.title}
@@ -188,7 +188,7 @@ function MyQuranContent() {
                 )}
                 <Link
                   href={loginHref('/my-quran')}
-                  className="mt-6 inline-flex rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent)]/90"
+                  className="mt-6 inline-flex rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90"
                 >
                   Sign in
                 </Link>
@@ -199,9 +199,9 @@ function MyQuranContent() {
 
         {tab === 'recent' && (
           <section>
-            <h2 className="mb-4 text-xl font-bold text-slate-900">Recently Read</h2>
+            <h2 className="mb-4 text-xl font-bold text-ink">Recently Read</h2>
             {recentSurahs.length === 0 && !lastRead ? (
-              <p className="py-10 text-center text-slate-400">
+              <p className="py-10 text-center text-ink-faint">
                 Your recent surahs will appear here as you read.
               </p>
             ) : (
@@ -217,18 +217,18 @@ function MyQuranContent() {
                     <Link
                       key={n}
                       href={getSurahPath(n)}
-                      className="flex items-center gap-4 rounded-2xl border border-slate-200 px-4 py-4 transition hover:border-[var(--accent)]"
+                      className="flex items-center gap-4 rounded-2xl border border-line px-4 py-4 transition hover:border-[var(--accent)]"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-500">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-2 text-ink-muted">
                         <Clock className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold text-ink">
                           {n}. {meta.nameSimple}
                         </p>
-                        <p className="text-xs text-slate-500">{meta.meaning}</p>
+                        <p className="text-xs text-ink-muted">{meta.meaning}</p>
                       </div>
-                      <span className="font-arabic text-xl text-slate-600" dir="rtl">
+                      <span className="font-arabic text-xl text-ink-3" dir="rtl">
                         {meta.nameArabic}
                       </span>
                     </Link>
@@ -241,12 +241,12 @@ function MyQuranContent() {
 
         {tab === 'notes' && (
           <section>
-            <h2 className="mb-4 text-xl font-bold text-slate-900">Notes & Reflections</h2>
+            <h2 className="mb-4 text-xl font-bold text-ink">Notes & Reflections</h2>
             {notes.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center">
-                <StickyNote className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-                <p className="text-slate-400">No notes yet.</p>
-                <p className="mt-1 text-sm text-slate-400">
+              <div className="rounded-2xl border border-dashed border-line px-6 py-12 text-center">
+                <StickyNote className="mx-auto mb-3 h-8 w-8 text-ink-faint" />
+                <p className="text-ink-faint">No notes yet.</p>
+                <p className="mt-1 text-sm text-ink-faint">
                   Add reflections when you bookmark a verse.
                 </p>
                 <Link
@@ -262,12 +262,12 @@ function MyQuranContent() {
                   <Link
                     key={b.id}
                     href={getSurahPath(b.surahNumber)}
-                    className="block rounded-2xl border border-slate-200 px-5 py-4 transition hover:border-[var(--accent)]"
+                    className="block rounded-2xl border border-line px-5 py-4 transition hover:border-[var(--accent)]"
                   >
                     <p className="text-sm font-medium text-[var(--accent)]">
                       {b.surahName} {b.surahNumber}:{b.ayahNumber}
                     </p>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-700">{b.note}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-2">{b.note}</p>
                   </Link>
                 ))}
               </div>
@@ -281,7 +281,7 @@ function MyQuranContent() {
 
 export default function MyQuranPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading…</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-sm text-ink-muted">Loading…</div>}>
       <RequireAuth>
         <MyQuranContent />
       </RequireAuth>

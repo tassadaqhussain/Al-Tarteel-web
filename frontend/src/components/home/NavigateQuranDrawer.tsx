@@ -262,7 +262,7 @@ export function NavigateQuranDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="flex w-full max-w-[400px] flex-col gap-0 border-r border-slate-200 bg-white p-0 text-slate-900 [&>button]:hidden sm:max-w-[420px]"
+        className="flex w-full max-w-[400px] flex-col gap-0 border-r border-line bg-surface p-0 text-ink [&>button]:hidden sm:max-w-[420px]"
       >
         <div className="px-5 pb-2 pt-5">
           <button
@@ -270,15 +270,15 @@ export function NavigateQuranDrawer({
             onClick={() => onOpenChange(false)}
             className="flex w-full items-center gap-2 text-left"
           >
-            <SheetTitle className="text-xl font-semibold tracking-tight text-slate-900">
+            <SheetTitle className="text-xl font-semibold tracking-tight text-ink">
               {heading}
             </SheetTitle>
-            <ChevronUp className="h-5 w-5 text-slate-500" />
+            <ChevronUp className="h-5 w-5 text-ink-muted" />
           </button>
         </div>
 
         <div className="px-5 pb-4">
-          <div className="flex items-center gap-2 rounded-full bg-slate-100 p-1">
+          <div className="flex items-center gap-2 rounded-full bg-surface-3 p-1">
             <div className="grid min-w-0 flex-1 grid-cols-4">
               {TABS.map((t) => (
                 <button
@@ -291,8 +291,8 @@ export function NavigateQuranDrawer({
                   className={cn(
                     'rounded-full px-2 py-2 text-sm font-medium transition',
                     tab === t.id
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? 'bg-surface text-ink shadow-sm'
+                      : 'text-ink-muted hover:text-ink'
                   )}
                 >
                   {t.label}
@@ -302,7 +302,7 @@ export function NavigateQuranDrawer({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-white hover:text-slate-800"
+              className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-ink-muted transition hover:bg-surface hover:text-ink"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -311,9 +311,9 @@ export function NavigateQuranDrawer({
         </div>
 
         <div className="px-5 pb-3">
-          <p className="mb-3 text-sm italic text-slate-400">
+          <p className="mb-3 text-sm italic text-ink-faint">
             Tip: try navigating with{' '}
-            <kbd className="not-italic rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-xs text-slate-600">
+            <kbd className="not-italic rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-sans text-xs text-ink-3">
               ⌘ K
             </kbd>
           </p>
@@ -324,25 +324,25 @@ export function NavigateQuranDrawer({
                 goVerse();
               }}
             >
-              <div className="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-3">
-                <Search className="h-4 w-4 shrink-0 text-slate-400" />
+              <div className="flex items-center gap-2 rounded-full bg-surface-3 px-4 py-3">
+                <Search className="h-4 w-4 shrink-0 text-ink-faint" />
                 <input
                   value={verseInput}
                   onChange={(e) => setVerseInput(e.target.value)}
                   placeholder={placeholder}
-                  className="w-full bg-transparent text-base text-slate-800 placeholder:text-slate-400 outline-none"
+                  className="w-full bg-transparent text-base text-ink placeholder:text-ink-faint outline-none"
                   autoFocus
                 />
               </div>
             </form>
           ) : (
-            <div className="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-3">
-              <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <div className="flex items-center gap-2 rounded-full bg-surface-3 px-4 py-3">
+              <Search className="h-4 w-4 shrink-0 text-ink-faint" />
               <input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={placeholder}
-                className="w-full bg-transparent text-base text-slate-800 placeholder:text-slate-400 outline-none"
+                className="w-full bg-transparent text-base text-ink placeholder:text-ink-faint outline-none"
                 autoFocus
               />
             </div>
@@ -360,10 +360,10 @@ export function NavigateQuranDrawer({
                   onClick={() => onOpenChange(false)}
                   className={cn(
                     'flex items-center gap-4 rounded-full px-4 py-3 text-[15px] transition',
-                    active ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-800 hover:bg-slate-50'
+                    active ? 'bg-surface-3 font-medium text-ink' : 'text-ink hover:bg-surface-2'
                   )}
                 >
-                  <span className="w-7 shrink-0 tabular-nums text-slate-500">{s.number}</span>
+                  <span className="w-7 shrink-0 tabular-nums text-ink-muted">{s.number}</span>
                   <span className="min-w-0 flex-1 truncate">{s.nameSimple}</span>
                 </Link>
               );
@@ -379,11 +379,11 @@ export function NavigateQuranDrawer({
                   key={j}
                   href={`/juz/${j}`}
                   onClick={() => onOpenChange(false)}
-                  className="flex items-center gap-4 rounded-full px-4 py-3 text-[15px] text-slate-800 transition hover:bg-slate-100"
+                  className="flex items-center gap-4 rounded-full px-4 py-3 text-[15px] text-ink transition hover:bg-surface-3"
                 >
-                  <span className="w-7 shrink-0 tabular-nums text-slate-500">{j}</span>
+                  <span className="w-7 shrink-0 tabular-nums text-ink-muted">{j}</span>
                   <span className="min-w-0 flex-1 truncate">Juz {j}</span>
-                  <span className="truncate text-sm text-slate-400">{startName}</span>
+                  <span className="truncate text-sm text-ink-faint">{startName}</span>
                 </Link>
               );
             })}
@@ -394,17 +394,17 @@ export function NavigateQuranDrawer({
                 key={p}
                 href={`/juz/${Math.min(30, Math.max(1, Math.ceil((p / 604) * 30)))}`}
                 onClick={() => onOpenChange(false)}
-                className="flex items-center gap-4 rounded-full px-4 py-3 text-[15px] text-slate-800 transition hover:bg-slate-100"
+                className="flex items-center gap-4 rounded-full px-4 py-3 text-[15px] text-ink transition hover:bg-surface-3"
               >
-                <span className="w-10 shrink-0 tabular-nums text-slate-500">{p}</span>
+                <span className="w-10 shrink-0 tabular-nums text-ink-muted">{p}</span>
                 <span>Page {p}</span>
               </Link>
             ))}
 
           {tab === 'verse' && (
-            <div className="px-3 py-2 text-sm text-slate-500">
+            <div className="px-3 py-2 text-sm text-ink-muted">
               <p>
-                Enter a reference like <span className="font-medium text-slate-700">2:255</span> and
+                Enter a reference like <span className="font-medium text-ink-2">2:255</span> and
                 press Enter.
               </p>
               <div className="mt-3 space-y-1">
@@ -418,10 +418,10 @@ export function NavigateQuranDrawer({
                     key={ref}
                     type="button"
                     onClick={() => goVerse(ref)}
-                    className="flex w-full items-center justify-between rounded-full px-4 py-3 text-left transition hover:bg-slate-100"
+                    className="flex w-full items-center justify-between rounded-full px-4 py-3 text-left transition hover:bg-surface-3"
                   >
-                    <span className="font-medium text-slate-800">{ref}</span>
-                    <span className="text-slate-500">{label}</span>
+                    <span className="font-medium text-ink">{ref}</span>
+                    <span className="text-ink-muted">{label}</span>
                   </button>
                 ))}
               </div>
@@ -429,7 +429,7 @@ export function NavigateQuranDrawer({
           )}
 
           {tab === 'surah' && filteredSurahs.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-slate-400">No surahs found</p>
+            <p className="px-3 py-8 text-center text-sm text-ink-faint">No surahs found</p>
           )}
         </div>
       </SheetContent>

@@ -1,3 +1,5 @@
+import { apiBase } from '@/lib/api';
+
 /** Map WBW language codes to BCP-47 tags for SpeechSynthesis. */
 const LOCALE_SPEECH_TAGS: Record<string, string[]> = {
   en: ['en-US', 'en-GB', 'en'],
@@ -25,6 +27,29 @@ function pickVoice(langCode: string): SpeechSynthesisVoice | null {
     if (partial) return partial;
   }
   return null;
+}
+
+/**
+ * True when the OS/browser actually has a voice for this language.
+ *
+ * SpeechSynthesis cannot synthesize a language the system has no voice for —
+ * it just stays silent. Urdu and Persian voices in particular ship with very
+ * few desktop OSes, so callers must check this before offering a "Speak" control
+ * rather than presenting a button that does nothing.
+ */
+export function hasVoiceForLocale(langCode: string): boolean {
+  return pickVoice(langCode) !== null;
+}
+
+/**
+ * Notify when the voice list changes. Chrome populates voices asynchronously,
+ * so a one-shot check on first render reports "no voice" for every language.
+ */
+export function subscribeToVoices(onChange: () => void): () => void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return () => {};
+  const synth = window.speechSynthesis;
+  synth.addEventListener('voiceschanged', onChange);
+  return () => synth.removeEventListener('voiceschanged', onChange);
 }
 
 /** Ensure voices are loaded (Chrome loads them asynchronously). */
@@ -59,15 +84,56 @@ export function speakWordMeaning(text: string, langCode: string): boolean {
   utterance.pitch = 1;
 
   const voice = pickVoice(langCode);
-  if (voice) {
-    utterance.voice = voice;
-    utterance.lang = voice.lang;
-  }
+  // No installed voice => speak() is a silent no-op. Report failure instead of
+  // pretending it worked, so the caller can tell the user why nothing happened.
+  if (!voice) return false;
 
+  utterance.voice = voice;
+  utterance.lang = voice.lang;
   window.speechSynthesis.speak(utterance);
   return true;
 }
 
 export function canSpeakWordMeanings(): boolean {
   return typeof window !== 'undefined' && Boolean(window.speechSynthesis);
+}
+
+/**
+ * Languages our own Piper service can synthesize when the device cannot.
+ * Keep in sync with the voices baked into services/tts/Dockerfile.
+ */
+export const SERVER_TTS_LOCALES = ['ur', 'fa'];
+
+export function serverCanSpeak(langCode: string): boolean {
+  return SERVER_TTS_LOCALES.includes(langCode);
+}
+
+let serverAudio: HTMLAudioElement | null = null;
+
+/** Stop any in-flight server-synthesized playback. */
+export function cancelServerSpeech(): void {
+  if (serverAudio) {
+    serverAudio.pause();
+    serverAudio.src = '';
+    serverAudio = null;
+  }
+}
+
+/**
+ * Speak via our Piper service, for languages the OS has no voice for.
+ * The API caches each (lang, text) pair on disk, so repeats are instant.
+ */
+export async function speakWordMeaningRemote(text: string, langCode: string): Promise<boolean> {
+  const cleaned = text?.trim();
+  if (!cleaned || !serverCanSpeak(langCode)) return false;
+  try {
+    cancelServerSpeech();
+    const url = `${apiBase()}/audio/speech?lang=${encodeURIComponent(langCode)}&text=${encodeURIComponent(cleaned)}`;
+    const audio = new Audio(url);
+    serverAudio = audio;
+    await audio.play();
+    return true;
+  } catch {
+    return false;
+  }
 }

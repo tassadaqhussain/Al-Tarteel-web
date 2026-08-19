@@ -20,8 +20,11 @@ export function ReadingProgressBar({ variant = 'full', className }: Props) {
 
     const measure = () => {
       const root = document.documentElement;
-      const max = root.scrollHeight - root.clientHeight;
-      const next = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+      // Count the visible viewport as read, so a short chapter already shows
+      // progress at the top of the page.
+      const total = root.scrollHeight;
+      const seen = window.scrollY + root.clientHeight;
+      const next = total > 0 ? Math.min(100, Math.max(0, (seen / total) * 100)) : 0;
       setProgress(next);
     };
 
@@ -49,7 +52,7 @@ export function ReadingProgressBar({ variant = 'full', className }: Props) {
   return (
     <div
       className={cn(
-        'pointer-events-none h-0.5 overflow-hidden bg-slate-200/70',
+        'pointer-events-none h-0.5 overflow-hidden bg-line/70',
         variant === 'full' && 'absolute inset-x-0 bottom-0',
         variant === 'under-title' && 'mt-1 w-full min-w-[4.5rem] max-w-[11rem] rounded-full',
         className,

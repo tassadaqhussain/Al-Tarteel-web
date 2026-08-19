@@ -22,10 +22,10 @@ export default function TajweedIndexPage() {
       <main className="mx-auto max-w-3xl px-4 py-10">
         <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Tajweed', path: '/tajweed' }]} />
         <p className="text-sm font-semibold text-[var(--accent)]">Learn Tajweed</p>
-        <h1 className="mt-2 font-serif text-3xl font-bold text-slate-900 sm:text-4xl">
+        <h1 className="mt-2 font-serif text-3xl font-bold text-ink sm:text-4xl">
           Tajweed Journey
         </h1>
-        <p className="mt-3 text-slate-600 leading-relaxed">
+        <p className="mt-3 text-ink-3 leading-relaxed">
           Read → Listen → Understand → Practice → Review → Progress. Encouragement is calm and original —
           never fabricated scripture. The Quran reader stays free of achievement interruptions.
         </p>
@@ -40,15 +40,15 @@ export default function TajweedIndexPage() {
             <li key={lesson.slug}>
               <Link
                 href={`/tajweed/${lesson.slug}`}
-                className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 transition hover:border-[var(--accent)]"
+                className="flex items-start justify-between gap-4 rounded-2xl border border-line bg-surface px-5 py-4 transition hover:border-[var(--accent)]"
               >
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">Lesson {i + 1}</p>
-                  <h2 className="text-lg font-bold text-slate-900">{lesson.name}</h2>
-                  <p className="font-arabic text-base text-slate-500" lang="ar" dir="rtl">
+                  <p className="text-xs font-semibold text-ink-faint">Lesson {i + 1}</p>
+                  <h2 className="text-lg font-bold text-ink">{lesson.name}</h2>
+                  <p className="font-arabic text-base text-ink-muted" lang="ar" dir="rtl">
                     {lesson.nameArabic}
                   </p>
-                  <p className="mt-1 text-sm text-slate-600 line-clamp-2">{lesson.summary}</p>
+                  <p className="mt-1 text-sm text-ink-3 line-clamp-2">{lesson.summary}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-[var(--accent)]">Open →</span>
               </Link>

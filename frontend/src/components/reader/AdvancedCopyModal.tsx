@@ -62,13 +62,13 @@ export function AdvancedCopyModal({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="absolute right-4 top-4 rounded-full p-2 text-ink-faint hover:bg-surface-3 hover:text-ink-2"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
           </button>
-          <DialogTitle className="text-xl font-bold text-slate-900">Advanced Copy</DialogTitle>
-          <DialogDescription className="mt-1 text-sm text-slate-500">
+          <DialogTitle className="text-xl font-bold text-ink">Advanced Copy</DialogTitle>
+          <DialogDescription className="mt-1 text-sm text-ink-muted">
             Choose what to copy for {surahName} {surahNumber}:{ayahNumber}
           </DialogDescription>
 
@@ -82,7 +82,7 @@ export function AdvancedCopyModal({
                   'flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition-colors',
                   mode === option.id
                     ? 'border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)]'
-                    : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    : 'border-line text-ink-2 hover:bg-surface-2'
                 )}
               >
                 {option.label}
@@ -91,14 +91,14 @@ export function AdvancedCopyModal({
             ))}
           </div>
 
-          <pre className="mt-5 max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+          <pre className="mt-5 max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-surface-2 p-4 text-sm leading-relaxed text-ink-2">
             {preview}
           </pre>
 
           <button
             type="button"
             onClick={() => void handleCopy()}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white hover:opacity-95"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-brand-contrast hover:opacity-95"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? 'Copied' : 'Copy to clipboard'}

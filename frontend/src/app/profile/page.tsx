@@ -51,17 +51,17 @@ function ProfileContent() {
       <Header />
       <main className="mx-auto max-w-lg px-4 py-10">
         <div className="mb-8 flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)] text-lg font-bold text-white">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)] text-lg font-bold text-brand-contrast">
             {initials}
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">{user?.name || 'Account'}</h1>
-            <p className="text-sm text-slate-600">{user?.email}</p>
+            <h1 className="text-xl font-bold text-ink">{user?.name || 'Account'}</h1>
+            <p className="text-sm text-ink-3">{user?.email}</p>
           </div>
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="text-sm font-semibold text-slate-900">Change password</h2>
+        <section className="rounded-2xl border border-line bg-surface p-6">
+          <h2 className="text-sm font-semibold text-ink">Change password</h2>
           <form onSubmit={onChangePassword} className="mt-4 space-y-3">
             <input
               type="password"
@@ -70,7 +70,7 @@ function ProfileContent() {
               placeholder="Current password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
+              className="w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
             />
             <input
               type="password"
@@ -79,15 +79,15 @@ function ProfileContent() {
               placeholder="New password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
+              className="w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-[var(--accent)] focus:ring-2"
             />
-            {message && <p className="text-sm text-emerald-700">{message}</p>}
-            {error && <p className="text-sm text-red-700">{error}</p>}
+            {message && <p className="text-sm text-brand">{message}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
             <button
               type="submit"
               disabled={submitting}
               className={cn(
-                'inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white',
+                'inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-brand-contrast',
                 submitting && 'opacity-70',
               )}
             >
@@ -98,10 +98,10 @@ function ProfileContent() {
         </section>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/bookmarks" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium hover:border-[var(--accent)]">
+          <Link href="/bookmarks" className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-[var(--accent)]">
             Bookmarks
           </Link>
-          <Link href="/my-quran" className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium hover:border-[var(--accent)]">
+          <Link href="/my-quran" className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-[var(--accent)]">
             My Quran
           </Link>
           <button
@@ -110,7 +110,7 @@ function ProfileContent() {
               await logout();
               router.push('/');
             }}
-            className="rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+            className="rounded-full border border-danger/30 px-4 py-2 text-sm font-medium text-danger hover:bg-danger-surface"
           >
             Log out
           </button>
@@ -122,7 +122,7 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading…</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-sm text-ink-muted">Loading…</div>}>
       <RequireAuth>
         <ProfileContent />
       </RequireAuth>

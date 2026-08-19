@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { NavigateQuranDrawer } from '@/components/home/NavigateQuranDrawer';
-import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
 
 interface Props {
   surahNumber: number;
@@ -16,21 +15,19 @@ export function SurahNavTrigger({ surahNumber, surahName }: Props) {
 
   return (
     <>
-      <div className="inline-flex max-w-full flex-col">
+      <div className="relative flex h-11 min-w-0 items-center sm:h-12">
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex max-w-full items-center gap-1.5 truncate text-left text-sm font-semibold text-slate-800 transition hover:text-[var(--recite-highlight)]"
+          className="relative inline-flex h-full min-w-0 max-w-full items-center gap-1.5 text-left text-base font-semibold text-ink transition hover:text-brand"
           aria-haspopup="dialog"
           aria-expanded={open}
         >
           <span className="truncate">
             {surahNumber}. {surahName}
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-ink-faint" />
         </button>
-        {/* Quran.com: progress sits under the surah title */}
-        <ReadingProgressBar variant="under-title" />
       </div>
       <NavigateQuranDrawer
         open={open}

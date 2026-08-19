@@ -43,7 +43,7 @@ export function HifzDailyChart({
                       : d.avgAccuracy >= 60
                         ? 'bg-[var(--accent-gold)]'
                         : 'bg-rose-400'
-                    : 'bg-slate-200 dark:bg-slate-700',
+                    : 'bg-line',
                 )}
                 style={{ height: `${h}%` }}
                 title={`${d.date}: ${d.avgAccuracy}% (${d.attempts} attempts)`}

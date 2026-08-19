@@ -14,12 +14,12 @@ export const metadata: Metadata = buildPageMetadata({
 
 export default function DonatePage() {
   return (
-    <div className="min-h-screen bg-[#f4f5f7] pb-20">
+    <div className="min-h-screen bg-surface-2 pb-20">
       <Header />
       <main className="mx-auto flex max-w-lg flex-col items-center px-4 py-10 sm:py-14">
         <Suspense
           fallback={
-            <div className="h-[32rem] w-full max-w-md animate-pulse rounded-2xl bg-white shadow-sm" />
+            <div className="h-[32rem] w-full max-w-md animate-pulse rounded-2xl bg-surface shadow-sm" />
           }
         >
           <DonationCard />

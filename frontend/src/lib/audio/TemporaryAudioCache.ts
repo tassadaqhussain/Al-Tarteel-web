@@ -10,7 +10,7 @@ export type TemporaryAudioKeyParts = {
   reciterSlug: string;
   surahNumber: number;
   ayahNumber: number;
-  audioType?: 'arabic';
+  audioType?: 'arabic' | 'translation';
 };
 
 type CacheEntry = {

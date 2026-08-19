@@ -53,22 +53,22 @@ export function VerseResourcePanel({ open, onOpenChange, resource, ayahId, surah
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-none flex-col bg-white p-0 text-slate-800 [&>button]:hidden sm:w-[440px] sm:max-w-[440px]">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-          <div><SheetTitle className="text-xl font-bold">Study Verse</SheetTitle><p className="mt-1 text-sm text-slate-500">{surahName} {surahNumber}:{ayahNumber}</p></div>
-          <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 hover:bg-slate-100" aria-label="Close"><X className="h-5 w-5" /></button>
+      <SheetContent side="right" className="flex w-full max-w-none flex-col bg-surface p-0 text-ink [&>button]:hidden sm:w-[440px] sm:max-w-[440px]">
+        <div className="flex items-center justify-between border-b border-line px-6 py-5">
+          <div><SheetTitle className="text-xl font-bold">Study Verse</SheetTitle><p className="mt-1 text-sm text-ink-muted">{surahName} {surahNumber}:{ayahNumber}</p></div>
+          <button type="button" onClick={() => onOpenChange(false)} className="rounded-full p-2 hover:bg-surface-3" aria-label="Close"><X className="h-5 w-5" /></button>
         </div>
 
-        <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 py-2">
-          {(Object.keys(TITLES) as VerseResource[]).map((item) => <button key={item} type="button" onClick={() => setActive(item)} className={`shrink-0 rounded-full px-3 py-2 text-sm ${active === item ? 'bg-[var(--accent)]/10 font-semibold text-[var(--accent)]' : 'text-slate-500 hover:bg-slate-50'}`}>{TITLES[item]}</button>)}
+        <div className="flex gap-1 overflow-x-auto border-b border-line px-3 py-2">
+          {(Object.keys(TITLES) as VerseResource[]).map((item) => <button key={item} type="button" onClick={() => setActive(item)} className={`shrink-0 rounded-full px-3 py-2 text-sm ${active === item ? 'bg-[var(--accent)]/10 font-semibold text-[var(--accent)]' : 'text-ink-muted hover:bg-surface-2'}`}>{TITLES[item]}</button>)}
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          {active === 'tafsirs' && (loading ? <p className="text-sm text-slate-500">Loading Tafsir…</p> : tafsirs.length ? <div className="space-y-5">{tafsirs.map((item) => <article key={item.id} className="rounded-2xl border border-slate-200 p-5"><h2 className="font-bold">{item.source.name}</h2>{item.source.author && <p className="mt-1 text-xs text-slate-400">{item.source.author}</p>}<p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-700">{item.text}</p></article>)}</div> : <EmptyState icon={<BookMarked />} title="No Tafsir available" description="No selected verified Tafsir source is available for this verse." />)}
+          {active === 'tafsirs' && (loading ? <p className="text-sm text-ink-muted">Loading Tafsir…</p> : tafsirs.length ? <div className="space-y-5">{tafsirs.map((item) => <article key={item.id} className="rounded-2xl border border-line p-5"><h2 className="font-bold">{item.source.name}</h2>{item.source.author && <p className="mt-1 text-xs text-ink-faint">{item.source.author}</p>}<p className="mt-4 whitespace-pre-line text-sm leading-7 text-ink-2">{item.text}</p></article>)}</div> : <EmptyState icon={<BookMarked />} title="No Tafsir available" description="No selected verified Tafsir source is available for this verse." />)}
 
           {active === 'lessons' && <div className="space-y-3"><ResourceLink href="/learning-plans" icon={<GraduationCap />} title="Learning Plans" description="Study the Quran through structured daily lessons." /><ResourceLink href="/quran-in-year" icon={<ScrollText />} title="Quran in a Year" description="Follow a guided weekly study journey." /></div>}
 
-          {active === 'reflections' && <div><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]"><MessageCircle /></div><h2 className="text-lg font-bold">Your reflection</h2><p className="mt-1 text-sm leading-6 text-slate-500">Write a private note about what this verse means to you.</p><textarea value={reflection} onChange={(e) => setReflection(e.target.value)} rows={9} placeholder="Write your reflection…" className="mt-5 w-full resize-none rounded-xl border border-slate-200 p-4 text-sm outline-none focus:border-[var(--accent)]" /><button type="button" onClick={saveReflection} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-white">{saved && <Check className="h-4 w-4" />}{saved ? 'Saved' : 'Save Reflection'}</button></div>}
+          {active === 'reflections' && <div><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]"><MessageCircle /></div><h2 className="text-lg font-bold">Your reflection</h2><p className="mt-1 text-sm leading-6 text-ink-muted">Write a private note about what this verse means to you.</p><textarea value={reflection} onChange={(e) => setReflection(e.target.value)} rows={9} placeholder="Write your reflection…" className="mt-5 w-full resize-none rounded-xl border border-line p-4 text-sm outline-none focus:border-[var(--accent)]" /><button type="button" onClick={saveReflection} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-brand-contrast">{saved && <Check className="h-4 w-4" />}{saved ? 'Saved' : 'Save Reflection'}</button></div>}
 
           {active === 'hadith' && <EmptyState icon={<ScrollText />} title="No Hadith available" description="No verified Hadith source is currently linked to this verse." />}
 
@@ -80,9 +80,9 @@ export function VerseResourcePanel({ open, onOpenChange, resource, ayahId, surah
 }
 
 function ResourceLink({ href, icon, title, description }: { href: string; icon: React.ReactNode; title: string; description: string }) {
-  return <Link href={href} className="flex gap-4 rounded-2xl border border-slate-200 p-4 transition hover:border-[var(--accent)] hover:bg-slate-50"><span className="mt-0.5 text-[var(--accent)] [&>svg]:h-5 [&>svg]:w-5">{icon}</span><span><span className="block font-semibold text-slate-900">{title}</span><span className="mt-1 block text-sm leading-5 text-slate-500">{description}</span></span></Link>;
+  return <Link href={href} className="flex gap-4 rounded-2xl border border-line p-4 transition hover:border-[var(--accent)] hover:bg-surface-2"><span className="mt-0.5 text-[var(--accent)] [&>svg]:h-5 [&>svg]:w-5">{icon}</span><span><span className="block font-semibold text-ink">{title}</span><span className="mt-1 block text-sm leading-5 text-ink-muted">{description}</span></span></Link>;
 }
 
 function EmptyState({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
-  return <div className="rounded-2xl bg-slate-50 p-6 text-center"><span className="mx-auto flex h-10 w-10 items-center justify-center text-slate-400 [&>svg]:h-9 [&>svg]:w-9">{icon}</span><h2 className="mt-4 font-bold">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{description}</p></div>;
+  return <div className="rounded-2xl bg-surface-2 p-6 text-center"><span className="mx-auto flex h-10 w-10 items-center justify-center text-ink-faint [&>svg]:h-9 [&>svg]:w-9">{icon}</span><h2 className="mt-4 font-bold">{title}</h2><p className="mt-2 text-sm leading-6 text-ink-muted">{description}</p></div>;
 }

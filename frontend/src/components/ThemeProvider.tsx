@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSettingsStore, type ExperienceMode } from '@/stores/settingsStore';
-import { getSurahNumberFromSlug } from '@/lib/surah-meta';
+import { isQuranReaderPath } from '@/lib/reader-path';
 import { isRtlLocale } from '@/lib/i18n/messages';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -16,9 +16,7 @@ const ThemeContext = createContext<{
 
 /** Kids/elderly chrome stays on browse pages; reader uses calm default styling. */
 function experienceForPath(pathname: string, preferred: ExperienceMode): ExperienceMode {
-  if (pathname.startsWith('/surah/') || pathname.startsWith('/juz/')) return 'default';
-  const slug = pathname.replace(/^\//, '').split('/')[0] ?? '';
-  if (slug && !slug.includes('.') && getSurahNumberFromSlug(slug)) return 'default';
+  if (isQuranReaderPath(pathname)) return 'default';
   return preferred;
 }
 
@@ -27,7 +25,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const uiLocale = useSettingsStore((state) => state.uiLocale);
   const experienceMode = useSettingsStore((state) => state.experienceMode);
   const readerViewMode = useSettingsStore((state) => state.readerViewMode);
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [resolved, setResolved] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -45,27 +43,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = (localStorage.getItem('theme') as Theme) || 'light';
+    const stored = (localStorage.getItem('theme') as Theme) || 'system';
     setThemeState(stored);
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
-    const root = document.documentElement;
-    const dark =
-      theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setResolved(dark ? 'dark' : 'light');
-    if (dark) root.classList.add('dark');
-    else root.classList.remove('dark');
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = () => {
+      const dark = theme === 'dark' || (theme === 'system' && media.matches);
+      setResolved(dark ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', dark);
+    };
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
   }, [theme, mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const m = window.matchMedia('(prefers-color-scheme: dark)');
-    const on = () => setResolved(theme === 'system' ? 'dark' : theme === 'dark' ? 'dark' : 'light');
-    m.addEventListener('change', on);
-    return () => m.removeEventListener('change', on);
-  }, [mounted, theme]);
 
   useEffect(() => {
     if (!mounted) return;

@@ -88,7 +88,7 @@ function PaymentForm({
       <button
         type="submit"
         disabled={!stripe || !elements || submitting}
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-brand-contrast transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
       >
         {submitting ? (
           <>
@@ -98,7 +98,7 @@ function PaymentForm({
           'Donate securely with Stripe'
         )}
       </button>
-      <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-emerald-700">
+      <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-brand">
         <ShieldCheck className="h-3.5 w-3.5" /> Card details are handled by Stripe — we never store them.
       </p>
     </form>
@@ -154,7 +154,7 @@ export function StripeDonatePayment({
 
   if (loading) {
     return (
-      <div className="mt-8 flex items-center justify-center gap-2 text-sm text-slate-500">
+      <div className="mt-8 flex items-center justify-center gap-2 text-sm text-ink-muted">
         <Loader2 className="h-4 w-4 animate-spin" /> Preparing secure Stripe payment…
       </div>
     );

@@ -1,14 +1,16 @@
 import type { Metadata, Viewport } from 'next';
-import { Amiri, Amiri_Quran, Outfit } from 'next/font/google';
+import { Amiri, Amiri_Quran, Figtree } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
 import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
+import { ScrollToHashAyah } from '@/components/reader/ScrollToHashAyah';
 import { AskAiFab } from '@/components/ai/AskAiFab';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { BackToTopButton } from '@/components/BackToTopButton';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_KEYWORDS,
@@ -37,9 +39,9 @@ const amiriQuran = Amiri_Quran({
   preload: false,
 });
 
-const outfit = Outfit({
+const figtree = Figtree({
   subsets: ['latin'],
-  variable: '--font-outfit',
+  variable: '--font-ui',
   display: 'swap',
   preload: true,
 });
@@ -128,7 +130,6 @@ export const viewport: Viewport = {
 
 import { VoiceSearchProvider } from '@/providers/VoiceSearchProvider';
 import { GlobalVoiceSearch } from '@/components/GlobalVoiceSearch';
-import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 
 export default function RootLayout({
   children,
@@ -136,8 +137,39 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${amiri.variable} ${amiriQuran.variable} ${outfit.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        {/* Apply the stored (or system) theme before first paint — no light flash at night. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var r=document.documentElement;" +
+              "var t=localStorage.getItem('theme')||'system';" +
+              "var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);" +
+              "r.classList.toggle('dark',d);" +
+              // Experience + view mode also drive theme tokens, so they must land
+              // before first paint too or Kids/Easy Read flash the default palette.
+              "var s=JSON.parse(localStorage.getItem('al-tarteel-settings')||'{}').state||{};" +
+              "var e=s.experienceMode||'default';" +
+              // Mirrors isQuranReaderPath(): /surah/*, /juz/* and bare surah
+              // slugs read as reader routes. Any single unknown segment is a
+              // surah slug; ThemeProvider re-checks properly after hydration.
+              "var p=location.pathname,seg=p.split('/').filter(Boolean);" +
+              "var known=['search','surahs','bookmarks','settings','profile','my-quran','donate'," +
+              "'feedback','articles','hifz','tajweed','learning-plans','quran-in-year','reading-goal'," +
+              "'login','register','forgot-password','reset-password'];" +
+              "if(p.indexOf('/surah/')===0||p.indexOf('/juz/')===0||" +
+              "(seg.length===1&&known.indexOf(seg[0])<0&&seg[0].indexOf('.')<0))e='default';" +
+              "r.classList.add('experience-'+e);" +
+              "r.classList.add('view-mode-'+(s.readerViewMode||'verse'));" +
+              "if(s.uiLocale){r.lang=s.uiLocale;" +
+              // keep in sync with RTL_LOCALES in lib/i18n/messages.ts
+              "r.dir=['ar','fa','ur','ps'].indexOf(s.uiLocale)>-1?'rtl':'ltr';}" +
+              "}catch(e){}})();",
+          }}
+        />
+      </head>
+      <body className={`${amiri.variable} ${amiriQuran.variable} ${figtree.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
         <TajweedStyles />
         <ThemeProvider>
@@ -145,12 +177,13 @@ export default function RootLayout({
             <AudioPlayerProvider>
               <VoiceSearchProvider>
                 <ScrollToCurrentAyah />
+                <ScrollToHashAyah />
                 <div className="relative flex min-h-screen flex-col">
                   {children}
                 </div>
                 <AudioBar />
+                <BackToTopButton />
                 <AskAiFab />
-                <VoiceSearchButton variant="fab" className="sm:hidden" />
                 <GlobalVoiceSearch />
               </VoiceSearchProvider>
             </AudioPlayerProvider>

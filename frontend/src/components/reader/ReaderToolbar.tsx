@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Languages, List, Palette, Settings, Type } from 'lucide-react';
+import { BookOpen, List, Settings } from 'lucide-react';
 import { useSettingsStore, type ReaderViewMode } from '@/stores/settingsStore';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
-import { TajweedToggle } from '@/components/tajweed/TajweedToggle';
 import { TajweedLegend } from '@/components/tajweed/TajweedLegend';
 import { TajweedRulePopover } from '@/components/tajweed/TajweedRulePopover';
 import type { TajweedRule } from '@/lib/tajweed/rules';
@@ -18,46 +17,26 @@ interface Props {
 
 const MODES: { id: ReaderViewMode; label: string; Icon: typeof List }[] = [
   { id: 'verse', label: 'Verse by Verse', Icon: List },
-  { id: 'arabic', label: 'Arabic', Icon: Type },
-  { id: 'translation', label: 'Translation', Icon: Languages },
+  { id: 'arabic', label: 'Reading', Icon: BookOpen },
 ];
 
 export function ReaderToolbar(_props: Props) {
   const readerViewMode = useSettingsStore((state) => state.readerViewMode);
   const setReaderViewMode = useSettingsStore((state) => state.setReaderViewMode);
-  const showTajweedRules = useSettingsStore((state) => state.showTajweedRules);
-  const setShowTajweedRules = useSettingsStore((state) => state.setShowTajweedRules);
-  const setMushafType = useSettingsStore((state) => state.setMushafType);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
   const [ruleDetail, setRuleDetail] = useState<TajweedRule | null>(null);
 
   return (
     <>
-      <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 sm:gap-2">
-        <TajweedToggle
-          enabled={showTajweedRules}
-          onChange={(on) => {
-            setShowTajweedRules(on);
-            if (on) setMushafType('simple');
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => setLegendOpen(true)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:border-[var(--accent)] hover:text-[var(--accent)] sm:px-3 sm:text-sm"
-          aria-label="Open Tajweed guide"
-        >
-          <Palette className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Guide</span>
-        </button>
+      <div className="flex min-w-0 flex-nowrap items-center justify-end gap-3">
         <div
-          className="flex max-w-[min(100vw-8rem,28rem)] flex-wrap justify-end rounded-full bg-slate-100 p-1"
+          className="flex shrink-0 flex-nowrap items-center rounded-lg bg-surface-2 p-0.5"
           role="tablist"
           aria-label="Reading view"
         >
           {MODES.map(({ id, label, Icon }) => {
-            const active = readerViewMode === id;
+            const active = id === 'verse' ? readerViewMode === 'verse' : readerViewMode !== 'verse';
             return (
               <button
                 key={id}
@@ -66,14 +45,15 @@ export function ReaderToolbar(_props: Props) {
                 aria-selected={active}
                 onClick={() => setReaderViewMode(id)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full px-2 py-1.5 text-xs font-medium transition-colors sm:px-3',
+                  'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-all sm:px-3',
                   active
-                    ? 'bg-[var(--recite-highlight)]/15 text-[var(--recite-highlight)] shadow-sm'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-surface font-semibold text-ink shadow-xs'
+                    : 'font-medium text-ink-muted hover:text-ink'
                 )}
               >
-                <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                <span className="hidden md:inline">{label}</span>
+                <Icon className="h-3.5 w-3.5 shrink-0 text-ink-3" aria-hidden />
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sr-only sm:hidden">{label}</span>
               </button>
             );
           })}
@@ -81,7 +61,7 @@ export function ReaderToolbar(_props: Props) {
         <button
           type="button"
           onClick={() => setSettingsOpen(true)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--recite-highlight)] hover:bg-[var(--recite-highlight)]/10"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand hover:bg-brand/10 transition-colors"
           aria-label="Reader settings"
         >
           <Settings className="h-5 w-5" />

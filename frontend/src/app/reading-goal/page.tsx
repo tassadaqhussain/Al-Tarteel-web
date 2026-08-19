@@ -66,15 +66,15 @@ export default function ReadingGoalPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f7f7f7] text-slate-800">
+    <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-4 py-10 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:py-16">
         <div className="lg:sticky lg:top-28 lg:w-[42%] lg:shrink-0">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
+          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
             Pick a preset goal or create your own
           </h1>
-          <p className="mt-4 max-w-md text-base text-slate-500 sm:text-lg">
+          <p className="mt-4 max-w-md text-base text-ink-muted sm:text-lg">
             Here is a list of common goals. You can also create your own goal.
           </p>
         </div>
@@ -89,26 +89,26 @@ export default function ReadingGoalPage() {
                 type="button"
                 onClick={() => setSelected(goal.id)}
                 className={cn(
-                  'relative flex w-full items-start gap-4 rounded-2xl border bg-white px-5 py-5 text-left transition',
+                  'relative flex w-full items-start gap-4 rounded-2xl border bg-surface px-5 py-5 text-left transition',
                   active
                     ? 'border-[var(--accent)] shadow-sm ring-1 ring-[var(--accent)]/30'
-                    : 'border-slate-200 hover:border-[var(--accent)]/60'
+                    : 'border-line hover:border-[var(--accent)]/60'
                 )}
               >
                 <div
                   className={cn(
                     'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
-                    active ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-slate-50 text-slate-600'
+                    active ? 'bg-[var(--accent)]/10 text-[var(--accent)]' : 'bg-surface-2 text-ink-3'
                   )}
                 >
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1 pr-16">
-                  <p className="font-semibold text-slate-900">{goal.title}</p>
-                  <p className="mt-1 text-sm text-slate-500">{goal.description}</p>
+                  <p className="font-semibold text-ink">{goal.title}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{goal.description}</p>
                 </div>
                 {goal.recommended && (
-                  <span className="absolute right-4 top-4 rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-white">
+                  <span className="absolute right-4 top-4 rounded-full bg-[var(--accent)] px-2.5 py-1 text-[11px] font-semibold text-brand-contrast">
                     Recommended
                   </span>
                 )}
@@ -124,8 +124,8 @@ export default function ReadingGoalPage() {
               className={cn(
                 'inline-flex items-center gap-1 rounded-xl px-5 py-3 text-sm font-semibold transition',
                 selected
-                  ? 'bg-slate-900 text-white hover:bg-slate-800'
-                  : 'cursor-not-allowed bg-slate-100 text-slate-400'
+                  ? 'bg-ink text-surface hover:bg-ink-2'
+                  : 'cursor-not-allowed bg-surface-3 text-ink-faint'
               )}
             >
               Next
@@ -134,9 +134,9 @@ export default function ReadingGoalPage() {
           </div>
 
           {existing && (
-            <p className="text-center text-sm text-slate-500">
+            <p className="text-center text-sm text-ink-muted">
               Current goal:{' '}
-              <span className="font-medium text-slate-700">{existing.title}</span>
+              <span className="font-medium text-ink-2">{existing.title}</span>
               {' · '}
               <Link href="/" className="text-[var(--accent)] hover:underline">
                 Back home

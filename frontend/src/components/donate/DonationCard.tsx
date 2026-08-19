@@ -136,27 +136,27 @@ export function DonationCard() {
 
   return (
     <div className="w-full max-w-[26rem]">
-      <div className="overflow-hidden rounded-[1.35rem] bg-white shadow-[0_12px_40px_rgba(15,23,42,0.1)]">
+      <div className="overflow-hidden rounded-[1.35rem] bg-surface shadow-[0_12px_40px_rgba(15,23,42,0.1)]">
         <div className="px-6 pb-2 pt-7 sm:px-8 sm:pt-8">
-          <h1 className="text-center text-[1.35rem] font-bold leading-snug tracking-tight text-slate-900 sm:text-[1.5rem]">
+          <h1 className="text-center text-[1.35rem] font-bold leading-snug tracking-tight text-ink sm:text-[1.5rem]">
             Help Millions Connect with the Quran
           </h1>
 
           {(config.demoMode || !config.configured) && (
-            <p className="mt-3 rounded-full bg-amber-50 px-3 py-1.5 text-center text-xs font-semibold text-amber-800">
+            <p className="mt-3 rounded-full bg-warning-surface px-3 py-1.5 text-center text-xs font-semibold text-warning">
               Demo mode — add Stripe keys to enable live payments
             </p>
           )}
 
           {canceled && (
-            <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-center text-sm text-amber-800">
+            <p className="mt-4 rounded-xl bg-warning-surface px-3 py-2 text-center text-sm text-warning">
               Checkout canceled — you can try again anytime.
             </p>
           )}
 
           {/* Give once / Recurring — QF segmented control */}
           <div
-            className="mt-6 grid grid-cols-2 gap-1 rounded-full bg-[#f3f4f6] p-1"
+            className="mt-6 grid grid-cols-2 gap-1 rounded-full bg-surface-2 p-1"
             role="tablist"
             aria-label="Donation type"
           >
@@ -168,8 +168,8 @@ export function DonationCard() {
               className={cn(
                 'rounded-full py-2.5 text-sm font-semibold transition',
                 mode === 'once'
-                  ? 'bg-[var(--accent)] text-white outline outline-2 outline-dashed outline-[var(--accent)] outline-offset-1'
-                  : 'bg-transparent text-slate-800 hover:bg-white/60'
+                  ? 'bg-[var(--accent)] text-brand-contrast outline outline-2 outline-dashed outline-[var(--accent)] outline-offset-1'
+                  : 'bg-transparent text-ink hover:bg-surface/60'
               )}
             >
               Give once
@@ -182,8 +182,8 @@ export function DonationCard() {
               className={cn(
                 'inline-flex items-center justify-center gap-1.5 rounded-full py-2.5 text-sm font-semibold transition',
                 mode === 'recurring'
-                  ? 'bg-[var(--accent)] text-white outline outline-2 outline-dashed outline-[var(--accent)] outline-offset-1'
-                  : 'bg-transparent text-slate-800 hover:bg-white/60'
+                  ? 'bg-[var(--accent)] text-brand-contrast outline outline-2 outline-dashed outline-[var(--accent)] outline-offset-1'
+                  : 'bg-transparent text-ink hover:bg-surface/60'
               )}
             >
               Recurring
@@ -196,14 +196,14 @@ export function DonationCard() {
             </button>
           </div>
 
-          <p className="mt-5 text-center text-sm text-slate-600">
+          <p className="mt-5 text-center text-sm text-ink-3">
             Choose an amount to donate{' '}
-            <span className="font-bold text-slate-900">{amountHint}</span>
+            <span className="font-bold text-ink">{amountHint}</span>
           </p>
 
           {mode === 'recurring' && (
             <div className="mt-4">
-              <label htmlFor="donate-frequency" className="mb-1.5 block text-sm font-medium text-slate-700">
+              <label htmlFor="donate-frequency" className="mb-1.5 block text-sm font-medium text-ink-2">
                 Frequency
               </label>
               <div className="relative">
@@ -211,7 +211,7 @@ export function DonationCard() {
                   id="donate-frequency"
                   value={interval}
                   onChange={(e) => setInterval(e.target.value as Interval)}
-                  className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+                  className="w-full appearance-none rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium text-ink outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
                 >
                   {config.intervals.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -219,7 +219,7 @@ export function DonationCard() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
               </div>
             </div>
           )}
@@ -235,8 +235,8 @@ export function DonationCard() {
                   className={cn(
                     'rounded-xl border px-2 py-3.5 text-sm font-semibold transition sm:px-3',
                     selected
-                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
-                      : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
+                      : 'border-line bg-surface text-ink hover:border-line-strong'
                   )}
                 >
                   {formatPreset(value, currency)}
@@ -246,15 +246,15 @@ export function DonationCard() {
           </div>
 
           {/* Custom amount — currency left, amount right */}
-          <div className="mt-3 flex min-h-[4.25rem] items-stretch overflow-hidden rounded-xl border border-slate-200 focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/15">
-            <div className="flex w-[5.5rem] flex-col justify-center border-r border-slate-100 bg-white px-3 py-2">
-              <span className="text-sm font-semibold text-slate-800">{currency.toUpperCase()}</span>
+          <div className="mt-3 flex min-h-[4.25rem] items-stretch overflow-hidden rounded-xl border border-line focus-within:border-[var(--accent)] focus-within:ring-2 focus-within:ring-[var(--accent)]/15">
+            <div className="flex w-[5.5rem] flex-col justify-center border-r border-line-subtle bg-surface px-3 py-2">
+              <span className="text-sm font-semibold text-ink">{currency.toUpperCase()}</span>
               <div className="relative mt-0.5">
                 <select
                   aria-label="Currency"
                   value={currency}
                   onChange={(e) => onCurrencyChange(e.target.value as DonationCurrency)}
-                  className="w-full appearance-none bg-transparent pr-4 text-[11px] font-medium text-slate-500 outline-none"
+                  className="w-full appearance-none bg-transparent pr-4 text-[11px] font-medium text-ink-muted outline-none"
                 >
                   {config.currencies.map((code) => (
                     <option key={code} value={code}>
@@ -262,7 +262,7 @@ export function DonationCard() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 text-ink-faint" />
               </div>
             </div>
             <input
@@ -271,23 +271,23 @@ export function DonationCard() {
               value={customDraft}
               onChange={(e) => onCustomChange(e.target.value)}
               onBlur={() => setCustomDraft(amount > 0 ? amount.toLocaleString() : '')}
-              className="min-w-0 flex-1 bg-white px-4 py-3 text-right text-[1.75rem] font-bold tabular-nums leading-none text-slate-900 outline-none"
+              className="min-w-0 flex-1 bg-surface px-4 py-3 text-right text-[1.75rem] font-bold tabular-nums leading-none text-ink outline-none"
               aria-label="Custom amount"
             />
           </div>
 
-          <label className="mt-5 flex cursor-pointer items-center gap-2.5 text-sm text-slate-800">
+          <label className="mt-5 flex cursor-pointer items-center gap-2.5 text-sm text-ink">
             <input
               type="checkbox"
               checked={dedicate}
               onChange={(e) => setDedicate(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-[var(--accent)] focus:ring-[var(--accent)]"
+              className="h-4 w-4 rounded border-line-strong text-[var(--accent)] focus:ring-[var(--accent)]"
             />
             <span className="inline-flex items-center gap-1.5 font-medium">
               Dedicate my donation
               <span className="group relative">
-                <Info className="h-3.5 w-3.5 text-slate-400" aria-hidden />
-                <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-lg bg-slate-900 px-2.5 py-1.5 text-center text-[11px] font-normal text-white shadow-lg group-hover:block">
+                <Info className="h-3.5 w-3.5 text-ink-faint" aria-hidden />
+                <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-48 -translate-x-1/2 rounded-lg bg-tooltip px-2.5 py-1.5 text-center text-[11px] font-normal text-tooltip-ink shadow-lg group-hover:block">
                   Optionally name someone this gift honors. Shown only on our records.
                 </span>
               </span>
@@ -301,12 +301,12 @@ export function DonationCard() {
               onChange={(e) => setDedicationName(e.target.value)}
               placeholder="In honor / memory of…"
               maxLength={120}
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+              className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
             />
           )}
 
           {error && (
-            <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+            <p className="mt-4 rounded-xl bg-danger-surface px-3 py-2 text-sm text-danger" role="alert">
               {error}
             </p>
           )}
@@ -317,14 +317,14 @@ export function DonationCard() {
           <button
             type="button"
             onClick={handleDonate}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-white transition hover:bg-[var(--accent)]/90"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3.5 text-base font-bold text-brand-contrast transition hover:bg-[var(--accent)]/90"
           >
             {ctaLabel}
           </button>
         </div>
       </div>
 
-      <p className="mt-5 px-4 text-center text-xs leading-relaxed text-slate-500">
+      <p className="mt-5 px-4 text-center text-xs leading-relaxed text-ink-muted">
         QuranPilot is building free access to the Quran for everyone. Secure payments by Stripe —
         card details never touch our servers.
       </p>

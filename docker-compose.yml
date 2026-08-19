@@ -31,6 +31,18 @@ services:
       timeout: 3s
       retries: 5
 
+  tts:
+    build:
+      context: ./services/tts
+      dockerfile: Dockerfile
+    # Not published on the host: only the API talks to it.
+    expose:
+      - "5062"
+    environment:
+      VOICE_DIR: /voices
+      PORT: 5062
+    restart: unless-stopped
+
   api:
     build:
       context: ./backend
@@ -51,9 +63,15 @@ services:
       # Stripe is loaded from backend/.env (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET)
       AUDIO_STORAGE_PATH: /app/storage/audio
       AUDIO_PUBLIC_BASE_URL: http://localhost:4010/api/v1/audio/files
+      # Local speech synthesis for languages the browser has no voice for.
+      TTS_URL: http://tts:5062
+      TTS_CACHE_PATH: /app/storage/tts
     volumes:
       - ./backend/storage/audio:/app/storage/audio:ro
+      - ./backend/storage/tts:/app/storage/tts
     depends_on:
+      tts:
+        condition: service_started
       postgres:
         condition: service_healthy
       redis:

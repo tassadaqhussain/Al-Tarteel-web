@@ -3,19 +3,20 @@
 import Link from 'next/link';
 import { ArticleCard } from '@/components/articles/ArticleCard';
 import { getDailyFeaturedArticles } from '@/lib/articles';
+import { SITE_SHELL } from '@/components/layout/MainContainer';
 
 export function StartLearning() {
   const articles = getDailyFeaturedArticles(3);
 
   return (
-    <section className="w-full bg-[#f4fbf9]/30 px-4 py-16 md:px-6">
-      <div className="mx-auto max-w-[1200px]">
+    <section className="w-full bg-brand/[0.02] py-16 2xl:py-20">
+      <div className={SITE_SHELL}>
         <div className="mb-10 flex flex-col items-center justify-between gap-3 text-center lg:flex-row lg:text-left">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
             Learn Quran and Islam <br className="sm:hidden" />
-            <span className="text-emerald-800">basics everyday.</span>
+            <span className="text-brand">basics everyday.</span>
           </h2>
-          <p className="max-w-md text-sm text-slate-500 lg:text-right">
+          <p className="max-w-md text-sm text-ink-muted lg:text-right">
             New featured reads rotate daily from our growing library of Islam &amp; Quran guides.
           </p>
         </div>
@@ -26,6 +27,7 @@ export function StartLearning() {
               key={article.slug}
               article={article}
               badge={index === 0 ? 'New today' : undefined}
+              priority={false}
             />
           ))}
         </div>

@@ -10,6 +10,7 @@ import { useDailyMotivationStore } from '@/stores/dailyMotivationStore';
 import { cn } from '@/lib/utils';
 
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
+import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 
 export { SURAH_PAGE_SIZE };
 
@@ -48,6 +49,9 @@ export function SurahAyahFeed({
   const isPlaying = useAudioStore((s) => s.isPlaying);
   const current = useAudioStore((s) => s.playlist[s.currentIndex] ?? null);
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
+  const translationSlugs = useSettingsStore((s) => s.translationSlugs);
+  const requestedTranslations =
+    translationSlugs.length > 0 ? translationSlugs.join(',') : translations || DEFAULT_TRANSLATION;
 
   useEffect(() => {
     setAyahs(initialAyahs);
@@ -56,6 +60,42 @@ export function SurahAyahFeed({
     ayahsRef.current = initialAyahs;
     setError(null);
   }, [initialAyahs, initialPage, surahNumber, translations]);
+
+  useEffect(() => {
+    // The page is rendered statically with the DEFAULT translation so crawlers
+    // get cacheable HTML; the reader's own selection lives in cookie + settings.
+    // Refetch whenever the selection differs from what the server rendered —
+    // checking only for missing text meant extra translations never loaded.
+    const missing = initialAyahs.some((ayah) => !ayah.translations?.some((item) => item.text?.trim()));
+    const ssrTranslations = translations || DEFAULT_TRANSLATION;
+    const differsFromSsr = requestedTranslations !== ssrTranslations;
+    if (!missing && !differsFromSsr) return;
+    let cancelled = false;
+    void quranApi
+      .ayahsBySurah(surahNumber, {
+        page: initialPage,
+        limit: SURAH_PAGE_SIZE,
+        translations: requestedTranslations,
+        words: true,
+      })
+      .then((batch) => {
+        if (cancelled || !Array.isArray(batch) || !batch.length) return;
+        setAyahs((prev) => {
+          if (prev.length > batch.length) {
+            const byId = new Map(batch.map((ayah) => [ayah.id, ayah]));
+            return prev.map((ayah) => byId.get(ayah.id) ?? ayah);
+          }
+          ayahsRef.current = batch;
+          return batch;
+        });
+      })
+      .catch(() => {
+        /* keep SSR ayahs */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialAyahs, initialPage, requestedTranslations, surahNumber, translations]);
 
   useEffect(() => {
     pageRef.current = page;
@@ -99,7 +139,7 @@ export function SurahAyahFeed({
           const batch = await quranApi.ayahsBySurah(surahNumber, {
             page: p,
             limit: SURAH_PAGE_SIZE,
-            translations,
+            translations: requestedTranslations,
             words: true,
           });
           const list = Array.isArray(batch) ? batch : [];
@@ -125,7 +165,7 @@ export function SurahAyahFeed({
         setLoading(false);
       }
     },
-    [surahNumber, syncUrlPage, totalPages, translations]
+    [surahNumber, syncUrlPage, totalPages, requestedTranslations]
   );
 
   const loadNext = useCallback(() => {
@@ -202,11 +242,11 @@ export function SurahAyahFeed({
       <div
         ref={feedRef}
         className={cn(
-          readerViewMode === 'verse' && 'divide-y divide-slate-200 border-t border-slate-200',
+          readerViewMode === 'verse' && 'bg-surface',
           readerViewMode === 'arabic' &&
-            'arabic-mushaf-feed rounded-2xl bg-white px-3 py-8 text-center shadow-sm sm:px-8 sm:py-10',
+            'arabic-mushaf-feed bg-surface px-3 py-8 text-center sm:px-8 sm:py-10',
           readerViewMode === 'translation' &&
-            'space-y-1 rounded-2xl bg-white px-3 py-4 shadow-sm sm:px-6'
+            'space-y-1 bg-surface px-3 py-4 sm:px-6'
         )}
       >
         {ayahs.map((ayah) => (
@@ -223,19 +263,19 @@ export function SurahAyahFeed({
       {hasMore && (
         <div ref={sentinelRef} className="flex flex-col items-center gap-2 py-10" aria-live="polite">
           {loading ? (
-            <span className="inline-flex items-center gap-2 text-sm text-slate-500">
+            <span className="inline-flex items-center gap-2 text-sm text-ink-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Loading more verses…
             </span>
           ) : (
             <button
               type="button"
               onClick={loadNext}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              className="rounded-[4px] border border-line bg-surface px-4 py-2 text-sm text-ink-2 hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
               Load more verses
             </button>
           )}
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
         </div>
       )}
 

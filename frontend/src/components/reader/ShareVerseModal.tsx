@@ -189,21 +189,21 @@ export function ShareVerseModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-0 bg-white p-0 shadow-2xl sm:rounded-2xl">
+      <DialogContent className="max-w-lg border-0 bg-surface p-0 shadow-2xl sm:rounded-2xl">
         <div className="relative px-6 pb-8 pt-7 sm:px-8">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            className="absolute right-4 top-4 rounded-full p-2 text-ink-faint transition-colors hover:bg-surface-3 hover:text-ink-2"
             aria-label="Close share dialog"
           >
             <X className="h-5 w-5" />
           </button>
 
-          <DialogTitle className="pr-10 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          <DialogTitle className="pr-10 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
             Share the Quran!
           </DialogTitle>
-          <DialogDescription className="mt-4 max-w-md text-base leading-relaxed text-slate-600">
+          <DialogDescription className="mt-4 max-w-md text-base leading-relaxed text-ink-3">
             The Prophet ﷺ said: &ldquo;Convey from me, even if it is one verse.&rdquo; (Bukhari 3461)
           </DialogDescription>
 
@@ -215,10 +215,10 @@ export function ShareVerseModal({
                 onClick={action.onClick}
                 className="group flex flex-col items-center gap-2 text-center"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white transition-transform group-hover:scale-105 group-hover:bg-slate-800">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-surface transition-transform group-hover:scale-105 group-hover:bg-ink-2">
                   {action.icon}
                 </span>
-                <span className="text-xs font-medium leading-tight text-slate-700">{action.label}</span>
+                <span className="text-xs font-medium leading-tight text-ink-2">{action.label}</span>
               </button>
             ))}
           </div>
@@ -235,7 +235,7 @@ export function ShareVerseModal({
             >
               {copied === 'image' ? <Check className="h-7 w-7" /> : <ImageIcon className="h-7 w-7" />}
             </button>
-            <p className="mt-3 text-sm font-semibold text-slate-800">
+            <p className="mt-3 text-sm font-semibold text-ink">
               {copied === 'image' ? 'Image ready' : 'Copy/Download Image'}
             </p>
           </div>

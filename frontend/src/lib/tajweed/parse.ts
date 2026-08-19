@@ -59,8 +59,14 @@ export function parseTajweedHtml(html: string): TajweedToken[] {
     }
     const attrs = match[1] ?? '';
     const inner = decodeEntities(stripAllTags(match[2] ?? ''));
-    const classMatch = /\bclass\s*=\s*["']([^"']+)["']/i.exec(attrs);
-    const classNames = (classMatch?.[1] ?? '')
+    // Quran.com serves these attributes UNQUOTED (`<tajweed class=ham_wasl>`),
+    // so a quote-only pattern silently matched nothing and every rule span
+    // degraded to plain text. Accept double, single, and bare values.
+    const classMatch = /\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs);
+    const classValue = classMatch
+      ? (classMatch[1] ?? classMatch[2] ?? classMatch[3] ?? '')
+      : '';
+    const classNames = classValue
       .split(/\s+/)
       .map((c) => c.trim())
       .filter(Boolean);

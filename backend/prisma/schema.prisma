@@ -51,6 +51,7 @@ model Ayah {
   words       Word[]
   translations AyahTranslation[]
   tafsirs     Tafsir[]
+  studySnapshots AyahStudySnapshot[]
   audioFiles  AudioFile[]
   bookmarks   Bookmark[]
   readingHistory ReadingHistory[]
@@ -143,6 +144,8 @@ model TafsirSource {
   languageCode String @map("language_code") @db.VarChar(10)
   slug        String @unique @db.VarChar(100)
   author      String? @db.VarChar(255)
+  /** Quran.com / Quran Foundation resource id (used by the reader UI). */
+  externalId  Int?   @unique @map("external_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -167,6 +170,25 @@ model Tafsir {
   @@index([ayahId])
   @@index([sourceId])
   @@map("tafsirs")
+}
+
+// Snapshot of verse study panels (Hadith, Quran Reflect lessons, Q&A) so the
+// reader can serve them from our database instead of Quran Foundation at read time.
+model AyahStudySnapshot {
+  id         Int      @id @default(autoincrement())
+  ayahId     Int      @map("ayah_id")
+  kind       String   @db.VarChar(20) // hadith | lesson | related
+  language   String   @db.VarChar(16) // en, ar, or lesson language id as string
+  payload    Json
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  ayah       Ayah     @relation(fields: [ayahId], references: [id], onDelete: Cascade)
+
+  @@unique([ayahId, kind, language])
+  @@index([ayahId])
+  @@index([kind, language])
+  @@map("ayah_study_snapshots")
 }
 
 // ——— Audio ———

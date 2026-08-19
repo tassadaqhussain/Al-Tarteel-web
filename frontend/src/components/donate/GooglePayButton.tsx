@@ -280,7 +280,7 @@ export function GooglePayButton({
         type="button"
         disabled={loading}
         onClick={onClick}
-        className="flex h-12 w-full items-center justify-center gap-2.5 rounded-full bg-[var(--accent)] text-sm font-semibold text-white transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
+        className="flex h-12 w-full items-center justify-center gap-2.5 rounded-full bg-[var(--accent)] text-sm font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
         aria-label="Donate with Google Pay"
       >
         {loading ? (
@@ -298,7 +298,7 @@ export function GooglePayButton({
         )}
       </button>
       {error && (
-        <p className="text-center text-xs text-red-600" role="alert">
+        <p className="text-center text-xs text-danger" role="alert">
           {error}
         </p>
       )}

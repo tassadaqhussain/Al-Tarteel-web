@@ -31,21 +31,21 @@ export function Breadcrumbs({ items, className, withJsonLd = true }: Breadcrumbs
   return (
     <>
       {withJsonLd && schemaItems.length > 0 && <JsonLd data={breadcrumbJsonLd(schemaItems)} />}
-      <nav aria-label="Breadcrumb" className={cn('mb-3 text-xs text-slate-500', className)}>
+      <nav aria-label="Breadcrumb" className={cn('mb-3 text-xs text-ink-muted', className)}>
         <ol className="flex flex-wrap items-center gap-1">
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
             return (
               <li key={`${item.name}-${index}`} className="flex items-center gap-1">
                 {index > 0 && (
-                  <ChevronRight className="h-3 w-3 shrink-0 text-slate-300" aria-hidden />
+                  <ChevronRight className="h-3 w-3 shrink-0 text-ink-faint" aria-hidden />
                 )}
                 {isLast || !item.path ? (
-                  <span className="font-medium text-slate-700" aria-current={isLast ? 'page' : undefined}>
+                  <span className="font-medium text-ink-2" aria-current={isLast ? 'page' : undefined}>
                     {item.name}
                   </span>
                 ) : (
-                  <Link href={item.path} className="hover:text-emerald-800">
+                  <Link href={item.path} className="hover:text-brand">
                     {item.name}
                   </Link>
                 )}

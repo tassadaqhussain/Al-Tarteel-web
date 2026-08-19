@@ -1,5 +1,6 @@
 # Production stack — app ports bound to localhost; Nginx terminates TLS.
-# Deploy via: sudo bash scripts/deploy-production.sh
+# Deploy via: sudo bash scripts/deploy-production.sh -y
+# Start/redeploy: sudo bash scripts/run-production.sh -y
 #
 # Manual (loads deploy/production.env automatically):
 #   sudo bash scripts/sync-public-env.sh

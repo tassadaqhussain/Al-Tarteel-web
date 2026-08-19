@@ -15,6 +15,7 @@ const VOICE_COMMAND_TYPES = new Set<VoiceIntentType>([
   'PLAYER_COMMAND',
   'TRANSLATION_COMMAND',
   'BOOKMARK_COMMAND',
+  'QURAN_SEARCH',
 ]);
 
 export interface LowConfidenceData {
@@ -114,7 +115,7 @@ export function VoiceSearchProvider({ children }: { children: React.ReactNode })
         return;
       }
 
-      // Not a discrete command (search / unknown / low confidence) → Ask AI.
+      // Unknown or low-confidence speech can still be explored with Ask AI.
       openAskAi(parsed.searchQuery || parsed.query || text);
     },
     [router, closeOverlay]

@@ -27,8 +27,8 @@ export function MyProgress({ currentWeek }: { currentWeek: number }) {
     <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">My Progress</h2>
-          <p className="mt-2 text-sm text-slate-600 sm:text-base">
+          <h2 className="text-2xl font-bold text-ink sm:text-3xl">My Progress</h2>
+          <p className="mt-2 text-sm text-ink-3 sm:text-base">
             Feel free to go back and complete the weeks that you&apos;ve missed!
           </p>
           {tracking && (
@@ -40,36 +40,36 @@ export function MyProgress({ currentWeek }: { currentWeek: number }) {
         <button
           type="button"
           onClick={() => setTracking(!tracking)}
-          className="shrink-0 text-sm font-medium text-slate-700 underline underline-offset-4 transition hover:text-[var(--accent)]"
+          className="shrink-0 text-sm font-medium text-ink-2 underline underline-offset-4 transition hover:text-[var(--accent)]"
         >
           {tracking ? 'Stop tracking' : 'Start tracking'}
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
         {groups.map((group) => {
           const open = openId === group.id;
           return (
-            <div key={group.id} className="border-b border-slate-200 last:border-b-0">
+            <div key={group.id} className="border-b border-line last:border-b-0">
               <button
                 type="button"
                 onClick={() => setOpenId(open ? null : group.id)}
                 className={cn(
                   'flex w-full items-center justify-between px-5 py-4 text-left transition',
-                  open ? 'bg-slate-100' : 'bg-white hover:bg-slate-50'
+                  open ? 'bg-surface-3' : 'bg-surface hover:bg-surface-2'
                 )}
               >
-                <span className="text-base font-bold text-slate-800">{group.label}</span>
+                <span className="text-base font-bold text-ink">{group.label}</span>
                 <ChevronDown
                   className={cn(
-                    'h-5 w-5 text-slate-400 transition-transform',
+                    'h-5 w-5 text-ink-faint transition-transform',
                     open && 'rotate-180'
                   )}
                 />
               </button>
 
               {open && (
-                <div className="bg-white px-5 pb-5 pt-1">
+                <div className="bg-surface px-5 pb-5 pt-1">
                   <GroupWeeks
                     weeks={group.weeks}
                     currentWeek={currentWeek}
@@ -113,12 +113,12 @@ function GroupWeeks({
         return (
           <div key={week.week}>
             {showMonth && (
-              <p className="mb-2 mt-3 text-sm text-slate-500 first:mt-1">
+              <p className="mb-2 mt-3 text-sm text-ink-muted first:mt-1">
                 ({getHijriMonthName(week.hijriMonth)})
               </p>
             )}
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 pl-1 sm:pl-3">
-              <span className="text-sm font-bold text-slate-800">Week {week.week}:</span>
+              <span className="text-sm font-bold text-ink">Week {week.week}:</span>
               <Link
                 href={weekReadingHref(week)}
                 className="text-sm font-medium text-[var(--accent)] underline underline-offset-2 transition hover:text-[var(--accent)]"
@@ -126,7 +126,7 @@ function GroupWeeks({
                 {formatWeekReadingLabel(week)}
               </Link>
               {isCurrent && (
-                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                <span className="rounded-full bg-warning-surface px-2.5 py-0.5 text-xs font-semibold text-warning">
                   Current
                 </span>
               )}
@@ -138,7 +138,7 @@ function GroupWeeks({
                     'rounded-full px-2.5 py-0.5 text-xs font-semibold transition',
                     isDone
                       ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      : 'bg-surface-3 text-ink-muted hover:bg-line'
                   )}
                 >
                   {isDone ? 'Complete' : 'Mark done'}

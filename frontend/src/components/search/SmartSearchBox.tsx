@@ -2,17 +2,17 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookMarked, Hash, Search, Sparkles, X } from 'lucide-react';
+import { BookMarked, Hash, Search, X } from 'lucide-react';
 import {
   correctSearchQuery,
   getSearchSuggestions,
   type SearchSuggestion,
 } from '@/lib/search-intelligence';
-import { getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
 import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
+import { resolveDirectSearchHref } from '@/lib/search-navigation';
 
 const SUGGEST_MIN_CHARS = 3;
 
@@ -71,18 +71,22 @@ export function SmartSearchBox({
     if (!typed) return;
     setSuggestOpen(false);
 
-    // Try unified intent parser first
+    // Try structured Quran/navigation intents first, but keep generic searches
+    // available for direct typed resolution below.
     const intent = parseVoiceIntent(typed);
-    const executed = executeVoiceCommand({ intent, router });
-    if (executed) return;
+    if (intent.type !== 'QURAN_SEARCH' && intent.type !== 'UNKNOWN') {
+      const executed = executeVoiceCommand({ intent, router });
+      if (executed) return;
+    }
+
+    const directHref = resolveDirectSearchHref(typed);
+    if (directHref) {
+      router.push(directHref);
+      return;
+    }
 
     const correction = correctSearchQuery(typed);
     const q = correction.didCorrect ? correction.corrected : typed;
-    if (correction.bestSurah && correction.reason === 'surah' && correction.didCorrect) {
-      // Strong surah typo → open the chapter directly from home
-      router.push(getSurahPath(correction.bestSurah.number));
-      return;
-    }
     if (onSearchNavigate) {
       onSearchNavigate(q);
       return;
@@ -97,11 +101,7 @@ export function SmartSearchBox({
       return;
     }
     setQuery(s.query);
-    if (onSearchNavigate) {
-      onSearchNavigate(s.query);
-      return;
-    }
-    router.push(`/search?q=${encodeURIComponent(s.query)}`);
+    goSearch(s.query);
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -123,6 +123,10 @@ export function SmartSearchBox({
       }
       if (e.key === 'Enter' && suggestions[activeSuggest]) {
         e.preventDefault();
+        if (resolveDirectSearchHref(query)) {
+          goSearch(query);
+          return;
+        }
         applySuggestion(suggestions[activeSuggest]);
         return;
       }
@@ -146,13 +150,13 @@ export function SmartSearchBox({
           className={cn(
             'relative flex items-center',
             variant === 'hero'
-              ? 'overflow-visible rounded-full border border-slate-200 bg-white/90 p-1.5 shadow-md backdrop-blur-sm focus-within:border-emerald-800/40 focus-within:ring-4 focus-within:ring-emerald-800/5'
-              : 'rounded-full border border-slate-200 bg-white px-4 py-3 shadow-sm focus-within:border-[var(--accent)]',
+              ? 'overflow-visible rounded-[1.75rem] border border-line bg-surface/90 p-1.5 shadow-md backdrop-blur-sm focus-within:border-emerald-800/40 focus-within:ring-4 focus-within:ring-emerald-800/5 sm:rounded-full'
+              : 'rounded-full border border-line bg-surface px-4 py-3 shadow-sm focus-within:border-[var(--accent)]',
           )}
         >
           <Search
             className={cn(
-              'shrink-0 text-emerald-800',
+              'shrink-0 text-brand',
               variant === 'hero' ? 'ml-4 h-5 w-5' : 'h-5 w-5',
             )}
           />
@@ -162,7 +166,7 @@ export function SmartSearchBox({
             autoFocus={autoFocus}
             placeholder={placeholder}
             className={cn(
-              'min-w-0 flex-1 bg-transparent text-slate-800 placeholder-slate-400 outline-none',
+              'min-w-0 flex-1 bg-transparent text-ink placeholder-ink-faint outline-none',
               variant === 'hero' ? 'px-3 py-2.5' : 'px-3',
             )}
             value={query}
@@ -185,7 +189,7 @@ export function SmartSearchBox({
                 setSuggestOpen(false);
                 inputRef.current?.focus();
               }}
-              className="mr-1 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              className="mr-1 rounded-full p-1.5 text-ink-faint hover:bg-surface-3 hover:text-ink-2"
               aria-label="Clear"
             >
               <X className="h-4 w-4" />
@@ -195,9 +199,10 @@ export function SmartSearchBox({
           {variant === 'hero' && (
             <button
               type="submit"
-              className="rounded-full bg-emerald-800 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-900"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-sm font-semibold text-white transition hover:bg-emerald-900 sm:w-auto sm:px-6 sm:py-2.5"
             >
-              {searchButtonLabel}
+              <Search className="h-4 w-4 sm:hidden" aria-hidden />
+              <span className="sr-only sm:not-sr-only">{searchButtonLabel}</span>
             </button>
           )}
         </div>
@@ -206,9 +211,9 @@ export function SmartSearchBox({
       {suggestOpen && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-40 mt-2 max-h-80 w-full overflow-auto rounded-2xl border border-slate-200 bg-white py-2 shadow-xl"
+          className="absolute z-40 mt-2 max-h-80 w-full overflow-auto rounded-2xl border border-line bg-surface py-2 shadow-xl"
         >
-          <li className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <li className="px-4 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-ink-faint">
             Suggestions
           </li>
           {suggestions.map((s, i) => (
@@ -219,17 +224,17 @@ export function SmartSearchBox({
                 onClick={() => applySuggestion(s)}
                 className={cn(
                   'flex w-full items-center gap-3 px-4 py-2.5 text-left transition',
-                  i === activeSuggest ? 'bg-emerald-800/8' : 'hover:bg-slate-50',
+                  i === activeSuggest ? 'bg-emerald-800/8' : 'hover:bg-surface-2',
                 )}
               >
                 <span
                   className={cn(
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
                     s.kind === 'surah'
-                      ? 'bg-emerald-800/10 text-emerald-800'
+                      ? 'bg-emerald-800/10 text-brand'
                       : s.kind === 'topic'
-                        ? 'bg-amber-50 text-amber-700'
-                        : 'bg-slate-100 text-slate-500',
+                        ? 'bg-warning-surface text-warning'
+                        : 'bg-surface-3 text-ink-muted',
                   )}
                 >
                   {s.kind === 'surah' ? (
@@ -237,19 +242,19 @@ export function SmartSearchBox({
                   ) : s.kind === 'topic' ? (
                     <Hash className="h-4 w-4" />
                   ) : (
-                    <Sparkles className="h-4 w-4" />
+                    <Search className="h-4 w-4" />
                   )}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-slate-800">
+                  <span className="block truncate text-sm font-semibold text-ink">
                     {s.label}
                   </span>
                   {s.subtitle && (
-                    <span className="block truncate text-xs text-slate-400">{s.subtitle}</span>
+                    <span className="block truncate text-xs text-ink-faint">{s.subtitle}</span>
                   )}
                 </span>
                 {s.href && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-800">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-brand">
                     Open
                   </span>
                 )}

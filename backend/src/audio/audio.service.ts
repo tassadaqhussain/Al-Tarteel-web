@@ -1,9 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import axios from 'axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { existsSync } from 'node:fs';
+import { mkdir, writeFile, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import {
+  TRANSLATION_RECITERS,
+  getTranslationReciter,
+  translationVerseUrl,
+  translationBaseUrl,
+} from './translation-reciters';
+import { rukuForAyah } from './ruku-map';
 
 const CACHE_TTL = 86400; // 24h for reciters
 
@@ -84,6 +98,23 @@ export class AudioService {
     return `${base}/${this.verseFileName(surahNumber, ayahNumber)}`;
   }
 
+  private translationReciterPayload() {
+    return TRANSLATION_RECITERS.map((reciter) => ({
+      id: -reciter.sortOrder,
+      name: reciter.name,
+      nameArabic: null,
+      slug: reciter.slug,
+      style: reciter.style,
+      languageCode: reciter.languageCode,
+      languageName: reciter.languageName,
+      kind: 'translation' as const,
+      granularity: reciter.granularity ?? 'ayah',
+      baseUrl: translationBaseUrl(reciter),
+      isDefault: false,
+      sortOrder: 1000 + reciter.sortOrder,
+    }));
+  }
+
   private getLocalAyahAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
     const file = this.verseFileName(surahNumber, ayahNumber);
     const storageRoot = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
@@ -92,8 +123,22 @@ export class AudioService {
     return `${publicBase.replace(/\/$/, '')}/${encodeURIComponent(reciterSlug)}/${file}`;
   }
 
+  private getLocalTranslationAudioUrl(reciterSlug: string, surahNumber: number, ayahNumber: number) {
+    const spoken = getTranslationReciter(reciterSlug);
+    const storageRoot = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
+    const publicBase = (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
+    if (spoken?.granularity === 'ruku') {
+      const ruku = rukuForAyah(surahNumber, ayahNumber);
+      if (!ruku) return null;
+      const file = `ruku-${String(ruku).padStart(3, '0')}.mp3`;
+      if (!existsSync(join(storageRoot, reciterSlug, file))) return null;
+      return `${publicBase}/${encodeURIComponent(reciterSlug)}/${file}`;
+    }
+    return this.getLocalAyahAudioUrl(reciterSlug, surahNumber, ayahNumber);
+  }
+
   async getReciters() {
-    const key = 'audio:reciters';
+    const key = 'audio:reciters:v5';
     const cached = await this.cache.get(key);
     if (cached) return JSON.parse(cached);
     const reciters = await this.prisma.reciter.findMany({
@@ -109,8 +154,17 @@ export class AudioService {
         sortOrder: true,
       },
     });
-    await this.cache.set(key, JSON.stringify(reciters), CACHE_TTL);
-    return reciters;
+    const publicBase = (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
+    const arabic = reciters.map((reciter) => ({
+      ...reciter,
+      baseUrl: `${publicBase}/${reciter.slug}`,
+      kind: 'reciter' as const,
+      languageCode: 'ar',
+      languageName: 'Arabic',
+    }));
+    const payload = [...arabic, ...this.translationReciterPayload()];
+    await this.cache.set(key, JSON.stringify(payload), CACHE_TTL);
+    return payload;
   }
 
   async getAudioForAyah(ayahId: number, reciterSlug?: string) {
@@ -127,8 +181,36 @@ export class AudioService {
         : await this.prisma.reciter.findFirst({ where: { isDefault: true } })
           ?? await this.prisma.reciter.findFirst({ orderBy: { sortOrder: 'asc' } });
 
-    if (reciterSlug && !reciter) throw new NotFoundException(`Reciter ${reciterSlug} not found`);
+    if (reciterSlug && !reciter && !getTranslationReciter(reciterSlug)) {
+      throw new NotFoundException(`Reciter ${reciterSlug} not found`);
+    }
     if (reciter) where.reciterId = reciter.id;
+
+    const spoken = reciterSlug ? getTranslationReciter(reciterSlug) : null;
+    if (!reciter && spoken) {
+      let url = this.getLocalTranslationAudioUrl(spoken.slug, ayah.surah.number, ayah.number);
+      if (!url && spoken.originUrl) {
+        const origin = spoken.originUrl.replace(/\/$/, '');
+        if (spoken.granularity === 'ruku') {
+          const ruku = rukuForAyah(ayah.surah.number, ayah.number);
+          if (ruku) url = `${origin}/ruku-${String(ruku).padStart(3, '0')}.mp3`;
+        } else {
+          url = `${origin}/${this.verseFileName(ayah.surah.number, ayah.number)}`;
+        }
+      }
+      if (!url) url = translationVerseUrl(spoken.slug, ayah.surah.number, ayah.number);
+      if (!url) throw new NotFoundException('No audio found for this ayah');
+      return [{
+        id: 0,
+        ayahId: ayah.id,
+        reciterId: 0,
+        url,
+        duration: null,
+        format: 'mp3',
+        reciter: { id: 0, name: spoken.name, slug: spoken.slug },
+        ayah: { number: ayah.number, surah: { number: ayah.surah.number } },
+      }];
+    }
 
     const files = await this.prisma.audioFile.findMany({
       where,
@@ -171,29 +253,37 @@ export class AudioService {
     const surah = await this.prisma.surah.findUnique({ where: { number: surahNumber } });
     if (!surah) throw new NotFoundException(`Surah ${surahNumber} not found`);
     const reciter = await this.prisma.reciter.findUnique({ where: { slug: reciterSlug } });
-    if (!reciter) throw new NotFoundException(`Reciter ${reciterSlug} not found`);
+    const spoken = getTranslationReciter(reciterSlug);
+    if (!reciter && !spoken) throw new NotFoundException(`Reciter ${reciterSlug} not found`);
     const ayahs = await this.prisma.ayah.findMany({
       where: { surahId: surah.id },
       orderBy: { number: 'asc' },
       select: { id: true, number: true, surahId: true },
     });
-    const audioFiles = await this.prisma.audioFile.findMany({
-      where: {
-        ayahId: { in: ayahs.map((a) => a.id) },
-        reciterId: reciter.id,
-      },
-      include: { ayah: { select: { id: true, number: true, surahId: true } } },
-    });
+    const audioFiles = reciter
+      ? await this.prisma.audioFile.findMany({
+          where: {
+            ayahId: { in: ayahs.map((a) => a.id) },
+            reciterId: reciter.id,
+          },
+          include: { ayah: { select: { id: true, number: true, surahId: true } } },
+        })
+      : [];
     const byAyah = new Map(audioFiles.map((f) => [f.ayah.id, f]));
     return ayahs.map((a) => {
       const stored = byAyah.get(a.id);
-      let url: string | null = this.getLocalAyahAudioUrl(reciter.slug, surahNumber, a.number)
-        ?? this.getVerifiedAyahAudioUrl(reciter.slug, surahNumber, a.number);
+      let url: string | null = this.getLocalAyahAudioUrl(reciterSlug, surahNumber, a.number)
+        ?? this.getLocalTranslationAudioUrl(reciterSlug, surahNumber, a.number)
+        ?? this.getVerifiedAyahAudioUrl(reciterSlug, surahNumber, a.number);
       if (!url) url = stored?.url ?? null;
-      if (!url && reciter.baseUrl) {
-        const s = String(surahNumber).padStart(3, '0');
-        const v = String(a.number).padStart(3, '0');
-        url = `${reciter.baseUrl.replace(/\/?$/, '/')}${s}${v}.mp3`;
+      if (!url && spoken) {
+        url = translationVerseUrl(spoken.slug, surahNumber, a.number)
+          ?? (spoken.originUrl
+            ? `${spoken.originUrl.replace(/\/$/, '')}/${this.verseFileName(surahNumber, a.number)}`
+            : null);
+      }
+      if (!url && reciter?.baseUrl) {
+        url = `${reciter.baseUrl.replace(/\/?$/, '/')}${this.verseFileName(surahNumber, a.number)}`;
       }
       return {
         ayahId: a.id,
@@ -261,4 +351,55 @@ export class AudioService {
     await this.cache.set(cacheKey, JSON.stringify(payload), CACHE_TTL);
     return payload;
   }
+
+  /**
+   * Speech for a word-by-word meaning, synthesized locally by the Piper service.
+   *
+   * The browser's SpeechSynthesis silently produces nothing for languages the
+   * OS has no voice for (Urdu and Persian on most desktops), so those are
+   * generated here instead. Results are deterministic for a (lang, text) pair,
+   * so each one is synthesized at most once and then served from disk.
+   *
+   * Returns the cached file path.
+   */
+  async synthesizeSpeech(lang: string, text: string): Promise<string> {
+    const cleanLang = (lang || '').toLowerCase();
+    const cleanText = (text || '').trim();
+    if (!/^[a-z]{2}$/.test(cleanLang)) throw new BadRequestException('Invalid language');
+    if (!cleanText) throw new BadRequestException('Text is required');
+    if (cleanText.length > 400) throw new BadRequestException('Text too long');
+
+    const root = process.env.TTS_CACHE_PATH || join(process.cwd(), 'storage', 'tts');
+    const dir = join(root, cleanLang);
+    // Hash the text so caller input can never shape the path.
+    const key = createHash('sha256').update(`${cleanLang}:${cleanText}`).digest('hex');
+    const path = join(dir, `${key}.wav`);
+
+    try {
+      const info = await stat(path);
+      if (info.size > 44) return path;
+    } catch {
+      /* not cached yet */
+    }
+
+    const base = process.env.TTS_URL || 'http://tts:5062';
+    const response = await fetch(`${base}/synthesize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang: cleanLang, text: cleanText }),
+      signal: AbortSignal.timeout(20_000),
+    }).catch((error) => {
+      throw new ServiceUnavailableException(`Speech service unreachable: ${error?.message ?? error}`);
+    });
+
+    if (response.status === 404) throw new NotFoundException(`No voice for ${cleanLang}`);
+    if (!response.ok) throw new ServiceUnavailableException(`Speech service error ${response.status}`);
+
+    const audio = Buffer.from(await response.arrayBuffer());
+    if (audio.length <= 44) throw new ServiceUnavailableException('Speech service returned empty audio');
+    await mkdir(dir, { recursive: true });
+    await writeFile(path, audio);
+    return path;
+  }
+
 }

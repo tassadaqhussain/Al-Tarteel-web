@@ -2,6 +2,9 @@
 set -euo pipefail
 
 # Download ayah MP3s for a reciter into storage/audio/<slug>/
+# Prefer the full mirror (all reciters + spoken translations + WBW):
+#   node scripts/download-all-audio.mjs
+#
 # Usage:
 #   ./scripts/download-recitation.sh alafasy
 #   ./scripts/download-recitation.sh husary storage/audio/husary

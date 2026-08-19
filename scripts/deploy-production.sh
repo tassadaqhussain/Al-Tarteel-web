@@ -569,7 +569,11 @@ cat <<EOF
   WWW:       ${WWW_DOMAIN:+https://${WWW_DOMAIN}}
   API:       ${PUBLIC_ORIGIN}/api/v1
   Vhost:     ${VHOST_PATH}
-  Compose:   docker compose -f docker-compose.prod.yml
-  HTTP:      http://${DOMAIN}  (until SSL succeeds)
+  Compose:   docker compose --env-file deploy/production.env -f docker-compose.prod.yml
+
+  Later start / rebuild (no nginx/SSL redo):
+    sudo bash scripts/run-production.sh -y
+    sudo bash scripts/run-production.sh -y --pull
+    sudo bash scripts/run-production.sh -y --import-content
 
 EOF

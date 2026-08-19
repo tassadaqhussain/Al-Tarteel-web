@@ -64,17 +64,17 @@ function BookmarksContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pb-16">
+    <div className="min-h-screen bg-surface-app pb-16">
       <Header />
 
-      <div className="sticky top-[57px] z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="sticky top-[57px] z-40 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
           <Link href="/my-quran" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />
             My Quran
           </Link>
-          <h1 className="text-sm font-semibold text-slate-800">
-            Bookmarks {bookmarks.length > 0 && <span className="ml-1 text-slate-400">({bookmarks.length})</span>}
+          <h1 className="text-sm font-semibold text-ink">
+            Bookmarks {bookmarks.length > 0 && <span className="ml-1 text-ink-faint">({bookmarks.length})</span>}
           </h1>
           <div className="w-16" />
         </div>
@@ -156,7 +156,10 @@ function BookmarksContent() {
 
                       {/* Open verse */}
                       <Link
-                        href={getSurahHref(bm.surahNumber, { ayahId: bm.ayahId })}
+                        href={getSurahHref(bm.surahNumber, {
+                          ayahId: bm.ayahId,
+                          ayahNumber: bm.ayahNumber,
+                        })}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-[var(--ayah-highlight)] hover:text-[var(--fg)] transition-colors"
                         aria-label="Open verse"
                       >
@@ -248,7 +251,7 @@ function BookmarksContent() {
 
 export default function BookmarksPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading…</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-sm text-ink-muted">Loading…</div>}>
       <RequireAuth>
         <BookmarksContent />
       </RequireAuth>

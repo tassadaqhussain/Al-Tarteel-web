@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mic, MicOff, X, Search, Sparkles, RefreshCw, Volume2, Globe } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Mic, MicOff, X, Search, MessageCircle, RefreshCw, Volume2, Globe } from 'lucide-react';
 import { useVoiceSearch } from '@/hooks/useVoiceSearch';
 import { type VoiceLanguage } from '@/lib/voice/speechRecognition';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,18 @@ const EXAMPLE_SUGGESTIONS = [
   'Show Urdu translation',
   'Play audio',
 ];
+
+function getReadableVoiceError(message: string) {
+  if (message === 'not-allowed' || message === 'permission-denied') {
+    return 'Microphone access is blocked. You can continue with typed search.';
+  }
+
+  if (message === 'no-speech') {
+    return 'No speech was detected. Please try again.';
+  }
+
+  return message;
+}
 
 export function GlobalVoiceSearch() {
   const {
@@ -38,6 +50,20 @@ export function GlobalVoiceSearch() {
 
   const [inputVal, setInputVal] = useState('');
 
+  useEffect(() => {
+    if (!isOverlayOpen) return;
+
+    const bodyOverflow = document.body.style.overflow;
+    const rootOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+      document.documentElement.style.overflow = rootOverflow;
+    };
+  }, [isOverlayOpen]);
+
   if (!isOverlayOpen) return null;
 
   const handleTextSubmit = (e: React.FormEvent) => {
@@ -49,30 +75,31 @@ export function GlobalVoiceSearch() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none p-3 sm:p-6">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity animate-in fade-in"
+        className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm transition-opacity animate-in fade-in"
         onClick={cancelListening}
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-xl overflow-hidden rounded-3xl border border-slate-700/60 bg-slate-900/90 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8">
+      <div className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overscroll-contain overflow-y-auto rounded border border-emerald-950/15 border-t-4 border-t-amber-500 bg-surface p-4 text-ink shadow-[0_28px_80px_-28px_rgba(2,44,38,0.55)] sm:p-6">
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-              <Sparkles className="h-4 w-4" />
+        <div className="flex items-center justify-between border-b border-line pb-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded bg-emerald-950 text-white">
+              <Mic className="h-4 w-4" />
             </span>
-            <h3 className="font-serif text-lg font-bold text-slate-100 sm:text-xl">
-              Voice Search &amp; Commands
-            </h3>
+            <div>
+              <h2 className="text-lg font-bold text-ink">Voice Search</h2>
+              <p className="text-xs text-ink-muted">Search the Quran by voice or text</p>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={closeOverlay}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded border border-line text-ink-muted transition hover:border-emerald-800 hover:text-brand"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -80,9 +107,9 @@ export function GlobalVoiceSearch() {
         </div>
 
         {/* Language selector chips */}
-        <div className="mt-4 flex items-center gap-2">
-          <Globe className="h-4 w-4 text-slate-400" />
-          <span className="text-xs text-slate-400">Language:</span>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Globe className="h-4 w-4 text-brand" />
+          <span className="mr-1 text-xs font-semibold text-ink-3">Language</span>
           {[
             { code: 'en-US' as VoiceLanguage, label: 'English' },
             { code: 'ur-PK' as VoiceLanguage, label: 'Urdu / اردو' },
@@ -96,10 +123,10 @@ export function GlobalVoiceSearch() {
                 if (isListening) startListening(item.code);
               }}
               className={cn(
-                'rounded-full px-3 py-1 text-xs font-semibold transition',
+                'rounded border px-3 py-1.5 text-xs font-semibold transition',
                 language === item.code
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  ? 'border-emerald-900 bg-emerald-900 text-white'
+                  : 'border-line bg-surface-2 text-ink-3 hover:border-emerald-700 hover:text-brand'
               )}
             >
               {item.label}
@@ -108,89 +135,87 @@ export function GlobalVoiceSearch() {
         </div>
 
         {/* Listening & Transcript visual display */}
-        <div className="my-8 flex flex-col items-center text-center">
+        <div className="my-6 flex flex-col items-center text-center sm:my-7">
           {/* Animated Microphone Icon */}
-          <div className="relative mb-6">
+          <div className="relative mb-4">
             <button
               type="button"
               onClick={() => (isListening ? stopListening() : startListening())}
               className={cn(
-                'relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-2xl transition-all duration-300',
+                'relative flex h-20 w-20 items-center justify-center rounded-full border text-white shadow-sm transition-all duration-300 sm:h-24 sm:w-24',
                 isListening
-                  ? 'bg-gradient-to-tr from-emerald-600 to-teal-500 scale-105 ring-8 ring-emerald-500/30'
-                  : 'bg-slate-800 hover:bg-slate-700'
+                  ? 'scale-105 border-emerald-700 bg-emerald-800 ring-8 ring-emerald-700/15'
+                  : 'border-emerald-900/15 bg-brand/10 hover:border-emerald-700 hover:bg-brand/15'
               )}
             >
               {isListening ? (
                 <Mic className="h-10 w-10 animate-pulse text-white" />
               ) : (
-                <MicOff className="h-10 w-10 text-slate-400" />
+                <MicOff className="h-9 w-9 text-brand/70 sm:h-10 sm:w-10" />
               )}
             </button>
             {isListening && (
-              <span className="absolute -inset-3 -z-10 animate-ping rounded-full bg-emerald-500/20" />
+              <span className="absolute -inset-3 -z-10 animate-ping rounded-full bg-emerald-700/15" />
             )}
           </div>
 
           {/* Status Label */}
-          <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">
             {isListening
-              ? 'Listening… Speak now'
+              ? 'Listening'
               : isProcessing
-              ? 'Processing intent…'
-              : 'Tap microphone to speak'}
+              ? 'Searching'
+              : 'Ready'}
           </p>
 
           {/* Live Speech Transcript */}
-          <div className="mt-4 min-h-[60px] w-full px-4">
+          <div className="mt-3 min-h-12 w-full px-2 sm:px-4">
             {transcript ? (
-              <p className="font-sans text-xl font-semibold leading-snug text-slate-100 sm:text-2xl">
+              <p className="font-sans text-lg font-semibold leading-snug text-ink sm:text-xl">
                 “{transcript}”
               </p>
             ) : (
-              <p className="text-sm italic text-slate-500">
-                Try saying: “Surah Yaseen”, “Ayatul Kursi”, or “Open Bookmarks”…
-              </p>
+              <p className="text-sm text-ink-muted">Surah, ayah, page, or topic</p>
             )}
           </div>
 
           {/* Feedback or Error Toast */}
           {feedbackMessage && (
-            <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-4 py-2 text-sm font-semibold text-emerald-300">
+            <div className="mt-4 inline-flex items-center gap-2 rounded border border-brand/25 bg-brand/10 px-4 py-2 text-sm font-semibold text-brand">
               <Volume2 className="h-4 w-4" />
               {feedbackMessage}
             </div>
           )}
 
           {errorMessage && (
-            <div className="mt-4 rounded-xl bg-red-500/15 border border-red-500/30 px-4 py-2 text-sm text-red-300">
-              {errorMessage}
+            <div className="mt-4 rounded border border-danger/30 bg-danger-surface px-4 py-2 text-sm text-danger">
+              {getReadableVoiceError(errorMessage)}
             </div>
           )}
         </div>
 
         {/* Low Confidence Disambiguation View */}
         {lowConfidenceData && (
-          <div className="my-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-left">
-            <p className="text-sm font-semibold text-amber-300">
-              I heard: <span className="font-bold text-white">“{lowConfidenceData.transcript}”</span>
+          <div className="my-4 rounded border border-warning/30 bg-warning-surface p-4 text-left">
+            <p className="text-sm font-semibold text-amber-900">
+              I heard: <span className="font-bold text-ink">“{lowConfidenceData.transcript}”</span>
             </p>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-ink-3">
               Please choose an action below or retry speaking.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => executeLowConfidenceAction('ask_ai')}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-emerald-700"
+                className="inline-flex items-center gap-1.5 rounded bg-emerald-800 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-900"
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                <MessageCircle className="h-3.5 w-3.5" />
                 Ask AI
               </button>
               <button
                 type="button"
                 onClick={() => executeLowConfidenceAction('search')}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700"
+                className="inline-flex items-center gap-1.5 rounded border border-line-strong bg-surface px-4 py-2 text-xs font-bold text-ink-2 hover:border-emerald-700 hover:text-brand"
               >
                 <Search className="h-3.5 w-3.5" />
                 Search Quran
@@ -198,7 +223,7 @@ export function GlobalVoiceSearch() {
               <button
                 type="button"
                 onClick={() => executeLowConfidenceAction('retry')}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700"
+                className="inline-flex items-center gap-1.5 rounded border border-line-strong bg-surface px-4 py-2 text-xs font-bold text-ink-2 hover:border-emerald-700 hover:text-brand"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 Retry Voice
@@ -206,7 +231,7 @@ export function GlobalVoiceSearch() {
               <button
                 type="button"
                 onClick={() => executeLowConfidenceAction('cancel')}
-                className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-medium text-slate-400 hover:text-white"
+                className="rounded border border-line-strong px-3 py-2 text-xs font-medium text-ink-3 hover:border-ink-faint hover:text-ink"
               >
                 Cancel
               </button>
@@ -216,19 +241,19 @@ export function GlobalVoiceSearch() {
 
         {/* Typed Input Fallback */}
         <form onSubmit={handleTextSubmit} className="relative mt-4">
-          <div className="flex items-center rounded-2xl border border-slate-700 bg-slate-800/90 px-4 py-2.5 focus-within:border-emerald-500">
-            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+          <div className="flex min-h-12 items-center rounded border border-line-strong bg-surface px-4 py-2.5 shadow-sm focus-within:border-emerald-700 focus-within:ring-2 focus-within:ring-emerald-700/10">
+            <Search className="h-4 w-4 shrink-0 text-brand" />
             <input
               type="text"
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
-              placeholder="Or type a query/command…"
-              className="min-w-0 flex-1 bg-transparent px-3 text-sm text-white placeholder-slate-500 outline-none"
+              placeholder="Search Surah, ayah, page, or topic"
+              className="min-w-0 flex-1 bg-transparent px-3 text-sm text-ink placeholder-ink-faint outline-none"
             />
             {inputVal && (
               <button
                 type="submit"
-                className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700"
+                className="rounded bg-emerald-800 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-900"
               >
                 Run
               </button>
@@ -237,9 +262,9 @@ export function GlobalVoiceSearch() {
         </form>
 
         {/* Quick Suggestion Chips */}
-        <div className="mt-6 border-t border-slate-800 pt-4">
-          <p className="mb-2.5 text-left text-xs font-semibold text-slate-400">
-            Try saying or typing:
+        <div className="mt-5 border-t border-line pt-4">
+          <p className="mb-2.5 text-left text-xs font-bold uppercase tracking-[0.12em] text-ink-muted">
+            Suggestions
           </p>
           <div className="flex flex-wrap gap-2">
             {EXAMPLE_SUGGESTIONS.map((ex) => (
@@ -247,7 +272,7 @@ export function GlobalVoiceSearch() {
                 key={ex}
                 type="button"
                 onClick={() => processRawQuery(ex)}
-                className="rounded-full border border-slate-800 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-300 transition hover:border-emerald-500/40 hover:bg-emerald-950/30 hover:text-emerald-300"
+                className="rounded border border-line bg-surface-2 px-3 py-1.5 text-xs font-medium text-ink-3 transition hover:border-emerald-700 hover:bg-brand/10 hover:text-brand"
               >
                 {ex}
               </button>
