@@ -67,7 +67,7 @@ function tryOnce() {
 NODE
 
 echo "Running schema sync..."
-npx prisma db push --skip-generate
+npx prisma db push --skip-generate --accept-data-loss
 echo "Database ready."
 
 # Heavy seed jobs OOM-kill Nest on ~2GB VPSes if run at boot.
