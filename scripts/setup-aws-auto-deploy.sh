@@ -11,7 +11,7 @@ set -euo pipefail
 [[ "$(id -u)" -eq 0 ]] || { echo "Run as root: sudo bash scripts/setup-aws-auto-deploy.sh" >&2; exit 1; }
 
 DEPLOY_USER="${DEPLOY_USER:-ubuntu}"
-APP_DIR="${APP_DIR:-/var/www/al-tarteel-web}"
+APP_DIR="${APP_DIR:-/var/www/quranpilot}"
 KEY_DIR="/home/${DEPLOY_USER}/.ssh"
 KEY_PATH="${KEY_DIR}/github_actions_aws"
 SUDOERS="/etc/sudoers.d/quranpilot-deploy"

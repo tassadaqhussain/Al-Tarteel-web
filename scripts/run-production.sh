@@ -5,7 +5,7 @@
 #   sudo bash scripts/deploy-production.sh -y
 #
 # Everyday start / redeploy (this script):
-#   cd /var/www/al-tarteel-web
+#   cd /var/www/quranpilot
 #   sudo bash scripts/run-production.sh -y
 #   sudo bash scripts/run-production.sh -y --pull
 #   sudo bash scripts/run-production.sh -y --import-content
