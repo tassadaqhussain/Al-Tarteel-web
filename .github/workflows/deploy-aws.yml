@@ -1,0 +1,45 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Git branch to deploy on the EC2 host
+        required: true
+        default: main
+
+concurrency:
+  group: production-aws
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH deploy to EC2
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          port: ${{ secrets.AWS_EC2_PORT || 22 }}
+          script_stop: true
+          command_timeout: 60m
+          envs: DEPLOY_BRANCH,APP_DIR
+          script: |
+            set -euo pipefail
+            if [ -z "${APP_DIR:-}" ]; then APP_DIR=/var/www/al-tarteel-web; fi
+            if [ -z "${DEPLOY_BRANCH:-}" ]; then DEPLOY_BRANCH=main; fi
+            test -d "$APP_DIR" || { echo "Missing $APP_DIR — bootstrap with scripts/deploy-production.sh first"; exit 1; }
+            cd "$APP_DIR"
+            sudo git fetch origin "$DEPLOY_BRANCH"
+            sudo git checkout "$DEPLOY_BRANCH"
+            sudo git pull --ff-only origin "$DEPLOY_BRANCH"
+            sudo bash "$APP_DIR/scripts/run-production.sh" -y
+        env:
+          DEPLOY_BRANCH: ${{ github.event.inputs.branch || github.ref_name }}
+          APP_DIR: ${{ secrets.AWS_EC2_APP_DIR }}
