@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Info, Pause, Play } from 'lucide-react';
 import { TranslationSheet } from './TranslationSheet';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { quranApi } from '@/lib/api';
 
 /** Pill control styling shared by Listen / Info / Translation (Quran.com chapter header). */
 const BUTTON_CLASS =
@@ -22,6 +23,31 @@ export function ChapterControls({ translationCount, surahNumber, surahName }: Pr
   const [infoOpen, setInfoOpen] = useState(false);
   const { getCurrentAyah, isPlaying } = useAudioStore();
   const translationSlugs = useSettingsStore((s) => s.translationSlugs);
+  // The page renders statically with the DEFAULT translation, so `translationCount`
+  // is the server's view, not the reader's. Switch to the persisted selection only
+  // after mount, otherwise the first paint would not match the server HTML.
+  const [mounted, setMounted] = useState(false);
+  const [translatorNames, setTranslatorNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setMounted(true);
+    let cancelled = false;
+    void quranApi
+      .translators()
+      .then((list) => {
+        if (cancelled || !Array.isArray(list)) return;
+        setTranslatorNames(Object.fromEntries(list.map((t) => [t.slug, t.name])));
+      })
+      .catch(() => {
+        /* fall back to the slug-derived label */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const effectiveCount =
+    mounted && translationSlugs.length > 0 ? translationSlugs.length : translationCount;
 
   const current = getCurrentAyah();
   const isThisSurahPlaying =
@@ -43,18 +69,18 @@ export function ChapterControls({ translationCount, surahNumber, surahName }: Pr
   }, [current?.ayahNumber, current?.surahNumber, isThisSurahPlaying, surahNumber]);
 
   const primarySlug = translationSlugs[0] || 'en-clear-quran';
-  const friendlyName = primarySlug.includes('israr') || primarySlug.includes('bayan')
+  const friendlyName = translatorNames[primarySlug] || (primarySlug.includes('israr') || primarySlug.includes('bayan')
     ? 'Bayan-ul-Quran (Dr. Israr Ahmad)'
     : primarySlug.includes('khattab') || primarySlug.includes('clear')
       ? 'The Clear Quran (Dr. Mustafa Khattab)'
       : primarySlug.includes('sahih')
         ? 'Saheeh International'
-        : primarySlug.replace(/^(en|ur|ar|fr|id)-/, '').replaceAll('-', ' ');
+        : primarySlug.replace(/^[a-z]{2}-/, '').replace(/-\d+$/, '').replaceAll('-', ' '));
 
   const translationLabel =
-    translationCount > 1
-      ? `Translation: ${friendlyName} +${translationCount - 1}`
-      : translationCount === 1
+    effectiveCount > 1
+      ? `Translation: ${friendlyName} +${effectiveCount - 1}`
+      : effectiveCount === 1
         ? `Translation: ${friendlyName}`
         : 'Select Translation';
 
