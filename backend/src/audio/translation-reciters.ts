@@ -12,7 +12,11 @@ export type TranslationReciter = {
   granularity?: 'ayah' | 'ruku';
   /** Served from our own storage; baseUrl is the folder under AUDIO_PUBLIC_BASE_URL. */
   selfHosted?: boolean;
-  /** Remote origin used only by the download mirror. */
+  /**
+   * Remote origin. Used by the download mirror, and by the API to backfill a
+   * missing file on demand — without it, a deploy that lacks the audio mirror
+   * serves 404 for every verse.
+   */
   originUrl?: string;
 };
 

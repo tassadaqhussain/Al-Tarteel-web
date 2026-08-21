@@ -19,7 +19,7 @@ export class AudioController {
 
   @Get('files/:reciter/:file')
   @ApiOperation({ summary: 'Stream a locally stored ayah MP3 with byte-range support' })
-  streamLocalAudio(
+  async streamLocalAudio(
     @Param('reciter') reciter: string,
     @Param('file') file: string,
     @Req() request: Request,
@@ -32,9 +32,10 @@ export class AudioController {
       /^ruku-\d{3}\.mp3$/.test(file) ||
       /^\d{3}_\d{3}_\d{3}\.mp3$/.test(file);
     if (!/^[a-z0-9-]+$/.test(reciter) || !validFile) throw new NotFoundException('Audio not found');
-    const root = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
-    const path = join(root, reciter, file);
-    if (!existsSync(path)) throw new NotFoundException('Audio not found');
+    // Backfills from the origin on first play, so a deploy without the ~50GB
+    // mirror still serves audio instead of 404ing every verse.
+    const path = await this.audio.ensureLocalAudioFile(reciter, file);
+    if (!path) throw new NotFoundException('Audio not found');
     const size = statSync(path).size;
     const range = request.headers.range;
     response.setHeader('Accept-Ranges', 'bytes');

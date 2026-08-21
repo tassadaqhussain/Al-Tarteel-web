@@ -67,7 +67,8 @@ services:
       TTS_URL: http://tts:5062
       TTS_CACHE_PATH: /app/storage/tts
     volumes:
-      - ./backend/storage/audio:/app/storage/audio:ro
+      # writable: the API backfills missing audio from its origin on first play
+      - ./backend/storage/audio:/app/storage/audio
       - ./backend/storage/tts:/app/storage/tts
     depends_on:
       tts:
