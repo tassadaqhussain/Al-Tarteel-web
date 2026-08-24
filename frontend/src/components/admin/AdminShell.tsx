@@ -15,11 +15,16 @@ import { adminApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-const NAV = [
+const NAV: {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+}[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/admin/messages', label: 'Motivation', icon: Sparkles },
-] as const;
+];
 
 function NavLinks({
   pathname,
