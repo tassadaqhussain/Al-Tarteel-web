@@ -56,19 +56,15 @@ cd "${REPO_ROOT}"
 [[ -f docker-compose.prod.yml ]] || die "Missing docker-compose.prod.yml in ${REPO_ROOT}"
 [[ -f "${ENV_FILE}" ]] || die "Missing ${ENV_FILE} — copy from deploy/production.env.example"
 
+# shellcheck source=load-env-file.sh
+source "${SCRIPT_DIR}/load-env-file.sh"
 log "Loading ${ENV_FILE}"
-set -a
-# shellcheck disable=SC1090
-source "${ENV_FILE}"
-set +a
+load_env_file "${ENV_FILE}" || die "Failed to load ${ENV_FILE}"
 
 log "Auto-sync public URL env vars from DOMAIN"
 sync_public_urls "${ENV_FILE}" "${REPO_ROOT}/backend/.env"
 # Re-load so compose interpolation sees persisted values
-set -a
-# shellcheck disable=SC1090
-source "${ENV_FILE}"
-set +a
+load_env_file "${ENV_FILE}"
 export SKIP_QURAN_DOWNLOAD=0
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1

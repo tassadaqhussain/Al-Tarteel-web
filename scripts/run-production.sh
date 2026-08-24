@@ -62,11 +62,9 @@ or run: sudo bash scripts/deploy-production.sh -y"
 command -v docker >/dev/null 2>&1 || die "Docker is not installed. First run: sudo bash scripts/deploy-production.sh -y"
 docker compose version >/dev/null 2>&1 || die "Docker Compose plugin missing"
 
-# shellcheck disable=SC1090
-set -a
-# shellcheck source=/dev/null
-source "${ENV_FILE}"
-set +a
+# shellcheck source=load-env-file.sh
+source "${SCRIPT_DIR}/load-env-file.sh"
+load_env_file "${ENV_FILE}" || die "Failed to load ${ENV_FILE}"
 
 DOMAIN="${DOMAIN:-quranpilot.com}"
 APP_DIR="${APP_DIR:-$REPO_ROOT}"

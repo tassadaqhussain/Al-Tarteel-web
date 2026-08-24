@@ -130,11 +130,9 @@ else
   ok "Using env file: ${ENV_FILE}"
 fi
 
-# shellcheck disable=SC1090
-set -a
-# shellcheck source=/dev/null
-source "${ENV_FILE}"
-set +a
+# shellcheck source=load-env-file.sh
+source "${SCRIPT_DIR}/load-env-file.sh"
+load_env_file "${ENV_FILE}" || die "Failed to load ${ENV_FILE}"
 
 DOMAIN="${DOMAIN:-$DEFAULT_DOMAIN}"
 WWW_DOMAIN="${WWW_DOMAIN:-$DEFAULT_WWW_DOMAIN}"
