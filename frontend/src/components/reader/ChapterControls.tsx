@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Info, Pause, Play } from 'lucide-react';
 import { TranslationSheet } from './TranslationSheet';
 import { startSurahPlayback } from '@/lib/audio/playback';
@@ -10,6 +10,7 @@ import {
   formatTranslatorDisplayName,
   resolvePrimaryTranslationSlug,
 } from '@/lib/translation-preference';
+import { quranApi } from '@/lib/api';
 
 /** Pill control styling shared by Listen / Info / Translation (Quran.com chapter header). */
 const BUTTON_CLASS =
@@ -33,6 +34,31 @@ export function ChapterControls({
   const [infoOpen, setInfoOpen] = useState(false);
   const { getCurrentAyah, isPlaying } = useAudioStore();
   const translationSlugs = useSettingsStore((s) => s.translationSlugs);
+  // The page renders statically with the DEFAULT translation, so `translationCount`
+  // is the server's view, not the reader's. Switch to the persisted selection only
+  // after mount, otherwise the first paint would not match the server HTML.
+  const [mounted, setMounted] = useState(false);
+  const [translatorNames, setTranslatorNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setMounted(true);
+    let cancelled = false;
+    void quranApi
+      .translators()
+      .then((list) => {
+        if (cancelled || !Array.isArray(list)) return;
+        setTranslatorNames(Object.fromEntries(list.map((t) => [t.slug, t.name])));
+      })
+      .catch(() => {
+        /* fall back to the slug-derived label */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const effectiveCount =
+    mounted && translationSlugs.length > 0 ? translationSlugs.length : translationCount;
 
   const current = getCurrentAyah();
   const isThisSurahPlaying =
@@ -53,13 +79,17 @@ export function ChapterControls({
     }
   }, [current?.ayahNumber, current?.surahNumber, isThisSurahPlaying, surahNumber]);
 
-  const primarySlug = resolvePrimaryTranslationSlug(translationSlugs, effectiveTranslations);
-  const friendlyName = formatTranslatorDisplayName(primarySlug);
+  const primarySlug = resolvePrimaryTranslationSlug(
+    mounted ? translationSlugs : [],
+    effectiveTranslations,
+  );
+  const friendlyName =
+    translatorNames[primarySlug] || formatTranslatorDisplayName(primarySlug);
 
   const translationLabel =
-    translationCount > 1
-      ? `Translation: ${friendlyName} +${translationCount - 1}`
-      : translationCount === 1
+    effectiveCount > 1
+      ? `Translation: ${friendlyName} +${effectiveCount - 1}`
+      : effectiveCount === 1
         ? `Translation: ${friendlyName}`
         : 'Select Translation';
 
