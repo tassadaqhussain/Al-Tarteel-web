@@ -16,6 +16,7 @@ import {
   useTajweedProgressStore,
 } from '@/stores/tajweedProgressStore';
 import { cn } from '@/lib/utils';
+import { TajweedPracticeLoader } from './TajweedPracticeLoader';
 
 type Props = { slug: TajweedLessonSlug };
 
@@ -240,12 +241,13 @@ export function TajweedLessonExperience({ slug }: Props) {
 
       {sessionStep === 3 && (
         <Section
-          title="Recognition in the mushaf"
+          title="Recognition & recitation practice"
           actionLabel="Complete lesson"
           onAction={() => goStep(4)}
         >
           <p className="text-sm text-ink-3">
-            Open verified ayah pages with Tajweed ON. Colours come only from the stored Quran.com annotations.
+            Open verified ayah pages with Tajweed ON, or practice reciting the example ayahs below.
+            Colours come only from the stored Quran.com annotations.
           </p>
           <ul className="mt-4 space-y-2">
             {lesson.relatedRuleIds.map((id) => {
@@ -275,6 +277,17 @@ export function TajweedLessonExperience({ slug }: Props) {
               </li>
             ))}
           </ul>
+          <div className="mt-6 border-t border-line pt-5">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-3">
+              Recite & get feedback
+            </p>
+            <TajweedPracticeLoader
+              exampleRefs={lesson.exampleRefs}
+              lessonSlug={slug}
+              relatedRuleIds={lesson.relatedRuleIds}
+              onPracticed={() => markPracticed(slug, 1)}
+            />
+          </div>
         </Section>
       )}
     </div>
