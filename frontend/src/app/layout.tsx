@@ -11,6 +11,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { Analytics } from '@/components/analytics/Analytics';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_KEYWORDS,
@@ -157,7 +158,7 @@ export default function RootLayout({
               "var p=location.pathname,seg=p.split('/').filter(Boolean);" +
               "var known=['search','surahs','bookmarks','settings','profile','my-quran','donate'," +
               "'feedback','articles','hifz','tajweed','learning-plans','quran-in-year','reading-goal'," +
-              "'login','register','forgot-password','reset-password'];" +
+              "'login','register','forgot-password','reset-password','admin'];" +
               "if(p.indexOf('/surah/')===0||p.indexOf('/juz/')===0||" +
               "(seg.length===1&&known.indexOf(seg[0])<0&&seg[0].indexOf('.')<0))e='default';" +
               "r.classList.add('experience-'+e);" +
@@ -185,6 +186,7 @@ export default function RootLayout({
                 <BackToTopButton />
                 <AskAiFab />
                 <GlobalVoiceSearch />
+                <Analytics />
               </VoiceSearchProvider>
             </AudioPlayerProvider>
           </AuthProvider>

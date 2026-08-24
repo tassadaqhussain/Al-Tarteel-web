@@ -67,11 +67,6 @@ export function SiteFooter() {
                   {t('search')}
                 </Link>
               </li>
-              <li>
-                <Link href="/donate" className="text-emerald-50/75 transition hover:text-white">
-                  {t('donate')}
-                </Link>
-              </li>
             </ul>
           </div>
         </div>

@@ -1,6 +1,30 @@
 export const TRANSLATION_COOKIE = 'qp_translations';
 export const DEFAULT_TRANSLATION = 'en-sahih-international';
 
+/** Human-readable label for a translation slug (matches API translator names where possible). */
+export function formatTranslatorDisplayName(slug: string): string {
+  if (slug.includes('israr') || slug.includes('bayan')) {
+    return 'Bayan-ul-Quran (Dr. Israr Ahmad)';
+  }
+  if (slug.includes('khattab') || slug.includes('clear')) {
+    return 'The Clear Quran (Dr. Mustafa Khattab)';
+  }
+  if (slug.includes('sahih')) {
+    return 'Saheeh International';
+  }
+  return slug.replace(/^(en|ur|ar|fr|id|bn|tr|fa|hi|ps)-/, '').replaceAll('-', ' ');
+}
+
+/** Primary slug from store, SSR prop, or site default — keep label aligned with fetched ayah text. */
+export function resolvePrimaryTranslationSlug(
+  translationSlugs: string[],
+  effectiveTranslations?: string,
+): string {
+  if (translationSlugs[0]) return translationSlugs[0];
+  const fromSsr = effectiveTranslations?.split(',')[0]?.trim();
+  return fromSsr || DEFAULT_TRANSLATION;
+}
+
 /** Persist preferred translation slugs for clean URLs (server can read the cookie). */
 export function setTranslationCookie(slugs: string[]) {
   if (typeof document === 'undefined') return;
@@ -28,12 +52,17 @@ export function parseTranslationPreference(raw: string | null | undefined): stri
   return cleaned.length ? cleaned.join(',') : DEFAULT_TRANSLATION;
 }
 
-/** Prefer cookie, then legacy ?trans=, then default — never require query in the URL. */
+/**
+ * Prefer cookie, then legacy ?trans=, then the default — never require a query
+ * string in the URL. Locale-prefixed routes pass their own `defaultSlug` so
+ * e.g. /ur/al-ikhlas server-renders the Urdu translation with no query at all.
+ */
 export function resolveTranslations(opts: {
   cookieValue?: string | null;
   queryTrans?: string | null;
+  defaultSlug?: string;
 }): string {
   if (opts.cookieValue?.trim()) return parseTranslationPreference(opts.cookieValue);
   if (opts.queryTrans?.trim()) return parseTranslationPreference(opts.queryTrans);
-  return DEFAULT_TRANSLATION;
+  return opts.defaultSlug?.trim() || DEFAULT_TRANSLATION;
 }

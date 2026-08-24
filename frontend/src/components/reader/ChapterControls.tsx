@@ -6,6 +6,10 @@ import { TranslationSheet } from './TranslationSheet';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import {
+  formatTranslatorDisplayName,
+  resolvePrimaryTranslationSlug,
+} from '@/lib/translation-preference';
 
 /** Pill control styling shared by Listen / Info / Translation (Quran.com chapter header). */
 const BUTTON_CLASS =
@@ -15,9 +19,16 @@ interface Props {
   translationCount: number;
   surahNumber: number;
   surahName?: string;
+  /** SSR-resolved slugs — keeps the pill label aligned with rendered verse attribution. */
+  effectiveTranslations?: string;
 }
 
-export function ChapterControls({ translationCount, surahNumber, surahName }: Props) {
+export function ChapterControls({
+  translationCount,
+  surahNumber,
+  surahName,
+  effectiveTranslations,
+}: Props) {
   const [translationOpen, setTranslationOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const { getCurrentAyah, isPlaying } = useAudioStore();
@@ -42,14 +53,8 @@ export function ChapterControls({ translationCount, surahNumber, surahName }: Pr
     }
   }, [current?.ayahNumber, current?.surahNumber, isThisSurahPlaying, surahNumber]);
 
-  const primarySlug = translationSlugs[0] || 'en-clear-quran';
-  const friendlyName = primarySlug.includes('israr') || primarySlug.includes('bayan')
-    ? 'Bayan-ul-Quran (Dr. Israr Ahmad)'
-    : primarySlug.includes('khattab') || primarySlug.includes('clear')
-      ? 'The Clear Quran (Dr. Mustafa Khattab)'
-      : primarySlug.includes('sahih')
-        ? 'Saheeh International'
-        : primarySlug.replace(/^(en|ur|ar|fr|id)-/, '').replaceAll('-', ' ');
+  const primarySlug = resolvePrimaryTranslationSlug(translationSlugs, effectiveTranslations);
+  const friendlyName = formatTranslatorDisplayName(primarySlug);
 
   const translationLabel =
     translationCount > 1

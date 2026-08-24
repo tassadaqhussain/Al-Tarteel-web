@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           '/reading-goal',
           '/hifz',
           '/feedback',
+          '/admin',
           '/search',
           '/donate/checkout',
           '/donate/success',

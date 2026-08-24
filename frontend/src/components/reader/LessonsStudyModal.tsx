@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { AlertCircle, Bookmark, BookMarked, BookOpen, ChevronDown, ChevronLeft, ChevronRight, Copy, GraduationCap, Loader2, MessageCircle, MoreHorizontal, Pencil, Play, Share2, Type, X } from 'lucide-react';
 import { quranApi, type AyahFull, type LessonPost } from '@/lib/api';
+import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import { useSettingsStore } from '@/stores/settingsStore';
 
 interface Props { open: boolean; onOpenChange: (open: boolean) => void; surahNumber: number; surahName: string; ayahNumber: number; }
@@ -14,7 +15,9 @@ const LANGUAGES = [
 
 export function LessonsStudyModal({ open, onOpenChange, surahNumber, surahName, ayahNumber }: Props) {
   const selectedTranslations = useSettingsStore((state) => state.translationSlugs);
-  const requestedTranslations = selectedTranslations.length ? selectedTranslations.join(',') : 'en-clear-quran,ur-bayan-ul-quran';
+  const requestedTranslations = selectedTranslations.length
+    ? selectedTranslations.join(',')
+    : `${DEFAULT_TRANSLATION},ur-bayan-ul-quran`;
   const [verse, setVerse] = useState<AyahFull | null>(null);
   const [lessons, setLessons] = useState<LessonPost[]>([]);
   const [languageId, setLanguageId] = useState(2);

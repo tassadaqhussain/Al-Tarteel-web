@@ -66,6 +66,10 @@ services:
       # Local speech synthesis for languages the browser has no voice for.
       TTS_URL: http://tts:5062
       TTS_CACHE_PATH: /app/storage/tts
+      # Optional: create/update admin user on startup → sign in at /login then /admin
+      # ADMIN_EMAIL=admin@localhost.test
+      # ADMIN_PASSWORD=change-me-local-admin
+      # ADMIN_NAME=Local Admin
     volumes:
       - ./backend/storage/audio:/app/storage/audio:ro
       - ./backend/storage/tts:/app/storage/tts

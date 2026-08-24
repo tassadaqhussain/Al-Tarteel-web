@@ -1,6 +1,14 @@
 import type { Metadata } from 'next';
 import { getSurahPath, SURAH_MEANINGS, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
+import { surahCopy } from '@/lib/i18n/seo-strings';
+import {
+  CONTENT_LOCALES,
+  DEFAULT_CONTENT_LOCALE,
+  localeConfig,
+  localePath,
+  type ContentLocale,
+} from '@/lib/i18n/content-locales';
 
 /** Primary production origin — used for canonicals, OG, sitemap. */
 export const SITE_URL =
@@ -36,6 +44,38 @@ export function absoluteUrl(path = '/'): string {
   return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+/** OG locale codes for the locales we publish. */
+const OG_LOCALES: Record<ContentLocale, string> = {
+  en: 'en_US',
+  ur: 'ur_PK',
+  ps: 'ps_AF',
+  fa: 'fa_IR',
+};
+
+export function openGraphLocale(locale: ContentLocale): string {
+  return OG_LOCALES[locale] ?? OG_LOCALES[DEFAULT_CONTENT_LOCALE];
+}
+
+/**
+ * hreflang set for a page that exists in every content locale.
+ *
+ * Returns undefined when `alternatePath` is omitted, so single-locale pages
+ * emit no alternates rather than claiming translations that do not exist.
+ * Every locale in the set points at the others AND at itself, and English
+ * doubles as x-default — both required for Google to honour the cluster.
+ */
+export function hreflangAlternates(
+  alternatePath?: string,
+): Record<string, string> | undefined {
+  if (!alternatePath) return undefined;
+  const languages: Record<string, string> = {};
+  for (const code of CONTENT_LOCALES) {
+    languages[localeConfig(code).hreflang] = absoluteUrl(localePath(code, alternatePath));
+  }
+  languages['x-default'] = absoluteUrl(localePath(DEFAULT_CONTENT_LOCALE, alternatePath));
+  return languages;
+}
+
 export function buildPageMetadata({
   title,
   description,
@@ -43,6 +83,8 @@ export function buildPageMetadata({
   keywords = [],
   noIndex = false,
   type = 'website',
+  locale = DEFAULT_CONTENT_LOCALE,
+  alternatePath,
 }: {
   title: string;
   description: string;
@@ -50,6 +92,13 @@ export function buildPageMetadata({
   keywords?: string[];
   noIndex?: boolean;
   type?: 'website' | 'article';
+  /** Locale this page is written in — drives og:locale and the hreflang set. */
+  locale?: ContentLocale;
+  /**
+   * Unprefixed path this page exists at in every locale (e.g. `/al-ikhlas`).
+   * Omit for pages that exist in one locale only — they get no hreflang set.
+   */
+  alternatePath?: string;
 }): Metadata {
   const url = absoluteUrl(path);
   const fullTitle = title.includes(SITE_NAME) ? title : undefined;
@@ -64,7 +113,7 @@ export function buildPageMetadata({
     title: fullTitle ? { absolute: fullTitle } : title,
     description,
     keywords: [...DEFAULT_KEYWORDS, ...keywords],
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages: hreflangAlternates(alternatePath) },
     robots: noIndex
       ? { index: false, follow: true, googleBot: { index: false, follow: true } }
       : {
@@ -84,7 +133,7 @@ export function buildPageMetadata({
       siteName: SITE_NAME,
       title: ogTitle,
       description,
-      locale: 'en_US',
+      locale: openGraphLocale(locale),
       images: [ogImage],
     },
     twitter: {
@@ -102,8 +151,10 @@ export function surahSeo(
     ayahCount?: number;
     arabicName?: string;
     page?: number;
+    locale?: ContentLocale;
   }
 ) {
+  const locale = opts?.locale ?? DEFAULT_CONTENT_LOCALE;
   const name = SURAH_SIMPLE_NAMES[number] || `Surah ${number}`;
   const meaning = SURAH_MEANINGS[number];
   const arabic = opts?.arabicName || '';
@@ -118,21 +169,13 @@ export function surahSeo(
         }
       : null;
 
-  const title = range
-    ? `Surah ${name} – Verses ${range.start}–${range.end} | ${SITE_NAME}`
-    : `Surah ${name} – Read, Listen & Translation | ${SITE_NAME}`;
+  const copy = surahCopy(locale, { name, meaning: meaning || '', arabic, ayahCount: ayahs }, range);
+  const title = `${copy.title} | ${SITE_NAME}`;
+  const description = copy.description;
 
-  const description = range
-    ? `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, English translation, and audio on QuranPilot.`
-    : [
-        `Read Surah ${name}${meaning ? ` (${meaning})` : ''}${arabic ? ` · ${arabic}` : ''} online`,
-        ayahs ? `— ${ayahs} verses` : '',
-        'with Arabic text, translation, and verse-by-verse audio on QuranPilot.',
-      ]
-        .filter(Boolean)
-        .join(' ');
-
-  const canonicalPath = page > 1 ? `${path}?page=${page}` : path;
+  // Canonical stays inside this locale; hreflang points at the sibling locales.
+  const localisedPath = localePath(locale, path);
+  const canonicalPath = page > 1 ? `${localisedPath}?page=${page}` : localisedPath;
 
   return {
     number,
@@ -156,6 +199,9 @@ export function surahSeo(
         'Quran chapter',
       ].filter(Boolean) as string[],
       type: 'article',
+      locale,
+      // Paginated slices are not a translation cluster — only page 1 is.
+      alternatePath: page > 1 ? undefined : path,
     }),
   };
 }

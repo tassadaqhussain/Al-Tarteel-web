@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, CheckCircle2, Circle } from 'lucide-react';
 import { Header } from '@/components/Header';
-import { getLearningPlan, getPlanHref } from '@/lib/learning-plans';
+import { getLearningPlan, getLearningPlansForSurah, getPlanHref } from '@/lib/learning-plans';
+import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,10 @@ export default function LearningPlanDetailPage() {
   const doneCount = completed.length;
   const pct = Math.round((doneCount / plan.days) * 100);
   const readerHref = getPlanHref(plan);
+  const surahMeta = plan.surahNumber ? getSurahMeta(plan.surahNumber) : null;
+  const relatedPlans = plan.surahNumber
+    ? getLearningPlansForSurah(plan.surahNumber).filter((p) => p.slug !== plan.slug)
+    : [];
 
   return (
     <div className="min-h-screen bg-surface-app text-ink">
@@ -79,9 +84,35 @@ export default function LearningPlanDetailPage() {
             className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90"
           >
             <BookOpen className="h-4 w-4" />
-            Open related reading
+            {surahMeta ? `Read Surah ${surahMeta.nameSimple}` : 'Open related reading'}
           </Link>
+          {surahMeta && (
+            <Link
+              href={getSurahPath(plan.surahNumber!)}
+              className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink transition hover:border-[var(--accent)]"
+            >
+              Full surah reader · {surahMeta.nameArabic}
+            </Link>
+          )}
         </div>
+
+        {relatedPlans.length > 0 && surahMeta && (
+          <aside className="mb-8 rounded-2xl border border-line bg-surface-2 p-4">
+            <h2 className="text-sm font-semibold text-ink">More plans for Surah {surahMeta.nameSimple}</h2>
+            <ul className="mt-3 space-y-2">
+              {relatedPlans.map((related) => (
+                <li key={related.slug}>
+                  <Link
+                    href={`/learning-plans/${related.slug}`}
+                    className="text-sm font-medium text-[var(--accent)] hover:underline"
+                  >
+                    {related.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
 
         <h2 className="mb-4 text-lg font-bold text-ink">Your daily lessons</h2>
         <div className="space-y-2">

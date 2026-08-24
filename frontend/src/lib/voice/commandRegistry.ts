@@ -70,12 +70,6 @@ export const GLOBAL_NAV_ROUTES: NavRoute[] = [
     label: 'Learning Plans',
     keywords: ['learning plans', 'plans', 'courses', 'تعلیمی منصوبے'],
   },
-  {
-    id: 'donate',
-    path: '/donate',
-    label: 'Donate',
-    keywords: ['donate', 'donation', 'support', 'عطیہ'],
-  },
 ];
 
 export interface PlayerCommandSpec {

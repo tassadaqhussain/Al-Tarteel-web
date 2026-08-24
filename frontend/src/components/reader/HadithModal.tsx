@@ -7,6 +7,7 @@ import {
   Copy, GraduationCap, Loader2, MessageCircle, MoreHorizontal, Pencil, Play, Share2, Type, X,
 } from 'lucide-react';
 import { quranApi, type AyahFull, type HadithItem } from '@/lib/api';
+import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import { useSettingsStore } from '@/stores/settingsStore';
 
 interface Props {
@@ -23,7 +24,9 @@ const cleanHadithHtml = (html: string) => html
 
 export function HadithModal({ open, onOpenChange, surahNumber, surahName, ayahNumber }: Props) {
   const selectedTranslations = useSettingsStore((state) => state.translationSlugs);
-  const requestedTranslations = selectedTranslations.length ? selectedTranslations.join(',') : 'en-clear-quran,ur-bayan-ul-quran';
+  const requestedTranslations = selectedTranslations.length
+    ? selectedTranslations.join(',')
+    : `${DEFAULT_TRANSLATION},ur-bayan-ul-quran`;
   const [hadiths, setHadiths] = useState<HadithItem[]>([]);
   const [verse, setVerse] = useState<AyahFull | null>(null);
   const [loading, setLoading] = useState(false);

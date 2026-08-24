@@ -297,6 +297,95 @@ export const feedbackApi = {
     }),
 };
 
+export type AdminFeedback = {
+  id: number;
+  name: string | null;
+  email: string | null;
+  category: string;
+  message: string;
+  rating: number | null;
+  pageUrl: string | null;
+  createdAt: string;
+};
+
+export type AdminMotivationMessage = {
+  id: number;
+  message: string;
+  category: string;
+  language: string;
+  status: 'draft' | 'approved';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const adminApi = {
+  me: () =>
+    api<{ isAdmin: boolean; email: string | null; name: string | null }>('/admin/me'),
+  stats: () =>
+    api<{
+      users: {
+        total: number;
+        registered: number;
+        newLast7Days: number;
+        newLast30Days: number;
+        recent: { id: number; email: string | null; name: string | null; createdAt: string }[];
+      };
+      engagement: {
+        activeReadersLast7Days: number;
+        readingEventsTotal: number;
+        readingEventsLast7Days: number;
+        hifzAttemptsTotal: number;
+        hifzAttemptsLast7Days: number;
+        bookmarksTotal: number;
+      };
+      feedback: { total: number; last7Days: number };
+      trafficNote: string;
+      generatedAt: string;
+    }>('/admin/stats'),
+  listFeedback: (params?: { page?: number; limit?: number; category?: string }) =>
+    api<{
+      items: AdminFeedback[];
+      total: number;
+      page: number;
+      limit: number;
+      pages: number;
+    }>('/admin/feedback', { params }),
+  deleteFeedback: (id: number) =>
+    api<{ ok: boolean }>(`/admin/feedback/${id}`, { method: 'DELETE' }),
+  listMotivationalMessages: (language?: string) =>
+    api<AdminMotivationMessage[]>('/admin/motivational-messages', {
+      params: language ? { language } : undefined,
+    }),
+  createMotivationalMessage: (body: {
+    message: string;
+    category: string;
+    language?: string;
+    status?: 'draft' | 'approved';
+    isActive?: boolean;
+  }) =>
+    api<AdminMotivationMessage>('/admin/motivational-messages', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  updateMotivationalMessage: (
+    id: number,
+    body: {
+      message: string;
+      category: string;
+      language?: string;
+      status?: 'draft' | 'approved';
+      isActive?: boolean;
+    },
+  ) =>
+    api<AdminMotivationMessage>(`/admin/motivational-messages/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  deleteMotivationalMessage: (id: number) =>
+    api<{ ok: boolean }>(`/admin/motivational-messages/${id}`, { method: 'DELETE' }),
+} as const;
+
 export const quranApi = {
   surahs: () => api<Awaited<ReturnType<typeof getSurahs>>>('/quran/surahs'),
   surah: (number: number) => api<Surah>(`/quran/surahs/${number}`),
