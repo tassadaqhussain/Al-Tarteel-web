@@ -17,7 +17,7 @@
  *   node scripts/fetch-translation-audio.mjs --reciter=all [--concurrency=5] [--force]
  */
 import { createWriteStream } from 'node:fs';
-import { mkdir, stat, rename } from 'node:fs/promises';
+import { mkdir, stat, rename, rm } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -80,14 +80,20 @@ async function downloadOne(url, dest) {
       if (s.size > 512) return { skipped: true, bytes: 0 };
     } catch {}
   }
-  const res = await fetch(url, { redirect: 'follow' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const tmp = `${dest}.part`;
-  await pipeline(res.body, createWriteStream(tmp));
-  const got = (await stat(tmp)).size;
-  if (got < 512) throw new Error(`suspiciously small (${got} bytes)`);
-  await rename(tmp, dest);
-  return { skipped: false, bytes: got };
+  try {
+    const res = await fetch(url, { redirect: 'follow' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await pipeline(res.body, createWriteStream(tmp));
+    const got = (await stat(tmp)).size;
+    if (got < 512) throw new Error(`suspiciously small (${got} bytes)`);
+    await rename(tmp, dest);
+    return { skipped: false, bytes: got };
+  } catch (err) {
+    // Don't leave a half-written .part behind for the next run to trip over.
+    await rm(tmp, { force: true }).catch(() => {});
+    throw err;
+  }
 }
 
 async function mirror(slug) {

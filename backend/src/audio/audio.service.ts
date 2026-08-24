@@ -8,7 +8,7 @@ import axios from 'axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile, stat } from 'node:fs/promises';
+import { mkdir, writeFile, stat, rename } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import {
@@ -400,6 +400,52 @@ export class AudioService {
     await mkdir(dir, { recursive: true });
     await writeFile(path, audio);
     return path;
+  }
+
+
+  /**
+   * Return the local path for a stored audio file, fetching it from its origin
+   * on first request if the mirror does not have it yet.
+   *
+   * The catalog serves audio from our own storage, but the mirror is ~50GB and
+   * is not shipped with the code, so a fresh deploy has an empty directory and
+   * every verse 404s. Rather than requiring the whole archive up front, the
+   * backend backfills each file the first time it is played and serves it
+   * locally from then on.
+   *
+   * Returns null when the file is absent and no origin is known.
+   */
+  async ensureLocalAudioFile(reciterSlug: string, file: string): Promise<string | null> {
+    const root = process.env.AUDIO_STORAGE_PATH || join(process.cwd(), 'storage', 'audio');
+    const path = join(root, reciterSlug, file);
+    if (existsSync(path)) return path;
+
+    // Translation reciters carry their origin in the catalog; Arabic reciters keep it in the DB.
+    let origin = getTranslationReciter(reciterSlug)?.originUrl ?? null;
+    if (!origin) {
+      const reciter = await this.prisma.reciter.findUnique({
+        where: { slug: reciterSlug },
+        select: { baseUrl: true },
+      });
+      origin = reciter?.baseUrl ?? null;
+    }
+    if (!origin) return null;
+
+    const url = `${origin.replace(/\/$/, '')}/${file}`;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+      if (!response.ok) return null;
+      const audio = Buffer.from(await response.arrayBuffer());
+      if (audio.length < 512) return null;
+      await mkdir(join(root, reciterSlug), { recursive: true });
+      // Write then rename so a concurrent request never reads a partial file.
+      const temp = `${path}.${process.pid}.part`;
+      await writeFile(temp, audio);
+      await rename(temp, path);
+      return path;
+    } catch {
+      return null;
+    }
   }
 
 }
