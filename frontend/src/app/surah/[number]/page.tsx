@@ -128,6 +128,14 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   const initialAyahs = Array.isArray(ayahs) ? ayahs : [];
   const firstAyah = initialAyahs.length > 0 ? initialAyahs[0].number : range.start;
   const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
+  const primaryTranslationSlug = effectiveTranslations.split(',')[0]?.trim() || '';
+  const primaryTranslatorName =
+    initialAyahs
+      .flatMap((ayah) => ayah.translations ?? [])
+      .find((t) => t.translatorSlug === primaryTranslationSlug && t.translatorName?.trim())
+      ?.translatorName?.trim() ||
+    initialAyahs[0]?.translations?.[0]?.translatorName?.trim() ||
+    null;
 
   const endOfChapter = (
     <div className="mt-14 border-t border-line pt-10">
@@ -288,6 +296,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
                 surahNumber={surahNumber}
                 surahName={surah.nameSimple}
                 effectiveTranslations={effectiveTranslations}
+                primaryTranslatorName={primaryTranslatorName}
               />
             </div>
           </div>

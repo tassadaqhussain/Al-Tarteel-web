@@ -455,3 +455,76 @@ model Feedback {
   @@index([category])
   @@map("feedback")
 }
+
+/// One campaign = one ad, published to many in-app + external channels.
+model Campaign {
+  id               Int       @id @default(autoincrement())
+  name             String    @db.VarChar(120)
+  headline         String    @db.VarChar(200)
+  body             String    @db.Text
+  ctaLabel         String    @map("cta_label") @db.VarChar(60)
+  destination      String    @db.VarChar(300)
+  destinationKind  String    @map("destination_kind") @db.VarChar(40)
+  imageUrl         String?   @map("image_url") @db.VarChar(500)
+  /// draft | live | paused
+  status           String    @default("draft") @db.VarChar(20)
+  startsAt         DateTime? @map("starts_at")
+  endsAt           DateTime? @map("ends_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  channels CampaignChannel[]
+
+  @@index([status, updatedAt(sort: Desc)])
+  @@map("campaigns")
+}
+
+model CampaignChannel {
+  id          Int       @id @default(autoincrement())
+  campaignId  Int       @map("campaign_id")
+  /// in_app_global | in_app_home | in_app_reader | in_app_tajweed | in_app_hifz | in_app_plans | x | facebook | instagram | whatsapp | telegram | email
+  channel     String    @db.VarChar(40)
+  enabled     Boolean   @default(true)
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, channel])
+  @@index([channel, enabled])
+  @@map("campaign_channels")
+}
+
+/// Singleton SMTP settings (id = 1). Admin can set these from the Email page.
+model MailSetting {
+  id           Int      @id
+  host         String   @db.VarChar(255)
+  port         Int      @default(587)
+  secure       Boolean  @default(false)
+  username     String   @db.VarChar(255)
+  password     String   @db.VarChar(500)
+  fromAddress  String?  @map("from_address") @db.VarChar(255)
+  notifyEmail  String?  @map("notify_email") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("mail_settings")
+}
+
+/// Reusable admin email templates (layout + copy).
+model MailTemplate {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(80)
+  /// classic | letter | announcement | reminder | digest | invite | focus | gratitude
+  layout    String   @default("classic") @db.VarChar(40)
+  subject   String   @db.VarChar(200)
+  body      String   @db.Text
+  ctaLabel  String   @map("cta_label") @db.VarChar(60)
+  ctaUrl    String   @map("cta_url") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([updatedAt(sort: Desc)])
+  @@map("mail_templates")
+}

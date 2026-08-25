@@ -13,6 +13,8 @@ import { AiModule } from './ai/ai.module';
 import { HifzModule } from './hifz/hifz.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { AdminModule } from './admin/admin.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { AdminModule } from './admin/admin.module';
       },
     ]),
     PrismaModule,
+    MailModule,
     CacheModule,
     QuranModule,
     AudioModule,
@@ -35,6 +38,7 @@ import { AdminModule } from './admin/admin.module';
     HifzModule,
     FeedbackModule,
     AdminModule,
+    CampaignsModule,
   ],
 })
 export class AppModule {}

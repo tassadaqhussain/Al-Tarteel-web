@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Loader2, Pencil, Plus, RefreshCw, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Loader2, Pencil, RefreshCw, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { adminApi, AdminMotivationMessage, ApiError } from '@/lib/api';
 import {
   EMPTY_MOTIVATION_FORM,
@@ -56,11 +56,8 @@ export function MessagesManager() {
     setSubmitting(true);
     setError(null);
     try {
-      if (editingId) {
-        await adminApi.updateMotivationalMessage(editingId, form);
-      } else {
-        await adminApi.createMotivationalMessage(form);
-      }
+      if (!editingId) return;
+      await adminApi.updateMotivationalMessage(editingId, form);
       resetForm();
       await load();
     } catch (err) {
@@ -122,19 +119,6 @@ export function MessagesManager() {
               <RefreshCw className={loading ? 'animate-spin' : ''} />
               Refresh
             </Button>
-            {!showForm && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  resetForm();
-                  setShowForm(true);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                New message
-              </Button>
-            )}
           </div>
         }
       />
@@ -146,12 +130,12 @@ export function MessagesManager() {
 
       {error ? <AdminErrorBanner message={error} /> : null}
 
-      {showForm && (
+      {showForm && editingId && (
         <AdminCard className="mb-8">
           <form onSubmit={onSubmit} className="space-y-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-base font-semibold text-ink dark:text-slate-100">
-                {editingId ? `Edit message #${editingId}` : 'Create new message'}
+                Edit message #{editingId}
               </h2>
               <Button type="button" variant="ghost" size="sm" onClick={resetForm}>
                 Cancel
@@ -239,7 +223,7 @@ export function MessagesManager() {
             <div className="flex gap-2 pt-1">
               <Button type="submit" disabled={submitting}>
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {editingId ? 'Save changes' : 'Create message'}
+                Save changes
               </Button>
             </div>
           </form>
@@ -251,7 +235,7 @@ export function MessagesManager() {
       ) : items.length === 0 ? (
         <AdminEmptyState
           title="No custom messages yet"
-          description="Approved active messages are merged with the built-in motivation pool for signed-in users."
+          description="Approved active messages from the database appear here. The built-in motivation pool still shows to signed-in users."
         />
       ) : (
         <AdminCard padding={false} className="overflow-hidden">

@@ -15,7 +15,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../users/guards/jwt-auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { AdminService } from './admin.service';
+import { CampaignsService } from '../campaigns/campaigns.service';
 import { UpsertMotivationDto } from './dto/upsert-motivation.dto';
+import { PublishCampaignDto, UpsertCampaignDto } from '../campaigns/dto/upsert-campaign.dto';
+import { SendUserEmailDto } from './dto/send-user-email.dto';
+import { UpsertMailSettingsDto } from '../mail/dto/upsert-mail-settings.dto';
+import { UpsertMailTemplateDto } from '../mail/dto/upsert-mail-template.dto';
 import { isAdminEmail } from './admin.util';
 
 type AuthedRequest = { user?: { userId: number; email?: string | null; name?: string | null } };
@@ -25,7 +30,10 @@ type AuthedRequest = { user?: { userId: number; email?: string | null; name?: st
 @UseGuards(JwtAuthGuard, AdminGuard)
 @ApiBearerAuth()
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly campaigns: CampaignsService,
+  ) {}
 
   @Get('me')
   @ApiOperation({ summary: 'Verify admin session' })
@@ -89,5 +97,101 @@ export class AdminController {
   @ApiOperation({ summary: 'Delete a motivational message' })
   deleteMotivationalMessage(@Param('id', ParseIntPipe) id: number) {
     return this.admin.deleteMotivationalMessage(id);
+  }
+
+  @Get('campaigns')
+  @ApiOperation({ summary: 'List ad campaigns' })
+  listCampaigns() {
+    return this.campaigns.list();
+  }
+
+  @Get('campaigns/:id')
+  @ApiOperation({ summary: 'Get a campaign with channel copy' })
+  getCampaign(@Param('id', ParseIntPipe) id: number) {
+    return this.campaigns.get(id);
+  }
+
+  @Post('campaigns')
+  @ApiOperation({ summary: 'Create an ad campaign' })
+  createCampaign(@Body() dto: UpsertCampaignDto) {
+    return this.campaigns.create(dto);
+  }
+
+  @Patch('campaigns/:id')
+  @ApiOperation({ summary: 'Update an ad campaign' })
+  updateCampaign(@Param('id', ParseIntPipe) id: number, @Body() dto: UpsertCampaignDto) {
+    return this.campaigns.update(id, dto);
+  }
+
+  @Post('campaigns/:id/publish')
+  @ApiOperation({ summary: 'Publish one ad to selected channels' })
+  publishCampaign(@Param('id', ParseIntPipe) id: number, @Body() dto: PublishCampaignDto) {
+    return this.campaigns.publish(id, dto.channels);
+  }
+
+  @Post('campaigns/:id/pause')
+  @ApiOperation({ summary: 'Pause a live campaign' })
+  pauseCampaign(@Param('id', ParseIntPipe) id: number) {
+    return this.campaigns.pause(id);
+  }
+
+  @Delete('campaigns/:id')
+  @ApiOperation({ summary: 'Delete a campaign' })
+  deleteCampaign(@Param('id', ParseIntPipe) id: number) {
+    return this.campaigns.remove(id);
+  }
+
+  @Get('users')
+  @ApiOperation({ summary: 'List registered users' })
+  listUsers() {
+    return this.admin.listRegisteredUsers();
+  }
+
+  @Get('mail/status')
+  @ApiOperation({ summary: 'Whether SMTP is configured' })
+  mailStatus() {
+    return this.admin.mailStatus();
+  }
+
+  @Get('mail/settings')
+  @ApiOperation({ summary: 'Get SMTP settings (password never returned)' })
+  getMailSettings() {
+    return this.admin.getMailSettings();
+  }
+
+  @Patch('mail/settings')
+  @ApiOperation({ summary: 'Save SMTP settings to the database' })
+  saveMailSettings(@Body() dto: UpsertMailSettingsDto) {
+    return this.admin.saveMailSettings(dto);
+  }
+
+  @Get('mail/templates')
+  @ApiOperation({ summary: 'List saved email templates' })
+  listMailTemplates() {
+    return this.admin.listMailTemplates();
+  }
+
+  @Post('mail/templates')
+  @ApiOperation({ summary: 'Create an email template' })
+  createMailTemplate(@Body() dto: UpsertMailTemplateDto) {
+    return this.admin.createMailTemplate(dto);
+  }
+
+  @Patch('mail/templates/:id')
+  @ApiOperation({ summary: 'Update an email template' })
+  updateMailTemplate(@Param('id', ParseIntPipe) id: number, @Body() dto: UpsertMailTemplateDto) {
+    return this.admin.updateMailTemplate(id, dto);
+  }
+
+  @Delete('mail/templates/:id')
+  @ApiOperation({ summary: 'Delete an email template' })
+  deleteMailTemplate(@Param('id', ParseIntPipe) id: number) {
+    return this.admin.deleteMailTemplate(id);
+  }
+
+  @Post('mail/send')
+  @ApiOperation({ summary: 'Email registered users' })
+  sendUserEmail(@Req() req: AuthedRequest, @Body() dto: SendUserEmailDto) {
+    return this.admin.sendUserEmail(dto, req.user?.email);
   }
 }

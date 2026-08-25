@@ -22,6 +22,8 @@ interface Props {
   surahName?: string;
   /** SSR-resolved slugs — keeps the pill label aligned with rendered verse attribution. */
   effectiveTranslations?: string;
+  /** Name from the first SSR ayah translation for the primary slug (crawler-safe). */
+  primaryTranslatorName?: string | null;
 }
 
 export function ChapterControls({
@@ -29,6 +31,7 @@ export function ChapterControls({
   surahNumber,
   surahName,
   effectiveTranslations,
+  primaryTranslatorName,
 }: Props) {
   const [translationOpen, setTranslationOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -83,8 +86,11 @@ export function ChapterControls({
     mounted ? translationSlugs : [],
     effectiveTranslations,
   );
+  const ssrPrimarySlug = resolvePrimaryTranslationSlug([], effectiveTranslations);
   const friendlyName =
-    translatorNames[primarySlug] || formatTranslatorDisplayName(primarySlug);
+    translatorNames[primarySlug] ||
+    (primaryTranslatorName && primarySlug === ssrPrimarySlug ? primaryTranslatorName : null) ||
+    formatTranslatorDisplayName(primarySlug);
 
   const translationLabel =
     effectiveCount > 1

@@ -1,15 +1,46 @@
 export const TRANSLATION_COOKIE = 'qp_translations';
 export const DEFAULT_TRANSLATION = 'en-sahih-international';
 
+/** Old header fallback / mistaken prefs — not the site default. */
+const LEGACY_CLEAR_QURAN_SLUGS = new Set([
+  'en-clear-quran',
+  'clear-quran',
+  'en-mustafa-khattab',
+  'en-khattab',
+]);
+
+/**
+ * Map a stored slug to the current default when it is a known legacy Clear Quran
+ * default. Real intentional Clear Quran selections that use a live API slug are
+ * left alone (those slugs are not in the legacy set).
+ */
+export function normalizeTranslationSlug(slug: string): string {
+  const value = slug.trim();
+  if (!value) return DEFAULT_TRANSLATION;
+  if (LEGACY_CLEAR_QURAN_SLUGS.has(value)) return DEFAULT_TRANSLATION;
+  return value;
+}
+
+export function normalizeTranslationSlugs(slugs: string[]): string[] {
+  const next = slugs.map(normalizeTranslationSlug).filter(Boolean);
+  return [...new Set(next)];
+}
+
 /** Human-readable label for a translation slug (matches API translator names where possible). */
 export function formatTranslatorDisplayName(slug: string): string {
   if (slug.includes('israr') || slug.includes('bayan')) {
     return 'Bayan-ul-Quran (Dr. Israr Ahmad)';
   }
-  if (slug.includes('khattab') || slug.includes('clear')) {
+  // Prefer exact Clear Quran markers — avoid matching unrelated slugs that contain "clear".
+  if (
+    slug.includes('khattab') ||
+    slug.includes('clear-quran') ||
+    slug === 'en-clear-quran' ||
+    LEGACY_CLEAR_QURAN_SLUGS.has(slug)
+  ) {
     return 'The Clear Quran (Dr. Mustafa Khattab)';
   }
-  if (slug.includes('sahih')) {
+  if (slug.includes('sahih') || slug.includes('saheeh')) {
     return 'Saheeh International';
   }
   return slug.replace(/^(en|ur|ar|fr|id|bn|tr|fa|hi|ps)-/, '').replaceAll('-', ' ');
@@ -20,15 +51,15 @@ export function resolvePrimaryTranslationSlug(
   translationSlugs: string[],
   effectiveTranslations?: string,
 ): string {
-  if (translationSlugs[0]) return translationSlugs[0];
+  if (translationSlugs[0]) return normalizeTranslationSlug(translationSlugs[0]);
   const fromSsr = effectiveTranslations?.split(',')[0]?.trim();
-  return fromSsr || DEFAULT_TRANSLATION;
+  return normalizeTranslationSlug(fromSsr || DEFAULT_TRANSLATION);
 }
 
 /** Persist preferred translation slugs for clean URLs (server can read the cookie). */
 export function setTranslationCookie(slugs: string[]) {
   if (typeof document === 'undefined') return;
-  const value = slugs.filter(Boolean).join(',');
+  const value = normalizeTranslationSlugs(slugs).filter(Boolean).join(',');
   if (!value) {
     document.cookie = `${TRANSLATION_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
     return;
@@ -45,10 +76,12 @@ export function parseTranslationPreference(raw: string | null | undefined): stri
   } catch {
     /* keep raw */
   }
-  const cleaned = decoded
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const cleaned = normalizeTranslationSlugs(
+    decoded
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
   return cleaned.length ? cleaned.join(',') : DEFAULT_TRANSLATION;
 }
 

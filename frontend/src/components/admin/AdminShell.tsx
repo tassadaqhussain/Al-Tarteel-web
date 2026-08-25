@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import {
   ExternalLink,
   LayoutDashboard,
+  Mail,
+  Megaphone,
   Menu,
   MessageSquare,
   Sparkles,
@@ -22,6 +24,8 @@ const NAV: {
   exact?: boolean;
 }[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
+  { href: '/admin/email', label: 'Email', icon: Mail },
   { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/admin/messages', label: 'Motivation', icon: Sparkles },
 ];

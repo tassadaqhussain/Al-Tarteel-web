@@ -319,6 +319,37 @@ export type AdminMotivationMessage = {
   updatedAt: string;
 };
 
+export type AdminRegisteredUser = {
+  id: number;
+  email: string | null;
+  name: string | null;
+  createdAt: string;
+};
+
+export type AdminMailSettings = {
+  configured: boolean;
+  source: 'database' | 'env' | null;
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  fromAddress: string;
+  notifyEmail: string;
+  passwordSet: boolean;
+};
+
+export type AdminMailTemplate = {
+  id: number;
+  name: string;
+  layout: 'classic' | 'letter' | 'announcement' | 'reminder' | 'digest' | 'invite' | 'focus' | 'gratitude';
+  subject: string;
+  body: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export const adminApi = {
   me: () =>
     api<{ isAdmin: boolean; email: string | null; name: string | null }>('/admin/me'),
@@ -384,7 +415,135 @@ export const adminApi = {
     }),
   deleteMotivationalMessage: (id: number) =>
     api<{ ok: boolean }>(`/admin/motivational-messages/${id}`, { method: 'DELETE' }),
+  listCampaigns: () => api<AdminCampaign[]>('/admin/campaigns'),
+  getCampaign: (id: number) => api<AdminCampaign>(`/admin/campaigns/${id}`),
+  createCampaign: (body: CampaignPayload) =>
+    api<AdminCampaign>('/admin/campaigns', { method: 'POST', body: JSON.stringify(body) }),
+  updateCampaign: (id: number, body: CampaignPayload) =>
+    api<AdminCampaign>(`/admin/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  publishCampaign: (id: number, channels?: string[]) =>
+    api<AdminCampaign>(`/admin/campaigns/${id}/publish`, {
+      method: 'POST',
+      body: JSON.stringify(channels ? { channels } : {}),
+    }),
+  pauseCampaign: (id: number) =>
+    api<AdminCampaign>(`/admin/campaigns/${id}/pause`, { method: 'POST', body: JSON.stringify({}) }),
+  deleteCampaign: (id: number) =>
+    api<{ ok: boolean }>(`/admin/campaigns/${id}`, { method: 'DELETE' }),
+  listUsers: () => api<AdminRegisteredUser[]>('/admin/users'),
+  mailStatus: () => api<AdminMailSettings>('/admin/mail/status'),
+  getMailSettings: () => api<AdminMailSettings>('/admin/mail/settings'),
+  saveMailSettings: (body: {
+    host: string;
+    port: number;
+    secure: boolean;
+    username: string;
+    password?: string;
+    fromAddress?: string;
+    notifyEmail?: string;
+  }) =>
+    api<AdminMailSettings>('/admin/mail/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  listMailTemplates: () => api<AdminMailTemplate[]>('/admin/mail/templates'),
+  createMailTemplate: (body: {
+    name: string;
+    layout: AdminMailTemplate['layout'];
+    subject: string;
+    body: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  }) =>
+    api<AdminMailTemplate>('/admin/mail/templates', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  updateMailTemplate: (
+    id: number,
+    body: {
+      name: string;
+      layout: AdminMailTemplate['layout'];
+      subject: string;
+      body: string;
+      ctaLabel?: string;
+      ctaUrl?: string;
+    },
+  ) =>
+    api<AdminMailTemplate>(`/admin/mail/templates/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  deleteMailTemplate: (id: number) =>
+    api<{ ok: boolean }>(`/admin/mail/templates/${id}`, { method: 'DELETE' }),
+  sendUserEmail: (body: {
+    subject: string;
+    body: string;
+    userIds?: number[];
+    preview?: boolean;
+    ctaLabel?: string;
+    ctaUrl?: string;
+    layout?: AdminMailTemplate['layout'];
+  }) =>
+    api<{ ok: boolean; sent: number; failed: number; total: number; errors: string[] }>('/admin/mail/send', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 } as const;
+
+export const campaignApi = {
+  active: (surface?: string) =>
+    api<{ campaign: PublicCampaign | null }>('/campaigns/active', {
+      params: surface ? { surface } : undefined,
+    }),
+};
+
+export type CampaignPayload = {
+  name: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  destination: string;
+  destinationKind: string;
+  imageUrl?: string;
+  channels: string[];
+};
+
+export type CampaignCopy = {
+  channel: string;
+  title: string;
+  text: string;
+  shareUrl?: string;
+};
+
+export type AdminCampaign = {
+  id: number;
+  name: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  destination: string;
+  destinationKind: string;
+  imageUrl: string | null;
+  status: 'draft' | 'live' | 'paused';
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  channels: { channel: string; enabled: boolean; publishedAt: string | null }[];
+  copies?: CampaignCopy[];
+};
+
+export type PublicCampaign = {
+  id: number;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  destination: string;
+  destinationKind: string;
+  imageUrl: string | null;
+  channels: string[];
+};
 
 export const quranApi = {
   surahs: () => api<Awaited<ReturnType<typeof getSurahs>>>('/quran/surahs'),

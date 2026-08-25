@@ -29,14 +29,14 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
     range
       ? {
           title: `Surah ${name} – Verses ${range.start}–${range.end}`,
-          description: `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, English translation, and verse-by-verse audio.`,
+          description: `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, Saheeh International English translation, and verse-by-verse audio.`,
         }
       : {
           title: `Surah ${name} – Read, Listen, English Translation & Audio`,
           description: [
             `Read Surah ${name}${meaning ? ` (${meaning})` : ''}${arabic ? ` · ${arabic}` : ''} online`,
             ayahCount ? `— ${ayahCount} verses` : '',
-            'with Arabic Uthmani text, English translation, and verse-by-verse audio.',
+            'with Arabic Uthmani text, Saheeh International English translation, and verse-by-verse audio.',
           ]
             .filter(Boolean)
             .join(' '),

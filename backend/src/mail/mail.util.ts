@@ -4,83 +4,88 @@ import type { Transporter } from 'nodemailer';
 
 const log = new Logger('Mail');
 
-let transporter: Transporter | null | undefined;
+export type ResolvedMailConfig = {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  from: string | null;
+  notifyEmail: string | null;
+  smtpUrl: string | null;
+  source: 'database' | 'env';
+};
 
-function buildTransporter(): Transporter | null {
-  const url = process.env.SMTP_URL?.trim();
-  if (url) {
-    return nodemailer.createTransport(url);
-  }
+export function envMailConfig(): ResolvedMailConfig | null {
+  const smtpUrl = process.env.SMTP_URL?.trim() || null;
+  const host = process.env.SMTP_HOST?.trim() || '';
+  const user = process.env.SMTP_USER?.trim() || '';
+  const pass = process.env.SMTP_PASS?.trim() || '';
+  if (!smtpUrl && (!host || !user || !pass)) return null;
 
-  const host = process.env.SMTP_HOST?.trim();
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS?.trim();
-  if (!host || !user || !pass) return null;
-
-  const port = Number(process.env.SMTP_PORT || 587);
-  const secure =
-    process.env.SMTP_SECURE === 'true' || port === 465;
-
-  return nodemailer.createTransport({
+  const port = Number(process.env.SMTP_PORT || (smtpUrl ? 465 : 587));
+  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+  return {
     host,
-    port,
+    port: Number.isFinite(port) ? port : 587,
     secure,
-    auth: { user, pass },
+    user,
+    pass,
+    from: process.env.SMTP_FROM?.trim() || null,
+    notifyEmail: process.env.FEEDBACK_NOTIFY_EMAIL?.trim() || null,
+    smtpUrl,
+    source: 'env',
+  };
+}
+
+export function isEnvMailConfigured(): boolean {
+  return envMailConfig() != null;
+}
+
+export function createTransporter(config: ResolvedMailConfig): Transporter {
+  if (config.smtpUrl) {
+    return nodemailer.createTransport(config.smtpUrl);
+  }
+  return nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: { user: config.user, pass: config.pass },
   });
 }
 
-function getTransporter(): Transporter | null {
-  if (transporter !== undefined) return transporter;
-  try {
-    transporter = buildTransporter();
-  } catch (err) {
-    log.warn(`SMTP transporter init failed: ${err instanceof Error ? err.message : err}`);
-    transporter = null;
-  }
-  return transporter;
+export function fromAddress(config: ResolvedMailConfig): string {
+  return config.from?.trim() || config.user?.trim() || 'noreply@quranpilot.com';
 }
 
-export function isMailConfigured(): boolean {
-  return Boolean(process.env.SMTP_URL?.trim() || (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS));
+export function notifyAddress(config: ResolvedMailConfig): string | null {
+  return config.notifyEmail?.trim() || config.user?.trim() || null;
 }
 
-/** Prefer FEEDBACK_NOTIFY_EMAIL, else SMTP_USER (Gmail account used to send). */
-export function feedbackNotifyAddress(): string | null {
-  const explicit = process.env.FEEDBACK_NOTIFY_EMAIL?.trim();
-  if (explicit) return explicit;
-  return process.env.SMTP_USER?.trim() || null;
-}
-
-export async function sendMail(opts: {
-  to: string;
-  subject: string;
-  text: string;
-  html?: string;
-  replyTo?: string;
-}): Promise<boolean> {
-  const transport = getTransporter();
-  if (!transport) {
-    log.warn('SMTP not configured — email skipped');
-    return false;
-  }
-
-  const from =
-    process.env.SMTP_FROM?.trim() ||
-    process.env.SMTP_USER?.trim() ||
-    'noreply@quranpilot.com';
-
+export async function sendWithTransporter(
+  transport: Transporter,
+  config: ResolvedMailConfig,
+  opts: {
+    to: string;
+    subject: string;
+    text: string;
+    html?: string;
+    replyTo?: string;
+  },
+): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     await transport.sendMail({
-      from,
+      from: fromAddress(config),
       to: opts.to,
       subject: opts.subject,
       text: opts.text,
       html: opts.html,
       replyTo: opts.replyTo,
     });
-    return true;
+    return { ok: true };
   } catch (err) {
-    log.error(`Failed to send mail: ${err instanceof Error ? err.message : err}`);
-    return false;
+    const error = err instanceof Error ? err.message : String(err);
+    log.error(`Failed to send mail: ${error}`);
+    return { ok: false, error };
   }
 }

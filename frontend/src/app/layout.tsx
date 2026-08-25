@@ -12,6 +12,7 @@ import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
+import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_KEYWORDS,
@@ -180,6 +181,7 @@ export default function RootLayout({
                 <ScrollToCurrentAyah />
                 <ScrollToHashAyah />
                 <div className="relative flex min-h-screen flex-col">
+                  <CampaignBanner />
                   {children}
                 </div>
                 <AudioBar />
