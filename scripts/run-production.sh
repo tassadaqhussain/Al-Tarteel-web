@@ -12,7 +12,7 @@
 #
 # Options:
 #   --env PATH           deploy env file (default: deploy/production.env)
-#   --pull               git pull --ff-only before building
+#   --pull               git fetch + reset --hard to origin before building
 #   --no-build           start existing images only
 #   --import-content     after API is up, import translations/tafsir/study
 #   --import-audio       also mirror recitation audio onto this host
@@ -96,8 +96,9 @@ fi
 cd "${APP_DIR}"
 
 if [[ "${DO_PULL}" == "1" ]]; then
-  log "git pull --ff-only"
-  git pull --ff-only
+  log "git fetch + reset --hard to origin"
+  git fetch origin
+  git reset --hard "@{u}"
 fi
 
 log "Sync public URLs"
