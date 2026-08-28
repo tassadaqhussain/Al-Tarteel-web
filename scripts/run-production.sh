@@ -163,6 +163,12 @@ if [[ -f "${APP_DIR}/scripts/ensure-production-ssl.sh" ]]; then
   bash "${APP_DIR}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL check failed (site may still work on apex)"
 fi
 
+NGINX_FILTER="${APP_DIR}/deploy/nginx/next-action-filter.conf"
+if [[ -f "${NGINX_FILTER}" ]] && command -v nginx >/dev/null 2>&1; then
+  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf
+  nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1 || true
+fi
+
 PUBLIC_ORIGIN="${FRONTEND_URL:-https://${DOMAIN}}"
 log "Production is running — ${DOMAIN}"
 cat <<EOF

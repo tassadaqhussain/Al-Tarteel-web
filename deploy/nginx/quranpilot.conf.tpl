@@ -38,6 +38,9 @@ server {
 
     # Next.js frontend
     location / {
+        if ($qp_invalid_next_action) {
+            return 400;
+        }
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

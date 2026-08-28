@@ -342,6 +342,11 @@ log "Nginx vhost for ${DOMAIN}"
 mkdir -p "${CERTBOT_WEBROOT}/.well-known/acme-challenge"
 mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled 2>/dev/null || true
 mkdir -p /etc/nginx/conf.d 2>/dev/null || true
+NGINX_FILTER="${REPO_ROOT}/deploy/nginx/next-action-filter.conf"
+if [[ -f "${NGINX_FILTER}" ]]; then
+  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf
+  ok "Installed Next-Action probe filter"
+fi
 chown -R www-data:www-data "${CERTBOT_WEBROOT}" 2>/dev/null \
   || chown -R nginx:nginx "${CERTBOT_WEBROOT}" 2>/dev/null \
   || true
