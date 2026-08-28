@@ -5,6 +5,7 @@ import { SurahGrid } from '@/components/home/SurahGrid';
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 import { buildPageMetadata } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { SurahDirectorySections } from '@/components/seo/SurahDirectorySections';
 import Link from 'next/link';
 import { BookOpen, Headphones, Languages } from 'lucide-react';
 
@@ -63,7 +64,19 @@ export default async function SurahsPage() {
                 <Link href="/search" className="font-bold text-brand hover:underline">
                   search the Quran
                 </Link>
-                .
+                . Also browse{' '}
+                <Link href="/quran-english-translation" className="font-bold text-brand hover:underline">
+                  English
+                </Link>
+                ,{' '}
+                <Link href="/quran-urdu-translation" hrefLang="ur" className="font-bold text-brand hover:underline">
+                  Urdu
+                </Link>
+                , and{' '}
+                <Link href="/quran-pashto-translation" hrefLang="ps" className="font-bold text-brand hover:underline">
+                  Pashto
+                </Link>{' '}
+                translation hubs.
               </p>
             </div>
 
@@ -86,7 +99,8 @@ export default async function SurahsPage() {
             </div>
           </div>
         </header>
-        <SurahGrid surahs={list} embedded />
+        <SurahDirectorySections surahs={list} />
+        <SurahGrid surahs={list} embedded sectionTitle="Complete surah list" />
       </main>
     </div>
   );

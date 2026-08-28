@@ -46,6 +46,9 @@ function coreEntries(): SitemapEntry[] {
   return [
     { url: SITE_URL, changeFrequency: 'weekly', priority: 1 },
     { url: `${SITE_URL}/surahs`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${SITE_URL}/quran-english-translation`, changeFrequency: 'weekly', priority: 0.92 },
+    { url: `${SITE_URL}/quran-urdu-translation`, changeFrequency: 'weekly', priority: 0.92 },
+    { url: `${SITE_URL}/quran-pashto-translation`, changeFrequency: 'weekly', priority: 0.92 },
     { url: `${SITE_URL}/articles`, changeFrequency: 'daily', priority: 0.75 },
     { url: `${SITE_URL}/learning-plans`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/quran-in-year`, changeFrequency: 'monthly', priority: 0.65 },

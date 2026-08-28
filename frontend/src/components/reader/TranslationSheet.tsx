@@ -39,6 +39,13 @@ const LANG_NAMES: Record<string, string> = {
   fa: 'Persian',
   es: 'Spanish',
   nl: 'Dutch',
+  th: 'Thai',
+  vi: 'Vietnamese',
+  sw: 'Swahili',
+  sq: 'Albanian',
+  hi: 'Hindi',
+  pt: 'Portuguese',
+  zh: 'Chinese',
   it: 'Italian',
 };
 

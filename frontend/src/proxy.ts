@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-/** Real Server Action IDs are long opaque hashes; scanners send "x", "test", etc. */
 const MIN_SERVER_ACTION_ID_LENGTH = 40;
 
-/**
- * Request proxy:
- * - Block fake Next-Action probes (react2shell scanners)
- * - SEO headers for /search?q=… (noindex)
- */
 export function proxy(request: NextRequest) {
   if (request.method === 'POST') {
     const actionId = request.headers.get('next-action');

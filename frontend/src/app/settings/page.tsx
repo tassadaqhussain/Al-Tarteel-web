@@ -21,7 +21,9 @@ import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { TranslationSheet } from '@/components/reader/TranslationSheet';
-import { useSettingsStore, type FontSize, type MushafType, type ReadingMode } from '@/stores/settingsStore';
+import { LANGUAGES } from '@/lib/i18n/languages';
+import { useApplyUiLocale } from '@/hooks/useApplyUiLocale';
+import { useSettingsStore, type FontSize, type MushafType, type ReadingMode, type UiLocale } from '@/stores/settingsStore';
 import { useTheme } from '@/components/ThemeProvider';
 import { quranApi, audioApi, type TafsirSource, type Reciter, type Translator } from '@/lib/api';
 import { catalogTranslationReciters } from '@/lib/audio/translation-reciters';
@@ -133,6 +135,8 @@ export default function SettingsPage() {
     translationReciterSlug,
     setTranslationReciterSlug,
   } = useSettingsStore();
+  const uiLocale = useSettingsStore((s) => s.uiLocale);
+  const { applyUiLocale, applying } = useApplyUiLocale();
 
   const [translators, setTranslators] = useState<Translator[]>([]);
   const [tafsirSources, setTafsirSources] = useState<TafsirSource[]>([]);
@@ -196,6 +200,32 @@ export default function SettingsPage() {
               Tailor the reader's look, size, and layout to match your age or preference.
             </p>
             <AgeModeSelector variant="grid" />
+          </div>
+        </Section>
+
+        <Section title="Interface language" icon={<Languages className="h-4 w-4" />}>
+          <div className="px-5 py-4">
+            <p className="mb-3 text-xs text-[var(--muted)]">
+              Changes navigation labels and picks the default Quran translation for this language when available.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  disabled={applying !== null}
+                  onClick={() => void applyUiLocale(lang.code as UiLocale)}
+                  className={cn(
+                    'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
+                    uiLocale === lang.code
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                      : 'border-[var(--border)] text-[var(--muted)] hover:border-[var(--accent)]/50 hover:text-[var(--fg)]'
+                  )}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
           </div>
         </Section>
 

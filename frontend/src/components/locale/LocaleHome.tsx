@@ -97,6 +97,22 @@ export function LocaleHome({ locale }: { locale: PrefixedLocale }) {
               </li>
             ))}
           </ul>
+          {locale === 'ur' ? (
+            <p className="mt-3 text-sm text-ink-2">
+              <Link href="/quran-urdu-translation" className="font-medium text-brand hover:underline">
+                Quran Urdu translation hub
+              </Link>{' '}
+              — English URL index for all 114 surahs in Urdu.
+            </p>
+          ) : null}
+          {locale === 'ps' ? (
+            <p className="mt-3 text-sm text-ink-2">
+              <Link href="/quran-pashto-translation" className="font-medium text-brand hover:underline">
+                Quran Pashto translation hub
+              </Link>{' '}
+              — English URL index for all 114 surahs in Pashto.
+            </p>
+          ) : null}
         </nav>
       </main>
 
