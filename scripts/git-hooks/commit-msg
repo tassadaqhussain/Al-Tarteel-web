@@ -1,0 +1,6 @@
+#!/bin/sh
+# Drop Cursor co-author trailer if the IDE injected it.
+file=$1
+tmp=$(mktemp)
+grep -v '^Co-authored-by: Cursor <cursoragent@cursor.com>$' "$file" > "$tmp"
+mv "$tmp" "$file"
