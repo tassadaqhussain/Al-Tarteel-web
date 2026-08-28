@@ -159,6 +159,10 @@ if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   "${COMPOSE[@]}" restart api
 fi
 
+if [[ -f "${APP_DIR}/scripts/ensure-production-ssl.sh" ]]; then
+  bash "${APP_DIR}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL check failed (site may still work on apex)"
+fi
+
 PUBLIC_ORIGIN="${FRONTEND_URL:-https://${DOMAIN}}"
 log "Production is running — ${DOMAIN}"
 cat <<EOF

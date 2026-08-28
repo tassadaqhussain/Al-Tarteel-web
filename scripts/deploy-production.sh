@@ -526,8 +526,12 @@ else
     warn "Retry after DNS: sudo certbot --nginx -d ${DOMAIN}${WWW_DOMAIN:+ -d ${WWW_DOMAIN}}"
   elif certbot certificates 2>/dev/null | grep -qE "Domains:.*[[:space:]]${DOMAIN}([[:space:]]|$)"; then
     ok "Certificate already exists for ${DOMAIN}"
-    certbot renew --nginx --quiet || warn "certbot renew reported an issue"
-    nginx -t && systemctl reload nginx
+    if [[ -f "${REPO_ROOT}/scripts/ensure-production-ssl.sh" ]]; then
+      bash "${REPO_ROOT}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL www expand failed"
+    else
+      certbot renew --nginx --quiet || warn "certbot renew reported an issue"
+      nginx -t && systemctl reload nginx
+    fi
     ok "HTTPS: ${PUBLIC_ORIGIN}"
   else
     log "SSL for: ${CERTBOT_DOMAINS[*]//-d /}"
