@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ACCESS_COOKIE } from '../../auth/auth-cookies';
+import { isAdminEmail } from '../../admin/admin-access';
 
 function cookieOrBearerExtractor(req: Request): string | null {
   const fromCookie = req?.cookies?.[ACCESS_COOKIE];
@@ -24,9 +25,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: { sub: number }) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, isAdmin: true },
     });
     if (!user) throw new UnauthorizedException();
-    return { userId: user.id, email: user.email, name: user.name };
+    return { userId: user.id, email: user.email, name: user.name, isAdmin: user.isAdmin || isAdminEmail(user.email) };
   }
 }

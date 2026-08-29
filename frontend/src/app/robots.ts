@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
+import { DONATE_ENABLED } from '@/lib/features';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -20,8 +21,8 @@ export default function robots(): MetadataRoute.Robots {
           '/hifz',
           '/feedback',
           '/search',
-          '/donate/checkout',
-          '/donate/success',
+          '/admin',
+          ...(DONATE_ENABLED ? ['/donate/checkout', '/donate/success'] : ['/donate', '/donate/checkout', '/donate/success']),
           '/api/',
         ],
       },

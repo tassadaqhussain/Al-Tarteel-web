@@ -3,6 +3,7 @@ import { ARTICLES } from '@/lib/articles';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { getSurahPath } from '@/lib/surah-meta';
 import { SITE_URL } from '@/lib/seo';
+import { DONATE_ENABLED } from '@/lib/features';
 
 /**
  * Sitemap index of canonical URLs only.
@@ -56,12 +57,16 @@ export default async function sitemap(props: {
         changeFrequency: 'monthly',
         priority: 0.6,
       },
-      {
-        url: `${SITE_URL}/donate`,
-        lastModified: now,
-        changeFrequency: 'yearly',
-        priority: 0.3,
-      },
+      ...(DONATE_ENABLED
+        ? [
+            {
+              url: `${SITE_URL}/donate`,
+              lastModified: now,
+              changeFrequency: 'yearly' as const,
+              priority: 0.3,
+            },
+          ]
+        : []),
       ...Array.from({ length: 30 }, (_, i) => ({
         url: `${SITE_URL}/juz/${i + 1}`,
         lastModified: now,

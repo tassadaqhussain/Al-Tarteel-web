@@ -253,7 +253,34 @@ export function ReaderSettingsSheet({ open, onOpenChange }: Props) {
 }
 
 function TogglePanel({ title, description, checked, onChange }: { title: string; description: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return <div className="rounded-2xl bg-surface-2 p-5"><div className="flex items-center justify-between gap-4"><div><h2 className="text-xl font-bold">{title}</h2><p className="mt-1 text-sm leading-6 text-ink-muted">{description}</p></div><button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={cn('relative h-7 w-12 rounded-full transition', checked ? 'bg-[var(--accent)]' : 'bg-line-strong')}><span className={cn('absolute top-1 h-5 w-5 rounded-full bg-surface transition', checked ? 'left-6' : 'left-1')} /></button></div></div>;
+  return (
+    <div className="rounded-2xl bg-surface-2 p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold">{title}</h2>
+          <p className="mt-1 text-sm leading-6 text-ink-muted">{description}</p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          aria-label={title}
+          onClick={() => onChange(!checked)}
+          className={cn(
+            'relative mt-1 inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors',
+            checked ? 'bg-[var(--accent)]' : 'bg-line-strong',
+          )}
+        >
+          <span
+            className={cn(
+              'inline-block h-5 w-5 rounded-full bg-surface shadow-sm transition-transform',
+              checked ? 'translate-x-6' : 'translate-x-1',
+            )}
+          />
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function CheckSetting({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {

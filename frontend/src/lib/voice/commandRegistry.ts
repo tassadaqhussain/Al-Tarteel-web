@@ -2,6 +2,8 @@
  * Registry of global application navigation routes, player commands, and translation options.
  */
 
+import { DONATE_ENABLED } from '@/lib/features';
+
 export interface NavRoute {
   id: string;
   path: string;
@@ -70,12 +72,16 @@ export const GLOBAL_NAV_ROUTES: NavRoute[] = [
     label: 'Learning Plans',
     keywords: ['learning plans', 'plans', 'courses', 'تعلیمی منصوبے'],
   },
-  {
-    id: 'donate',
-    path: '/donate',
-    label: 'Donate',
-    keywords: ['donate', 'donation', 'support', 'عطیہ'],
-  },
+  ...(DONATE_ENABLED
+    ? [
+        {
+          id: 'donate',
+          path: '/donate',
+          label: 'Donate',
+          keywords: ['donate', 'donation', 'support', 'عطیہ'],
+        } satisfies NavRoute,
+      ]
+    : []),
 ];
 
 export interface PlayerCommandSpec {

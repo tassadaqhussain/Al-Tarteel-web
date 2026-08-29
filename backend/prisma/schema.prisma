@@ -242,6 +242,7 @@ model User {
   lastReadSurahId Int? @map("last_read_surah_id")
   lastReadAyahNumber Int? @map("last_read_ayah_number")
   lastReadPage Int?  @map("last_read_page")
+  isAdmin   Boolean  @default(false) @map("is_admin")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -454,4 +455,20 @@ model Feedback {
   @@index([createdAt(sort: Desc)])
   @@index([category])
   @@map("feedback")
+}
+
+/// One row per visitor hash per UTC day. Hits increment on later page views.
+/// visitorHash is a salted SHA-256 of IP + user-agent — raw IPs are never stored.
+model SiteVisitor {
+  id           Int      @id @default(autoincrement())
+  day          String   @db.VarChar(10)
+  visitorHash  String   @map("visitor_hash") @db.VarChar(64)
+  hits         Int      @default(1)
+  landingPath  String?  @map("landing_path") @db.VarChar(200)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@unique([day, visitorHash])
+  @@index([day])
+  @@map("site_visitors")
 }

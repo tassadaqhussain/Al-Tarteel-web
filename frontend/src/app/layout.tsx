@@ -7,6 +7,7 @@ import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
 import { ScrollToHashAyah } from '@/components/reader/ScrollToHashAyah';
 import { AskAiFab } from '@/components/ai/AskAiFab';
+import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -155,7 +156,7 @@ export default function RootLayout({
               // slugs read as reader routes. Any single unknown segment is a
               // surah slug; ThemeProvider re-checks properly after hydration.
               "var p=location.pathname,seg=p.split('/').filter(Boolean);" +
-              "var known=['search','surahs','bookmarks','settings','profile','my-quran','donate'," +
+              "var known=['search','surahs','bookmarks','settings','profile','my-quran','donate','admin'," +
               "'feedback','articles','hifz','tajweed','learning-plans','quran-in-year','reading-goal'," +
               "'login','register','forgot-password','reset-password'];" +
               "if(p.indexOf('/surah/')===0||p.indexOf('/juz/')===0||" +
@@ -184,6 +185,7 @@ export default function RootLayout({
                 <AudioBar />
                 <BackToTopButton />
                 <AskAiFab />
+                <VisitTracker />
                 <GlobalVoiceSearch />
               </VoiceSearchProvider>
             </AudioPlayerProvider>

@@ -68,6 +68,7 @@ export type AuthUser = {
   id: number;
   email: string | null;
   name: string | null;
+  isAdmin?: boolean;
 };
 
 export type AuthSessionResponse = { user: AuthUser };
@@ -107,6 +108,44 @@ export const authApi = {
       body: JSON.stringify(body),
     }),
 } as const;
+
+export type AdminOverview = {
+  totalAccounts: number;
+  today: number;
+  last7Days: number;
+  last30Days: number;
+  signupsByDay: { date: string; count: number }[];
+  traffic: {
+    visitorsToday: number;
+    pageViewsToday: number;
+    visitorsLast7Days: number;
+    pageViewsLast7Days: number;
+    visitorsLast30Days: number;
+    pageViewsLast30Days: number;
+    visitorsByDay: { date: string; visitors: number; pageViews: number }[];
+  };
+};
+
+export type AdminUserRow = {
+  id: number;
+  email: string | null;
+  name: string | null;
+  createdAt: string;
+};
+
+export type AdminUserList = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  users: AdminUserRow[];
+};
+
+export const adminApi = {
+  overview: () => api<AdminOverview>('/admin/overview'),
+  users: (q?: { page?: number; limit?: number; q?: string }) =>
+    api<AdminUserList>('/admin/users', { params: q }),
+};
 
 export type ServerBookmark = {
   id: number;

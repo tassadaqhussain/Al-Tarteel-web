@@ -67,9 +67,10 @@ export function SurahAyahFeed({
     // Refetch whenever the selection differs from what the server rendered —
     // checking only for missing text meant extra translations never loaded.
     const missing = initialAyahs.some((ayah) => !ayah.translations?.some((item) => item.text?.trim()));
+    const missingWords = initialAyahs.some((ayah) => !ayah.words?.length);
     const ssrTranslations = translations || DEFAULT_TRANSLATION;
     const differsFromSsr = requestedTranslations !== ssrTranslations;
-    if (!missing && !differsFromSsr) return;
+    if (!missing && !missingWords && !differsFromSsr) return;
     let cancelled = false;
     void quranApi
       .ayahsBySurah(surahNumber, {

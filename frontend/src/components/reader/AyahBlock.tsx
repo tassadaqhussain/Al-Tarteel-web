@@ -366,23 +366,22 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
       if (!wordClickPlayAudio && !willSpeak) return;
 
       const audio = wordAudioRef.current;
-      // Verified Arabic word pronunciation CDN (language-independent).
-      //
-      // Only the stored URL is trusted. The CDN counts waqf/sajdah marks as
-      // their own words, so its index diverges from `position` for ~36% of the
-      // Quran (by up to 16). Deriving the file name from `position` would play
-      // a DIFFERENT word — worse than silence for Quranic text — so a missing
-      // URL simply means no pronunciation.
-      const url = word.audioUrl;
+      // Prefer the URL from the API (local file or imported CDN path). Fall back
+      // to the public WBW CDN so a missing field still pronounces the word.
+      const url =
+        word.audioUrl ||
+        `https://audio.qurancdn.com/wbw/${String(surahNumber).padStart(3, '0')}_${String(ayah.number).padStart(3, '0')}_${String(word.position).padStart(3, '0')}.mp3`;
 
       if (wordClickPlayAudio && audio && url) {
         try {
           audio.onended = null;
           audio.pause();
-          audio.currentTime = 0;
-          if (audio.src !== url) {
+          // Never set currentTime before a source exists — Safari throws
+          // InvalidStateError and the click then plays nothing.
+          if (audio.getAttribute('src') !== url) {
             audio.src = url;
-            audio.load();
+          } else if (audio.readyState > 0) {
+            audio.currentTime = 0;
           }
           if (willSpeak) {
             audio.onended = () => {
@@ -511,7 +510,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     <div
       ref={wordsContainerRef}
       className={cn(
-        'ayah-arabic-block min-w-0 max-w-full leading-[2]',
+        'ayah-arabic-block min-w-0 max-w-full overflow-visible leading-[2]',
         tajweedByWord && 'tajweed-text',
         readerViewMode === 'arabic' ? 'inline text-center' : 'w-full text-right'
       )}
@@ -543,7 +542,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
           wordByWordShowTransliteration &&
           word.transliteration;
         const showClickPopover =
-          readerViewMode === 'verse' &&
+          readerViewMode !== 'translation' &&
           isSelected &&
           (meaning || word.transliteration || availableLocales.length > 0 || wordClickPlayAudio || wordClickSpeakMeaning);
 
@@ -769,7 +768,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
 
   return (
     <>
-      <audio ref={wordAudioRef} className="hidden" preload="none" aria-hidden="true" />
+      <audio ref={wordAudioRef} className="pointer-events-none fixed left-0 top-0 h-px w-px opacity-0" preload="none" playsInline aria-hidden="true" />
       <article
         id={`ayah-${ayah.id}`}
         data-ayah-id={ayah.id}
@@ -926,7 +925,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
               </div>
             )}
 
-            <div className="mt-[50px] flex w-full items-center justify-end text-right">
+            <div className="mt-[50px] flex w-full items-center justify-end overflow-visible text-right">
               {arabicTextNode}
             </div>
 

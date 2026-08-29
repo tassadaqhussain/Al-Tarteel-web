@@ -12,6 +12,8 @@ import { DonationsModule } from './donations/donations.module';
 import { AiModule } from './ai/ai.module';
 import { HifzModule } from './hifz/hifz.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { AdminModule } from './admin/admin.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { FeedbackModule } from './feedback/feedback.module';
     AiModule,
     HifzModule,
     FeedbackModule,
+    AnalyticsModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Smile,
   MessageSquareHeart,
+  Shield,
 } from 'lucide-react';
 import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
@@ -219,6 +220,15 @@ export function Header() {
                     >
                       {t('profileAndSettings')}
                     </Link>
+                    {user?.isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="block rounded-xl px-3 py-2 text-sm font-medium hover:bg-surface-2"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        Admin
+                      </Link>
+                    )}
                     <button
                       type="button"
                       className="block w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-danger hover:bg-danger-surface"
@@ -395,6 +405,7 @@ function MobileNav({
               { label: t('quranInYear'), href: '/quran-in-year', icon: LayoutGrid, id: 'quran-year' },
               { label: t('settings'), href: '/settings', icon: Settings, id: 'settings' },
               { label: t('feedback'), href: '/feedback', icon: MessageSquareHeart, id: 'feedback' },
+              ...(user?.isAdmin ? [{ label: 'Admin', href: '/admin', icon: Shield, id: 'admin' }] : []),
               ...(isAuthenticated
                 ? [{ label: t('profile'), href: '/profile', icon: Smile, id: 'profile' }]
                 : [

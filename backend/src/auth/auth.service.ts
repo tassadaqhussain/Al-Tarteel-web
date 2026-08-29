@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseDurationMs } from './auth-cookies';
+import { isAdminEmail } from '../admin/admin-access';
 import type {
   ChangePasswordDto,
   ForgotPasswordDto,
@@ -24,6 +25,7 @@ export type AuthUserView = {
   id: number;
   email: string | null;
   name: string | null;
+  isAdmin: boolean;
 };
 
 @Injectable()
@@ -82,8 +84,13 @@ export class AuthService {
     }
   }
 
-  private toView(user: { id: number; email: string | null; name: string | null }): AuthUserView {
-    return { id: user.id, email: user.email, name: user.name };
+  private toView(user: { id: number; email: string | null; name: string | null; isAdmin?: boolean }): AuthUserView {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      isAdmin: Boolean(user.isAdmin) || isAdminEmail(user.email),
+    };
   }
 
   private signAccessToken(user: { id: number; email: string | null }) {
@@ -206,7 +213,7 @@ export class AuthService {
   async me(userId: number): Promise<AuthUserView> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, isAdmin: true },
     });
     if (!user) throw new UnauthorizedException();
     return this.toView(user);

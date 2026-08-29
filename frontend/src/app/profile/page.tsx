@@ -104,6 +104,11 @@ function ProfileContent() {
           <Link href="/my-quran" className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-[var(--accent)]">
             My Quran
           </Link>
+          {user?.isAdmin && (
+            <Link href="/admin" className="rounded-full border border-line px-4 py-2 text-sm font-medium hover:border-[var(--accent)]">
+              Admin
+            </Link>
+          )}
           <button
             type="button"
             onClick={async () => {

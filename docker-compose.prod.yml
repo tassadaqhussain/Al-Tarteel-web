@@ -64,6 +64,7 @@ services:
       ENABLE_BOOT_SEED: ${ENABLE_BOOT_SEED:-0}
       # Temporary free Ask AI cap (0 = unlimited)
       AI_PROMPT_LIMIT: ${AI_PROMPT_LIMIT:-3}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     volumes:
       - ./backend/storage/audio:/app/storage/audio:ro
     depends_on:

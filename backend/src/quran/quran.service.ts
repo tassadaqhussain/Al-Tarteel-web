@@ -18,7 +18,12 @@ export class QuranService {
     private readonly cache: CacheService,
   ) {}
 
-  private getWordAudioUrl(surahNumber: number, ayahNumber: number, wordPosition: number) {
+  private getWordAudioUrl(
+    surahNumber: number,
+    ayahNumber: number,
+    wordPosition: number,
+    storedUrl?: string | null,
+  ) {
     const chapter = String(surahNumber).padStart(3, '0');
     const verse = String(ayahNumber).padStart(3, '0');
     const word = String(wordPosition).padStart(3, '0');
@@ -28,6 +33,8 @@ export class QuranService {
       const publicBase = (process.env.AUDIO_PUBLIC_BASE_URL || 'http://localhost:4010/api/v1/audio/files').replace(/\/$/, '');
       return `${publicBase}/wbw/${file}`;
     }
+    // Imported Quran.com URLs follow the CDN word index (including waqf marks).
+    if (storedUrl) return storedUrl;
     return `https://audio.qurancdn.com/wbw/${file}`;
   }
 
@@ -172,7 +179,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: this.getWordAudioUrl(surah.number, a.number, w.position),
+            audioUrl: this.getWordAudioUrl(surah.number, a.number, w.position, w.audioUrl),
           }))
         : undefined,
       translations: a.translations?.map((t: any) => ({
@@ -218,7 +225,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: this.getWordAudioUrl(a.surah.number, a.number, w.position),
+            audioUrl: this.getWordAudioUrl(a.surah.number, a.number, w.position, w.audioUrl),
           }))
         : undefined,
       translations: a.translations?.map((t: any) => ({
@@ -264,7 +271,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: this.getWordAudioUrl(a.surah.number, a.number, w.position),
+            audioUrl: this.getWordAudioUrl(a.surah.number, a.number, w.position, w.audioUrl),
           }))
         : undefined,
       translations: a.translations?.map((t: any) => ({
@@ -303,7 +310,7 @@ export class QuranService {
             ...w,
             translation: w.translations?.find((item: any) => item.languageCode === 'en')?.text ?? w.translations?.[0]?.text,
             translations: Object.fromEntries((w.translations ?? []).map((item: any) => [item.languageCode, item.text])),
-            audioUrl: this.getWordAudioUrl(surah.number, ayah.number, w.position),
+            audioUrl: this.getWordAudioUrl(surah.number, ayah.number, w.position, w.audioUrl),
           }))
         : undefined,
       translations: ayah.translations?.map((t: any) => ({
