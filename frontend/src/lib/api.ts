@@ -425,11 +425,45 @@ export const audioApi = {
     })),
 };
 
+export interface SearchTranslationResult {
+  ayahId: number;
+  ayahNumber: number;
+  surah: { id: number; number: number; nameArabic: string; nameSimple: string };
+  text: string;
+  translator: { id: number; slug: string; name: string };
+}
+
+export interface SemanticSearchResult {
+  id: number;
+  surahNumber: number | null;
+  ayahNumber: number | null;
+  ayahId: number | null;
+  documentType: string;
+  language: string;
+  text: string;
+  sourceReference: string;
+  score: number;
+  surah?: { number: number; nameArabic: string; nameSimple: string } | null;
+  arabicText?: string | null;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface SemanticSearchResponse {
+  enabled: boolean;
+  results: SemanticSearchResult[];
+  cached?: boolean;
+}
+
 export const searchApi = {
   ayahs: (q: string, opts?: { limit?: number; surah?: number; translator?: string }) =>
     api<SearchAyahResult[]>(`/search/ayahs`, { params: { q, ...opts } }),
   translations: (q: string, opts?: { limit?: number; translator?: string }) =>
     api<SearchTranslationResult[]>(`/search/translations`, { params: { q, ...opts } }),
+  semantic: (q: string, opts?: { limit?: number; language?: string; documentType?: string; surah?: number }) =>
+    api<SemanticSearchResponse>(`/search/semantic`, { params: { q, ...opts } }).catch(() => ({
+      enabled: false,
+      results: [],
+    })),
 };
 
 export type DonationCurrency = 'usd' | 'pkr' | 'eur' | 'gbp';
@@ -721,14 +755,6 @@ export interface SearchAyahResult {
   textUthmani: string;
   surah: { id: number; number: number; nameArabic: string; nameSimple: string };
   translations: { translatorSlug: string; text: string }[];
-}
-
-export interface SearchTranslationResult {
-  ayahId: number;
-  ayahNumber: number;
-  surah: { id: number; number: number; nameArabic: string; nameSimple: string };
-  text: string;
-  translator: { id: number; slug: string; name: string };
 }
 
 async function getSurahs(): Promise<Surah[]> {

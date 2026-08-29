@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SemanticSearchService } from '../ai-knowledge/semantic-search.service';
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly semanticSearch: SemanticSearchService,
+  ) {}
 
   async searchAyahs(query: string, options: { limit?: number; surahNumber?: number; translatorSlug?: string } = {}) {
     const limit = Math.min(options.limit ?? 20, 50);
@@ -61,5 +65,17 @@ export class SearchService {
       text: t.text,
       translator: t.translator,
     }));
+  }
+
+  async searchSemantic(
+    query: string,
+    options: {
+      limit?: number;
+      language?: string;
+      documentType?: string;
+      surahNumber?: number;
+    } = {},
+  ) {
+    return this.semanticSearch.search(query, options);
   }
 }

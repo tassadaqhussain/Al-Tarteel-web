@@ -14,6 +14,7 @@ import { HifzModule } from './hifz/hifz.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AiKnowledgeModule } from './ai-knowledge/ai-knowledge.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     FeedbackModule,
     AnalyticsModule,
     AdminModule,
+    AiKnowledgeModule,
   ],
 })
 export class AppModule {}

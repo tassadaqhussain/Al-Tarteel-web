@@ -36,4 +36,22 @@ export class SearchController {
       translatorSlug,
     });
   }
+
+  @Get('semantic')
+  @ApiOperation({ summary: 'Semantic concept search over indexed Quran translations' })
+  @ApiResponse({ status: 200 })
+  searchSemantic(
+    @Query('q') q: string,
+    @Query('limit') limit?: string,
+    @Query('language') language?: string,
+    @Query('documentType') documentType?: string,
+    @Query('surah') surahNumber?: string,
+  ) {
+    return this.search.searchSemantic(q || '', {
+      limit: limit ? parseInt(limit, 10) : undefined,
+      language: language || 'en',
+      documentType: documentType || 'translation',
+      surahNumber: surahNumber ? parseInt(surahNumber, 10) : undefined,
+    });
+  }
 }

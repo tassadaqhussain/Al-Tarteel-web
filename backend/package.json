@@ -28,6 +28,8 @@
     "tafsir:import": "ts-node -r dotenv/config prisma/import-tafsirs.ts",
     "study:import": "ts-node -r dotenv/config prisma/import-verse-study.ts",
     "admin:create": "ts-node -r dotenv/config prisma/create-admin.ts",
+    "ai:setup": "ts-node -r dotenv/config prisma/setup-ai-knowledge.ts",
+    "ai:index": "ts-node -r dotenv/config prisma/index-quran-embeddings.ts",
     "audio:download": "node scripts/download-all-audio.mjs",
     "content:import": "npm run translations:import:all && npm run tafsir:import && npm run study:import && npm run reciters:import"
   },

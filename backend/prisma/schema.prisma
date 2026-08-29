@@ -55,6 +55,7 @@ model Ayah {
   audioFiles  AudioFile[]
   bookmarks   Bookmark[]
   readingHistory ReadingHistory[]
+  quranDocuments QuranDocument[]
 
   @@unique([surahId, number])
   @@index([surahId])
@@ -471,4 +472,62 @@ model SiteVisitor {
   @@unique([day, visitorHash])
   @@index([day])
   @@map("site_visitors")
+}
+
+// ——— AI Knowledge Base (RAG / semantic search) ———
+
+/// Approved content sources for AI retrieval. Only status=approved is indexed.
+model KnowledgeSource {
+  id                 Int       @id @default(autoincrement())
+  name               String    @db.VarChar(255)
+  slug               String    @unique @db.VarChar(100)
+  /// quran | translation | tafsir | hadith | vocabulary | learning_content | topic
+  sourceType         String    @map("source_type") @db.VarChar(30)
+  languageCode       String    @map("language_code") @db.VarChar(10)
+  scholarOrPublisher String?   @map("scholar_or_publisher") @db.VarChar(255)
+  /// canonical | approved | reference
+  reliabilityTier    String    @default("approved") @map("reliability_tier") @db.VarChar(30)
+  /// draft | approved | disabled
+  status             String    @default("approved") @db.VarChar(20)
+  /// Links to translators.slug or tafsir_sources.slug when applicable
+  externalRef        String?   @map("external_ref") @db.VarChar(100)
+  metadata           Json?
+  documentCount      Int       @default(0) @map("document_count")
+  lastIndexedAt      DateTime? @map("last_indexed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  documents QuranDocument[]
+
+  @@index([status, sourceType])
+  @@index([languageCode])
+  @@map("knowledge_sources")
+}
+
+/// Searchable Quran knowledge chunks. Embedding vector(768) managed via raw SQL (pgvector).
+model QuranDocument {
+  id              Int       @id @default(autoincrement())
+  surahNumber     Int?      @map("surah_number")
+  ayahNumber      Int?      @map("ayah_number")
+  ayahId          Int?      @map("ayah_id")
+  /// quran | translation | tafsir | topic
+  documentType    String    @map("document_type") @db.VarChar(20)
+  language        String    @db.VarChar(10)
+  text            String    @db.Text
+  sourceId        Int?      @map("source_id")
+  sourceReference String    @map("source_reference") @db.VarChar(120)
+  contentHash     String    @unique @map("content_hash") @db.VarChar(64)
+  metadata        Json?
+  indexedAt       DateTime? @map("indexed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  source KnowledgeSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  ayah   Ayah?            @relation(fields: [ayahId], references: [id], onDelete: SetNull)
+
+  @@index([documentType, language])
+  @@index([surahNumber, ayahNumber])
+  @@index([sourceId])
+  @@index([ayahId])
+  @@map("quran_documents")
 }

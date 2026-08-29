@@ -70,6 +70,11 @@ echo "Running schema sync..."
 npx prisma db push --skip-generate --accept-data-loss
 echo "Database ready."
 
+if [ -f prisma/sql/setup-pgvector.sql ]; then
+  echo "Applying pgvector setup..."
+  npm run ai:setup || echo "Warning: pgvector setup failed (extension may already exist)."
+fi
+
 # Heavy seed jobs OOM-kill Nest on ~2GB VPSes if run at boot.
 # Default OFF — run manually after API is healthy.
 if [ "${ENABLE_BOOT_SEED:-0}" = "1" ]; then
