@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseDurationMs } from './auth-cookies';
-import { isAdminEmail } from '../admin/admin-access';
+import { isAdminEmail, isAdminUser } from '../admin/admin.util';
 import type {
   ChangePasswordDto,
   ForgotPasswordDto,

@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateFeedbackDto } from './dto/create-feedback.dto';
-import { feedbackNotifyAddress, isMailConfigured, sendMail } from '../mail/mail.util';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class FeedbackService {
   private readonly log = new Logger(FeedbackService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mail: MailService,
+  ) {}
 
   async create(dto: CreateFeedbackDto, meta?: { userAgent?: string; userId?: number }) {
     const row = await this.prisma.feedback.create({
@@ -36,13 +39,13 @@ export class FeedbackService {
   }
 
   private async notifyInbox(id: number, dto: CreateFeedbackDto) {
-    if (!isMailConfigured()) {
+    if (!(await this.mail.isConfigured())) {
       this.log.debug(`Feedback #${id} saved (SMTP not configured — no email sent)`);
       return;
     }
-    const to = feedbackNotifyAddress();
+    const to = await this.mail.feedbackNotifyAddress();
     if (!to) {
-      this.log.warn(`Feedback #${id} saved but no notify address (SMTP_USER / FEEDBACK_NOTIFY_EMAIL)`);
+      this.log.warn(`Feedback #${id} saved but no notify address`);
       return;
     }
 
@@ -75,7 +78,7 @@ export class FeedbackService {
       <p style="white-space:pre-wrap">${escapeHtml(dto.message.trim())}</p>
     `;
 
-    const sent = await sendMail({
+    const sent = await this.mail.sendMail({
       to,
       subject,
       text,

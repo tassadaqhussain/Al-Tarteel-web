@@ -79,17 +79,13 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   ENV_FILE="${REPO_ROOT}/deploy/production.env"
   BACKEND_ENV="${REPO_ROOT}/backend/.env"
 
+  # shellcheck source=load-env-file.sh
+  source "${SCRIPT_DIR}/load-env-file.sh"
   if [[ -f "${ENV_FILE}" ]]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "${ENV_FILE}"
-    set +a
+    load_env_file "${ENV_FILE}"
   elif [[ -f "${REPO_ROOT}/deploy/production.env.example" ]]; then
     cp "${REPO_ROOT}/deploy/production.env.example" "${ENV_FILE}"
-    set -a
-    # shellcheck disable=SC1090
-    source "${ENV_FILE}"
-    set +a
+    load_env_file "${ENV_FILE}"
     echo "Created ${ENV_FILE} from example"
   else
     echo "Missing ${ENV_FILE}" >&2

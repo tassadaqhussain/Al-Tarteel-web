@@ -1,13 +1,11 @@
 import type { Metadata } from 'next';
-import { buildPageMetadata } from '@/lib/seo';
+import { AdminLayoutClient } from '@/components/admin/AdminLayoutClient';
 
-export const metadata: Metadata = buildPageMetadata({
-  title: 'Admin',
-  description: 'QuranPilot account monitoring.',
-  path: '/admin',
-  noIndex: true,
-});
+export const metadata: Metadata = {
+  title: 'Admin | QuranPilot',
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

@@ -12,6 +12,10 @@ import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
+import { Analytics } from '@/components/analytics/Analytics';
+import { CampaignBanner } from '@/components/campaign/CampaignBanner';
+import { LocaleSync } from '@/components/LocaleSync';
+import { LocaleFromPath } from '@/components/LocaleFromPath';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_KEYWORDS,
@@ -158,7 +162,8 @@ export default function RootLayout({
               "var p=location.pathname,seg=p.split('/').filter(Boolean);" +
               "var known=['search','surahs','bookmarks','settings','profile','my-quran','donate','admin'," +
               "'feedback','articles','hifz','tajweed','learning-plans','quran-in-year','reading-goal'," +
-              "'login','register','forgot-password','reset-password'];" +
+              "'quran-english-translation','quran-urdu-translation','quran-pashto-translation'," +
+              "'login','register','forgot-password','reset-password','admin','ur','ps','fa'];" +
               "if(p.indexOf('/surah/')===0||p.indexOf('/juz/')===0||" +
               "(seg.length===1&&known.indexOf(seg[0])<0&&seg[0].indexOf('.')<0))e='default';" +
               "r.classList.add('experience-'+e);" +
@@ -180,6 +185,9 @@ export default function RootLayout({
                 <ScrollToCurrentAyah />
                 <ScrollToHashAyah />
                 <div className="relative flex min-h-screen flex-col">
+                  <LocaleSync />
+                  <LocaleFromPath />
+                  <CampaignBanner />
                   {children}
                 </div>
                 <AudioBar />
@@ -187,6 +195,7 @@ export default function RootLayout({
                 <AskAiFab />
                 <VisitTracker />
                 <GlobalVoiceSearch />
+                <Analytics />
               </VoiceSearchProvider>
             </AudioPlayerProvider>
           </AuthProvider>

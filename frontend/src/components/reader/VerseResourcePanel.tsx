@@ -6,6 +6,7 @@ import { BookMarked, Check, GraduationCap, MessageCircle, ScrollText, X } from '
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { quranApi, type TafsirItem } from '@/lib/api';
 import { getSurahPath } from '@/lib/surah-meta';
+import { getLearningPlansForSurah } from '@/lib/learning-plans';
 
 export type VerseResource = 'tafsirs' | 'lessons' | 'reflections' | 'hadith' | 'related';
 
@@ -25,6 +26,7 @@ const TITLES: Record<VerseResource, string> = {
 
 export function VerseResourcePanel({ open, onOpenChange, resource, ayahId, surahNumber, surahName, ayahNumber }: Props) {
   const storageKey = `quranpilot-reflection-${ayahId}`;
+  const surahPlans = getLearningPlansForSurah(surahNumber);
   const [reflection, setReflection] = useState('');
   const [saved, setSaved] = useState(false);
   const [active, setActive] = useState<VerseResource>(resource);
@@ -66,7 +68,34 @@ export function VerseResourcePanel({ open, onOpenChange, resource, ayahId, surah
         <div className="flex-1 overflow-y-auto p-6">
           {active === 'tafsirs' && (loading ? <p className="text-sm text-ink-muted">Loading Tafsir…</p> : tafsirs.length ? <div className="space-y-5">{tafsirs.map((item) => <article key={item.id} className="rounded-2xl border border-line p-5"><h2 className="font-bold">{item.source.name}</h2>{item.source.author && <p className="mt-1 text-xs text-ink-faint">{item.source.author}</p>}<p className="mt-4 whitespace-pre-line text-sm leading-7 text-ink-2">{item.text}</p></article>)}</div> : <EmptyState icon={<BookMarked />} title="No Tafsir available" description="No selected verified Tafsir source is available for this verse." />)}
 
-          {active === 'lessons' && <div className="space-y-3"><ResourceLink href="/learning-plans" icon={<GraduationCap />} title="Learning Plans" description="Study the Quran through structured daily lessons." /><ResourceLink href="/quran-in-year" icon={<ScrollText />} title="Quran in a Year" description="Follow a guided weekly study journey." /></div>}
+          {active === 'lessons' && (
+            <div className="space-y-3">
+              {surahPlans.length > 0 ? (
+                surahPlans.map((plan) => (
+                  <ResourceLink
+                    key={plan.slug}
+                    href={`/learning-plans/${plan.slug}`}
+                    icon={<GraduationCap />}
+                    title={plan.title}
+                    description={`${plan.days}-day plan for Surah ${surahName}`}
+                  />
+                ))
+              ) : (
+                <ResourceLink
+                  href="/learning-plans"
+                  icon={<GraduationCap />}
+                  title="Learning Plans"
+                  description="Study the Quran through structured daily lessons."
+                />
+              )}
+              <ResourceLink
+                href="/quran-in-year"
+                icon={<ScrollText />}
+                title="Quran in a Year"
+                description="Follow a guided weekly study journey."
+              />
+            </div>
+          )}
 
           {active === 'reflections' && <div><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]"><MessageCircle /></div><h2 className="text-lg font-bold">Your reflection</h2><p className="mt-1 text-sm leading-6 text-ink-muted">Write a private note about what this verse means to you.</p><textarea value={reflection} onChange={(e) => setReflection(e.target.value)} rows={9} placeholder="Write your reflection…" className="mt-5 w-full resize-none rounded-xl border border-line p-4 text-sm outline-none focus:border-[var(--accent)]" /><button type="button" onClick={saveReflection} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-brand-contrast">{saved && <Check className="h-4 w-4" />}{saved ? 'Saved' : 'Save Reflection'}</button></div>}
 

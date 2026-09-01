@@ -109,44 +109,6 @@ export const authApi = {
     }),
 } as const;
 
-export type AdminOverview = {
-  totalAccounts: number;
-  today: number;
-  last7Days: number;
-  last30Days: number;
-  signupsByDay: { date: string; count: number }[];
-  traffic: {
-    visitorsToday: number;
-    pageViewsToday: number;
-    visitorsLast7Days: number;
-    pageViewsLast7Days: number;
-    visitorsLast30Days: number;
-    pageViewsLast30Days: number;
-    visitorsByDay: { date: string; visitors: number; pageViews: number }[];
-  };
-};
-
-export type AdminUserRow = {
-  id: number;
-  email: string | null;
-  name: string | null;
-  createdAt: string;
-};
-
-export type AdminUserList = {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  users: AdminUserRow[];
-};
-
-export const adminApi = {
-  overview: () => api<AdminOverview>('/admin/overview'),
-  users: (q?: { page?: number; limit?: number; q?: string }) =>
-    api<AdminUserList>('/admin/users', { params: q }),
-};
-
 export type ServerBookmark = {
   id: number;
   ayahId: number;
@@ -334,6 +296,254 @@ export const feedbackApi = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+};
+
+export type AdminFeedback = {
+  id: number;
+  name: string | null;
+  email: string | null;
+  category: string;
+  message: string;
+  rating: number | null;
+  pageUrl: string | null;
+  createdAt: string;
+};
+
+export type AdminMotivationMessage = {
+  id: number;
+  message: string;
+  category: string;
+  language: string;
+  status: 'draft' | 'approved';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminRegisteredUser = {
+  id: number;
+  email: string | null;
+  name: string | null;
+  createdAt: string;
+};
+
+export type AdminMailSettings = {
+  configured: boolean;
+  source: 'database' | 'env' | null;
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  fromAddress: string;
+  notifyEmail: string;
+  passwordSet: boolean;
+};
+
+export type AdminMailTemplate = {
+  id: number;
+  name: string;
+  layout: 'classic' | 'letter' | 'announcement' | 'reminder' | 'digest' | 'invite' | 'focus' | 'gratitude';
+  subject: string;
+  body: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const adminApi = {
+  me: () =>
+    api<{ isAdmin: boolean; email: string | null; name: string | null }>('/admin/me'),
+  stats: () =>
+    api<{
+      users: {
+        total: number;
+        registered: number;
+        newLast7Days: number;
+        newLast30Days: number;
+        recent: { id: number; email: string | null; name: string | null; createdAt: string }[];
+      };
+      engagement: {
+        activeReadersLast7Days: number;
+        readingEventsTotal: number;
+        readingEventsLast7Days: number;
+        hifzAttemptsTotal: number;
+        hifzAttemptsLast7Days: number;
+        bookmarksTotal: number;
+      };
+      feedback: { total: number; last7Days: number };
+      trafficNote: string;
+      generatedAt: string;
+    }>('/admin/stats'),
+  listFeedback: (params?: { page?: number; limit?: number; category?: string }) =>
+    api<{
+      items: AdminFeedback[];
+      total: number;
+      page: number;
+      limit: number;
+      pages: number;
+    }>('/admin/feedback', { params }),
+  deleteFeedback: (id: number) =>
+    api<{ ok: boolean }>(`/admin/feedback/${id}`, { method: 'DELETE' }),
+  listMotivationalMessages: (language?: string) =>
+    api<AdminMotivationMessage[]>('/admin/motivational-messages', {
+      params: language ? { language } : undefined,
+    }),
+  createMotivationalMessage: (body: {
+    message: string;
+    category: string;
+    language?: string;
+    status?: 'draft' | 'approved';
+    isActive?: boolean;
+  }) =>
+    api<AdminMotivationMessage>('/admin/motivational-messages', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  updateMotivationalMessage: (
+    id: number,
+    body: {
+      message: string;
+      category: string;
+      language?: string;
+      status?: 'draft' | 'approved';
+      isActive?: boolean;
+    },
+  ) =>
+    api<AdminMotivationMessage>(`/admin/motivational-messages/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  deleteMotivationalMessage: (id: number) =>
+    api<{ ok: boolean }>(`/admin/motivational-messages/${id}`, { method: 'DELETE' }),
+  listCampaigns: () => api<AdminCampaign[]>('/admin/campaigns'),
+  getCampaign: (id: number) => api<AdminCampaign>(`/admin/campaigns/${id}`),
+  createCampaign: (body: CampaignPayload) =>
+    api<AdminCampaign>('/admin/campaigns', { method: 'POST', body: JSON.stringify(body) }),
+  updateCampaign: (id: number, body: CampaignPayload) =>
+    api<AdminCampaign>(`/admin/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  publishCampaign: (id: number, channels?: string[]) =>
+    api<AdminCampaign>(`/admin/campaigns/${id}/publish`, {
+      method: 'POST',
+      body: JSON.stringify(channels ? { channels } : {}),
+    }),
+  pauseCampaign: (id: number) =>
+    api<AdminCampaign>(`/admin/campaigns/${id}/pause`, { method: 'POST', body: JSON.stringify({}) }),
+  deleteCampaign: (id: number) =>
+    api<{ ok: boolean }>(`/admin/campaigns/${id}`, { method: 'DELETE' }),
+  listUsers: () => api<AdminRegisteredUser[]>('/admin/users'),
+  mailStatus: () => api<AdminMailSettings>('/admin/mail/status'),
+  getMailSettings: () => api<AdminMailSettings>('/admin/mail/settings'),
+  saveMailSettings: (body: {
+    host: string;
+    port: number;
+    secure: boolean;
+    username: string;
+    password?: string;
+    fromAddress?: string;
+    notifyEmail?: string;
+  }) =>
+    api<AdminMailSettings>('/admin/mail/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  listMailTemplates: () => api<AdminMailTemplate[]>('/admin/mail/templates'),
+  createMailTemplate: (body: {
+    name: string;
+    layout: AdminMailTemplate['layout'];
+    subject: string;
+    body: string;
+    ctaLabel?: string;
+    ctaUrl?: string;
+  }) =>
+    api<AdminMailTemplate>('/admin/mail/templates', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  updateMailTemplate: (
+    id: number,
+    body: {
+      name: string;
+      layout: AdminMailTemplate['layout'];
+      subject: string;
+      body: string;
+      ctaLabel?: string;
+      ctaUrl?: string;
+    },
+  ) =>
+    api<AdminMailTemplate>(`/admin/mail/templates/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  deleteMailTemplate: (id: number) =>
+    api<{ ok: boolean }>(`/admin/mail/templates/${id}`, { method: 'DELETE' }),
+  sendUserEmail: (body: {
+    subject: string;
+    body: string;
+    userIds?: number[];
+    preview?: boolean;
+    ctaLabel?: string;
+    ctaUrl?: string;
+    layout?: AdminMailTemplate['layout'];
+  }) =>
+    api<{ ok: boolean; sent: number; failed: number; total: number; errors: string[] }>('/admin/mail/send', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+} as const;
+
+export const campaignApi = {
+  active: (surface?: string) =>
+    api<{ campaign: PublicCampaign | null }>('/campaigns/active', {
+      params: surface ? { surface } : undefined,
+    }),
+};
+
+export type CampaignPayload = {
+  name: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  destination: string;
+  destinationKind: string;
+  imageUrl?: string;
+  channels: string[];
+};
+
+export type CampaignCopy = {
+  channel: string;
+  title: string;
+  text: string;
+  shareUrl?: string;
+};
+
+export type AdminCampaign = {
+  id: number;
+  name: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  destination: string;
+  destinationKind: string;
+  imageUrl: string | null;
+  status: 'draft' | 'live' | 'paused';
+  startsAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  channels: { channel: string; enabled: boolean; publishedAt: string | null }[];
+  copies?: CampaignCopy[];
+};
+
+export type PublicCampaign = {
+  id: number;
+  headline: string;
+  body: string;
+  ctaLabel: string;
+  destination: string;
+  destinationKind: string;
+  imageUrl: string | null;
+  channels: string[];
 };
 
 export const quranApi = {

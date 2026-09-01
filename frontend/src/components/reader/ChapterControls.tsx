@@ -6,6 +6,10 @@ import { TranslationSheet } from './TranslationSheet';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useAudioStore } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import {
+  formatTranslatorDisplayName,
+  resolvePrimaryTranslationSlug,
+} from '@/lib/translation-preference';
 import { quranApi } from '@/lib/api';
 
 /** Pill control styling shared by Listen / Info / Translation (Quran.com chapter header). */
@@ -16,9 +20,19 @@ interface Props {
   translationCount: number;
   surahNumber: number;
   surahName?: string;
+  /** SSR-resolved slugs — keeps the pill label aligned with rendered verse attribution. */
+  effectiveTranslations?: string;
+  /** Name from the first SSR ayah translation for the primary slug (crawler-safe). */
+  primaryTranslatorName?: string | null;
 }
 
-export function ChapterControls({ translationCount, surahNumber, surahName }: Props) {
+export function ChapterControls({
+  translationCount,
+  surahNumber,
+  surahName,
+  effectiveTranslations,
+  primaryTranslatorName,
+}: Props) {
   const [translationOpen, setTranslationOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const { getCurrentAyah, isPlaying } = useAudioStore();
@@ -68,14 +82,15 @@ export function ChapterControls({ translationCount, surahNumber, surahName }: Pr
     }
   }, [current?.ayahNumber, current?.surahNumber, isThisSurahPlaying, surahNumber]);
 
-  const primarySlug = translationSlugs[0] || 'en-clear-quran';
-  const friendlyName = translatorNames[primarySlug] || (primarySlug.includes('israr') || primarySlug.includes('bayan')
-    ? 'Bayan-ul-Quran (Dr. Israr Ahmad)'
-    : primarySlug.includes('khattab') || primarySlug.includes('clear')
-      ? 'The Clear Quran (Dr. Mustafa Khattab)'
-      : primarySlug.includes('sahih')
-        ? 'Saheeh International'
-        : primarySlug.replace(/^[a-z]{2}-/, '').replace(/-\d+$/, '').replaceAll('-', ' '));
+  const primarySlug = resolvePrimaryTranslationSlug(
+    mounted ? translationSlugs : [],
+    effectiveTranslations,
+  );
+  const ssrPrimarySlug = resolvePrimaryTranslationSlug([], effectiveTranslations);
+  const friendlyName =
+    translatorNames[primarySlug] ||
+    (primaryTranslatorName && primarySlug === ssrPrimarySlug ? primaryTranslatorName : null) ||
+    formatTranslatorDisplayName(primarySlug);
 
   const translationLabel =
     effectiveCount > 1

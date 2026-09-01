@@ -3,12 +3,16 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { setTranslationCookie } from '@/lib/translation-preference';
+import {
+  normalizeTranslationSlugs,
+  setTranslationCookie,
+} from '@/lib/translation-preference';
 
 /**
  * Migrates legacy ?trans=… query params into cookie + settings,
  * then replaces the URL with a clean pathname (keeps ?page= if needed).
- * Also ensures cookie stays in sync with persisted settings.
+ * Also ensures cookie stays in sync with persisted settings and rewrites
+ * legacy Clear Quran default slugs to Saheeh International.
  */
 export function CleanTranslationUrl() {
   const router = useRouter();
@@ -20,11 +24,20 @@ export function CleanTranslationUrl() {
   useEffect(() => {
     const trans = searchParams.get('trans');
     if (!trans) {
-      if (translationSlugs.length) setTranslationCookie(translationSlugs);
+      if (translationSlugs.length) {
+        const normalized = normalizeTranslationSlugs(translationSlugs);
+        if (normalized.join(',') !== translationSlugs.join(',')) {
+          setTranslationSlugs(normalized);
+        } else {
+          setTranslationCookie(normalized);
+        }
+      }
       return;
     }
 
-    const slugs = trans.split(',').map((s) => s.trim()).filter(Boolean);
+    const slugs = normalizeTranslationSlugs(
+      trans.split(',').map((s) => s.trim()).filter(Boolean),
+    );
     if (slugs.length) {
       setTranslationSlugs(slugs);
       setTranslationCookie(slugs);

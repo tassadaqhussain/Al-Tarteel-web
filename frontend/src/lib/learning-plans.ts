@@ -345,6 +345,16 @@ export function getLearningPlan(slug: string): LearningPlan | undefined {
   return LEARNING_PLANS.find((p) => p.slug === slug);
 }
 
+/** Featured plans for homepage and marketing surfaces. */
+export function getFeaturedLearningPlans(limit = 6): LearningPlan[] {
+  return LEARNING_PLANS.filter((p) => p.featured).slice(0, limit);
+}
+
+/** All plans tied to a surah — used for surah ↔ plan internal linking. */
+export function getLearningPlansForSurah(surahNumber: number): LearningPlan[] {
+  return LEARNING_PLANS.filter((p) => p.surahNumber === surahNumber);
+}
+
 export function getPlanHref(plan: LearningPlan): string {
   if (plan.surahNumber) return getSurahPath(plan.surahNumber);
   if (plan.searchQuery) return `/search?q=${encodeURIComponent(plan.searchQuery)}`;

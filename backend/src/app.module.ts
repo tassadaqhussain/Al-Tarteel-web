@@ -15,6 +15,8 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AiKnowledgeModule } from './ai-knowledge/ai-knowledge.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { AiKnowledgeModule } from './ai-knowledge/ai-knowledge.module';
       },
     ]),
     PrismaModule,
+    MailModule,
     CacheModule,
     QuranModule,
     AudioModule,
@@ -38,6 +41,7 @@ import { AiKnowledgeModule } from './ai-knowledge/ai-knowledge.module';
     FeedbackModule,
     AnalyticsModule,
     AdminModule,
+    CampaignsModule,
     AiKnowledgeModule,
   ],
 })

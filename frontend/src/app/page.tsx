@@ -8,6 +8,7 @@ import { DailyMotivationHome } from '@/components/daily/DailyMotivationHome';
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 import { buildPageMetadata, DEFAULT_DESCRIPTION } from '@/lib/seo';
 import { SiteFooter } from '@/components/SiteFooter';
+import { FeaturedLearningPlans } from '@/components/home/FeaturedLearningPlans';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import {
   normalizeAyahList,
@@ -77,6 +78,8 @@ export const metadata = buildPageMetadata({
     'Quran reader',
     'online mushaf',
   ],
+  // Root English is the x-default of the homepage translation cluster.
+  alternatePath: '/',
 });
 
 function fallbackSurahs(): Surah[] {
@@ -130,6 +133,7 @@ export default async function HomePage() {
         <SurahGrid surahs={secondSurahBatch} showHeader={false} showTabs={false} />
         <RecitersSection />
         <StartLearning />
+        <FeaturedLearningPlans />
         <QuranInYear />
         <DailyMotivationHome />
         <Community />

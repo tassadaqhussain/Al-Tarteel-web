@@ -130,11 +130,9 @@ else
   ok "Using env file: ${ENV_FILE}"
 fi
 
-# shellcheck disable=SC1090
-set -a
-# shellcheck source=/dev/null
-source "${ENV_FILE}"
-set +a
+# shellcheck source=load-env-file.sh
+source "${SCRIPT_DIR}/load-env-file.sh"
+load_env_file "${ENV_FILE}" || die "Failed to load ${ENV_FILE}"
 
 DOMAIN="${DOMAIN:-$DEFAULT_DOMAIN}"
 WWW_DOMAIN="${WWW_DOMAIN:-$DEFAULT_WWW_DOMAIN}"
@@ -344,6 +342,11 @@ log "Nginx vhost for ${DOMAIN}"
 mkdir -p "${CERTBOT_WEBROOT}/.well-known/acme-challenge"
 mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled 2>/dev/null || true
 mkdir -p /etc/nginx/conf.d 2>/dev/null || true
+NGINX_FILTER="${REPO_ROOT}/deploy/nginx/next-action-filter.conf"
+if [[ -f "${NGINX_FILTER}" ]]; then
+  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf
+  ok "Installed Next-Action probe filter"
+fi
 chown -R www-data:www-data "${CERTBOT_WEBROOT}" 2>/dev/null \
   || chown -R nginx:nginx "${CERTBOT_WEBROOT}" 2>/dev/null \
   || true
@@ -528,8 +531,12 @@ else
     warn "Retry after DNS: sudo certbot --nginx -d ${DOMAIN}${WWW_DOMAIN:+ -d ${WWW_DOMAIN}}"
   elif certbot certificates 2>/dev/null | grep -qE "Domains:.*[[:space:]]${DOMAIN}([[:space:]]|$)"; then
     ok "Certificate already exists for ${DOMAIN}"
-    certbot renew --nginx --quiet || warn "certbot renew reported an issue"
-    nginx -t && systemctl reload nginx
+    if [[ -f "${REPO_ROOT}/scripts/ensure-production-ssl.sh" ]]; then
+      bash "${REPO_ROOT}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL www expand failed"
+    else
+      certbot renew --nginx --quiet || warn "certbot renew reported an issue"
+      nginx -t && systemctl reload nginx
+    fi
     ok "HTTPS: ${PUBLIC_ORIGIN}"
   else
     log "SSL for: ${CERTBOT_DOMAINS[*]//-d /}"

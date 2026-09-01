@@ -12,12 +12,19 @@ import { SurahAyahFeed } from '@/components/reader/SurahAyahFeed';
 import { SurahNavTrigger } from '@/components/reader/SurahNavTrigger';
 import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { SurahPaginationNav } from '@/components/reader/SurahPaginationNav';
+import { SurahLearningPlans } from '@/components/learning/SurahLearningPlans';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
+import {
+  DEFAULT_CONTENT_LOCALE,
+  localeConfig,
+  localePath,
+  type ContentLocale,
+} from '@/lib/i18n/content-locales';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
 import { READER_BAR_SHELL, READER_SHELL } from '@/components/layout/MainContainer';
@@ -50,6 +57,8 @@ function localSurahFallback(surahNumber: number): Surah {
 interface Props {
   params: Promise<{ number: string }>;
   searchParams: Promise<{ page?: string; trans?: string }>;
+  /** Set by the locale-prefixed routes (/ur, /ps, /fa); root English omits it. */
+  locale?: ContentLocale;
 }
 
 export const revalidate = 3600;
@@ -61,7 +70,7 @@ export async function generateStaticParams() {
   return Array.from({ length: 114 }, (_, i) => ({ number: String(i + 1) }));
 }
 
-export async function generateMetadata({ params, searchParams }: Props) {
+export async function generateMetadata({ params, searchParams, locale }: Props) {
   const { number } = await params;
   const { page: pageStr } = await searchParams;
   const n = parseInt(number, 10);
@@ -74,10 +83,12 @@ export async function generateMetadata({ params, searchParams }: Props) {
     arabicName,
     ayahCount,
     page,
+    locale: locale ?? DEFAULT_CONTENT_LOCALE,
   }).metadata;
 }
 
-export default async function SurahPage({ params, searchParams }: Props) {
+export default async function SurahPage({ params, searchParams, locale }: Props) {
+  const activeLocale = locale ?? DEFAULT_CONTENT_LOCALE;
   const { number } = await params;
   const { page: pageStr, trans } = await searchParams;
   const surahNumber = parseInt(number, 10);
@@ -88,6 +99,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
   const effectiveTranslations = resolveTranslations({
     cookieValue: undefined,
     queryTrans: trans,
+    defaultSlug: localeConfig(activeLocale).translationSlug,
   });
 
   const surah = (await quranApi.surah(surahNumber).catch(() => null)) ?? localSurahFallback(surahNumber);
@@ -97,7 +109,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
   const limit = Math.max(1, surahSsrLimit(ayahCount, page));
   const totalPages = surahTotalPages(ayahCount);
   const range = surahVerseRange(page, ayahCount);
-  const surahPath = getSurahPath(surahNumber);
+  const surahPath = localePath(activeLocale, getSurahPath(surahNumber));
 
   const [ayahs, prevSurah, nextSurah] = await Promise.all([
     quranApi
@@ -116,13 +128,21 @@ export default async function SurahPage({ params, searchParams }: Props) {
   const initialAyahs = Array.isArray(ayahs) ? ayahs : [];
   const firstAyah = initialAyahs.length > 0 ? initialAyahs[0].number : range.start;
   const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
+  const primaryTranslationSlug = effectiveTranslations.split(',')[0]?.trim() || '';
+  const primaryTranslatorName =
+    initialAyahs
+      .flatMap((ayah) => ayah.translations ?? [])
+      .find((t) => t.translatorSlug === primaryTranslationSlug && t.translatorName?.trim())
+      ?.translatorName?.trim() ||
+    initialAyahs[0]?.translations?.[0]?.translatorName?.trim() ||
+    null;
 
   const endOfChapter = (
     <div className="mt-14 border-t border-line pt-10">
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
         {prevSurah ? (
           <Link
-            href={getSurahPath(prevSurah.number)}
+            href={localePath(activeLocale, getSurahPath(prevSurah.number))}
             className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-left shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
             <ChevronLeft className="h-5 w-5 text-ink-faint" />
@@ -140,7 +160,7 @@ export default async function SurahPage({ params, searchParams }: Props) {
 
         {nextSurah ? (
           <Link
-            href={getSurahPath(nextSurah.number)}
+            href={localePath(activeLocale, getSurahPath(nextSurah.number))}
             className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-right shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
             <div>
@@ -151,6 +171,8 @@ export default async function SurahPage({ params, searchParams }: Props) {
           </Link>
         ) : <div />}
       </div>
+
+      <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
 
       <section
         aria-label="Daily reading habit"
@@ -273,6 +295,8 @@ export default async function SurahPage({ params, searchParams }: Props) {
                 translationCount={translationCount}
                 surahNumber={surahNumber}
                 surahName={surah.nameSimple}
+                effectiveTranslations={effectiveTranslations}
+                primaryTranslatorName={primaryTranslatorName}
               />
             </div>
           </div>

@@ -1,0 +1,25 @@
+import type { UiLocale } from '@/stores/settingsStore';
+
+export const LANGUAGES: { code: UiLocale; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'bn', label: 'বাংলা' },
+  { code: 'fa', label: 'فارسی' },
+  { code: 'fr', label: 'Français' },
+  { code: 'hi', label: 'हिन्दी' },
+  { code: 'id', label: 'Indonesia' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'nl', label: 'Dutch' },
+  { code: 'ps', label: 'پښتو' },
+  { code: 'pt', label: 'Português' },
+  { code: 'ru', label: 'русский' },
+  { code: 'sq', label: 'Shqip' },
+  { code: 'th', label: 'ภาษาไทย' },
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'ur', label: 'اردو' },
+  { code: 'zh', label: '简体中文' },
+  { code: 'ms', label: 'Melayu' },
+  { code: 'es', label: 'Español' },
+  { code: 'sw', label: 'Kiswahili' },
+  { code: 'vi', label: 'Tiếng Việt' },
+];

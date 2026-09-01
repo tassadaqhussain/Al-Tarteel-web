@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ACCESS_COOKIE } from '../../auth/auth-cookies';
-import { isAdminEmail } from '../../admin/admin-access';
+import { isAdminEmail } from '../../admin/admin.util';
 
 function cookieOrBearerExtractor(req: Request): string | null {
   const fromCookie = req?.cookies?.[ACCESS_COOKIE];

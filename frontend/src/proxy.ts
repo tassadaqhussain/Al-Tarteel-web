@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-/**
- * SEO headers for URLs that should not enter the organic index:
- * - /search?q=… (internal search result URLs)
- */
+const MIN_SERVER_ACTION_ID_LENGTH = 40;
+
 export function proxy(request: NextRequest) {
+  if (request.method === 'POST') {
+    const actionId = request.headers.get('next-action');
+    if (actionId && actionId.length < MIN_SERVER_ACTION_ID_LENGTH) {
+      return new NextResponse(null, { status: 400 });
+    }
+  }
+
   const { pathname, searchParams } = request.nextUrl;
   const response = NextResponse.next();
 
@@ -20,5 +25,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/search'],
+  matcher: '/:path*',
 };

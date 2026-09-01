@@ -12,7 +12,7 @@
 #
 # Options:
 #   --env PATH           deploy env file (default: deploy/production.env)
-#   --pull               git pull --ff-only before building
+#   --pull               git fetch + reset --hard to origin before building
 #   --no-build           start existing images only
 #   --import-content     after API is up, import translations/tafsir/study
 #   --import-audio       also mirror recitation audio onto this host
@@ -62,11 +62,9 @@ or run: sudo bash scripts/deploy-production.sh -y"
 command -v docker >/dev/null 2>&1 || die "Docker is not installed. First run: sudo bash scripts/deploy-production.sh -y"
 docker compose version >/dev/null 2>&1 || die "Docker Compose plugin missing"
 
-# shellcheck disable=SC1090
-set -a
-# shellcheck source=/dev/null
-source "${ENV_FILE}"
-set +a
+# shellcheck source=load-env-file.sh
+source "${SCRIPT_DIR}/load-env-file.sh"
+load_env_file "${ENV_FILE}" || die "Failed to load ${ENV_FILE}"
 
 DOMAIN="${DOMAIN:-quranpilot.com}"
 APP_DIR="${APP_DIR:-$REPO_ROOT}"
@@ -98,8 +96,9 @@ fi
 cd "${APP_DIR}"
 
 if [[ "${DO_PULL}" == "1" ]]; then
-  log "git pull --ff-only"
-  git pull --ff-only
+  log "git fetch + reset --hard to origin"
+  git fetch origin
+  git reset --hard "@{u}"
 fi
 
 log "Sync public URLs"
@@ -159,6 +158,16 @@ if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   [[ "${IMPORT_AUDIO}" == "1" ]] && CONTENT_ARGS=()
   bash "${APP_DIR}/scripts/import-all-content.sh" "${CONTENT_ARGS[@]}"
   "${COMPOSE[@]}" restart api
+fi
+
+if [[ -f "${APP_DIR}/scripts/ensure-production-ssl.sh" ]]; then
+  bash "${APP_DIR}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL check failed (site may still work on apex)"
+fi
+
+NGINX_FILTER="${APP_DIR}/deploy/nginx/next-action-filter.conf"
+if [[ -f "${NGINX_FILTER}" ]] && command -v nginx >/dev/null 2>&1; then
+  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf
+  nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1 || true
 fi
 
 PUBLIC_ORIGIN="${FRONTEND_URL:-https://${DOMAIN}}"

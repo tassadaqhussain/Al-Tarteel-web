@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { setTranslationCookie } from '@/lib/translation-preference';
+import { normalizeTranslationSlug, normalizeTranslationSlugs, setTranslationCookie } from '@/lib/translation-preference';
 
 export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
 export type ReadingMode = 'paged' | 'continuous';
@@ -199,15 +199,17 @@ export const useSettingsStore = create<SettingsState>()(
       setWordClickSpeakMeaning: (wordClickSpeakMeaning) => set({ wordClickSpeakMeaning }),
 
       setTranslationSlugs: (translationSlugs) => {
-        set({ translationSlugs });
-        setTranslationCookie(translationSlugs);
+        const next = normalizeTranslationSlugs(translationSlugs);
+        set({ translationSlugs: next });
+        setTranslationCookie(next);
       },
       toggleTranslationSlug: (slug) => {
         const { translationSlugs } = get();
-        const has = translationSlugs.includes(slug);
-        const next = has
-          ? translationSlugs.filter((s) => s !== slug)
-          : [...translationSlugs, slug];
+        const normalized = normalizeTranslationSlug(slug);
+        const has = translationSlugs.includes(normalized);
+        const next = normalizeTranslationSlugs(
+          has ? translationSlugs.filter((s) => s !== normalized) : [...translationSlugs, normalized],
+        );
         set({ translationSlugs: next });
         setTranslationCookie(next);
       },
@@ -251,6 +253,13 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'al-tarteel-settings',
       // Persist everything except actions (Zustand handles this automatically)
+      onRehydrateStorage: () => (state) => {
+        if (!state?.translationSlugs?.length) return;
+        const next = normalizeTranslationSlugs(state.translationSlugs);
+        if (next.join(',') === state.translationSlugs.join(',')) return;
+        state.translationSlugs = next;
+        setTranslationCookie(next);
+      },
     }
   )
 );

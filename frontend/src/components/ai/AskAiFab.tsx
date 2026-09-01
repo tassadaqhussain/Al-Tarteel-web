@@ -21,12 +21,16 @@ export function AskAiFab() {
   const open = useAskAiStore((s) => s.open);
   const setOpen = useAskAiStore((s) => s.setOpen);
   const [loaded, setLoaded] = useState(false);
+  const pathname = usePathname();
   const hasPlaylist = useAudioStore((s) => s.playlist.length > 0);
-  const onReader = isQuranReaderPath(usePathname());
+  const onReader = isQuranReaderPath(pathname);
+  const onAdmin = (pathname || '').startsWith('/admin');
 
   useEffect(() => {
     if (open) setLoaded(true);
   }, [open]);
+
+  if (onAdmin) return null;
 
   return (
     <>
