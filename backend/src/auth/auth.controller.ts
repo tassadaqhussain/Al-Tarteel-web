@@ -25,6 +25,7 @@ import {
   ChangePasswordDto,
   ForgotPasswordDto,
   LoginDto,
+  MobileRefreshDto,
   RegisterDto,
   ResetPasswordDto,
 } from './dto/auth.dto';
@@ -45,7 +46,13 @@ export class AuthController {
     };
   }
 
+  private isMobileClient(req: Request): boolean {
+    const client = req.headers['x-qp-client'];
+    return client === 'mobile' || client === 'native';
+  }
+
   private writeSession(
+    req: Request,
     res: Response,
     session: Awaited<ReturnType<AuthService['issueSession']>>,
   ) {
@@ -55,7 +62,13 @@ export class AuthController {
       accessMaxAgeMs: session.accessMaxAgeMs,
       refreshMaxAgeMs: session.refreshMaxAgeMs,
     });
-    return { user: session.user };
+    const payload: Record<string, unknown> = { user: session.user };
+    if (this.isMobileClient(req)) {
+      payload.accessToken = session.accessToken;
+      payload.refreshToken = session.refreshToken;
+      payload.expiresIn = session.accessMaxAgeMs;
+    }
+    return payload;
   }
 
   @Post('register')
@@ -69,7 +82,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const session = await this.auth.register(body, this.clientMeta(req));
-    return this.writeSession(res, session);
+    return this.writeSession(req, res, session);
   }
 
   @Post('login')
@@ -83,22 +96,34 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const session = await this.auth.login(body, this.clientMeta(req));
-    return this.writeSession(res, session);
+    return this.writeSession(req, res, session);
   }
 
   @Post('refresh')
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Rotate refresh token and issue new access cookie' })
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const raw = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+  async refresh(
+    @Req() req: Request,
+    @Body() body: MobileRefreshDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const raw =
+      (body.refreshToken?.trim() || undefined) ??
+      (req.cookies?.[REFRESH_COOKIE] as string | undefined);
     const session = await this.auth.refresh(raw, this.clientMeta(req));
-    return this.writeSession(res, session);
+    return this.writeSession(req, res, session);
   }
 
   @Post('logout')
   @ApiOperation({ summary: 'Revoke refresh token and clear auth cookies' })
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const raw = req.cookies?.[REFRESH_COOKIE] as string | undefined;
+  async logout(
+    @Req() req: Request,
+    @Body() body: MobileRefreshDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const raw =
+      (body.refreshToken?.trim() || undefined) ??
+      (req.cookies?.[REFRESH_COOKIE] as string | undefined);
     await this.auth.logout(raw);
     clearAuthCookies(res);
     return { ok: true };

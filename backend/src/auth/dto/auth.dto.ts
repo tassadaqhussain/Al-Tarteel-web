@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 /** At least 8 chars with upper, lower, and a digit. */
@@ -68,6 +68,13 @@ export class ResetPasswordDto {
   @MinLength(8)
   @MaxLength(128)
   confirmPassword!: string;
+}
+
+export class MobileRefreshDto {
+  @ApiProperty({ required: false, description: 'Refresh token for native/mobile clients' })
+  @IsOptional()
+  @IsString()
+  refreshToken?: string;
 }
 
 export class ChangePasswordDto {
