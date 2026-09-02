@@ -1,7 +1,7 @@
 import { ARTICLES } from '@/lib/articles';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
-import { getSurahPath } from '@/lib/surah-meta';
-import { SITE_URL } from '@/lib/seo';
+import { getSurahPath, getAyahPath } from '@/lib/surah-meta';
+import { SITE_URL, FAMOUS_AYAHS } from '@/lib/seo';
 import { PREFIXED_LOCALES, localePath } from '@/lib/i18n/content-locales';
 
 /**
@@ -66,16 +66,28 @@ function coreEntries(): SitemapEntry[] {
   ];
 }
 
+/** Famous ayah URLs for high-intent search queries. */
+function famousAyahEntries(): SitemapEntry[] {
+  return FAMOUS_AYAHS.map(({ surah, ayah }) => ({
+    url: `${SITE_URL}${getAyahPath(surah, ayah)}`,
+    changeFrequency: 'monthly' as const,
+    priority: surah === 2 && ayah === 255 ? 0.88 : 0.75,
+  }));
+}
+
 /** All 114 canonical surah URLs. */
 function surahEntries(): SitemapEntry[] {
-  return Array.from({ length: 114 }, (_, i) => {
-    const number = i + 1;
-    return {
-      url: `${SITE_URL}${getSurahPath(number)}`,
-      changeFrequency: 'monthly' as const,
-      priority: number <= 10 ? 0.9 : 0.8,
-    };
-  });
+  return [
+    ...Array.from({ length: 114 }, (_, i) => {
+      const number = i + 1;
+      return {
+        url: `${SITE_URL}${getSurahPath(number)}`,
+        changeFrequency: 'monthly' as const,
+        priority: number <= 10 ? 0.9 : 0.8,
+      };
+    }),
+    ...famousAyahEntries(),
+  ];
 }
 
 /** Learning plans + articles. */

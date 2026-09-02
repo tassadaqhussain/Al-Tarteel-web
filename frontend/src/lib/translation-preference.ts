@@ -1,3 +1,8 @@
+import {
+  normalizeTranslationListForApi,
+  normalizeTranslationSlugForApi,
+} from '@/lib/i18n/locale-translation-slugs';
+
 export const TRANSLATION_COOKIE = 'qp_translations';
 export const DEFAULT_TRANSLATION = 'en-sahih-international';
 
@@ -17,8 +22,11 @@ const LEGACY_CLEAR_QURAN_SLUGS = new Set([
 export function normalizeTranslationSlug(slug: string): string {
   const value = slug.trim();
   if (!value) return DEFAULT_TRANSLATION;
-  if (LEGACY_CLEAR_QURAN_SLUGS.has(value)) return DEFAULT_TRANSLATION;
-  return value;
+  const apiSlug = normalizeTranslationSlugForApi(value);
+  if (LEGACY_CLEAR_QURAN_SLUGS.has(apiSlug) || LEGACY_CLEAR_QURAN_SLUGS.has(value)) {
+    return DEFAULT_TRANSLATION;
+  }
+  return apiSlug;
 }
 
 export function normalizeTranslationSlugs(slugs: string[]): string[] {
@@ -30,6 +38,9 @@ export function normalizeTranslationSlugs(slugs: string[]): string[] {
 export function formatTranslatorDisplayName(slug: string): string {
   if (slug.includes('israr') || slug.includes('bayan')) {
     return 'Bayan-ul-Quran (Dr. Israr Ahmad)';
+  }
+  if (slug.includes('zakaria') || slug.includes('abulsalam')) {
+    return 'Zakaria Abulsalam';
   }
   // Prefer exact Clear Quran markers — avoid matching unrelated slugs that contain "clear".
   if (
@@ -97,5 +108,6 @@ export function resolveTranslations(opts: {
 }): string {
   if (opts.cookieValue?.trim()) return parseTranslationPreference(opts.cookieValue);
   if (opts.queryTrans?.trim()) return parseTranslationPreference(opts.queryTrans);
-  return opts.defaultSlug?.trim() || DEFAULT_TRANSLATION;
+  const fallback = opts.defaultSlug?.trim() || DEFAULT_TRANSLATION;
+  return normalizeTranslationListForApi(fallback);
 }

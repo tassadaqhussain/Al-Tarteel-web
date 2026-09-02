@@ -22,7 +22,6 @@ export default function robots(): MetadataRoute.Robots {
           '/feedback',
           '/admin',
           '/search',
-          '/admin',
           ...(DONATE_ENABLED ? ['/donate/checkout', '/donate/success'] : ['/donate', '/donate/checkout', '/donate/success']),
           '/api/',
         ],

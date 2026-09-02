@@ -1,5 +1,5 @@
 import { TranslationHubPage } from '@/components/seo/TranslationHubPage';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, translationHubHreflang } from '@/lib/seo';
 import { getTranslationHub } from '@/lib/i18n/translation-hubs';
 
 const hub = getTranslationHub('urdu');
@@ -13,7 +13,7 @@ export function generateMetadata() {
     path: hub.path,
     keywords: hub.keywords,
     locale: 'ur',
-    alternatePath: undefined,
+    hreflangLanguages: translationHubHreflang(),
   });
 }
 

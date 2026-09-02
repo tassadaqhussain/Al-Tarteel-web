@@ -32,6 +32,8 @@ import { useAudioStore } from '@/stores/audioStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { LOCALE_TEXT_TRANSLATION_SLUG } from '@/lib/i18n/locale-translation-slugs';
+import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import { cn } from '@/lib/utils';
 
 export function CompareVerseModal() {
@@ -84,7 +86,7 @@ export function CompareVerseModal() {
     const translations =
       translationSlugs.length > 0
         ? translationSlugs.join(',')
-        : 'en-sahih-international,ur-bayan-ul-quran';
+        : `${DEFAULT_TRANSLATION},${LOCALE_TEXT_TRANSLATION_SLUG.ur}`;
     quranApi
       .ayah(surahNumber, ayahNumber, { translations, words: false })
       .then((data) => {

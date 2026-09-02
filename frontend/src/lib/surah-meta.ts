@@ -421,6 +421,11 @@ export function getSurahPath(number: number): string {
   return `/${getSurahSlug(number)}`;
 }
 
+/** Canonical ayah URL: `/al-baqarah/255`. */
+export function getAyahPath(surahNumber: number, ayahNumber: number): string {
+  return `${getSurahPath(surahNumber)}/${ayahNumber}`;
+}
+
 /** Canonical reader href (slug URL). Optional hash targets a mounted ayah block. */
 export function getSurahHref(number: number, opts?: { ayahId?: number | string; ayahNumber?: number }): string {
   const base = getSurahPath(number);

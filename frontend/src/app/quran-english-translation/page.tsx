@@ -1,5 +1,5 @@
 import { TranslationHubPage } from '@/components/seo/TranslationHubPage';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, translationHubHreflang } from '@/lib/seo';
 import { getTranslationHub } from '@/lib/i18n/translation-hubs';
 
 const hub = getTranslationHub('english');
@@ -12,6 +12,7 @@ export function generateMetadata() {
     description: hub.metaDescription,
     path: hub.path,
     keywords: hub.keywords,
+    hreflangLanguages: translationHubHreflang(),
   });
 }
 

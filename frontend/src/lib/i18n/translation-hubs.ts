@@ -100,7 +100,7 @@ export const TRANSLATION_HUBS: Record<TranslationHubId, TranslationHubConfig> = 
     id: 'pashto',
     path: '/quran-pashto-translation',
     locale: 'ps',
-    title: 'Quran Pashto Translation – Read All 114 Surahs Online',
+    title: 'قرآن پښتو ژباړه – ټولې ۱۱۴ سورتونه آنلاین ولولئ',
     metaDescription:
       'Read the Holy Quran with Pashto translation online. All 114 surahs with Arabic Uthmani text, Pashto tarjuma, and verse-by-verse audio on QuranPilot.',
     keywords: [

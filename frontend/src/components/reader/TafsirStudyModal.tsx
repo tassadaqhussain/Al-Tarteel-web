@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Bookmark, BookMarked, BookOpen, ChevronDown, ChevronLeft, ChevronRight, Copy, GraduationCap, Loader2, MessageCircle, MoreHorizontal, Pencil, Play, Share2, Type, X } from 'lucide-react';
 import { quranApi, type AyahFull, type OfficialTafsir, type OfficialTafsirResource } from '@/lib/api';
+import { LOCALE_TEXT_TRANSLATION_SLUG } from '@/lib/i18n/locale-translation-slugs';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import { useSettingsStore } from '@/stores/settingsStore';
 
@@ -17,7 +18,7 @@ export function TafsirStudyModal({ open, onOpenChange, surahNumber, surahName, a
   const tafsirSlug = useSettingsStore((state) => state.tafsirSlug);
   const requestedTranslations = selectedTranslations.length
     ? selectedTranslations.join(',')
-    : `${DEFAULT_TRANSLATION},ur-bayan-ul-quran`;
+    : `${DEFAULT_TRANSLATION},${LOCALE_TEXT_TRANSLATION_SLUG.ur}`;
   const [verse, setVerse] = useState<AyahFull | null>(null);
   const [resources, setResources] = useState<OfficialTafsirResource[]>([]);
   const [resourceId, setResourceId] = useState(DEFAULT_TAFSIR);

@@ -1,4 +1,5 @@
 import type { UiLocale } from '@/stores/settingsStore';
+import { LOCALE_TEXT_TRANSLATION_SLUG } from '@/lib/i18n/locale-translation-slugs';
 
 /**
  * Locales that get their own crawlable URL prefix.
@@ -45,7 +46,7 @@ export const CONTENT_LOCALE_CONFIG: Record<ContentLocale, ContentLocaleConfig> =
     dir: 'ltr',
     nativeName: 'English',
     englishName: 'English',
-    translationSlug: 'en-sahih-international',
+    translationSlug: LOCALE_TEXT_TRANSLATION_SLUG.en,
   },
   ur: {
     code: 'ur',
@@ -53,7 +54,7 @@ export const CONTENT_LOCALE_CONFIG: Record<ContentLocale, ContentLocaleConfig> =
     dir: 'rtl',
     nativeName: 'اردو',
     englishName: 'Urdu',
-    translationSlug: 'ur-bayan-ul-quran',
+    translationSlug: LOCALE_TEXT_TRANSLATION_SLUG.ur,
   },
   ps: {
     code: 'ps',
@@ -61,7 +62,7 @@ export const CONTENT_LOCALE_CONFIG: Record<ContentLocale, ContentLocaleConfig> =
     dir: 'rtl',
     nativeName: 'پښتو',
     englishName: 'Pashto',
-    translationSlug: 'ps-shafeeq-ur-rahman',
+    translationSlug: LOCALE_TEXT_TRANSLATION_SLUG.ps,
   },
   fa: {
     code: 'fa',
@@ -69,7 +70,7 @@ export const CONTENT_LOCALE_CONFIG: Record<ContentLocale, ContentLocaleConfig> =
     dir: 'rtl',
     nativeName: 'فارسی',
     englishName: 'Persian',
-    translationSlug: 'qf-translation-135',
+    translationSlug: LOCALE_TEXT_TRANSLATION_SLUG.fa,
   },
 };
 

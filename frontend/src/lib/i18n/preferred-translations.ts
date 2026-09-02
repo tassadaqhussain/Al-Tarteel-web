@@ -1,12 +1,13 @@
 import type { UiLocale } from '@/stores/settingsStore';
 import type { Translator } from '@/lib/api';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
+import { LOCALE_TEXT_TRANSLATION_SLUG } from '@/lib/i18n/locale-translation-slugs';
 
 export const PREFERRED_TRANSLATION: Partial<Record<UiLocale, string>> = {
-  en: 'en-sahih-international',
-  ur: 'ur-bayan-ul-quran',
-  ps: 'ps-shafeeq-ur-rahman',
-  fa: 'qf-translation-135',
+  en: LOCALE_TEXT_TRANSLATION_SLUG.en,
+  ur: LOCALE_TEXT_TRANSLATION_SLUG.ur,
+  ps: LOCALE_TEXT_TRANSLATION_SLUG.ps,
+  fa: LOCALE_TEXT_TRANSLATION_SLUG.fa,
   ar: 'qf-translation-1014',
   bn: 'bn-mujibur-rahman',
   id: 'id-indonesian-ministry',
