@@ -240,6 +240,7 @@ export const SURAH_NAMES_PS: Record<number, string> = {
   114: 'الناس',
 };
 
+export function getSurahLocalizedName(number: number, locale: ContentLocale): string {
   if (locale === 'ur') return SURAH_NAMES_UR[number] ?? SURAH_ARABIC[number] ?? SURAH_SIMPLE_NAMES[number];
   if (locale === 'ps') return SURAH_NAMES_PS[number] ?? SURAH_ARABIC[number] ?? SURAH_SIMPLE_NAMES[number];
   if (locale === 'fa') return SURAH_ARABIC[number] ?? SURAH_SIMPLE_NAMES[number];

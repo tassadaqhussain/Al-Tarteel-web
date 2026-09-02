@@ -42,6 +42,7 @@ export function surahPageSubtitle(locale: ContentLocale, englishName: string, su
   }
 }
 
+export function paginationStrings(locale: ContentLocale) {
   switch (locale) {
     case 'ur':
       return { previous: 'پچھلا', next: 'اگلا', versesOf: (start: number, end: number, total: number) => `آیات ${start}–${end} از ${total}` };
