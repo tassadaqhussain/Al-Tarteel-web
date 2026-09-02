@@ -66,6 +66,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     showWordByWord,
     setShowWordByWord,
     showTajweedRules,
+    mushafType,
     translationFontSize,
     wordByWordFontSize,
     wordByWordDisplay,
@@ -494,6 +495,11 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     </span>
   );
 
+  const useIndopakMushaf = mushafType === 'indopak';
+  const primaryArabicText =
+    useIndopakMushaf && ayah.textIndopak?.trim() ? ayah.textIndopak : ayah.textUthmani;
+  const canShowTajweed = !useIndopakMushaf && showTajweedRules;
+
   /**
    * Tajweed colours for the word-by-word view. The tajweed markup and
    * `ayah.words` use different Uthmani orthographies, so they align by word
@@ -501,10 +507,10 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
    * words uncoloured rather than risk mis-colouring the text.
    */
   const tajweedByWord = useMemo(() => {
-    if (!showTajweedRules || !ayah.textTajweed || !ayah.words?.length) return null;
+    if (!canShowTajweed || !ayah.textTajweed || !ayah.words?.length) return null;
     const split = splitTajweedIntoWords(ayah.textTajweed);
     return alignsWithWords(split, ayah.words.length) ? split : null;
-  }, [showTajweedRules, ayah.textTajweed, ayah.words]);
+  }, [canShowTajweed, ayah.textTajweed, ayah.words]);
 
   const arabicTextNode = ayah.words && ayah.words.length > 0 ? (
     <div
@@ -686,13 +692,13 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
       })}
       {endMarkerNode}
     </div>
-  ) : showTajweedRules && ayah.textTajweed ? (
+  ) : canShowTajweed && ayah.textTajweed ? (
     <div className={cn('ayah-arabic-block', readerViewMode === 'arabic' ? 'inline text-center' : 'w-full text-right')} dir="rtl" lang="ar">
       <TajweedText
         textTajweed={ayah.textTajweed}
         textUthmani={ayah.textUthmani}
-        showColors={showTajweedRules}
-        interactive={showTajweedRules}
+        showColors={canShowTajweed}
+        interactive={canShowTajweed}
         className={cn(
           'font-arabic ayah-arabic leading-loose text-ink',
           fontSizeClass,
@@ -712,7 +718,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
       dir="rtl"
       translate="no"
     >
-      <span>{ayah.textUthmani}</span>
+      <span>{primaryArabicText}</span>
       {endMarkerNode}
     </div>
   );

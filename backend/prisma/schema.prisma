@@ -44,6 +44,7 @@ model Ayah {
   page        Int?   // Madani page 1–604
   textUthmani String @map("text_uthmani") @db.Text
   textTajweed String? @map("text_tajweed") @db.Text
+  textIndopak String? @map("text_indopak") @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

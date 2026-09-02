@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { getSurahPath, SURAH_MEANINGS, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 import { surahCopy } from '@/lib/i18n/seo-strings';
+import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
+import { popularSurahSeoOverride } from '@/lib/i18n/surah-seo-overrides';
 import {
   CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
@@ -155,7 +157,8 @@ export function surahSeo(
   }
 ) {
   const locale = opts?.locale ?? DEFAULT_CONTENT_LOCALE;
-  const name = SURAH_SIMPLE_NAMES[number] || `Surah ${number}`;
+  const englishName = SURAH_SIMPLE_NAMES[number] || `Surah ${number}`;
+  const name = locale === 'en' ? englishName : getSurahLocalizedName(number, locale);
   const meaning = SURAH_MEANINGS[number];
   const arabic = opts?.arabicName || '';
   const ayahs = opts?.ayahCount ?? 0;
@@ -169,7 +172,9 @@ export function surahSeo(
         }
       : null;
 
-  const copy = surahCopy(locale, { name, meaning: meaning || '', arabic, ayahCount: ayahs }, range);
+  const copy =
+    popularSurahSeoOverride(number, locale, range) ??
+    surahCopy(locale, { name, meaning: meaning || '', arabic, ayahCount: ayahs }, range);
   const title = `${copy.title} | ${SITE_NAME}`;
   const description = copy.description;
 
@@ -179,7 +184,7 @@ export function surahSeo(
 
   return {
     number,
-    name,
+    name: englishName,
     meaning,
     arabic,
     path,
@@ -188,8 +193,9 @@ export function surahSeo(
       description,
       path: canonicalPath,
       keywords: [
-        `Surah ${name}`,
-        name,
+        `Surah ${englishName}`,
+        englishName,
+        name !== englishName ? name : '',
         arabic,
         meaning,
         `Surah ${number}`,
@@ -200,7 +206,8 @@ export function surahSeo(
       ].filter(Boolean) as string[],
       type: 'article',
       locale,
-      // Paginated slices are not a translation cluster — only page 1 is.
+      // Paginated slices are thin duplicates — noindex; page 1 keeps hreflang cluster.
+      noIndex: page > 1,
       alternatePath: page > 1 ? undefined : path,
     }),
   };
@@ -261,15 +268,18 @@ export function surahJsonLd(input: {
   meaning?: string;
   ayahCount?: number;
   path: string;
+  locale?: ContentLocale;
 }) {
+  const locale = input.locale ?? DEFAULT_CONTENT_LOCALE;
+  const localizedName = getSurahLocalizedName(input.number, locale);
   const url = absoluteUrl(input.path);
   return {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
-    name: `Surah ${input.name}`,
-    alternateName: [input.arabic, input.meaning].filter(Boolean),
+    name: locale === 'en' ? `Surah ${input.name}` : localizedName,
+    alternateName: [input.arabic, input.meaning, localizedName].filter(Boolean),
     description: `Chapter ${input.number} of the Holy Quran${input.ayahCount ? ` with ${input.ayahCount} verses` : ''}.`,
-    inLanguage: 'ar',
+    inLanguage: locale === 'en' ? 'ar' : locale,
     isPartOf: {
       '@type': 'Book',
       name: 'The Holy Quran',

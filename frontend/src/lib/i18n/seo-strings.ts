@@ -28,7 +28,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
   en: ({ name, meaning, arabic, ayahCount }, range) =>
     range
       ? {
-          title: `Surah ${name} – Verses ${range.start}–${range.end}`,
+          title: `Surah ${name} – Verses ${range.start}–${range.end}, English Translation & Audio`,
           description: `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, Saheeh International English translation, and verse-by-verse audio.`,
         }
       : {
@@ -45,7 +45,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
   ur: ({ name, arabic, ayahCount }, range) =>
     range
       ? {
-          title: `سورہ ${name} – آیات ${range.start}–${range.end} اردو ترجمہ`,
+          title: `سورہ ${name} – آیات ${range.start}–${range.end}، اردو ترجمہ، تلاوت اور آڈیو`,
           description: `سورہ ${name} کی آیات ${range.start}–${range.end} عربی متن، اردو ترجمہ اور آیت بہ آیت آڈیو کے ساتھ پڑھیں۔`,
         }
       : {
@@ -62,7 +62,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
   ps: ({ name, arabic, ayahCount }, range) =>
     range
       ? {
-          title: `سورت ${name} – آیتونه ${range.start}–${range.end} پښتو ژباړه`,
+          title: `سورت ${name} – آیتونه ${range.start}–${range.end}، پښتو ژباړه، تلاوت او غږ`,
           description: `د سورت ${name} آیتونه ${range.start}–${range.end} د عربي متن، پښتو ژباړې او آیت په آیت غږ سره ولولئ.`,
         }
       : {
@@ -79,7 +79,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
   fa: ({ name, arabic, ayahCount }, range) =>
     range
       ? {
-          title: `سوره ${name} – آیات ${range.start}–${range.end} ترجمه فارسی`,
+          title: `سوره ${name} – آیات ${range.start}–${range.end}، ترجمه فارسی، تلاوت و صوت`,
           description: `آیات ${range.start}–${range.end} سوره ${name} را با متن عربی، ترجمه فارسی و صوت آیه به آیه بخوانید.`,
         }
       : {

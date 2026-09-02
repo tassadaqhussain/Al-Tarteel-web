@@ -27,6 +27,13 @@ import {
 } from '@/lib/i18n/content-locales';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
+import {
+  endOfSurahLabel,
+  navSurahLabel,
+  startFromBeginningLabel,
+  surahPageHeading,
+  surahPageSubtitle,
+} from '@/lib/i18n/surah-ui-strings';
 import { READER_BAR_SHELL, READER_SHELL } from '@/components/layout/MainContainer';
 import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
 import { cn } from '@/lib/utils';
@@ -147,7 +154,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           >
             <ChevronLeft className="h-5 w-5 text-ink-faint" />
             <div>
-              <p className="text-xs text-ink-muted">Previous Surah</p>
+              <p className="text-xs text-ink-muted">{navSurahLabel(activeLocale, 'previous')}</p>
               <p className="font-semibold text-ink">{prevSurah.number}. {prevSurah.nameSimple}</p>
             </div>
           </Link>
@@ -155,7 +162,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
 
         <div className="text-center">
           <p className="font-arabic text-2xl font-bold text-ink">{arabicName}</p>
-          <p className="mt-1 text-xs text-ink-muted">End of Surah {surah.nameSimple} · {ayahCount} Ayahs</p>
+          <p className="mt-1 text-xs text-ink-muted">{endOfSurahLabel(activeLocale, surah.nameSimple, ayahCount, surahNumber)}</p>
         </div>
 
         {nextSurah ? (
@@ -164,7 +171,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
             className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-right shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
             <div>
-              <p className="text-xs text-ink-muted">Next Surah</p>
+              <p className="text-xs text-ink-muted">{navSurahLabel(activeLocale, 'next')}</p>
               <p className="font-semibold text-ink">{nextSurah.number}. {nextSurah.nameSimple}</p>
             </div>
             <ChevronRight className="h-5 w-5 text-ink-faint" />
@@ -207,6 +214,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           meaning: SURAH_MEANINGS[surahNumber],
           ayahCount,
           path: surahPath,
+          locale: activeLocale,
         })}
       />
       <Header />
@@ -274,18 +282,21 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
               <div className="min-w-0">
                 <div className="flex flex-col items-center gap-x-2.5 gap-y-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-start">
                   <h1 className="text-xl font-semibold text-ink sm:text-2xl">
-                    {page > 1
-                      ? `${surahNumber}. Surah ${surah.nameSimple} – Verses ${range.start}–${range.end}`
-                      : `${surahNumber}. Surah ${surah.nameSimple}`}
+                    {surahPageHeading(activeLocale, {
+                      surahNumber,
+                      englishName: surah.nameSimple,
+                      page,
+                      range,
+                    })}
                   </h1>
-                  {SURAH_MEANINGS[surahNumber] && (
+                  {activeLocale === 'en' && SURAH_MEANINGS[surahNumber] && (
                     <span className="text-xl font-medium text-ink-3 sm:text-2xl">
                       {SURAH_MEANINGS[surahNumber]}
                     </span>
                   )}
                 </div>
                 <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink-3 lg:truncate">
-                  Read and listen to Surah {surah.nameSimple} with translation, tafsir, audio recitation, word-by-word meaning, and transliteration.
+                  {surahPageSubtitle(activeLocale, surah.nameSimple, surahNumber)}
                 </p>
               </div>
             </div>
@@ -311,7 +322,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
               href={surahPath}
               className="rounded-[4px] border border-line bg-surface px-4 py-2 text-sm text-ink-3 hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
-              Start from beginning
+              {startFromBeginningLabel(activeLocale)}
             </Link>
           </div>
         )}
@@ -335,6 +346,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           totalPages={totalPages}
           ayahCount={ayahCount}
           surahName={surah.nameSimple}
+          locale={activeLocale}
         />
         </article>
 

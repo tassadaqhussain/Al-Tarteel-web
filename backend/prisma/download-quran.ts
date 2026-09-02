@@ -75,6 +75,7 @@ type VerseRow = {
   verse_key: string;
   text_uthmani: string;
   text_uthmani_tajweed?: string;
+  text_indopak?: string;
   juz_number?: number;
   hizb_number?: number;
   ruku_number?: number;
@@ -91,7 +92,7 @@ async function fetchChapterVerses(chapterNumber: number): Promise<VerseRow[]> {
       verses: VerseRow[];
       pagination: { current_page: number; next_page: number | null; total_pages: number };
     }>(
-      `${API}/verses/by_chapter/${chapterNumber}?language=en&words=false&per_page=50&page=${page}&fields=text_uthmani,text_uthmani_tajweed,verse_number,juz_number,hizb_number,ruku_number,manzil_number,page_number`
+      `${API}/verses/by_chapter/${chapterNumber}?language=en&words=false&per_page=50&page=${page}&fields=text_uthmani,text_uthmani_tajweed,text_indopak,verse_number,juz_number,hizb_number,ruku_number,manzil_number,page_number`
     );
     verses.push(...data.verses);
     totalPages = data.pagination.total_pages;
@@ -197,6 +198,7 @@ async function downloadFullQuran() {
         update: {
           textUthmani: v.text_uthmani,
           textTajweed: v.text_uthmani_tajweed ?? null,
+          textIndopak: v.text_indopak ?? null,
           numberInQuran: v.id,
           juz: v.juz_number ?? null,
           hizb: v.hizb_number ?? null,
@@ -215,6 +217,7 @@ async function downloadFullQuran() {
           page: v.page_number ?? null,
           textUthmani: v.text_uthmani,
           textTajweed: v.text_uthmani_tajweed ?? null,
+          textIndopak: v.text_indopak ?? null,
         },
       });
 

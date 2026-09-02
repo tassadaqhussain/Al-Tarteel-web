@@ -816,6 +816,7 @@ export interface AyahWithRelations {
   page: number | null;
   textUthmani: string;
   textTajweed?: string | null;
+  textIndopak?: string | null;
   words?: { id: number; position: number; textArabic: string; textUthmani: string; transliteration?: string | null; translation?: string; translations?: Record<string, string>; audioUrl?: string }[];
   translations?: { translatorId: number; translatorSlug: string; translatorName?: string; text: string }[];
   surah?: { id: number; number: number; nameArabic: string; nameSimple: string };

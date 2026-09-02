@@ -21,6 +21,8 @@ export class AyahResponseDto {
   @ApiProperty({ nullable: true }) ruku: number | null;
   @ApiProperty({ nullable: true }) page: number | null;
   @ApiProperty() textUthmani: string;
+  @ApiProperty({ nullable: true }) textTajweed?: string | null;
+  @ApiProperty({ nullable: true }) textIndopak?: string | null;
 }
 
 export class WordResponseDto {

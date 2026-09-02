@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { ContentLocale } from '@/lib/i18n/content-locales';
+import { paginationStrings } from '@/lib/i18n/surah-ui-strings';
 import { surahPageHref, surahVerseRange } from '@/lib/surah-pagination';
 
 type Props = {
@@ -8,15 +10,17 @@ type Props = {
   totalPages: number;
   ayahCount: number;
   surahName: string;
+  locale?: ContentLocale;
 };
 
 /** Crawlable HTML pagination for long surah verse slices. */
-export function SurahPaginationNav({ path, page, totalPages, ayahCount, surahName }: Props) {
+export function SurahPaginationNav({ path, page, totalPages, ayahCount, surahName, locale = 'en' }: Props) {
   if (totalPages <= 1) return null;
 
   const { start, end } = surahVerseRange(page, ayahCount);
   const prev = page > 1 ? page - 1 : null;
   const next = page < totalPages ? page + 1 : null;
+  const labels = paginationStrings(locale);
 
   return (
     <nav
@@ -24,7 +28,7 @@ export function SurahPaginationNav({ path, page, totalPages, ayahCount, surahNam
       className="mt-8 flex flex-col items-center gap-3 border-t border-line pt-6"
     >
       <p className="text-xs text-ink-muted">
-        Verses {start}–{end} of {ayahCount}
+        {labels.versesOf(start, end, ayahCount)}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {prev != null ? (
@@ -34,12 +38,12 @@ export function SurahPaginationNav({ path, page, totalPages, ayahCount, surahNam
             className="inline-flex items-center gap-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-2 hover:border-emerald-800/40 hover:text-brand"
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            {labels.previous}
           </Link>
         ) : (
           <span className="inline-flex items-center gap-1 rounded-xl border border-transparent px-3 py-2 text-sm text-ink-faint">
             <ChevronLeft className="h-4 w-4" />
-            Previous
+            {labels.previous}
           </span>
         )}
         <span className="px-2 text-sm font-medium text-ink-3">
@@ -51,12 +55,12 @@ export function SurahPaginationNav({ path, page, totalPages, ayahCount, surahNam
             rel="next"
             className="inline-flex items-center gap-1 rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-2 hover:border-emerald-800/40 hover:text-brand"
           >
-            Next
+            {labels.next}
             <ChevronRight className="h-4 w-4" />
           </Link>
         ) : (
           <span className="inline-flex items-center gap-1 rounded-xl border border-transparent px-3 py-2 text-sm text-ink-faint">
-            Next
+            {labels.next}
             <ChevronRight className="h-4 w-4" />
           </span>
         )}
