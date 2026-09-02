@@ -152,6 +152,9 @@ log "Download all 6236 ayahs into Postgres (skips if already complete)"
 "${COMPOSE[@]}" exec -T api npm run quran:download
 "${COMPOSE[@]}" exec -T api npm run reciters:import
 
+log "Backfill IndoPak script text (skips if already complete)"
+bash "${APP_DIR}/scripts/import-indopak.sh" || warn "IndoPak import failed (Uthmani fallback still works)"
+
 if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   log "Import translations, tafsir, and study content"
   CONTENT_ARGS=(--no-audio)

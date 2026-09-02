@@ -19,6 +19,7 @@
     "prisma:studio": "prisma studio",
     "seed": "ts-node -r dotenv/config prisma/seed.ts",
     "quran:download": "ts-node -r dotenv/config prisma/download-quran.ts",
+    "indopak:import": "ts-node -r dotenv/config prisma/import-indopak.ts",
     "words:import": "ts-node -r dotenv/config prisma/import-words.ts",
     "words:import:all": "ts-node -r dotenv/config prisma/import-words.ts --langs=en,ur,bn,id,tr,fa,hi",
     "translations:import": "ts-node -r dotenv/config prisma/import-reader-translations.ts",
