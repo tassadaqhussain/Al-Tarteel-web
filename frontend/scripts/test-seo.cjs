@@ -70,3 +70,25 @@ assert.ok(!xml.renderSitemapIndex(['https://example.com/sitemap.xml']).includes(
 assert.ok(xml.renderUrlset([{ url: 'https://example.com/?a=1&b=2', changeFrequency: 'monthly', priority: 1 }]).includes('?a=1&amp;b=2'));
 assert.equal((rendered.match(/<url>/g) || []).length, entries.length);
 console.log(`SEO checks passed: ${slices} verse slices across all 114 surahs, four locales, URL validation and ${entries.length} sitemap URLs.`);
+
+for (const value of ['abc', '2junk', '-1', '0', '1e2', '2.5', '', ['2', '3'], '9007199254740992']) {
+  assert.equal(pagination.parsePositiveInteger(value), null);
+  assert.equal(pagination.readerPage(value, 8), 1);
+  assert.equal(pagination.needsPageRedirect(value, 1), true);
+}
+assert.equal(pagination.readerPage(undefined, 8), 1);
+assert.equal(pagination.needsPageRedirect(undefined, 1), false);
+assert.equal(pagination.readerPage('999', 8), 8);
+assert.equal(pagination.needsPageRedirect('999', 8), true);
+assert.equal(pagination.readerPage('02', 8), 2);
+assert.equal(pagination.needsPageRedirect('02', 2), true);
+assert.equal(pagination.needsPageRedirect('2', 2), false);
+assert.equal(pagination.needsPageRedirect('1', 1), true);
+const robots = load('app/robots').default();
+const blocked = robots.rules[0].disallow;
+for (const publicPath of ['/login', '/register', '/forgot-password', '/reset-password', '/profile', '/bookmarks', '/settings', '/my-quran', '/reading-goal', '/hifz', '/feedback', '/search']) {
+  assert.ok(!blocked.some((prefix) => publicPath.startsWith(prefix)), `${publicPath}: crawler must see noindex`);
+}
+assert.ok(blocked.includes('/admin'));
+assert.ok(blocked.includes('/api/'));
+console.log('Pagination normalization and robots/noindex checks passed.');

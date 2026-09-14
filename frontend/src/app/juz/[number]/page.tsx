@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { quranApi, type AyahWithRelations } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { AyahBlock } from '@/components/reader/AyahBlock';
@@ -12,6 +12,7 @@ import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
+import { parsePositiveInteger, readerPage, needsPageRedirect, surahPageHref } from '@/lib/surah-pagination';
 import { juzSeo } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 
@@ -27,9 +28,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params, searchParams }: Props) {
   const { number } = await params;
   const { page: pageStr } = await searchParams;
-  const n = parseInt(number, 10);
-  if (Number.isNaN(n) || n < 1 || n > 30) return {};
-  const page = Math.max(1, parseInt(pageStr || '1', 10) || 1);
+  const n = parsePositiveInteger(number);
+  if (!n || n > 30) return {};
+  const page = readerPage(pageStr);
   return juzSeo(n, page);
 }
 
@@ -45,10 +46,14 @@ interface SurahGroup {
 export default async function JuzPage({ params, searchParams }: Props) {
   const { number } = await params;
   const { page: pageStr, trans } = await searchParams;
-  const juzNumber = parseInt(number, 10);
-  if (Number.isNaN(juzNumber) || juzNumber < 1 || juzNumber > 30) notFound();
+  const juzNumber = parsePositiveInteger(number);
+  if (!juzNumber || juzNumber > 30) notFound();
 
-  const page = Math.max(1, parseInt(pageStr || '1', 10));
+  const page = readerPage(pageStr);
+  if (number !== String(juzNumber) || needsPageRedirect(pageStr, page)) {
+    const target = surahPageHref(`/juz/${juzNumber}`, page);
+    permanentRedirect(trans ? `${target}${page > 1 ? '&' : '?'}trans=${encodeURIComponent(trans)}` : target);
+  }
   const limit = 50;
   const cookieStore = await cookies();
   const effectiveTranslations = resolveTranslations({
@@ -172,7 +177,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
         {/* Pagination */}
         <nav className="mt-8 flex items-center justify-center gap-3" aria-label="Pagination">
           {page > 1 && (
-            <Link href={`/juz/${juzNumber}?page=${page - 1}`} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
+            <Link href={surahPageHref(`/juz/${juzNumber}`, page - 1)} className="rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--fg)] hover:bg-[var(--ayah-highlight)] transition-colors">
               ← Previous
             </Link>
           )}

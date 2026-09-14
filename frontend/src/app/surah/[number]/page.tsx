@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { quranApi } from '@/lib/api';
 import { Header } from '@/components/Header';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -38,7 +38,10 @@ import { READER_BAR_SHELL, READER_SHELL } from '@/components/layout/MainContaine
 import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
 import { cn } from '@/lib/utils';
 import {
-  clampSurahPage,
+  readerPage,
+  needsPageRedirect,
+  parsePositiveInteger,
+  surahPageHref,
   getSurahAyahCount,
   surahSsrLimit,
   surahTotalPages,
@@ -80,11 +83,11 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params, searchParams, locale }: Props) {
   const { number } = await params;
   const { page: pageStr } = await searchParams;
-  const n = parseInt(number, 10);
-  if (Number.isNaN(n) || n < 1 || n > 114) return {};
+  const n = parsePositiveInteger(number);
+  if (!n || n > 114) return {};
   const surah = await quranApi.surah(n).catch(() => null);
   const ayahCount = surah?.numberOfAyahs || getSurahAyahCount(n);
-  const page = clampSurahPage(parseInt(pageStr || '1', 10), ayahCount);
+  const page = readerPage(pageStr, surahTotalPages(ayahCount));
   const arabicName = getSurahArabicName(n, surah?.nameArabic);
   return surahSeo(n, {
     arabicName,
@@ -98,8 +101,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   const activeLocale = locale ?? DEFAULT_CONTENT_LOCALE;
   const { number } = await params;
   const { page: pageStr, trans } = await searchParams;
-  const surahNumber = parseInt(number, 10);
-  if (Number.isNaN(surahNumber) || surahNumber < 1 || surahNumber > 114) notFound();
+  const surahNumber = parsePositiveInteger(number);
+  if (!surahNumber || surahNumber > 114) notFound();
 
   // Do not read cookies() here — it forces fully dynamic/private responses and
   // slows Google crawling. Default + ?trans= SSR; cookie preference via CleanTranslationUrl.
@@ -112,11 +115,16 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   const surah = (await quranApi.surah(surahNumber).catch(() => null)) ?? localSurahFallback(surahNumber);
 
   const ayahCount = surah.numberOfAyahs || getSurahAyahCount(surahNumber);
-  const page = clampSurahPage(parseInt(pageStr || '1', 10), ayahCount);
+  const page = readerPage(pageStr, surahTotalPages(ayahCount));
   const limit = Math.max(1, surahSsrLimit(ayahCount, page));
   const totalPages = surahTotalPages(ayahCount);
   const range = surahVerseRange(page, ayahCount);
   const surahPath = localePath(activeLocale, getSurahPath(surahNumber));
+
+  if (needsPageRedirect(pageStr, page)) {
+    const target = surahPageHref(surahPath, page);
+    permanentRedirect(trans ? `${target}${page > 1 ? '&' : '?'}trans=${encodeURIComponent(trans)}` : target);
+  }
 
   const [ayahs, prevSurah, nextSurah] = await Promise.all([
     quranApi

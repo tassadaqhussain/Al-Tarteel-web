@@ -60,3 +60,19 @@ export function parseAyahNumber(value: string, surahNumber: number): number | nu
     ? number
     : null;
 }
+
+/** Parse the whole segment: parseInt accepts invalid URLs such as "2junk". */
+export function parsePositiveInteger(value: unknown): number | null {
+  if (typeof value !== 'string' || !/^\d+$/.test(value)) return null;
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number > 0 ? number : null;
+}
+
+/** Invalid page queries resolve to page one; callers redirect to the clean URL. */
+export function readerPage(value: unknown, totalPages = Number.MAX_SAFE_INTEGER): number {
+  return Math.min(parsePositiveInteger(value) ?? 1, totalPages);
+}
+
+export function needsPageRedirect(value: unknown, page: number): boolean {
+  return value !== undefined && (page === 1 || value !== String(page));
+}

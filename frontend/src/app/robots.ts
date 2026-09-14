@@ -8,22 +8,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
+        // Public account/tool pages carry noindex. Crawlers must be able to
+        // fetch them to see it; a robots.txt block can leave URL-only listings.
         disallow: [
-          '/login',
-          '/register',
-          '/forgot-password',
-          '/reset-password',
-          '/profile',
-          '/bookmarks',
-          '/settings',
-          '/my-quran',
-          '/reading-goal',
-          '/hifz',
-          '/feedback',
           '/admin',
-          '/search',
-          ...(DONATE_ENABLED ? ['/donate/checkout', '/donate/success'] : ['/donate', '/donate/checkout', '/donate/success']),
           '/api/',
+          ...(DONATE_ENABLED ? ['/donate/checkout'] : ['/donate']),
         ],
       },
     ],
