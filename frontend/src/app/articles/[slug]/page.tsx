@@ -30,6 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: article.description,
     path: `/articles/${article.slug}`,
     keywords: [article.category, 'Islam', 'Quran', SITE_NAME],
+    type: 'article',
+    image: { path: article.image, alt: article.title },
+    publishedTime: article.publishedAt,
   });
 }
 
@@ -53,8 +56,11 @@ export default async function ArticlePage({ params }: Props) {
     description: article.description,
     datePublished: article.publishedAt,
     image: absoluteUrl(article.image),
-    author: { '@type': 'Organization', name: SITE_NAME },
-    publisher: { '@type': 'Organization', name: SITE_NAME },
+    author: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/') },
+    publisher: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/'), logo: absoluteUrl('/images/logo.png') },
+    inLanguage: 'en',
+    articleSection: article.category,
+    isAccessibleForFree: true,
     mainEntityOfPage: absoluteUrl(`/articles/${article.slug}`),
   };
 
@@ -100,6 +106,9 @@ export default async function ArticlePage({ params }: Props) {
               {formatArticleDate(article.publishedAt)}
             </time>
           </div>
+          <p className="mb-3 text-sm text-ink-muted">
+            By <Link href="/" rel="author" className="font-semibold text-brand hover:underline">{SITE_NAME}</Link>
+          </p>
           <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
             {article.title}
           </h1>

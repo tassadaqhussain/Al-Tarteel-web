@@ -88,6 +88,8 @@ export function buildPageMetadata({
   locale = DEFAULT_CONTENT_LOCALE,
   alternatePath,
   hreflangLanguages,
+  image,
+  publishedTime,
 }: {
   title: string;
   description: string;
@@ -95,6 +97,8 @@ export function buildPageMetadata({
   keywords?: string[];
   noIndex?: boolean;
   type?: 'website' | 'article';
+  image?: { path: string; alt: string };
+  publishedTime?: string;
   /** Locale this page is written in — drives og:locale and the hreflang set. */
   locale?: ContentLocale;
   /**
@@ -108,7 +112,7 @@ export function buildPageMetadata({
   const url = absoluteUrl(path);
   const fullTitle = title.includes(SITE_NAME) ? title : undefined;
   const ogTitle = fullTitle || `${title} | ${SITE_NAME}`;
-  const ogImage = {
+  const ogImage = image ? { url: absoluteUrl(image.path), alt: image.alt } : {
     url: absoluteUrl(DEFAULT_OG_IMAGE_PATH),
     width: 1200,
     height: 630,
@@ -137,6 +141,7 @@ export function buildPageMetadata({
         },
     openGraph: {
       type,
+      ...(type === 'article' && publishedTime ? { publishedTime } : {}),
       url,
       siteName: SITE_NAME,
       title: ogTitle,
@@ -148,7 +153,7 @@ export function buildPageMetadata({
       card: 'summary_large_image',
       title: ogTitle,
       description,
-      images: [absoluteUrl(DEFAULT_OG_IMAGE_PATH)],
+      images: [ogImage.url],
     },
   };
 }
@@ -252,6 +257,8 @@ export function translationHubHreflang(): Record<string, string> {
 /** High-intent ayahs with search-friendly names (used for sitemap + static generation). */
 export const FAMOUS_AYAHS: { surah: number; ayah: number }[] = [
   { surah: 2, ayah: 255 },
+  { surah: 2, ayah: 285 },
+  { surah: 2, ayah: 286 },
   { surah: 1, ayah: 1 },
   { surah: 2, ayah: 1 },
   { surah: 18, ayah: 1 },
@@ -303,9 +310,8 @@ export function ayahSeo(
   const path = getAyahPath(surahNumber, ayahNumber);
   const localisedPath = localePath(locale, path);
 
-  const title = famousName
-    ? `${famousName} — ${localizedSurah} ${surahNumber}:${ayahNumber} | ${SITE_NAME}`
-    : `${localizedSurah} ${surahNumber}:${ayahNumber} — Quran Ayah | ${SITE_NAME}`;
+  const heading = `${famousName ? `${famousName} — ` : ''}${localizedSurah} ${surahNumber}:${ayahNumber}`;
+  const title = `${heading}${famousName ? '' : ' — Quran Ayah'} | ${SITE_NAME}`;
 
   const reference = `${localizedSurah} ${surahNumber}:${ayahNumber}`;
   const descriptions: Record<ContentLocale, string> = {
@@ -318,6 +324,7 @@ export function ayahSeo(
 
   return {
     path,
+    heading,
     metadata: buildPageMetadata({
       title,
       description,

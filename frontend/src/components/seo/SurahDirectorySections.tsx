@@ -4,8 +4,10 @@ import {
   getSurahArabicName,
   getSurahMeaning,
   getSurahPath,
+  getAyahPath,
   SURAH_SIMPLE_NAMES,
 } from '@/lib/surah-meta';
+import { ayahSeo } from '@/lib/seo';
 import { SURAH_COLLECTIONS } from '@/lib/seo/surah-collections';
 
 const JUZ_START_SURAHS = [
@@ -60,6 +62,27 @@ function SurahLinkList({
 export function SurahDirectorySections({ surahs }: { surahs: Surah[] }) {
   return (
     <div className="mt-8 space-y-10">
+      <section aria-labelledby="featured-verses">
+        <h2 id="featured-verses" className="text-xl font-bold text-ink sm:text-2xl">
+          Featured Quran verses
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-2 sm:text-base">
+          Read Ayatul Kursi, the Light Verse, and the final two verses of Al-Baqarah
+          with Arabic text, English translation, and audio.
+        </p>
+        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {[[2, 255], [24, 35], [2, 285], [2, 286]].map(([surah, ayah]) => (
+            <li key={`${surah}:${ayah}`}>
+              <Link
+                href={getAyahPath(surah, ayah)}
+                className="block rounded-lg border border-line bg-surface px-3 py-3 text-sm font-semibold text-ink hover:border-brand/30 hover:bg-surface-2"
+              >
+                {ayahSeo(surah, ayah).heading}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
       {SURAH_COLLECTIONS.map((collection) => (
         <section key={collection.id} aria-labelledby={`collection-${collection.id}`}>
           <h2 id={`collection-${collection.id}`} className="text-xl font-bold text-ink sm:text-2xl">

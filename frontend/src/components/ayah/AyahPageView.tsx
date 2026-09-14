@@ -15,7 +15,7 @@ import {
   type ContentLocale,
 } from '@/lib/i18n/content-locales';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
-import { FAMOUS_AYAHS, ayahJsonLd } from '@/lib/seo';
+import { FAMOUS_AYAHS, ayahJsonLd, ayahSeo } from '@/lib/seo';
 import {
   getAyahPath,
   getSurahArabicName,
@@ -104,7 +104,7 @@ export async function renderAyahPage({
       <Header />
       <CleanTranslationUrl />
       <JsonLd data={jsonLd} />
-      <main className={`${READER_SHELL} flex-1 py-6 sm:py-8`}>
+      <main lang={activeLocale} className={`${READER_SHELL} flex-1 py-6 sm:py-8`}>
         <Breadcrumbs
           items={[
             { name: 'Home', path: localePath(activeLocale, '/') },
@@ -117,7 +117,7 @@ export async function renderAyahPage({
         <header className="mt-6 border-b border-line pb-6">
           <p className="font-arabic text-2xl font-bold text-ink sm:text-3xl">{arabicName}</p>
           <h1 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">
-            {displayName} {surahNumber}:{ayahNumber}
+            {ayahSeo(surahNumber, ayahNumber, { locale: activeLocale }).heading}
           </h1>
           <p className="mt-2 text-sm text-ink-muted">
             <Link href={surahPath} className="font-semibold text-brand hover:underline">

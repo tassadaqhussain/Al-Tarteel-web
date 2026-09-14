@@ -92,3 +92,25 @@ for (const publicPath of ['/login', '/register', '/forgot-password', '/reset-pas
 assert.ok(blocked.includes('/admin'));
 assert.ok(blocked.includes('/api/'));
 console.log('Pagination normalization and robots/noindex checks passed.');
+
+const articleMeta = seo.buildPageMetadata({
+  title: 'Understanding Surah Al-Fatihah',
+  description: 'An introduction to the opening chapter.',
+  path: '/articles/understanding-surah-al-fatihah',
+  type: 'article',
+  image: { path: '/images/article_2.png', alt: 'Understanding Surah Al-Fatihah' },
+  publishedTime: '2026-04-09',
+});
+assert.equal(articleMeta.openGraph.type, 'article');
+assert.equal(articleMeta.openGraph.publishedTime, '2026-04-09');
+assert.equal(articleMeta.openGraph.images[0].url, `${seo.SITE_URL}/images/article_2.png`);
+assert.equal(articleMeta.twitter.images[0], articleMeta.openGraph.images[0].url);
+assert.equal(seo.buildPageMetadata({ title: 'Home', description: 'Home' }).openGraph.images[0].url, `${seo.SITE_URL}/opengraph-image`);
+assert.equal(seo.ayahSeo(2, 255).heading, 'Ayatul Kursi — Al-Baqarah 2:255');
+assert.ok(seo.ayahSeo(2, 255, { locale: 'ur' }).heading.startsWith('آیت الکرسی'));
+for (const ayah of [285, 286]) {
+  for (const prefix of ['', '/ur', '/ps', '/fa']) {
+    assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}${prefix}/al-baqarah/${ayah}`));
+  }
+}
+console.log('Article previews, verse headings and featured verse sitemap checks passed.');

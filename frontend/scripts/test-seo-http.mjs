@@ -52,3 +52,24 @@ assert.ok(robots.includes('Disallow: /api/'));
 const { html: juzPageTwo } = await request('/juz/1?page=2');
 assert.match(juzPageTwo, /href="\/juz\/1"[^>]*>\s*← Previous/);
 console.log('Production SEO HTTP checks passed: canonical redirects, invalid route 404s, verse content and crawlable noindex pages.');
+
+for (const path of ['/articles/understanding-surah-al-fatihah', '/articles/when-was-islam-created-at-first']) {
+  const { response, html } = await request(path);
+  assert.equal(response.status, 200, path);
+  assert.match(html, /property="og:type" content="article"/);
+  assert.match(html, /property="article:published_time" content="2026-/);
+  const image = html.match(/property="og:image" content="([^"]+)"/)[1];
+  assert.match(image, /\/images\/article_\d\.png$/);
+  const schemas = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].flatMap((m) => JSON.parse(m[1]));
+  const article = schemas.find((s) => s['@type'] === 'Article');
+  assert.equal(article.image, image);
+  assert.equal(article.author.url, 'https://quranpilot.com');
+  assert.match(html, /rel="author"/);
+}
+const { html: directory } = await request('/surahs');
+for (const path of ['/al-baqarah/255', '/an-nur/35', '/al-baqarah/285', '/al-baqarah/286']) {
+  assert.ok(directory.includes(`href="${path}"`), `Featured link: ${path}`);
+}
+const { html: kursi } = await request('/al-baqarah/255');
+assert.match(kursi, /<h1[^>]*>Ayatul Kursi/);
+console.log('Article social metadata, author markup and featured verse navigation checks passed.');
