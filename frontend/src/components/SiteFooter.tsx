@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { SiteLogo } from '@/components/SiteLogo';
 import { useT } from '@/lib/i18n';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { CONTENT_LOCALES, localeConfig, localePath } from '@/lib/i18n/content-locales';
 import { DONATE_ENABLED } from '@/lib/features';
 
 export function SiteFooter() {
@@ -23,6 +24,22 @@ export function SiteFooter() {
             <p className="mt-4 max-w-md text-sm leading-7 text-emerald-50/75">
               {t('footerTagline')}
             </p>
+            <nav aria-label="Quran translation languages" className="mt-5">
+              <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                {CONTENT_LOCALES.map((locale) => (
+                  <li key={locale}>
+                    <Link
+                      href={localePath(locale, '/')}
+                      hrefLang={locale}
+                      lang={locale}
+                      className="text-emerald-50/75 transition hover:text-white"
+                    >
+                      {localeConfig(locale).nativeName}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
           </div>
 
           <div>
@@ -66,6 +83,16 @@ export function SiteFooter() {
               <li>
                 <Link href="/search" className="text-emerald-50/75 transition hover:text-white">
                   {t('search')}
+                </Link>
+              </li>
+              <li>
+                <Link href="/articles" className="text-emerald-50/75 transition hover:text-white">
+                  Quran &amp; Islam articles
+                </Link>
+              </li>
+              <li>
+                <Link href="/tajweed" className="text-emerald-50/75 transition hover:text-white">
+                  Tajweed guide
                 </Link>
               </li>
               {DONATE_ENABLED && (

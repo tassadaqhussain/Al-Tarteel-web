@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { ayahStaticParams, renderAyahPage } from '@/components/ayah/AyahPageView';
 import { ayahSeo } from '@/lib/seo';
 import { getSurahArabicName, getSurahNumberFromSlug, getSurahSlug } from '@/lib/surah-meta';
-import { getSurahAyahCount } from '@/lib/surah-pagination';
+import { parseAyahNumber } from '@/lib/surah-pagination';
 
 interface Props {
   params: Promise<{ slug: string; ayah: string }>;
@@ -19,9 +19,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   const { slug, ayah: ayahStr } = await params;
   const surahNumber = getSurahNumberFromSlug(slug);
-  const ayahNumber = parseInt(ayahStr, 10);
-  if (!surahNumber || Number.isNaN(ayahNumber)) return {};
-  if (ayahNumber < 1 || ayahNumber > getSurahAyahCount(surahNumber)) return {};
+  const ayahNumber = surahNumber ? parseAyahNumber(ayahStr, surahNumber) : null;
+  if (!surahNumber || !ayahNumber) return {};
   return ayahSeo(surahNumber, ayahNumber, {
     arabicName: getSurahArabicName(surahNumber),
   }).metadata;
@@ -30,11 +29,11 @@ export async function generateMetadata({ params }: Props) {
 export default async function AyahRoutePage({ params, searchParams }: Props) {
   const { slug, ayah: ayahStr } = await params;
   const surahNumber = getSurahNumberFromSlug(slug);
-  const ayahNumber = parseInt(ayahStr, 10);
-  if (!surahNumber || Number.isNaN(ayahNumber)) notFound();
+  const ayahNumber = surahNumber ? parseAyahNumber(ayahStr, surahNumber) : null;
+  if (!surahNumber || !ayahNumber) notFound();
 
   const canonical = getSurahSlug(surahNumber);
-  if (slug.toLowerCase() !== canonical) {
+  if (slug !== canonical || ayahStr !== String(ayahNumber)) {
     const sp = await searchParams;
     const qs = sp.trans ? `?trans=${encodeURIComponent(sp.trans)}` : '';
     permanentRedirect(`/${canonical}/${ayahNumber}${qs}`);

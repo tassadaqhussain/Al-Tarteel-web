@@ -15,7 +15,6 @@ export const dynamic = 'force-static';
 export const revalidate = 86400;
 
 export function GET(): Response {
-  const lastModified = new Date().toISOString();
   const locs = SITEMAP_SHARD_IDS.map((id) => `${SITE_URL}${sitemapShardPath(id)}`);
-  return xmlResponse(renderSitemapIndex(locs, lastModified));
+  return xmlResponse(renderSitemapIndex(locs));
 }

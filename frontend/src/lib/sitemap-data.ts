@@ -126,6 +126,11 @@ function localeEntries(): SitemapEntry[] {
         priority: number <= 10 ? 0.8 : 0.7,
       };
     }),
+    ...FAMOUS_AYAHS.map(({ surah, ayah }) => ({
+      url: `${SITE_URL}${localePath(locale, getAyahPath(surah, ayah))}`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.65,
+    })),
   ]);
 }
 

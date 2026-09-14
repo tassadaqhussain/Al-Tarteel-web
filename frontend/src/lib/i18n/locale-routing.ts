@@ -5,7 +5,8 @@ import {
   type ContentLocale,
   type PrefixedLocale,
 } from '@/lib/i18n/content-locales';
-import { getSurahNumberFromSlug, getSurahPath } from '@/lib/surah-meta';
+import { parseAyahNumber } from '@/lib/surah-pagination';
+import { getSurahNumberFromSlug, getSurahPath, getAyahPath } from '@/lib/surah-meta';
 
 export const UI_TO_CONTENT_LOCALE: Partial<Record<UiLocale, ContentLocale>> = {
   en: 'en',
@@ -110,6 +111,18 @@ export function pathForUiLocale(pathname: string, targetLocale: UiLocale): strin
     return contentLocale === 'en' ? '/' : localePath(contentLocale, '/');
   }
 
-  const rest = `/${segments.join('/')}`;
-  return contentLocale === 'en' ? `${rest}${search}` : `${localePath(contentLocale, rest)}${search}`;
+  if (segments.length === 1 && segments[0] === 'surahs') {
+    return contentLocale === 'en' ? '/surahs' : localePath(contentLocale, '/');
+  }
+
+  if (segments.length === 2) {
+    const number = getSurahNumberFromSlug(segments[0]);
+    const ayah = number ? parseAyahNumber(segments[1], number) : null;
+    if (number && ayah) {
+      return `${localePath(contentLocale, getAyahPath(number, ayah))}${search}`;
+    }
+  }
+
+  // Articles, account pages and other shared tools do not have translated routes.
+  return `/${segments.join('/')}${search}`;
 }

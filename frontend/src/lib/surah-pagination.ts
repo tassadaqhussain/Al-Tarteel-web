@@ -44,11 +44,19 @@ export function surahPageHref(path: string, page: number): string {
   return `${path}?page=${page}`;
 }
 
-/** How many ayahs to request for SSR on a given slice. */
+/** API page size must remain constant: the backend offset is (page - 1) * limit.
+ * Shrinking the final request limit changes its offset and repeats earlier verses.
+ */
 export function surahSsrLimit(ayahCount: number, page: number): number {
   if (page <= 1 && ayahCount <= SURAH_FULL_SSR_THRESHOLD) return ayahCount;
-  return Math.min(
-    SURAH_PAGE_SIZE,
-    Math.max(0, ayahCount - (Math.max(page, 1) - 1) * SURAH_PAGE_SIZE)
-  );
+  return SURAH_PAGE_SIZE;
+}
+
+/** Reject partially numeric route segments instead of publishing duplicate pages. */
+export function parseAyahNumber(value: string, surahNumber: number): number | null {
+  if (!/^\d+$/.test(value)) return null;
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number >= 1 && number <= getSurahAyahCount(surahNumber)
+    ? number
+    : null;
 }

@@ -212,9 +212,8 @@ export function surahSeo(
       ].filter(Boolean) as string[],
       type: 'article',
       locale,
-      // Paginated slices are thin duplicates — noindex; page 1 keeps hreflang cluster.
-      noIndex: page > 1,
-      alternatePath: page > 1 ? undefined : path,
+      // Each slice contains different verses and has its own canonical and language siblings.
+      alternatePath: page > 1 ? `${path}?page=${page}` : path,
     }),
   };
 }
@@ -308,9 +307,14 @@ export function ayahSeo(
     ? `${famousName} — ${localizedSurah} ${surahNumber}:${ayahNumber} | ${SITE_NAME}`
     : `${localizedSurah} ${surahNumber}:${ayahNumber} — Quran Ayah | ${SITE_NAME}`;
 
-  const description = famousName
-    ? `Read ${famousName} (${englishSurah} ${surahNumber}:${ayahNumber}) with Arabic Uthmani text, translation, transliteration, and verse audio on QuranPilot.`
-    : `Read ${englishSurah} ${surahNumber}:${ayahNumber} with Arabic Uthmani text, translation, and verse-by-verse Quran audio on QuranPilot.`;
+  const reference = `${localizedSurah} ${surahNumber}:${ayahNumber}`;
+  const descriptions: Record<ContentLocale, string> = {
+    en: `Read ${famousName ? `${famousName} (${reference})` : reference} with Arabic Uthmani text, English translation, and verse-by-verse Quran audio on QuranPilot.`,
+    ur: `${famousName ? `${famousName} — ` : ''}${reference} عربی عثمانی متن، اردو ترجمہ اور آیت بہ آیت تلاوت کے ساتھ QuranPilot پر پڑھیں اور سنیں۔`,
+    ps: `${famousName ? `${famousName} — ` : ''}${reference} په QuranPilot کې له عربي عثماني متن، پښتو ژباړې او د آیت له تلاوت سره ولولئ او واورئ.`,
+    fa: `${famousName ? `${famousName} — ` : ''}${reference} را با متن عربی عثمانی، ترجمه فارسی و تلاوت آیه به آیه در QuranPilot بخوانید و بشنوید.`,
+  };
+  const description = descriptions[locale];
 
   return {
     path,

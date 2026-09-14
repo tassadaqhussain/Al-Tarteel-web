@@ -12,11 +12,11 @@ function escapeXml(value: string): string {
 
 const URLSET_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
-export function renderUrlset(entries: SitemapEntry[], lastModified: string): string {
+export function renderUrlset(entries: SitemapEntry[]): string {
   const urls = entries
     .map(
       (entry) =>
-        `<url><loc>${escapeXml(entry.url)}</loc><lastmod>${lastModified}</lastmod>` +
+        `<url><loc>${escapeXml(entry.url)}</loc>` +
         `<changefreq>${entry.changeFrequency}</changefreq>` +
         `<priority>${entry.priority}</priority></url>`,
     )
@@ -24,9 +24,9 @@ export function renderUrlset(entries: SitemapEntry[], lastModified: string): str
   return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${URLSET_NS}">${urls}</urlset>`;
 }
 
-export function renderSitemapIndex(locs: string[], lastModified: string): string {
+export function renderSitemapIndex(locs: string[]): string {
   const sitemaps = locs
-    .map((loc) => `<sitemap><loc>${escapeXml(loc)}</loc><lastmod>${lastModified}</lastmod></sitemap>`)
+    .map((loc) => `<sitemap><loc>${escapeXml(loc)}</loc></sitemap>`)
     .join('');
   return `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="${URLSET_NS}">${sitemaps}</sitemapindex>`;
 }

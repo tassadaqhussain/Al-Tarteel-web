@@ -108,7 +108,7 @@ export async function renderAyahPage({
         <Breadcrumbs
           items={[
             { name: 'Home', path: localePath(activeLocale, '/') },
-            { name: 'Quran', path: localePath(activeLocale, '/surahs') },
+            { name: 'Quran', path: activeLocale === 'en' ? '/surahs' : localePath(activeLocale, '/') },
             { name: displayName, path: surahPath },
             { name: `Ayah ${ayahNumber}`, path: ayahPath },
           ]}

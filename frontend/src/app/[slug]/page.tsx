@@ -29,7 +29,7 @@ export default async function CleanSurahPage({ params, searchParams }: Props) {
   if (!number) notFound();
 
   const canonical = getSurahSlug(number);
-  if (slug.toLowerCase() !== canonical) {
+  if (slug !== canonical) {
     const qs = new URLSearchParams();
     const sp = await searchParams;
     if (sp.page) qs.set('page', sp.page);

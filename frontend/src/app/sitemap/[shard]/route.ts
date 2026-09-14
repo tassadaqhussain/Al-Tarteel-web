@@ -29,6 +29,5 @@ export async function GET(
     return new Response('Not found', { status: 404 });
   }
 
-  const lastModified = new Date().toISOString();
-  return xmlResponse(renderUrlset(sitemapShardEntries(id), lastModified));
+  return xmlResponse(renderUrlset(sitemapShardEntries(id)));
 }
