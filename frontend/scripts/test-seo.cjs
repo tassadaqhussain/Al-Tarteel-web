@@ -114,3 +114,26 @@ for (const ayah of [285, 286]) {
   }
 }
 console.log('Article previews, verse headings and featured verse sitemap checks passed.');
+
+
+const { NextRequest } = require('next/server');
+const { proxy } = load('proxy');
+const { getSurahPath } = load('lib/surah-meta');
+for (let number = 1; number <= 114; number++) {
+  for (const zeros of ['0', '00', '000']) {
+    const request = new NextRequest(`https://quranpilot.com/surah/${zeros}${number}?page=2&trans=en-sahih-international&utm_source=seo`);
+    const response = proxy(request);
+    assert.equal(response.status, 308);
+    const destination = new URL(response.headers.get('location'));
+    assert.equal(destination.pathname, getSurahPath(number));
+    assert.equal(destination.search, request.nextUrl.search);
+  }
+}
+assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', { method: 'HEAD' })).status, 308);
+for (const path of ['/surah/0', '/surah/000', '/surah/0115', '/surah/02junk', '/al-baqarah', '/surah/2']) {
+  assert.equal(proxy(new NextRequest(`https://quranpilot.com${path}`)).headers.get('location'), null);
+}
+assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', {
+  method: 'POST', headers: { 'next-action': 'invalid' },
+})).status, 400);
+console.log('All 114 zero-padded legacy surah redirects preserve query parameters; invalid paths and server-action checks remain unchanged.');

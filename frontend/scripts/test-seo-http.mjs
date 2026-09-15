@@ -73,3 +73,15 @@ for (const path of ['/al-baqarah/255', '/an-nur/35', '/al-baqarah/285', '/al-baq
 const { html: kursi } = await request('/al-baqarah/255');
 assert.match(kursi, /<h1[^>]*>Ayatul Kursi/);
 console.log('Article social metadata, author markup and featured verse navigation checks passed.');
+
+
+for (const [path, target] of [
+  ['/surah/02', '/al-baqarah'],
+  ['/surah/000114', '/an-nas'],
+  ['/surah/002?page=8&trans=en-sahih-international', '/al-baqarah?page=8&trans=en-sahih-international'],
+]) {
+  const { response } = await request(path);
+  assert.equal(response.status, 308, path);
+  assert.equal(new URL(response.headers.get('location'), base).href, new URL(target, base).href);
+}
+console.log('Zero-padded legacy surah HTTP redirects passed.');
