@@ -104,7 +104,11 @@ export async function renderAyahPage({
       <Header />
       <CleanTranslationUrl />
       <JsonLd data={jsonLd} />
-      <main lang={activeLocale} className={`${READER_SHELL} flex-1 py-6 sm:py-8`}>
+      <main
+        lang={localeConfig(activeLocale).hreflang}
+        dir={localeConfig(activeLocale).dir}
+        className={`${READER_SHELL} flex-1 py-6 sm:py-8`}
+      >
         <Breadcrumbs
           items={[
             { name: 'Home', path: localePath(activeLocale, '/') },

@@ -212,8 +212,17 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
     </div>
   );
 
+  // The root layout is English because it also serves the unprefixed site.
+  // Scope the rendered reader to its actual content language for locale URLs;
+  // this is present in the server HTML for crawlers and assistive technology.
+  const contentLocale = localeConfig(activeLocale);
+
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-ink">
+    <div
+      lang={contentLocale.hreflang}
+      dir={contentLocale.dir}
+      className="min-h-screen flex flex-col bg-surface text-ink"
+    >
       <JsonLd
         data={surahJsonLd({
           number: surahNumber,
