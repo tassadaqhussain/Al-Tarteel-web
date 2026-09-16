@@ -7,7 +7,7 @@ export interface AudioAyahRef {
   url: string;
   duration?: number;
   reciterSlug?: string;
-  trackKind?: 'arabic' | 'translation';
+  trackKind?: 'arabic' | 'translation' | 'bismillah';
 }
 
 export interface WordTiming {

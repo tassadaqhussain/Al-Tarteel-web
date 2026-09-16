@@ -34,6 +34,7 @@ export function ChapterControls({
   primaryTranslatorName,
 }: Props) {
   const [translationOpen, setTranslationOpen] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const { getCurrentAyah, isPlaying } = useAudioStore();
   const translationSlugs = useSettingsStore((s) => s.translationSlugs);
@@ -68,17 +69,18 @@ export function ChapterControls({
     isPlaying && current?.surahNumber === surahNumber;
 
   const handleListen = useCallback(async () => {
-    if (isThisSurahPlaying) {
+    if (current?.surahNumber === surahNumber) {
       useAudioStore.setState((s) => ({ isPlaying: !s.isPlaying }));
       return;
     }
+    setAudioError(null);
     try {
       await startSurahPlayback({
         surahNumber,
         startAyah: current?.surahNumber === surahNumber ? current.ayahNumber : 1,
       });
-    } catch {
-      // Audio is optional
+    } catch (error) {
+      setAudioError(error instanceof Error ? error.message : 'Audio could not load. Please try again.');
     }
   }, [current?.ayahNumber, current?.surahNumber, isThisSurahPlaying, surahNumber]);
 
@@ -135,6 +137,7 @@ export function ChapterControls({
         </button>
       </div>
 
+      {audioError && <p role="status" className="mt-2 max-w-sm text-sm text-ink-muted">{audioError}</p>}
       {infoOpen && (
         <p className="mt-2 max-w-sm text-right text-xs leading-relaxed text-ink-muted">
           Read and listen to{surahName ? ` Surah ${surahName}` : ' this chapter'} with translation,

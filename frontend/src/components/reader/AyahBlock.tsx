@@ -39,6 +39,7 @@ import { VerseMoreMenu, type VerseMoreAction } from './VerseMoreMenu';
 import { AdvancedCopyModal } from './AdvancedCopyModal';
 import { TranslationSheet } from './TranslationSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
+import { loadReaderWords, type ReaderWord } from '@/lib/word-data';
 import { cn } from '@/lib/utils';
 import { getSurahPath } from '@/lib/surah-meta';
 import { toArabicNumber } from '@/lib/arabic-number';
@@ -59,7 +60,7 @@ interface Props {
   hasTranslations?: boolean;
 }
 
-export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
+export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '' }: Props) {
   const { getCurrentAyah } = useAudioStore();
   const {
     fontSize,
@@ -77,6 +78,19 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     wordClickPlayAudio,
     wordClickSpeakMeaning,
   } = useSettingsStore();
+  const [fallbackWords, setFallbackWords] = useState<{ key: string; words: ReaderWord[] } | null>(null);
+  const wordDataKey = `${surahNumber}:${initialAyah.number}:${wordByWordLocale}`;
+  const ayah = initialAyah.words?.length ? initialAyah : {
+    ...initialAyah, words: fallbackWords?.key === wordDataKey ? fallbackWords.words : [],
+  };
+  useEffect(() => {
+    if (initialAyah.words?.length) return;
+    let cancelled = false;
+    void loadReaderWords(surahNumber, initialAyah.number, wordByWordLocale).then(words => {
+      if (!cancelled) setFallbackWords({ key: wordDataKey, words });
+    }).catch(() => { /* Keep the original Quran text if the source is unavailable. */ });
+    return () => { cancelled = true; };
+  }, [initialAyah.words, initialAyah.number, surahNumber, wordByWordLocale, wordDataKey]);
   const showTranslation = useSettingsStore((s) => s.showTranslation);
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
   const { add: addBookmark, remove: removeBookmark, isBookmarked, get: getBookmark, updateNote } = useBookmarksStore();
@@ -142,8 +156,8 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
     }
     try {
       await startSurahPlayback({ surahNumber, startAyah: ayah.number });
-    } catch {
-      // Audio is optional; fail silently
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Audio could not load. Please try again.');
     }
   }, [ayah.number, isCurrent, surahNumber]);
 
@@ -555,6 +569,7 @@ export function AyahBlock({ ayah, surahNumber, surahName = '' }: Props) {
         return (
           <div
             key={word.id}
+            role="button"
             tabIndex={0}
             data-word-position={word.position}
             data-playing-word={isPlayingWord ? 'true' : undefined}

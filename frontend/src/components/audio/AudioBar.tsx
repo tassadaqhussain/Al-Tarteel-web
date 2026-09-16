@@ -161,7 +161,7 @@ export function AudioBar() {
 
             <div className="min-w-0 px-1">
               <p className="truncate text-sm font-medium text-ink">
-                {current ? `Surah ${current.surahNumber} · ${current.ayahNumber}` : '—'}
+                {current ? `Surah ${current.surahNumber} · ${current.trackKind === 'bismillah' ? 'Bismillah' : current.ayahNumber}` : '—'}
               </p>
               <p className="text-xs text-ink-muted">
                 {current?.trackKind === 'translation' ? 'Translation' : formatTime(currentTime)}

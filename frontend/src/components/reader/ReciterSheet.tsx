@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/sheet';
 import { audioApi, type Reciter } from '@/lib/api';
 import { catalogTranslationReciters } from '@/lib/audio/translation-reciters';
+import { unavailableReciterReason } from '@/lib/audio/availability';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -196,11 +197,14 @@ export function ReciterSheet({
               <div className="divide-y divide-line-subtle">
                 {visibleArabic.map((reciter) => {
                   const selected = reciter.slug === selectedSlug;
+                  const unavailable = unavailableReciterReason(reciter.slug);
                   const style = styleLabel(reciter.style);
                   const label = style ? `${reciter.name} (${style})` : reciter.name;
                   return (
                     <button
                       key={reciter.slug}
+                      disabled={Boolean(unavailable)}
+                      title={unavailable ?? undefined}
                       type="button"
                       onClick={() => {
                         onSelect(reciter.slug);
@@ -217,7 +221,7 @@ export function ReciterSheet({
                       >
                         {selected && <span className="h-3 w-3 rounded-full bg-ink" />}
                       </span>
-                      <span className="min-w-0 flex-1 text-lg leading-snug sm:text-xl">{label}</span>
+                      <span className="min-w-0 flex-1 text-lg leading-snug sm:text-xl">{label}{unavailable && <span className="mt-1 block text-xs text-ink-muted">{unavailable}</span>}</span>
                       {style && (
                         <span className="shrink-0 rounded-md bg-[var(--accent)]/10 px-2.5 py-1 text-sm font-medium text-[var(--accent)]">
                           {style}
@@ -260,9 +264,12 @@ export function ReciterSheet({
                 ) : (
                   visibleTranslations.map((reciter) => {
                     const selected = reciter.slug === selectedTranslationSlug;
+                    const unavailable = unavailableReciterReason(reciter.slug);
                     return (
                       <button
                         key={reciter.slug}
+                      disabled={Boolean(unavailable)}
+                      title={unavailable ?? undefined}
                         type="button"
                         onClick={() => {
                           onSelectTranslation?.(reciter.slug);
@@ -284,6 +291,7 @@ export function ReciterSheet({
                           <span className="mt-0.5 block text-sm text-ink-muted">
                             {reciter.languageName}
                             {reciter.style ? ` · ${reciter.style}` : ''}
+                            {unavailable && <span className="block">{unavailable}</span>}
                           </span>
                         </span>
                       </button>

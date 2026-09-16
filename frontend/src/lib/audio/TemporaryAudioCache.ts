@@ -124,7 +124,8 @@ class TemporaryAudioCacheImpl {
         return null;
       } finally {
         externalSignal?.removeEventListener('abort', onExternalAbort);
-        this.inflight.delete(key);
+        // A cancelled request may finish after a replacement request has started.
+        if (this.inflight.get(key)?.controller === controller) this.inflight.delete(key);
       }
     })();
 

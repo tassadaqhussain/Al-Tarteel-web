@@ -52,6 +52,7 @@ export function ScrollToCurrentAyah() {
   const lastScrolledAyah = useRef<string | null>(null);
 
   useEffect(() => {
+    if (current?.trackKind === 'bismillah') return;
     if (!current || !isPlaying) return;
 
     const ayahKey = `${current.surahNumber}:${current.ayahNumber}`;

@@ -1,9 +1,12 @@
+import { unavailableReciterReason } from '@/lib/audio/availability';
 import { audioApi } from '@/lib/api';
 import { loadWordTimings } from '@/lib/loadWordTimings';
 import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { translationVerseUrl, translationGranularity } from '@/lib/audio/translation-reciters';
 import { isRukuEnd } from '@/lib/audio/ruku-map';
+
+let playbackRequest = 0;
 
 function toTracks(
   list: Awaited<ReturnType<typeof audioApi.surah>>,
@@ -37,7 +40,7 @@ function interleaveArabicAndTranslation(
   return out;
 }
 
-export async function buildSurahPlaylist(
+async function buildVersePlaylist(
   surahNumber: number,
   arabicSlug: string,
   translationSlug?: string | null,
@@ -78,6 +81,32 @@ export async function buildSurahPlaylist(
   }
 }
 
+/** Bismillah is a separate opening, never an extra numbered ayah. */
+export async function buildSurahPlaylist(
+  surahNumber: number,
+  arabicSlug: string,
+  translationSlug?: string | null,
+): Promise<AudioAyahRef[]> {
+  const unavailable = unavailableReciterReason(arabicSlug) || (translationSlug ? unavailableReciterReason(translationSlug) : null);
+  if (unavailable) {
+    useAudioStore.getState().setPlaybackNotice(unavailable + ' Please choose another reciter.');
+    throw new Error(unavailable + ' Please choose another reciter.');
+  }
+  const verses = await buildVersePlaylist(surahNumber, arabicSlug, translationSlug);
+  if (surahNumber === 1 || surahNumber === 9 || !verses.length) return verses;
+  const opening = (await audioApi.surah(1, arabicSlug)).find((verse) => verse.ayahNumber === 1);
+  if (!opening?.url) return verses;
+  return [{
+    ayahId: -surahNumber,
+    surahNumber,
+    ayahNumber: 0,
+    url: opening.url,
+    duration: opening.duration ?? undefined,
+    reciterSlug: arabicSlug,
+    trackKind: 'bismillah',
+  }, ...verses];
+}
+
 function startIndexFor(playlist: AudioAyahRef[], ayahNumber?: number, preferKind: AudioAyahRef['trackKind'] = 'arabic') {
   if (!ayahNumber) return 0;
   const preferred = playlist.findIndex(
@@ -95,21 +124,23 @@ export async function startSurahPlayback(opts: {
   playing?: boolean;
   verseOnly?: boolean;
 }): Promise<boolean> {
-  const reciters = await audioApi.reciters();
+  const request = ++playbackRequest;
   const audio = useAudioStore.getState();
+  const reciters = await audioApi.reciters();
   const settings = useSettingsStore.getState();
   const requested = audio.reciterSlug ?? settings.reciterSlug;
   const arabicSlug =
     reciters.find((item) => item.slug === requested && item.kind !== 'translation')?.slug ??
+    (requested && !reciters.some((item) => item.slug === requested) ? requested : null) ??
     reciters.find((item) => item.isDefault)?.slug ??
     reciters.find((item) => item.kind !== 'translation')?.slug;
   if (!arabicSlug) return false;
 
   const translationSlug = settings.translationReciterSlug;
   const playlist = await buildSurahPlaylist(opts.surahNumber, arabicSlug, translationSlug);
-  if (playlist.length === 0) return false;
+  if (playlist.length === 0 || request !== playbackRequest || useAudioStore.getState().playlist !== audio.playlist) return false;
 
-  const idx = startIndexFor(playlist, opts.startAyah, 'arabic');
+  const idx = startIndexFor(playlist, (opts.startAyah ?? 1) === 1 && !opts.verseOnly ? undefined : opts.startAyah, 'arabic');
   const tracks =
     opts.verseOnly && opts.startAyah
       ? playlist.filter((item) => item.ayahNumber === opts.startAyah)
@@ -130,6 +161,7 @@ export async function rebuildActivePlayback(opts?: {
   translationSlug?: string | null;
   keepPlaying?: boolean;
 }): Promise<boolean> {
+  const request = ++playbackRequest;
   const audio = useAudioStore.getState();
   const current = audio.getCurrentAyah();
   if (!current) return false;
@@ -139,20 +171,26 @@ export async function rebuildActivePlayback(opts?: {
   const requested = opts?.arabicSlug ?? audio.reciterSlug ?? settings.reciterSlug;
   const arabicSlug =
     reciters.find((item) => item.slug === requested && item.kind !== 'translation')?.slug ??
+    (requested && !reciters.some((item) => item.slug === requested) ? requested : null) ??
     reciters.find((item) => item.isDefault)?.slug ??
     reciters.find((item) => item.kind !== 'translation')?.slug;
   if (!arabicSlug) return false;
 
   const translationSlug =
     opts && 'translationSlug' in opts ? opts.translationSlug : settings.translationReciterSlug;
-  const playlist = await buildSurahPlaylist(current.surahNumber, arabicSlug, translationSlug);
+  let playlist = await buildSurahPlaylist(current.surahNumber, arabicSlug, translationSlug);
+  if (request !== playbackRequest || useAudioStore.getState().playlist !== audio.playlist) return false;
+  // Changing a voice must preserve a single-verse repeat selection.
+  if (audio.playlist.every((item) => item.ayahNumber === current.ayahNumber)) {
+    playlist = playlist.filter((item) => item.ayahNumber === current.ayahNumber);
+  }
   if (playlist.length === 0) return false;
 
   const idx = startIndexFor(playlist, current.ayahNumber, current.trackKind ?? 'arabic');
   audio.setReciter(arabicSlug);
   settings.setReciterSlug(arabicSlug);
   audio.setPlaylist(playlist, idx);
-  audio.setPlaying(opts?.keepPlaying ?? audio.isPlaying);
+  audio.setPlaying(opts?.keepPlaying ?? useAudioStore.getState().isPlaying);
   void loadWordTimings(current.surahNumber, arabicSlug);
   return true;
 }

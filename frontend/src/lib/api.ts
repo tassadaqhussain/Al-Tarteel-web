@@ -610,8 +610,8 @@ export const audioApi = {
       if (Array.isArray(list) && list.length > 0 && list.some((item) => Boolean(item.url))) return list;
     } catch {}
 
-    const reciter = DEFAULT_RECITERS.find((r) => r.slug === reciterSlug) ?? DEFAULT_RECITERS[0];
-    const baseUrl = `${apiBase()}/audio/files/${reciter.slug}`;
+    // Preserve the requested voice even when the metadata endpoint is unavailable.
+    const baseUrl = `${apiBase()}/audio/files/${encodeURIComponent(reciterSlug)}`;
     const totalAyahs = SURAH_AYAH_COUNTS[surahNumber] || 7;
     const items: AudioSurahItem[] = [];
     for (let ayahNumber = 1; ayahNumber <= totalAyahs; ayahNumber++) {

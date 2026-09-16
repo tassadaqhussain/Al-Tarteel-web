@@ -8,6 +8,8 @@ import {
   temporaryAudioCache,
 } from '@/lib/audio/TemporaryAudioCache';
 
+import { createPlayRequest } from '@/lib/audio/play-request';
+
 const OFFLINE_NOTICE = 'Internet connection is required to continue.';
 
 function resolveReciterSlug(): string {
@@ -32,6 +34,7 @@ function cacheKeyFor(item: AudioAyahRef): string {
 }
 
 export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
+  const playRequest = useRef(createPlayRequest());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSurahRef = useRef<number | null>(null);
   const loadedTrackRef = useRef<string | null>(null);
@@ -127,15 +130,26 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     preloadAhead(currentIndex);
   }, [current?.ayahId, current?.url, currentIndex, preloadAhead, current]);
 
+  const play = useCallback(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.error) el.load();
+    playRequest.current.play(el, () => {
+      setPlaying(false);
+      setPlaybackNotice('Playback could not start. Tap play to try again.');
+    });
+  }, [setPlaying, setPlaybackNotice]);
+
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    if (isPlaying) {
-      void el.play().catch(() => setPlaying(false));
-    } else {
+    if (isPlaying) play();
+    else {
+      playRequest.current.cancel();
       el.pause();
     }
-  }, [isPlaying, current?.ayahId, current?.url, current?.trackKind, setPlaying]);
+    return () => playRequest.current.cancel();
+  }, [isPlaying, current?.ayahId, current?.url, current?.trackKind, play]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -152,11 +166,12 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
 
     const onEnded = () => {
       const state = useAudioStore.getState();
+      if (!state.isPlaying) return;
       const { playlist: list, continuous, currentIndex: idx } = state;
 
       if (continuous && list.length === 1 && el.src) {
         el.currentTime = 0;
-        void el.play().catch(() => setPlaying(false));
+        play();
         return;
       }
 
@@ -164,6 +179,8 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       if (atEnd) {
         if (continuous && list.length) {
           next();
+          load(list[0]);
+          play();
           return;
         }
         const surah = list[0]?.surahNumber;
@@ -185,14 +202,17 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       }
 
       next();
+      load(upcoming);
+      play();
     };
 
     const onError = () => {
+      if (!el.error) return;
       const online = typeof navigator === 'undefined' ? true : navigator.onLine;
       setCurrentTime(0);
       setDuration(0);
       setPlaying(false);
-      if (!online) setPlaybackNotice(OFFLINE_NOTICE);
+      setPlaybackNotice(online ? 'This recording could not load. Tap play to retry or choose another reciter.' : OFFLINE_NOTICE);
     };
 
     el.addEventListener('timeupdate', onTimeUpdate);
@@ -207,7 +227,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       el.removeEventListener('ended', onEnded);
       el.removeEventListener('error', onError);
     };
-  }, [next, setCurrentTime, setDuration, setPlaying, setPlaybackNotice]);
+  }, [next, load, play, setCurrentTime, setDuration, setPlaying, setPlaybackNotice]);
 
   useEffect(() => {
     const clear = () => temporaryAudioCache.clearSession();

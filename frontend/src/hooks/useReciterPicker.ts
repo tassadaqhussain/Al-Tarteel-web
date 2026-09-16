@@ -42,7 +42,6 @@ export function useReciterPicker() {
     try {
       await rebuildActivePlayback({
         arabicSlug: slug,
-        keepPlaying: useAudioStore.getState().isPlaying,
       });
     } catch {
       useAudioStore.getState().setPlaying(false);
@@ -57,7 +56,6 @@ export function useReciterPicker() {
     try {
       await rebuildActivePlayback({
         translationSlug: slug,
-        keepPlaying: useAudioStore.getState().isPlaying,
       });
     } catch {
       useAudioStore.getState().setPlaying(false);

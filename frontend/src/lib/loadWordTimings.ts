@@ -1,8 +1,11 @@
 import { audioApi } from '@/lib/api';
 import { useAudioStore } from '@/stores/audioStore';
 
+let timingRequest = 0;
+
 /** Load word-level timing segments for a surah/reciter into the audio store. */
 export async function loadWordTimings(surahNumber: number, reciterSlug: string) {
+  const request = ++timingRequest;
   const state = useAudioStore.getState();
   if (
     state.timingsSurahNumber === surahNumber &&
@@ -13,12 +16,14 @@ export async function loadWordTimings(surahNumber: number, reciterSlug: string) 
   }
   try {
     const data = await audioApi.wordTimings(surahNumber, reciterSlug);
+    if (request !== timingRequest) return;
     const ayahs: Record<number, Array<{ position: number; startMs: number; endMs: number }>> = {};
     for (const [key, value] of Object.entries(data.ayahs || {})) {
       ayahs[Number(key)] = (value as Array<{ position: number; startMs: number; endMs: number }>) || [];
     }
     useAudioStore.getState().setWordTimings(surahNumber, reciterSlug, data.available ? ayahs : null);
   } catch {
+    if (request !== timingRequest) return;
     useAudioStore.getState().setWordTimings(surahNumber, reciterSlug, null);
   }
 }
