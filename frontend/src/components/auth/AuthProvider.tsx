@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { loginHref } from '@/lib/auth-redirect';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
-import { usersApi } from '@/lib/api';
+import { useHifzStore } from '@/stores/hifzStore';
+import { hifzApi, usersApi } from '@/lib/api';
 
 type PendingAction = {
   key: string;
@@ -28,7 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void bootstrap();
   }, [bootstrap]);
 
-  // After login, pull server bookmarks into local store for reader UX.
+  // After login, reconcile local and server progress. Anything saved while
+  // signed out must survive: bookmarks are merged both ways and local-only
+  // ones are uploaded, and locally marked hifz statuses are pushed up.
   useEffect(() => {
     if (status !== 'authenticated' || !isAuthenticated) {
       syncedForUser.current = null;
@@ -41,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void (async () => {
       try {
         const remote = await usersApi.bookmarks();
-        useBookmarksStore.getState().replaceFromServer(
+        const localOnly = useBookmarksStore.getState().mergeFromServer(
           remote.map((b) => ({
             ayahId: b.ayahId,
             surahNumber: b.surah.number,
@@ -53,8 +56,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             createdAt: new Date(b.createdAt).getTime(),
           })),
         );
+
+        // Make bookmarks kept while signed out durable. One failure must not
+        // abort the rest, and they stay local either way.
+        await Promise.allSettled(
+          localOnly.map((b) => usersApi.addBookmark(b.ayahId, b.note || undefined)),
+        );
       } catch {
         /* keep local until retry */
+      }
+
+      try {
+        // Hifz statuses marked on this device are otherwise device-only.
+        const statuses = useHifzStore.getState().statuses;
+        const pending = Object.entries(statuses).map(([key, status]) => {
+          const [surahNumber, ayahNumber] = key.split(':').map(Number);
+          return { surahNumber, ayahNumber, status };
+        });
+        await Promise.allSettled(
+          pending
+            .filter((p) => Number.isFinite(p.surahNumber) && Number.isFinite(p.ayahNumber))
+            .map((p) =>
+              hifzApi.setStatus({
+                surahNumber: p.surahNumber,
+                fromAyah: p.ayahNumber,
+                status: p.status,
+              }),
+            ),
+        );
+      } catch {
+        /* statuses remain local until the next sign-in */
       }
 
       const pending = pendingAction;
