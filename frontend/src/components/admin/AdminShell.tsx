@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  Bell,
   ExternalLink,
   LayoutDashboard,
   Mail,
@@ -25,6 +26,7 @@ const NAV: {
 }[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/campaigns', label: 'Campaigns', icon: Megaphone },
+  { href: '/admin/announcements', label: 'Announcements', icon: Bell },
   { href: '/admin/email', label: 'Email', icon: Mail },
   { href: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/admin/messages', label: 'Motivation', icon: Sparkles },

@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Aplikacioni celular së shpejti",
   "appsFeatureSearch": "Kërkim i menjëhershëm në arabisht dhe përkthime",
   "appsFeatureRecitation": "Lexim ajet pas ajeti me ndërrim lexuesi",
-  "appsFeatureBookmarks": "Faqeshënues dhe përparim të ruajtur në shfletues"
+  "appsFeatureBookmarks": "Faqeshënues dhe përparim të ruajtur në shfletues",
+  "whatsNew": "Çfarë ka të re",
+  "whatsNewEmpty": "Jeni në rregull.",
+  "markAllRead": "Shëno të gjitha si të lexuara",
+  "newLabel": "E re",
+  "maybeLater": "Më vonë",
+  "featureEmails": "Më njofto me email për veçori të reja",
+  "featureEmailsHint": "Do të dërgojmë një shënim të shkurtër kur shtojmë diçka të re. Mund ta çaktivizoni kurdo.",
+  "unsubscribeTitle": "Preferencat e emailit",
+  "unsubscribing": "Po përditësohen preferencat…",
+  "unsubscribeDone": "Nuk do të merrni më email për veçori të reja. Përditësimet mbeten në aplikacion.",
+  "unsubscribeInvalid": "Kjo lidhje është e pavlefshme ose ka skaduar.",
+  "manageEmailPrefs": "Menaxhoje te profili"
 }

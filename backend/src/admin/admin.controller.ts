@@ -16,12 +16,14 @@ import { JwtAuthGuard } from '../users/guards/jwt-auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { AdminService } from './admin.service';
 import { CampaignsService } from '../campaigns/campaigns.service';
+import { AnnouncementsService } from '../announcements/announcements.service';
 import { UpsertMotivationDto } from './dto/upsert-motivation.dto';
 import { PublishCampaignDto, UpsertCampaignDto } from '../campaigns/dto/upsert-campaign.dto';
 import { SendUserEmailDto } from './dto/send-user-email.dto';
 import { UpsertMailSettingsDto } from '../mail/dto/upsert-mail-settings.dto';
 import { UpsertMailTemplateDto } from '../mail/dto/upsert-mail-template.dto';
 import { isAdminEmail } from './admin.util';
+import { EmailAnnouncementDto } from './dto/email-announcement.dto';
 
 type AuthedRequest = { user?: { userId: number; email?: string | null; name?: string | null } };
 
@@ -33,6 +35,7 @@ export class AdminController {
   constructor(
     private readonly admin: AdminService,
     private readonly campaigns: CampaignsService,
+    private readonly announcements: AnnouncementsService,
   ) {}
 
   @Get('me')
@@ -194,4 +197,21 @@ export class AdminController {
   sendUserEmail(@Req() req: AuthedRequest, @Body() dto: SendUserEmailDto) {
     return this.admin.sendUserEmail(dto, req.user?.email);
   }
+
+  @Get('announcements')
+  @ApiOperation({ summary: 'Feature announcements with email status and audience size' })
+  listAnnouncements() {
+    return this.announcements.adminList();
+  }
+
+  @Post('announcements/:id/email')
+  @ApiOperation({ summary: 'Email an announcement (preview to admin, or one-time send to subscribers)' })
+  emailAnnouncement(
+    @Req() req: AuthedRequest,
+    @Param('id') id: string,
+    @Body() dto: EmailAnnouncementDto,
+  ) {
+    return this.announcements.sendEmail(id, { preview: dto.preview !== false, adminEmail: req.user?.email });
+  }
 }
+

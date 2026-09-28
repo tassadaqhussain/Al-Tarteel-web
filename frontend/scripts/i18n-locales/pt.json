@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "App móvel em breve",
   "appsFeatureSearch": "Pesquisa instantânea em árabe e traduções",
   "appsFeatureRecitation": "Recitação versículo a versículo com troca de recitador",
-  "appsFeatureBookmarks": "Favoritos e progresso guardados no navegador"
+  "appsFeatureBookmarks": "Favoritos e progresso guardados no navegador",
+  "whatsNew": "Novidades",
+  "whatsNewEmpty": "Você está em dia.",
+  "markAllRead": "Marcar tudo como lido",
+  "newLabel": "Novo",
+  "maybeLater": "Mais tarde",
+  "featureEmails": "Enviar-me e-mails sobre novidades",
+  "featureEmailsHint": "Enviaremos uma nota curta quando houver algo novo. Você pode desativar quando quiser.",
+  "unsubscribeTitle": "Preferências de e-mail",
+  "unsubscribing": "Atualizando suas preferências…",
+  "unsubscribeDone": "Você não receberá mais e-mails de novidades. Elas continuarão visíveis no app.",
+  "unsubscribeInvalid": "Este link é inválido ou expirou.",
+  "manageEmailPrefs": "Gerenciar no perfil"
 }

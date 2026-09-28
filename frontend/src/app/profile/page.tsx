@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { FeatureEmailToggle } from '@/components/announcements/FeatureEmailToggle';
 import { useAuthStore } from '@/stores/authStore';
 import { authApi, ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -58,6 +59,10 @@ function ProfileContent() {
             <h1 className="text-xl font-bold text-ink">{user?.name || 'Account'}</h1>
             <p className="text-sm text-ink-3">{user?.email}</p>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <FeatureEmailToggle />
         </div>
 
         <section className="rounded-2xl border border-line bg-surface p-6">

@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Mobiele app binnenkort",
   "appsFeatureSearch": "Direct zoeken in Arabisch en vertalingen",
   "appsFeatureRecitation": "Vers voor vers reciteren met wisselen van recitant",
-  "appsFeatureBookmarks": "Bladwijzers en voortgang bewaard in je browser"
+  "appsFeatureBookmarks": "Bladwijzers en voortgang bewaard in je browser",
+  "whatsNew": "Wat is er nieuw",
+  "whatsNewEmpty": "Je bent helemaal bij.",
+  "markAllRead": "Alles als gelezen markeren",
+  "newLabel": "Nieuw",
+  "maybeLater": "Later",
+  "featureEmails": "Mail me over nieuwe functies",
+  "featureEmailsHint": "We sturen een korte mail als er iets nieuws is. Je kunt dit altijd uitzetten.",
+  "unsubscribeTitle": "E-mailvoorkeuren",
+  "unsubscribing": "Voorkeuren bijwerken…",
+  "unsubscribeDone": "Je ontvangt geen e-mails meer over nieuwe functies. Updates blijven zichtbaar in de app.",
+  "unsubscribeInvalid": "Deze link is ongeldig of verlopen.",
+  "manageEmailPrefs": "Beheren in je profiel"
 }

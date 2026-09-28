@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "موبائل ایپ جلد آرہی ہے",
   "appsFeatureSearch": "عربی اور ترجمے میں فوری تلاش",
   "appsFeatureRecitation": "آیت بہ آیت تلاوت اور قاری تبدیلی",
-  "appsFeatureBookmarks": "بک مارکس اور پیشرفت براؤزر میں محفوظ"
+  "appsFeatureBookmarks": "بک مارکس اور پیشرفت براؤزر میں محفوظ",
+  "whatsNew": "نیا کیا ہے",
+  "whatsNewEmpty": "آپ سب دیکھ چکے ہیں۔",
+  "markAllRead": "سب کو پڑھا ہوا نشان زد کریں",
+  "newLabel": "نیا",
+  "maybeLater": "بعد میں",
+  "featureEmails": "نئی سہولیات کے بارے میں ای میل کریں",
+  "featureEmailsHint": "جب ہم کچھ نیا شامل کریں گے تو مختصر پیغام بھیجیں گے۔ آپ اسے کسی بھی وقت بند کر سکتے ہیں۔",
+  "unsubscribeTitle": "ای میل ترجیحات",
+  "unsubscribing": "ترجیحات اپ ڈیٹ ہو رہی ہیں…",
+  "unsubscribeDone": "اب آپ کو نئی سہولیات کی ای میلز نہیں ملیں گی۔ ایپ میں اپ ڈیٹس نظر آتی رہیں گی۔",
+  "unsubscribeInvalid": "یہ لنک درست نہیں یا اس کی مدت ختم ہو گئی ہے۔",
+  "manageEmailPrefs": "پروفائل میں تبدیل کریں"
 }

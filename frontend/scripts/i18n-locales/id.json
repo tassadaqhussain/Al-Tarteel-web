@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Aplikasi seluler segera hadir",
   "appsFeatureSearch": "Pencarian instan Arab dan terjemahan",
   "appsFeatureRecitation": "Tilawah ayat demi ayat dengan ganti qari",
-  "appsFeatureBookmarks": "Markah dan kemajuan tersimpan di browser Anda"
+  "appsFeatureBookmarks": "Markah dan kemajuan tersimpan di browser Anda",
+  "whatsNew": "Yang baru",
+  "whatsNewEmpty": "Tidak ada yang baru.",
+  "markAllRead": "Tandai semua sudah dibaca",
+  "newLabel": "Baru",
+  "maybeLater": "Nanti saja",
+  "featureEmails": "Kirimi saya email tentang fitur baru",
+  "featureEmailsHint": "Kami akan mengirim pesan singkat saat ada fitur baru. Anda bisa mematikannya kapan saja.",
+  "unsubscribeTitle": "Preferensi email",
+  "unsubscribing": "Memperbarui preferensi…",
+  "unsubscribeDone": "Anda tidak akan menerima email fitur baru lagi. Pembaruan tetap tampil di aplikasi.",
+  "unsubscribeInvalid": "Tautan ini tidak valid atau sudah kedaluwarsa.",
+  "manageEmailPrefs": "Kelola di profil"
 }

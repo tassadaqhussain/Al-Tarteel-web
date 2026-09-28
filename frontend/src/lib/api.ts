@@ -492,6 +492,56 @@ export const adminApi = {
     }),
 } as const;
 
+export type AnnouncementText = { en: string } & Partial<Record<string, string>>;
+
+export interface Announcement {
+  id: string;
+  publishedAt: string;
+  title: AnnouncementText;
+  body: AnnouncementText;
+  ctaLabel: AnnouncementText;
+  ctaPath: string;
+  read: boolean;
+}
+
+export interface AdminAnnouncement {
+  id: string;
+  publishedAt: string;
+  title: string;
+  ctaPath: string;
+  emailSubject: string | null;
+  email: {
+    startedAt: string;
+    finishedAt: string | null;
+    total: number;
+    sent: number;
+    failed: number;
+    startedBy: string | null;
+  } | null;
+}
+
+/** New-feature announcements for signed-in users (content lives in the API code). */
+export const announcementsApi = {
+  list: () => api<{ items: Announcement[]; unread: number }>('/announcements'),
+  markRead: (ids: string[]) =>
+    api<{ ok: boolean }>('/announcements/read', { method: 'POST', body: JSON.stringify({ ids }) }),
+  markAllRead: () => api<{ ok: boolean }>('/announcements/read-all', { method: 'POST' }),
+  emailPreference: () => api<{ featureEmails: boolean }>('/announcements/email-preference'),
+  setEmailPreference: (featureEmails: boolean) =>
+    api<{ featureEmails: boolean }>('/announcements/email-preference', {
+      method: 'PATCH',
+      body: JSON.stringify({ featureEmails }),
+    }),
+  unsubscribe: (token: string) =>
+    api<{ ok: boolean }>('/announcements/unsubscribe', { method: 'POST', body: JSON.stringify({ token }) }),
+  adminList: () => api<{ audience: number; items: AdminAnnouncement[] }>('/admin/announcements'),
+  adminEmail: (id: string, preview: boolean) =>
+    api<{ ok: boolean; preview?: boolean; started?: boolean; total?: number }>(
+      `/admin/announcements/${encodeURIComponent(id)}/email`,
+      { method: 'POST', body: JSON.stringify({ preview }) },
+    ),
+};
+
 export const campaignApi = {
   active: (surface?: string) =>
     api<{ campaign: PublicCampaign | null }>('/campaigns/active', {

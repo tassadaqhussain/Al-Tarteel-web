@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "মোবাইল অ্যাপ শীঘ্রই আসছে",
   "appsFeatureSearch": "আরবি ও অনুবাদে তাৎক্ষণিক অনুসন্ধান",
   "appsFeatureRecitation": "আয়াতভিত্তিক তিলাওয়াত ও ক্বারী পরিবর্তন",
-  "appsFeatureBookmarks": "বুকমার্ক ও অগ্রগতি ব্রাউজারে সংরক্ষিত"
+  "appsFeatureBookmarks": "বুকমার্ক ও অগ্রগতি ব্রাউজারে সংরক্ষিত",
+  "whatsNew": "নতুন কী",
+  "whatsNewEmpty": "আপনি সব দেখে ফেলেছেন।",
+  "markAllRead": "সব পড়া হয়েছে চিহ্নিত করুন",
+  "newLabel": "নতুন",
+  "maybeLater": "পরে",
+  "featureEmails": "নতুন ফিচার নিয়ে আমাকে ইমেইল করুন",
+  "featureEmailsHint": "নতুন কিছু যোগ হলে আমরা ছোট একটি বার্তা পাঠাব। যেকোনো সময় বন্ধ করতে পারবেন।",
+  "unsubscribeTitle": "ইমেইল পছন্দ",
+  "unsubscribing": "আপনার পছন্দ আপডেট হচ্ছে…",
+  "unsubscribeDone": "আপনি আর নতুন ফিচারের ইমেইল পাবেন না। অ্যাপে আপডেট দেখতে পাবেন।",
+  "unsubscribeInvalid": "লিঙ্কটি অবৈধ বা মেয়াদোত্তীর্ণ।",
+  "manageEmailPrefs": "প্রোফাইলে পরিবর্তন করুন"
 }

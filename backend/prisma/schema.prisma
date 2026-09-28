@@ -245,6 +245,8 @@ model User {
   lastReadAyahNumber Int? @map("last_read_ayah_number")
   lastReadPage Int?  @map("last_read_page")
   isAdmin   Boolean  @default(false) @map("is_admin")
+  /// Opt-out of "new feature" announcement emails (in-app notices still show).
+  featureEmailsOptOut Boolean @default(false) @map("feature_emails_opt_out")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -257,6 +259,7 @@ model User {
   motivationPref  UserMotivationPreference?
   hifzAttempts    HifzAttempt[]
   hifzDailyStats  HifzDailyStat[]
+  announcementReads AnnouncementRead[]
   lastReadSurah   Surah? @relation("UserLastRead", fields: [lastReadSurahId], references: [id])
 
   @@map("users")
@@ -604,4 +607,30 @@ model MailTemplate {
 
   @@index([updatedAt(sort: Desc)])
   @@map("mail_templates")
+}
+
+/// A signed-in user has seen a feature announcement (ids live in code:
+/// backend/src/announcements/announcements.data.ts).
+model AnnouncementRead {
+  userId         Int      @map("user_id")
+  announcementId String   @map("announcement_id") @db.VarChar(80)
+  readAt         DateTime @default(now()) @map("read_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, announcementId])
+  @@map("announcement_reads")
+}
+
+/// One email broadcast per announcement; the primary key blocks duplicate sends.
+model AnnouncementEmail {
+  announcementId String    @id @map("announcement_id") @db.VarChar(80)
+  startedAt      DateTime  @default(now()) @map("started_at")
+  finishedAt     DateTime? @map("finished_at")
+  total          Int       @default(0)
+  sent           Int       @default(0)
+  failed         Int       @default(0)
+  startedBy      String?   @map("started_by") @db.VarChar(255)
+
+  @@map("announcement_emails")
 }

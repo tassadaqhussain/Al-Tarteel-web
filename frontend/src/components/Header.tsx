@@ -25,6 +25,7 @@ import {
 import { AgeModeSelector } from '@/components/AgeModeSelector';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { WhatsNew } from '@/components/announcements/WhatsNew';
 import { useSettingsStore, type LastRead } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/lib/utils';
@@ -171,6 +172,7 @@ export function Header() {
                 </Link>
               </>
             )}
+            {!authLoading && isAuthenticated && <WhatsNew />}
             {!authLoading && isAuthenticated && (
               <div className="relative">
                 <button

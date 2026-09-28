@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "تطبيق الجوال قريباً",
   "appsFeatureSearch": "بحث فوري في العربية والترجمات",
   "appsFeatureRecitation": "تلاوة آية بآية مع تبديل القرّاء",
-  "appsFeatureBookmarks": "علامات وسجل قراءة محفوظة في متصفحك"
+  "appsFeatureBookmarks": "علامات وسجل قراءة محفوظة في متصفحك",
+  "whatsNew": "ما الجديد",
+  "whatsNewEmpty": "لا يوجد جديد حاليًا.",
+  "markAllRead": "تعليم الكل كمقروء",
+  "newLabel": "جديد",
+  "maybeLater": "لاحقًا",
+  "featureEmails": "راسلني عن الميزات الجديدة",
+  "featureEmailsHint": "سنرسل رسالة قصيرة عند إضافة شيء جديد. يمكنك إيقاف ذلك في أي وقت.",
+  "unsubscribeTitle": "تفضيلات البريد",
+  "unsubscribing": "جارٍ تحديث تفضيلاتك…",
+  "unsubscribeDone": "لن تصلك رسائل الميزات الجديدة بعد الآن، وستظل ترى التحديثات داخل التطبيق.",
+  "unsubscribeInvalid": "هذا الرابط غير صالح أو منتهي.",
+  "manageEmailPrefs": "الإدارة من ملفك الشخصي"
 }

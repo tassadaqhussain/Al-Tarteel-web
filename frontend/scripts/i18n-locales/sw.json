@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Programu ya simu inakuja hivi karibuni",
   "appsFeatureSearch": "Utafutaji wa papo hapo kwa Kiarabu na tafsiri",
   "appsFeatureRecitation": "Kusoma aya kwa aya na kubadilisha msomaji",
-  "appsFeatureBookmarks": "Alamisho na maendeleo yanahifadhiwa kwenye kivinjari"
+  "appsFeatureBookmarks": "Alamisho na maendeleo yanahifadhiwa kwenye kivinjari",
+  "whatsNew": "Mapya",
+  "whatsNewEmpty": "Umeona kila kitu.",
+  "markAllRead": "Weka zote kuwa zimesomwa",
+  "newLabel": "Mpya",
+  "maybeLater": "Baadaye",
+  "featureEmails": "Nitumie barua pepe kuhusu vipengele vipya",
+  "featureEmailsHint": "Tutatuma ujumbe mfupi tunapoongeza kitu kipya. Unaweza kuzima wakati wowote.",
+  "unsubscribeTitle": "Mapendeleo ya barua pepe",
+  "unsubscribing": "Inasasisha mapendeleo…",
+  "unsubscribeDone": "Hutapokea tena barua pepe za vipengele vipya. Masasisho yataendelea kuonekana kwenye programu.",
+  "unsubscribeInvalid": "Kiungo hiki si sahihi au kimeisha muda.",
+  "manageEmailPrefs": "Dhibiti kwenye wasifu"
 }

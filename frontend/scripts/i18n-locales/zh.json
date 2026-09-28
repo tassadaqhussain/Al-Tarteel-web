@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "移动应用即将推出",
   "appsFeatureSearch": "即时搜索阿拉伯文与译文",
   "appsFeatureRecitation": "逐节诵读并切换诵读者",
-  "appsFeatureBookmarks": "书签与阅读进度保存在浏览器中"
+  "appsFeatureBookmarks": "书签与阅读进度保存在浏览器中",
+  "whatsNew": "新功能",
+  "whatsNewEmpty": "暂无新内容。",
+  "markAllRead": "全部标为已读",
+  "newLabel": "新",
+  "maybeLater": "稍后",
+  "featureEmails": "有新功能时发邮件通知我",
+  "featureEmailsHint": "添加新内容时我们会发送简短通知，可随时关闭。",
+  "unsubscribeTitle": "邮件偏好",
+  "unsubscribing": "正在更新偏好…",
+  "unsubscribeDone": "你将不再收到新功能邮件，应用内仍会显示更新。",
+  "unsubscribeInvalid": "此链接无效或已过期。",
+  "manageEmailPrefs": "在个人资料中管理"
 }

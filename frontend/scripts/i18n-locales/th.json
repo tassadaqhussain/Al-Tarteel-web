@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "แอปมือถือเร็วๆ นี้",
   "appsFeatureSearch": "ค้นหาทันทีในอาหรับและคำแปล",
   "appsFeatureRecitation": "ท่องทีละอายะฮ์และเปลี่ยนผู้อ่าน",
-  "appsFeatureBookmarks": "บุ๊กมาร์กและความคืบหน้าซิงก์ในเบราว์เซอร์"
+  "appsFeatureBookmarks": "บุ๊กมาร์กและความคืบหน้าซิงก์ในเบราว์เซอร์",
+  "whatsNew": "มีอะไรใหม่",
+  "whatsNewEmpty": "คุณดูครบแล้ว",
+  "markAllRead": "ทำเครื่องหมายว่าอ่านทั้งหมด",
+  "newLabel": "ใหม่",
+  "maybeLater": "ไว้ทีหลัง",
+  "featureEmails": "ส่งอีเมลแจ้งฟีเจอร์ใหม่",
+  "featureEmailsHint": "เราจะส่งข้อความสั้น ๆ เมื่อมีสิ่งใหม่ คุณปิดได้ทุกเมื่อ",
+  "unsubscribeTitle": "การตั้งค่าอีเมล",
+  "unsubscribing": "กำลังอัปเดตการตั้งค่า…",
+  "unsubscribeDone": "คุณจะไม่ได้รับอีเมลฟีเจอร์ใหม่อีก แต่ยังเห็นการอัปเดตในแอป",
+  "unsubscribeInvalid": "ลิงก์นี้ไม่ถูกต้องหรือหมดอายุแล้ว",
+  "manageEmailPrefs": "จัดการในโปรไฟล์"
 }

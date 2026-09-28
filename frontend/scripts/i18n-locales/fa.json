@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "اپ موبایل به‌زودی",
   "appsFeatureSearch": "جستجوی فوری عربی و ترجمه‌ها",
   "appsFeatureRecitation": "تلاوت آیه به آیه با تغییر قاری",
-  "appsFeatureBookmarks": "نشان‌ها و پیشرفت در مرورگر شما"
+  "appsFeatureBookmarks": "نشان‌ها و پیشرفت در مرورگر شما",
+  "whatsNew": "تازه‌ها",
+  "whatsNewEmpty": "چیز تازه‌ای نیست.",
+  "markAllRead": "علامت‌گذاری همه به‌عنوان خوانده‌شده",
+  "newLabel": "جدید",
+  "maybeLater": "بعداً",
+  "featureEmails": "درباره امکانات جدید به من ایمیل بزن",
+  "featureEmailsHint": "وقتی چیز تازه‌ای اضافه کنیم پیام کوتاهی می‌فرستیم. هر زمان می‌توانید آن را خاموش کنید.",
+  "unsubscribeTitle": "تنظیمات ایمیل",
+  "unsubscribing": "در حال به‌روزرسانی تنظیمات…",
+  "unsubscribeDone": "دیگر ایمیل امکانات جدید دریافت نمی‌کنید. به‌روزرسانی‌ها همچنان در برنامه نمایش داده می‌شوند.",
+  "unsubscribeInvalid": "این پیوند نامعتبر یا منقضی است.",
+  "manageEmailPrefs": "مدیریت در نمایه"
 }

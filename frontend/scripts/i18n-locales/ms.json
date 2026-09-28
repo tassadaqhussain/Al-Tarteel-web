@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Aplikasi mudah alih akan datang",
   "appsFeatureSearch": "Carian segera merentas Arab dan terjemahan",
   "appsFeatureRecitation": "Tilawah ayat demi ayat dengan tukar qari",
-  "appsFeatureBookmarks": "Tanda buku dan kemajuan disimpan dalam pelayar"
+  "appsFeatureBookmarks": "Tanda buku dan kemajuan disimpan dalam pelayar",
+  "whatsNew": "Apa yang baharu",
+  "whatsNewEmpty": "Tiada yang baharu.",
+  "markAllRead": "Tandakan semua sudah dibaca",
+  "newLabel": "Baharu",
+  "maybeLater": "Nanti",
+  "featureEmails": "E-mel saya tentang ciri baharu",
+  "featureEmailsHint": "Kami akan menghantar nota ringkas apabila ada sesuatu yang baharu. Anda boleh mematikannya bila-bila masa.",
+  "unsubscribeTitle": "Pilihan e-mel",
+  "unsubscribing": "Mengemas kini pilihan…",
+  "unsubscribeDone": "Anda tidak akan menerima e-mel ciri baharu lagi. Kemas kini masih dipaparkan dalam aplikasi.",
+  "unsubscribeInvalid": "Pautan ini tidak sah atau telah tamat.",
+  "manageEmailPrefs": "Urus dalam profil"
 }

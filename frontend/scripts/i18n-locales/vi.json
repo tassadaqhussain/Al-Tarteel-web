@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Ứng dụng di động sắp có",
   "appsFeatureSearch": "Tìm kiếm tức thì tiếng Ả Rập và bản dịch",
   "appsFeatureRecitation": "Tụng từng câu và đổi người đọc",
-  "appsFeatureBookmarks": "Dấu trang và tiến độ lưu trên trình duyệt"
+  "appsFeatureBookmarks": "Dấu trang và tiến độ lưu trên trình duyệt",
+  "whatsNew": "Có gì mới",
+  "whatsNewEmpty": "Bạn đã xem hết.",
+  "markAllRead": "Đánh dấu tất cả là đã đọc",
+  "newLabel": "Mới",
+  "maybeLater": "Để sau",
+  "featureEmails": "Gửi email cho tôi về tính năng mới",
+  "featureEmailsHint": "Chúng tôi sẽ gửi ghi chú ngắn khi có điều mới. Bạn có thể tắt bất cứ lúc nào.",
+  "unsubscribeTitle": "Tùy chọn email",
+  "unsubscribing": "Đang cập nhật tùy chọn…",
+  "unsubscribeDone": "Bạn sẽ không nhận email về tính năng mới nữa. Cập nhật vẫn hiển thị trong ứng dụng.",
+  "unsubscribeInvalid": "Liên kết không hợp lệ hoặc đã hết hạn.",
+  "manageEmailPrefs": "Quản lý trong hồ sơ"
 }

@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "मोबाइल ऐप जल्द आ रहा है",
   "appsFeatureSearch": "अरबी और अनुवाद में तुरंत खोज",
   "appsFeatureRecitation": "आयत-दर-आयत तिलावत और क़ारी बदलना",
-  "appsFeatureBookmarks": "बुकमार्क और प्रगति ब्राउज़र में सहेजी जाती है"
+  "appsFeatureBookmarks": "बुकमार्क और प्रगति ब्राउज़र में सहेजी जाती है",
+  "whatsNew": "नया क्या है",
+  "whatsNewEmpty": "आपने सब देख लिया है।",
+  "markAllRead": "सभी को पढ़ा हुआ चिह्नित करें",
+  "newLabel": "नया",
+  "maybeLater": "बाद में",
+  "featureEmails": "नई सुविधाओं के बारे में ईमेल करें",
+  "featureEmailsHint": "कुछ नया जुड़ने पर हम छोटा संदेश भेजेंगे। आप इसे कभी भी बंद कर सकते हैं।",
+  "unsubscribeTitle": "ईमेल प्राथमिकताएँ",
+  "unsubscribing": "प्राथमिकताएँ अपडेट हो रही हैं…",
+  "unsubscribeDone": "अब आपको नई सुविधाओं के ईमेल नहीं मिलेंगे। ऐप में अपडेट दिखते रहेंगे।",
+  "unsubscribeInvalid": "यह लिंक अमान्य है या समाप्त हो गया है।",
+  "manageEmailPrefs": "प्रोफ़ाइल में बदलें"
 }

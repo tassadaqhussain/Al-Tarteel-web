@@ -105,6 +105,18 @@ export type MessageKey =
   | 'appsFeatureSearch'
   | 'appsFeatureRecitation'
   | 'appsFeatureBookmarks'
+  | 'whatsNew'
+  | 'whatsNewEmpty'
+  | 'markAllRead'
+  | 'newLabel'
+  | 'maybeLater'
+  | 'featureEmails'
+  | 'featureEmailsHint'
+  | 'unsubscribeTitle'
+  | 'unsubscribing'
+  | 'unsubscribeDone'
+  | 'unsubscribeInvalid'
+  | 'manageEmailPrefs'
 
 export type Messages = Record<MessageKey, string>;
 
@@ -212,6 +224,18 @@ const en: Messages = {
   appsFeatureSearch: 'Instant search across Arabic and translations',
   appsFeatureRecitation: 'Verse-by-verse recitation with reciter switching',
   appsFeatureBookmarks: 'Bookmarks and reading progress synced to your browser',
+  whatsNew: 'What\'s new',
+  whatsNewEmpty: 'You\'re all caught up.',
+  markAllRead: 'Mark all as read',
+  newLabel: 'New',
+  maybeLater: 'Maybe later',
+  featureEmails: 'Email me about new features',
+  featureEmailsHint: 'We\'ll send a short note when we add something new. You can turn this off anytime.',
+  unsubscribeTitle: 'Email preferences',
+  unsubscribing: 'Updating your preferences…',
+  unsubscribeDone: 'You won\'t receive new-feature emails anymore. You\'ll still see updates in the app.',
+  unsubscribeInvalid: 'This link is invalid or has expired.',
+  manageEmailPrefs: 'Manage in your profile',
 };
 
 const ar: Messages = {
@@ -318,6 +342,18 @@ const ar: Messages = {
   appsFeatureSearch: 'بحث فوري في العربية والترجمات',
   appsFeatureRecitation: 'تلاوة آية بآية مع تبديل القرّاء',
   appsFeatureBookmarks: 'علامات وسجل قراءة محفوظة في متصفحك',
+  whatsNew: 'ما الجديد',
+  whatsNewEmpty: 'لا يوجد جديد حاليًا.',
+  markAllRead: 'تعليم الكل كمقروء',
+  newLabel: 'جديد',
+  maybeLater: 'لاحقًا',
+  featureEmails: 'راسلني عن الميزات الجديدة',
+  featureEmailsHint: 'سنرسل رسالة قصيرة عند إضافة شيء جديد. يمكنك إيقاف ذلك في أي وقت.',
+  unsubscribeTitle: 'تفضيلات البريد',
+  unsubscribing: 'جارٍ تحديث تفضيلاتك…',
+  unsubscribeDone: 'لن تصلك رسائل الميزات الجديدة بعد الآن، وستظل ترى التحديثات داخل التطبيق.',
+  unsubscribeInvalid: 'هذا الرابط غير صالح أو منتهي.',
+  manageEmailPrefs: 'الإدارة من ملفك الشخصي',
 };
 
 const bn: Messages = {
@@ -424,6 +460,18 @@ const bn: Messages = {
   appsFeatureSearch: 'আরবি ও অনুবাদে তাৎক্ষণিক অনুসন্ধান',
   appsFeatureRecitation: 'আয়াতভিত্তিক তিলাওয়াত ও ক্বারী পরিবর্তন',
   appsFeatureBookmarks: 'বুকমার্ক ও অগ্রগতি ব্রাউজারে সংরক্ষিত',
+  whatsNew: 'নতুন কী',
+  whatsNewEmpty: 'আপনি সব দেখে ফেলেছেন।',
+  markAllRead: 'সব পড়া হয়েছে চিহ্নিত করুন',
+  newLabel: 'নতুন',
+  maybeLater: 'পরে',
+  featureEmails: 'নতুন ফিচার নিয়ে আমাকে ইমেইল করুন',
+  featureEmailsHint: 'নতুন কিছু যোগ হলে আমরা ছোট একটি বার্তা পাঠাব। যেকোনো সময় বন্ধ করতে পারবেন।',
+  unsubscribeTitle: 'ইমেইল পছন্দ',
+  unsubscribing: 'আপনার পছন্দ আপডেট হচ্ছে…',
+  unsubscribeDone: 'আপনি আর নতুন ফিচারের ইমেইল পাবেন না। অ্যাপে আপডেট দেখতে পাবেন।',
+  unsubscribeInvalid: 'লিঙ্কটি অবৈধ বা মেয়াদোত্তীর্ণ।',
+  manageEmailPrefs: 'প্রোফাইলে পরিবর্তন করুন',
 };
 
 const es: Messages = {
@@ -530,6 +578,18 @@ const es: Messages = {
   appsFeatureSearch: 'Búsqueda instantánea en árabe y traducciones',
   appsFeatureRecitation: 'Recitación aleya por aleya con cambio de recitador',
   appsFeatureBookmarks: 'Marcadores y progreso guardados en tu navegador',
+  whatsNew: 'Novedades',
+  whatsNewEmpty: 'Estás al día.',
+  markAllRead: 'Marcar todo como leído',
+  newLabel: 'Nuevo',
+  maybeLater: 'Más tarde',
+  featureEmails: 'Avísame por correo de las novedades',
+  featureEmailsHint: 'Enviaremos una nota breve cuando añadamos algo nuevo. Puedes desactivarlo cuando quieras.',
+  unsubscribeTitle: 'Preferencias de correo',
+  unsubscribing: 'Actualizando tus preferencias…',
+  unsubscribeDone: 'Ya no recibirás correos de novedades. Seguirás viéndolas en la app.',
+  unsubscribeInvalid: 'Este enlace no es válido o ha caducado.',
+  manageEmailPrefs: 'Gestionar en tu perfil',
 };
 
 const fa: Messages = {
@@ -636,6 +696,18 @@ const fa: Messages = {
   appsFeatureSearch: 'جستجوی فوری عربی و ترجمه‌ها',
   appsFeatureRecitation: 'تلاوت آیه به آیه با تغییر قاری',
   appsFeatureBookmarks: 'نشان‌ها و پیشرفت در مرورگر شما',
+  whatsNew: 'تازه‌ها',
+  whatsNewEmpty: 'چیز تازه‌ای نیست.',
+  markAllRead: 'علامت‌گذاری همه به‌عنوان خوانده‌شده',
+  newLabel: 'جدید',
+  maybeLater: 'بعداً',
+  featureEmails: 'درباره امکانات جدید به من ایمیل بزن',
+  featureEmailsHint: 'وقتی چیز تازه‌ای اضافه کنیم پیام کوتاهی می‌فرستیم. هر زمان می‌توانید آن را خاموش کنید.',
+  unsubscribeTitle: 'تنظیمات ایمیل',
+  unsubscribing: 'در حال به‌روزرسانی تنظیمات…',
+  unsubscribeDone: 'دیگر ایمیل امکانات جدید دریافت نمی‌کنید. به‌روزرسانی‌ها همچنان در برنامه نمایش داده می‌شوند.',
+  unsubscribeInvalid: 'این پیوند نامعتبر یا منقضی است.',
+  manageEmailPrefs: 'مدیریت در نمایه',
 };
 
 const fr: Messages = {
@@ -742,6 +814,18 @@ const fr: Messages = {
   appsFeatureSearch: 'Recherche instantanée en arabe et en traductions',
   appsFeatureRecitation: 'Récitation verset par verset avec changement de récitant',
   appsFeatureBookmarks: 'Favoris et progression synchronisés dans votre navigateur',
+  whatsNew: 'Nouveautés',
+  whatsNewEmpty: 'Vous êtes à jour.',
+  markAllRead: 'Tout marquer comme lu',
+  newLabel: 'Nouveau',
+  maybeLater: 'Plus tard',
+  featureEmails: 'M’avertir par e-mail des nouveautés',
+  featureEmailsHint: 'Nous enverrons un court message lors d’un ajout. Vous pouvez le désactiver à tout moment.',
+  unsubscribeTitle: 'Préférences e-mail',
+  unsubscribing: 'Mise à jour de vos préférences…',
+  unsubscribeDone: 'Vous ne recevrez plus d’e-mails sur les nouveautés. Elles resteront visibles dans l’application.',
+  unsubscribeInvalid: 'Ce lien est invalide ou a expiré.',
+  manageEmailPrefs: 'Gérer dans votre profil',
 };
 
 const hi: Messages = {
@@ -848,6 +932,18 @@ const hi: Messages = {
   appsFeatureSearch: 'अरबी और अनुवाद में तुरंत खोज',
   appsFeatureRecitation: 'आयत-दर-आयत तिलावत और क़ारी बदलना',
   appsFeatureBookmarks: 'बुकमार्क और प्रगति ब्राउज़र में सहेजी जाती है',
+  whatsNew: 'नया क्या है',
+  whatsNewEmpty: 'आपने सब देख लिया है।',
+  markAllRead: 'सभी को पढ़ा हुआ चिह्नित करें',
+  newLabel: 'नया',
+  maybeLater: 'बाद में',
+  featureEmails: 'नई सुविधाओं के बारे में ईमेल करें',
+  featureEmailsHint: 'कुछ नया जुड़ने पर हम छोटा संदेश भेजेंगे। आप इसे कभी भी बंद कर सकते हैं।',
+  unsubscribeTitle: 'ईमेल प्राथमिकताएँ',
+  unsubscribing: 'प्राथमिकताएँ अपडेट हो रही हैं…',
+  unsubscribeDone: 'अब आपको नई सुविधाओं के ईमेल नहीं मिलेंगे। ऐप में अपडेट दिखते रहेंगे।',
+  unsubscribeInvalid: 'यह लिंक अमान्य है या समाप्त हो गया है।',
+  manageEmailPrefs: 'प्रोफ़ाइल में बदलें',
 };
 
 const id: Messages = {
@@ -954,6 +1050,18 @@ const id: Messages = {
   appsFeatureSearch: 'Pencarian instan Arab dan terjemahan',
   appsFeatureRecitation: 'Tilawah ayat demi ayat dengan ganti qari',
   appsFeatureBookmarks: 'Markah dan kemajuan tersimpan di browser Anda',
+  whatsNew: 'Yang baru',
+  whatsNewEmpty: 'Tidak ada yang baru.',
+  markAllRead: 'Tandai semua sudah dibaca',
+  newLabel: 'Baru',
+  maybeLater: 'Nanti saja',
+  featureEmails: 'Kirimi saya email tentang fitur baru',
+  featureEmailsHint: 'Kami akan mengirim pesan singkat saat ada fitur baru. Anda bisa mematikannya kapan saja.',
+  unsubscribeTitle: 'Preferensi email',
+  unsubscribing: 'Memperbarui preferensi…',
+  unsubscribeDone: 'Anda tidak akan menerima email fitur baru lagi. Pembaruan tetap tampil di aplikasi.',
+  unsubscribeInvalid: 'Tautan ini tidak valid atau sudah kedaluwarsa.',
+  manageEmailPrefs: 'Kelola di profil',
 };
 
 const it: Messages = {
@@ -1060,6 +1168,18 @@ const it: Messages = {
   appsFeatureSearch: 'Ricerca istantanea in arabo e traduzioni',
   appsFeatureRecitation: 'Recitazione verso per verso con cambio recitatore',
   appsFeatureBookmarks: 'Segnalibri e progresso salvati nel browser',
+  whatsNew: 'Novità',
+  whatsNewEmpty: 'Sei aggiornato.',
+  markAllRead: 'Segna tutto come letto',
+  newLabel: 'Nuovo',
+  maybeLater: 'Più tardi',
+  featureEmails: 'Avvisami via e-mail delle novità',
+  featureEmailsHint: 'Invieremo una breve nota quando aggiungiamo qualcosa. Puoi disattivarlo quando vuoi.',
+  unsubscribeTitle: 'Preferenze e-mail',
+  unsubscribing: 'Aggiornamento preferenze…',
+  unsubscribeDone: 'Non riceverai più e-mail sulle novità. Resteranno visibili nell’app.',
+  unsubscribeInvalid: 'Questo link non è valido o è scaduto.',
+  manageEmailPrefs: 'Gestisci nel profilo',
 };
 
 const ms: Messages = {
@@ -1166,6 +1286,18 @@ const ms: Messages = {
   appsFeatureSearch: 'Carian segera merentas Arab dan terjemahan',
   appsFeatureRecitation: 'Tilawah ayat demi ayat dengan tukar qari',
   appsFeatureBookmarks: 'Tanda buku dan kemajuan disimpan dalam pelayar',
+  whatsNew: 'Apa yang baharu',
+  whatsNewEmpty: 'Tiada yang baharu.',
+  markAllRead: 'Tandakan semua sudah dibaca',
+  newLabel: 'Baharu',
+  maybeLater: 'Nanti',
+  featureEmails: 'E-mel saya tentang ciri baharu',
+  featureEmailsHint: 'Kami akan menghantar nota ringkas apabila ada sesuatu yang baharu. Anda boleh mematikannya bila-bila masa.',
+  unsubscribeTitle: 'Pilihan e-mel',
+  unsubscribing: 'Mengemas kini pilihan…',
+  unsubscribeDone: 'Anda tidak akan menerima e-mel ciri baharu lagi. Kemas kini masih dipaparkan dalam aplikasi.',
+  unsubscribeInvalid: 'Pautan ini tidak sah atau telah tamat.',
+  manageEmailPrefs: 'Urus dalam profil',
 };
 
 const nl: Messages = {
@@ -1272,6 +1404,18 @@ const nl: Messages = {
   appsFeatureSearch: 'Direct zoeken in Arabisch en vertalingen',
   appsFeatureRecitation: 'Vers voor vers reciteren met wisselen van recitant',
   appsFeatureBookmarks: 'Bladwijzers en voortgang bewaard in je browser',
+  whatsNew: 'Wat is er nieuw',
+  whatsNewEmpty: 'Je bent helemaal bij.',
+  markAllRead: 'Alles als gelezen markeren',
+  newLabel: 'Nieuw',
+  maybeLater: 'Later',
+  featureEmails: 'Mail me over nieuwe functies',
+  featureEmailsHint: 'We sturen een korte mail als er iets nieuws is. Je kunt dit altijd uitzetten.',
+  unsubscribeTitle: 'E-mailvoorkeuren',
+  unsubscribing: 'Voorkeuren bijwerken…',
+  unsubscribeDone: 'Je ontvangt geen e-mails meer over nieuwe functies. Updates blijven zichtbaar in de app.',
+  unsubscribeInvalid: 'Deze link is ongeldig of verlopen.',
+  manageEmailPrefs: 'Beheren in je profiel',
 };
 
 const ps: Messages = {
@@ -1378,6 +1522,18 @@ const ps: Messages = {
   appsFeatureSearch: 'په عربي او ژباړو کې فوري لټون',
   appsFeatureRecitation: 'آیت په آیت تلاوت او د قاري بدلول',
   appsFeatureBookmarks: 'نښې او پرمختګ په براوزر کې ساتل کیږي',
+  whatsNew: 'نوي څه دي',
+  whatsNewEmpty: 'ټول مو لیدلي دي.',
+  markAllRead: 'ټول لوستل شوي وټاکئ',
+  newLabel: 'نوی',
+  maybeLater: 'وروسته',
+  featureEmails: 'د نویو ځانګړتیاوو په اړه ماته برېښنالیک راولېږئ',
+  featureEmailsHint: 'کله چې نوی څه زیات کړو لنډ پیغام به درولېږو. هر وخت یې بندولی شئ.',
+  unsubscribeTitle: 'د برېښنالیک غوره توبونه',
+  unsubscribing: 'غوره توبونه تازه کېږي…',
+  unsubscribeDone: 'نور به د نویو ځانګړتیاوو برېښنالیکونه نه ترلاسه کوئ. تازه معلومات به په اپ کې ښکاري.',
+  unsubscribeInvalid: 'دا لینک سم نه دی یا یې وخت تېر شوی.',
+  manageEmailPrefs: 'په پروفایل کې یې بدل کړئ',
 };
 
 const pt: Messages = {
@@ -1484,6 +1640,18 @@ const pt: Messages = {
   appsFeatureSearch: 'Pesquisa instantânea em árabe e traduções',
   appsFeatureRecitation: 'Recitação versículo a versículo com troca de recitador',
   appsFeatureBookmarks: 'Favoritos e progresso guardados no navegador',
+  whatsNew: 'Novidades',
+  whatsNewEmpty: 'Você está em dia.',
+  markAllRead: 'Marcar tudo como lido',
+  newLabel: 'Novo',
+  maybeLater: 'Mais tarde',
+  featureEmails: 'Enviar-me e-mails sobre novidades',
+  featureEmailsHint: 'Enviaremos uma nota curta quando houver algo novo. Você pode desativar quando quiser.',
+  unsubscribeTitle: 'Preferências de e-mail',
+  unsubscribing: 'Atualizando suas preferências…',
+  unsubscribeDone: 'Você não receberá mais e-mails de novidades. Elas continuarão visíveis no app.',
+  unsubscribeInvalid: 'Este link é inválido ou expirou.',
+  manageEmailPrefs: 'Gerenciar no perfil',
 };
 
 const ru: Messages = {
@@ -1590,6 +1758,18 @@ const ru: Messages = {
   appsFeatureSearch: 'Мгновенный поиск по арабскому тексту и переводам',
   appsFeatureRecitation: 'Чтение аят за аятом со сменой чтеца',
   appsFeatureBookmarks: 'Закладки и прогресс сохраняются в браузере',
+  whatsNew: 'Что нового',
+  whatsNewEmpty: 'Новых обновлений нет.',
+  markAllRead: 'Отметить все как прочитанные',
+  newLabel: 'Новое',
+  maybeLater: 'Позже',
+  featureEmails: 'Сообщать о новых функциях по e-mail',
+  featureEmailsHint: 'Мы пришлём короткое письмо, когда добавим что-то новое. Это можно отключить в любой момент.',
+  unsubscribeTitle: 'Настройки e-mail',
+  unsubscribing: 'Обновляем настройки…',
+  unsubscribeDone: 'Вы больше не будете получать письма о новых функциях. Обновления по-прежнему видны в приложении.',
+  unsubscribeInvalid: 'Ссылка недействительна или устарела.',
+  manageEmailPrefs: 'Изменить в профиле',
 };
 
 const sq: Messages = {
@@ -1696,6 +1876,18 @@ const sq: Messages = {
   appsFeatureSearch: 'Kërkim i menjëhershëm në arabisht dhe përkthime',
   appsFeatureRecitation: 'Lexim ajet pas ajeti me ndërrim lexuesi',
   appsFeatureBookmarks: 'Faqeshënues dhe përparim të ruajtur në shfletues',
+  whatsNew: 'Çfarë ka të re',
+  whatsNewEmpty: 'Jeni në rregull.',
+  markAllRead: 'Shëno të gjitha si të lexuara',
+  newLabel: 'E re',
+  maybeLater: 'Më vonë',
+  featureEmails: 'Më njofto me email për veçori të reja',
+  featureEmailsHint: 'Do të dërgojmë një shënim të shkurtër kur shtojmë diçka të re. Mund ta çaktivizoni kurdo.',
+  unsubscribeTitle: 'Preferencat e emailit',
+  unsubscribing: 'Po përditësohen preferencat…',
+  unsubscribeDone: 'Nuk do të merrni më email për veçori të reja. Përditësimet mbeten në aplikacion.',
+  unsubscribeInvalid: 'Kjo lidhje është e pavlefshme ose ka skaduar.',
+  manageEmailPrefs: 'Menaxhoje te profili',
 };
 
 const sw: Messages = {
@@ -1802,6 +1994,18 @@ const sw: Messages = {
   appsFeatureSearch: 'Utafutaji wa papo hapo kwa Kiarabu na tafsiri',
   appsFeatureRecitation: 'Kusoma aya kwa aya na kubadilisha msomaji',
   appsFeatureBookmarks: 'Alamisho na maendeleo yanahifadhiwa kwenye kivinjari',
+  whatsNew: 'Mapya',
+  whatsNewEmpty: 'Umeona kila kitu.',
+  markAllRead: 'Weka zote kuwa zimesomwa',
+  newLabel: 'Mpya',
+  maybeLater: 'Baadaye',
+  featureEmails: 'Nitumie barua pepe kuhusu vipengele vipya',
+  featureEmailsHint: 'Tutatuma ujumbe mfupi tunapoongeza kitu kipya. Unaweza kuzima wakati wowote.',
+  unsubscribeTitle: 'Mapendeleo ya barua pepe',
+  unsubscribing: 'Inasasisha mapendeleo…',
+  unsubscribeDone: 'Hutapokea tena barua pepe za vipengele vipya. Masasisho yataendelea kuonekana kwenye programu.',
+  unsubscribeInvalid: 'Kiungo hiki si sahihi au kimeisha muda.',
+  manageEmailPrefs: 'Dhibiti kwenye wasifu',
 };
 
 const th: Messages = {
@@ -1908,6 +2112,18 @@ const th: Messages = {
   appsFeatureSearch: 'ค้นหาทันทีในอาหรับและคำแปล',
   appsFeatureRecitation: 'ท่องทีละอายะฮ์และเปลี่ยนผู้อ่าน',
   appsFeatureBookmarks: 'บุ๊กมาร์กและความคืบหน้าซิงก์ในเบราว์เซอร์',
+  whatsNew: 'มีอะไรใหม่',
+  whatsNewEmpty: 'คุณดูครบแล้ว',
+  markAllRead: 'ทำเครื่องหมายว่าอ่านทั้งหมด',
+  newLabel: 'ใหม่',
+  maybeLater: 'ไว้ทีหลัง',
+  featureEmails: 'ส่งอีเมลแจ้งฟีเจอร์ใหม่',
+  featureEmailsHint: 'เราจะส่งข้อความสั้น ๆ เมื่อมีสิ่งใหม่ คุณปิดได้ทุกเมื่อ',
+  unsubscribeTitle: 'การตั้งค่าอีเมล',
+  unsubscribing: 'กำลังอัปเดตการตั้งค่า…',
+  unsubscribeDone: 'คุณจะไม่ได้รับอีเมลฟีเจอร์ใหม่อีก แต่ยังเห็นการอัปเดตในแอป',
+  unsubscribeInvalid: 'ลิงก์นี้ไม่ถูกต้องหรือหมดอายุแล้ว',
+  manageEmailPrefs: 'จัดการในโปรไฟล์',
 };
 
 const tr: Messages = {
@@ -2014,6 +2230,18 @@ const tr: Messages = {
   appsFeatureSearch: 'Arapça ve çevirilerde anında arama',
   appsFeatureRecitation: 'Ayet ayet tilavet ve hafız değiştirme',
   appsFeatureBookmarks: 'Yer imleri ve ilerleme tarayıcınızda saklanır',
+  whatsNew: 'Yenilikler',
+  whatsNewEmpty: 'Her şeyi gördünüz.',
+  markAllRead: 'Tümünü okundu işaretle',
+  newLabel: 'Yeni',
+  maybeLater: 'Sonra',
+  featureEmails: 'Yeni özellikler hakkında bana e-posta gönder',
+  featureEmailsHint: 'Yeni bir şey eklediğimizde kısa bir not göndeririz. İstediğiniz zaman kapatabilirsiniz.',
+  unsubscribeTitle: 'E-posta tercihleri',
+  unsubscribing: 'Tercihleriniz güncelleniyor…',
+  unsubscribeDone: 'Artık yeni özellik e-postaları almayacaksınız. Güncellemeler uygulamada görünmeye devam edecek.',
+  unsubscribeInvalid: 'Bu bağlantı geçersiz veya süresi dolmuş.',
+  manageEmailPrefs: 'Profilden yönet',
 };
 
 const ur: Messages = {
@@ -2120,6 +2348,18 @@ const ur: Messages = {
   appsFeatureSearch: 'عربی اور ترجمے میں فوری تلاش',
   appsFeatureRecitation: 'آیت بہ آیت تلاوت اور قاری تبدیلی',
   appsFeatureBookmarks: 'بک مارکس اور پیشرفت براؤزر میں محفوظ',
+  whatsNew: 'نیا کیا ہے',
+  whatsNewEmpty: 'آپ سب دیکھ چکے ہیں۔',
+  markAllRead: 'سب کو پڑھا ہوا نشان زد کریں',
+  newLabel: 'نیا',
+  maybeLater: 'بعد میں',
+  featureEmails: 'نئی سہولیات کے بارے میں ای میل کریں',
+  featureEmailsHint: 'جب ہم کچھ نیا شامل کریں گے تو مختصر پیغام بھیجیں گے۔ آپ اسے کسی بھی وقت بند کر سکتے ہیں۔',
+  unsubscribeTitle: 'ای میل ترجیحات',
+  unsubscribing: 'ترجیحات اپ ڈیٹ ہو رہی ہیں…',
+  unsubscribeDone: 'اب آپ کو نئی سہولیات کی ای میلز نہیں ملیں گی۔ ایپ میں اپ ڈیٹس نظر آتی رہیں گی۔',
+  unsubscribeInvalid: 'یہ لنک درست نہیں یا اس کی مدت ختم ہو گئی ہے۔',
+  manageEmailPrefs: 'پروفائل میں تبدیل کریں',
 };
 
 const vi: Messages = {
@@ -2226,6 +2466,18 @@ const vi: Messages = {
   appsFeatureSearch: 'Tìm kiếm tức thì tiếng Ả Rập và bản dịch',
   appsFeatureRecitation: 'Tụng từng câu và đổi người đọc',
   appsFeatureBookmarks: 'Dấu trang và tiến độ lưu trên trình duyệt',
+  whatsNew: 'Có gì mới',
+  whatsNewEmpty: 'Bạn đã xem hết.',
+  markAllRead: 'Đánh dấu tất cả là đã đọc',
+  newLabel: 'Mới',
+  maybeLater: 'Để sau',
+  featureEmails: 'Gửi email cho tôi về tính năng mới',
+  featureEmailsHint: 'Chúng tôi sẽ gửi ghi chú ngắn khi có điều mới. Bạn có thể tắt bất cứ lúc nào.',
+  unsubscribeTitle: 'Tùy chọn email',
+  unsubscribing: 'Đang cập nhật tùy chọn…',
+  unsubscribeDone: 'Bạn sẽ không nhận email về tính năng mới nữa. Cập nhật vẫn hiển thị trong ứng dụng.',
+  unsubscribeInvalid: 'Liên kết không hợp lệ hoặc đã hết hạn.',
+  manageEmailPrefs: 'Quản lý trong hồ sơ',
 };
 
 const zh: Messages = {
@@ -2332,6 +2584,18 @@ const zh: Messages = {
   appsFeatureSearch: '即时搜索阿拉伯文与译文',
   appsFeatureRecitation: '逐节诵读并切换诵读者',
   appsFeatureBookmarks: '书签与阅读进度保存在浏览器中',
+  whatsNew: '新功能',
+  whatsNewEmpty: '暂无新内容。',
+  markAllRead: '全部标为已读',
+  newLabel: '新',
+  maybeLater: '稍后',
+  featureEmails: '有新功能时发邮件通知我',
+  featureEmailsHint: '添加新内容时我们会发送简短通知，可随时关闭。',
+  unsubscribeTitle: '邮件偏好',
+  unsubscribing: '正在更新偏好…',
+  unsubscribeDone: '你将不再收到新功能邮件，应用内仍会显示更新。',
+  unsubscribeInvalid: '此链接无效或已过期。',
+  manageEmailPrefs: '在个人资料中管理',
 };
 
 const DICTS: Record<UiLocale, Messages> = {

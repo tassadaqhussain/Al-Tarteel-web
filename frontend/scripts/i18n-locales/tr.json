@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Mobil uygulama yakında",
   "appsFeatureSearch": "Arapça ve çevirilerde anında arama",
   "appsFeatureRecitation": "Ayet ayet tilavet ve hafız değiştirme",
-  "appsFeatureBookmarks": "Yer imleri ve ilerleme tarayıcınızda saklanır"
+  "appsFeatureBookmarks": "Yer imleri ve ilerleme tarayıcınızda saklanır",
+  "whatsNew": "Yenilikler",
+  "whatsNewEmpty": "Her şeyi gördünüz.",
+  "markAllRead": "Tümünü okundu işaretle",
+  "newLabel": "Yeni",
+  "maybeLater": "Sonra",
+  "featureEmails": "Yeni özellikler hakkında bana e-posta gönder",
+  "featureEmailsHint": "Yeni bir şey eklediğimizde kısa bir not göndeririz. İstediğiniz zaman kapatabilirsiniz.",
+  "unsubscribeTitle": "E-posta tercihleri",
+  "unsubscribing": "Tercihleriniz güncelleniyor…",
+  "unsubscribeDone": "Artık yeni özellik e-postaları almayacaksınız. Güncellemeler uygulamada görünmeye devam edecek.",
+  "unsubscribeInvalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
+  "manageEmailPrefs": "Profilden yönet"
 }

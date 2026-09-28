@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "Mobile app coming soon",
   "appsFeatureSearch": "Instant search across Arabic and translations",
   "appsFeatureRecitation": "Verse-by-verse recitation with reciter switching",
-  "appsFeatureBookmarks": "Bookmarks and reading progress synced to your browser"
+  "appsFeatureBookmarks": "Bookmarks and reading progress synced to your browser",
+  "whatsNew": "What's new",
+  "whatsNewEmpty": "You're all caught up.",
+  "markAllRead": "Mark all as read",
+  "newLabel": "New",
+  "maybeLater": "Maybe later",
+  "featureEmails": "Email me about new features",
+  "featureEmailsHint": "We'll send a short note when we add something new. You can turn this off anytime.",
+  "unsubscribeTitle": "Email preferences",
+  "unsubscribing": "Updating your preferences…",
+  "unsubscribeDone": "You won't receive new-feature emails anymore. You'll still see updates in the app.",
+  "unsubscribeInvalid": "This link is invalid or has expired.",
+  "manageEmailPrefs": "Manage in your profile"
 }

@@ -101,5 +101,17 @@
   "mobileAppComingSoon": "موبایل اپ ډېر ژر",
   "appsFeatureSearch": "په عربي او ژباړو کې فوري لټون",
   "appsFeatureRecitation": "آیت په آیت تلاوت او د قاري بدلول",
-  "appsFeatureBookmarks": "نښې او پرمختګ په براوزر کې ساتل کیږي"
+  "appsFeatureBookmarks": "نښې او پرمختګ په براوزر کې ساتل کیږي",
+  "whatsNew": "نوي څه دي",
+  "whatsNewEmpty": "ټول مو لیدلي دي.",
+  "markAllRead": "ټول لوستل شوي وټاکئ",
+  "newLabel": "نوی",
+  "maybeLater": "وروسته",
+  "featureEmails": "د نویو ځانګړتیاوو په اړه ماته برېښنالیک راولېږئ",
+  "featureEmailsHint": "کله چې نوی څه زیات کړو لنډ پیغام به درولېږو. هر وخت یې بندولی شئ.",
+  "unsubscribeTitle": "د برېښنالیک غوره توبونه",
+  "unsubscribing": "غوره توبونه تازه کېږي…",
+  "unsubscribeDone": "نور به د نویو ځانګړتیاوو برېښنالیکونه نه ترلاسه کوئ. تازه معلومات به په اپ کې ښکاري.",
+  "unsubscribeInvalid": "دا لینک سم نه دی یا یې وخت تېر شوی.",
+  "manageEmailPrefs": "په پروفایل کې یې بدل کړئ"
 }
