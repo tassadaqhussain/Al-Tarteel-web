@@ -8,6 +8,7 @@ import {
   Play,
   Pause,
   Repeat,
+  Repeat1,
   Mic2,
   X,
   ChevronUp,
@@ -19,6 +20,122 @@ import { cn } from '@/lib/utils';
 
 const AUDIO_BAR_HEIGHT_VAR = '--audio-bar-height';
 
+
+/** Cycle order for the repeat control. 'range' is offered only once a range is set. */
+const REPEAT_CYCLE = ['off', 'ayah', 'surah'] as const;
+
+const REPEAT_LABEL: Record<string, string> = {
+  off: 'Repeat off',
+  ayah: 'Repeating this verse',
+  range: 'Repeating selected verses',
+  surah: 'Repeating this surah',
+};
+
+
+/**
+ * From/to verse inputs for RepeatMode 'range'.
+ *
+ * Bounds come from the loaded playlist rather than surah metadata, so it stays
+ * correct for partial playlists (a juz page, or playback started mid-surah).
+ * Lives in the player rather than beside the Quran text, to keep the reading
+ * surface uncluttered.
+ */
+function RepeatRangeControl({ compact = false }: { compact?: boolean }) {
+  const playlist = useAudioStore((s) => s.playlist);
+  const repeatRange = useAudioStore((s) => s.repeatRange);
+  const repeatMode = useAudioStore((s) => s.repeatMode);
+  const setRepeatMode = useAudioStore((s) => s.setRepeatMode);
+  const setRepeatRange = useAudioStore((s) => s.setRepeatRange);
+
+  const ayahNumbers = playlist
+    .filter((t) => t.trackKind !== 'bismillah')
+    .map((t) => t.ayahNumber);
+  const minAyah = ayahNumbers.length ? Math.min(...ayahNumbers) : 1;
+  const maxAyah = ayahNumbers.length ? Math.max(...ayahNumbers) : 1;
+
+  const [from, setFrom] = useState<string>(String(repeatRange?.start ?? minAyah));
+  const [to, setTo] = useState<string>(String(repeatRange?.end ?? maxAyah));
+
+  useEffect(() => {
+    if (!repeatRange) return;
+    setFrom(String(repeatRange.start));
+    setTo(String(repeatRange.end));
+  }, [repeatRange]);
+
+  const apply = () => {
+    const start = Math.max(minAyah, Math.min(maxAyah, Number(from) || minAyah));
+    const end = Math.max(start, Math.min(maxAyah, Number(to) || maxAyah));
+    setFrom(String(start));
+    setTo(String(end));
+    setRepeatMode('range', { start, end });
+  };
+
+  const clear = () => {
+    setRepeatRange(null);
+    if (repeatMode === 'range') setRepeatMode('off');
+  };
+
+  if (playlist.length === 0) return null;
+
+  const inputClass = cn(
+    'w-12 rounded border border-line bg-surface px-1.5 py-1 text-center text-xs text-ink',
+    'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
+  );
+
+  return (
+    <div className={cn('flex items-center gap-1.5', compact ? 'text-xs' : 'text-xs')}>
+      <span className="text-ink-muted">Verses</span>
+      <label className="sr-only" htmlFor="repeat-from">
+        Repeat from verse
+      </label>
+      <input
+        id="repeat-from"
+        type="number"
+        inputMode="numeric"
+        min={minAyah}
+        max={maxAyah}
+        value={from}
+        onChange={(e) => setFrom(e.target.value)}
+        onBlur={apply}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') apply();
+        }}
+        className={inputClass}
+      />
+      <span aria-hidden className="text-ink-muted">&ndash;</span>
+      <label className="sr-only" htmlFor="repeat-to">
+        Repeat to verse
+      </label>
+      <input
+        id="repeat-to"
+        type="number"
+        inputMode="numeric"
+        min={minAyah}
+        max={maxAyah}
+        value={to}
+        onChange={(e) => setTo(e.target.value)}
+        onBlur={apply}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') apply();
+        }}
+        className={inputClass}
+      />
+      <button
+        type="button"
+        onClick={repeatMode === 'range' ? clear : apply}
+        className={cn(
+          'rounded-lg px-2 py-1 font-medium transition-colors',
+          repeatMode === 'range'
+            ? 'bg-brand/10 text-brand'
+            : 'text-ink-3 hover:bg-surface-3 hover:text-ink',
+        )}
+      >
+        {repeatMode === 'range' ? 'Clear' : 'Repeat'}
+      </button>
+    </div>
+  );
+}
+
 export function AudioBar() {
   const {
     playlist,
@@ -27,16 +144,29 @@ export function AudioBar() {
     currentTime,
     duration,
     playbackRate,
-    continuous,
+    repeatMode,
+    repeatRange,
     playbackNotice,
     getCurrentAyah,
     setPlaying,
     setPlaybackRate,
-    setContinuous,
+    setRepeatMode,
     next,
     prev,
     reset,
   } = useAudioStore();
+
+  /**
+   * Step through repeat modes. A set range stays reachable in the cycle so the
+   * user does not lose it by tapping past; otherwise 'range' is skipped.
+   */
+  const cycleRepeat = useCallback(() => {
+    const order: Array<'off' | 'ayah' | 'range' | 'surah'> = repeatRange
+      ? ['off', 'ayah', 'range', 'surah']
+      : [...REPEAT_CYCLE];
+    const nextMode = order[(order.indexOf(repeatMode) + 1) % order.length];
+    setRepeatMode(nextMode);
+  }, [repeatMode, repeatRange, setRepeatMode]);
 
   const current = getCurrentAyah();
   const hasPlaylist = playlist.length > 0;
@@ -184,19 +314,28 @@ export function AudioBar() {
             </button>
 
             <div className="hidden items-center gap-2 md:flex">
+              <RepeatRangeControl />
               <button
                 type="button"
-                onClick={() => setContinuous(!continuous)}
+                onClick={cycleRepeat}
                 className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                  continuous
+                  'relative flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                  repeatMode !== 'off'
                     ? 'bg-brand/10 text-brand'
                     : 'text-ink-muted hover:bg-surface-3 hover:text-ink'
                 )}
-                aria-label={continuous ? 'Disable loop' : 'Enable loop'}
-                aria-pressed={continuous}
+                aria-label={REPEAT_LABEL[repeatMode]}
+                aria-pressed={repeatMode !== 'off'}
+                title={REPEAT_LABEL[repeatMode]}
               >
-                <Repeat className="h-4 w-4" />
+                {repeatMode === 'ayah' ? (
+                  <Repeat1 className="h-4 w-4" />
+                ) : (
+                  <Repeat className="h-4 w-4" />
+                )}
+                {repeatMode === 'range' && (
+                  <span className="absolute -bottom-0.5 text-[8px] font-bold leading-none">R</span>
+                )}
               </button>
 
               <select
@@ -247,19 +386,31 @@ export function AudioBar() {
 
         {expanded && (
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 border-t border-line px-3 py-3 md:hidden">
+            <RepeatRangeControl compact />
             <button
               type="button"
-              onClick={() => setContinuous(!continuous)}
+              onClick={cycleRepeat}
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-                continuous
+                repeatMode !== 'off'
                   ? 'bg-brand/10 text-brand'
                   : 'text-ink-3 hover:bg-surface-3'
               )}
-              aria-pressed={continuous}
+              aria-label={REPEAT_LABEL[repeatMode]}
+              aria-pressed={repeatMode !== 'off'}
             >
-              <Repeat className="h-3.5 w-3.5" />
-              Loop
+              {repeatMode === 'ayah' ? (
+                <Repeat1 className="h-3.5 w-3.5" />
+              ) : (
+                <Repeat className="h-3.5 w-3.5" />
+              )}
+              {repeatMode === 'off'
+                ? 'Repeat'
+                : repeatMode === 'ayah'
+                  ? 'Verse'
+                  : repeatMode === 'range'
+                    ? 'Range'
+                    : 'Surah'}
             </button>
 
             <select

@@ -16,6 +16,19 @@ export interface WordTiming {
   endMs: number;
 }
 
+/**
+ * How playback behaves when a track finishes.
+ * 'surah' is the long-standing `continuous` loop; the two are kept in sync so
+ * existing callers of setContinuous keep working.
+ */
+export type RepeatMode = 'off' | 'ayah' | 'range' | 'surah';
+
+/** Inclusive ayah numbers for RepeatMode 'range'. */
+export interface RepeatRange {
+  start: number;
+  end: number;
+}
+
 export interface AudioState {
   reciterSlug: string | null;
   playlist: AudioAyahRef[];
@@ -25,6 +38,8 @@ export interface AudioState {
   duration: number;
   playbackRate: number;
   continuous: boolean;
+  repeatMode: RepeatMode;
+  repeatRange: RepeatRange | null;
   lastAyahKey: string | null;
   wordTimingsByAyah: Record<number, WordTiming[]> | null;
   timingsSurahNumber: number | null;
@@ -39,6 +54,8 @@ export interface AudioState {
   setDuration: (d: number) => void;
   setPlaybackRate: (r: number) => void;
   setContinuous: (v: boolean) => void;
+  setRepeatMode: (mode: RepeatMode, range?: RepeatRange | null) => void;
+  setRepeatRange: (range: RepeatRange | null) => void;
   setLastAyah: (surah: number, ayah: number) => void;
   setWordTimings: (
     surahNumber: number,
@@ -61,6 +78,8 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   duration: 0,
   playbackRate: 1,
   continuous: false,
+  repeatMode: 'off',
+  repeatRange: null,
   lastAyahKey: null,
   wordTimingsByAyah: null,
   timingsSurahNumber: null,
@@ -84,7 +103,21 @@ export const useAudioStore = create<AudioState>((set, get) => ({
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
   setPlaybackRate: (playbackRate) => set({ playbackRate }),
-  setContinuous: (continuous) => set({ continuous }),
+  // `continuous` and repeatMode 'surah' are the same behaviour; keep both in
+  // step so older call sites and the new repeat control cannot disagree.
+  setContinuous: (continuous) =>
+    set((s) => ({
+      continuous,
+      repeatMode: continuous ? 'surah' : s.repeatMode === 'surah' ? 'off' : s.repeatMode,
+    })),
+  setRepeatMode: (repeatMode, range) =>
+    set((s) => ({
+      repeatMode,
+      continuous: repeatMode === 'surah',
+      repeatRange:
+        repeatMode === 'range' ? (range ?? s.repeatRange) : range === undefined ? s.repeatRange : range,
+    })),
+  setRepeatRange: (repeatRange) => set({ repeatRange }),
   setLastAyah: (surahNumber, ayahNumber) =>
     set({ lastAyahKey: `${surahNumber}:${ayahNumber}` }),
   setWordTimings: (timingsSurahNumber, timingsReciterSlug, wordTimingsByAyah) =>
@@ -119,5 +152,9 @@ export const useAudioStore = create<AudioState>((set, get) => ({
       timingsSurahNumber: null,
       timingsReciterSlug: null,
       playbackNotice: null,
+      // A range belongs to the playlist that was cleared.
+      repeatRange: null,
+      repeatMode: 'off',
+      continuous: false,
     }),
 }));

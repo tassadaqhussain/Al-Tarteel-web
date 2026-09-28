@@ -48,6 +48,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     setDuration,
     playbackRate,
     next,
+    setCurrentIndex,
     setLastAyah,
     setPlaybackNotice,
   } = useAudioStore();
@@ -167,7 +168,29 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     const onEnded = () => {
       const state = useAudioStore.getState();
       if (!state.isPlaying) return;
-      const { playlist: list, continuous, currentIndex: idx } = state;
+      const { playlist: list, continuous, currentIndex: idx, repeatMode, repeatRange } = state;
+
+      // Repeat the same ayah: rewind in place, no playlist movement.
+      if (repeatMode === 'ayah' && el.src) {
+        el.currentTime = 0;
+        play();
+        return;
+      }
+
+      // Repeat an ayah range: jump back to its first track once we pass the end.
+      if (repeatMode === 'range' && repeatRange && list.length) {
+        const upcomingTrack = list[idx + 1];
+        const leavingRange = !upcomingTrack || upcomingTrack.ayahNumber > repeatRange.end;
+        if (leavingRange) {
+          const startIdx = list.findIndex((t) => t.ayahNumber === repeatRange.start);
+          if (startIdx >= 0) {
+            setCurrentIndex(startIdx);
+            load(list[startIdx]);
+            play();
+            return;
+          }
+        }
+      }
 
       if (continuous && list.length === 1 && el.src) {
         el.currentTime = 0;
@@ -227,7 +250,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       el.removeEventListener('ended', onEnded);
       el.removeEventListener('error', onError);
     };
-  }, [next, load, play, setCurrentTime, setDuration, setPlaying, setPlaybackNotice]);
+  }, [next, setCurrentIndex, load, play, setCurrentTime, setDuration, setPlaying, setPlaybackNotice]);
 
   useEffect(() => {
     const clear = () => temporaryAudioCache.clearSession();
