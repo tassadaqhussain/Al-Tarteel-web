@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { compareRecitation } from './arabic-compare';
-import { CheckHifzDto, RecordHifzAttemptDto } from './dto/hifz.dto';
+import { CheckHifzDto, RecordHifzAttemptDto, SetHifzStatusDto } from './dto/hifz.dto';
 
 @Injectable()
 export class HifzService {
@@ -137,6 +137,66 @@ export class HifzService {
         avgAccuracy: Math.round((accuracySum / attempts) * 10) / 10,
       },
     });
+  }
+
+
+  /**
+   * Set the memorisation status for one ayah or an inclusive range.
+   *
+   * Upserts rather than appends: this is the ayah's current state, unlike
+   * HifzAttempt which is an append-only practice log. Re-marking an ayah
+   * overwrites it, so a user can move a verse back to 'practicing' freely.
+   */
+  async setStatus(userId: number, dto: SetHifzStatusDto) {
+    const surah = await this.prisma.surah.findUnique({
+      where: { number: dto.surahNumber },
+    });
+    if (!surah) throw new NotFoundException(`Surah ${dto.surahNumber} not found`);
+
+    const from = dto.fromAyah;
+    const to = dto.toAyah ?? from;
+    if (to < from) {
+      throw new BadRequestException('toAyah must not be before fromAyah');
+    }
+    if (to > surah.numberOfAyahs) {
+      throw new BadRequestException(
+        `Surah ${dto.surahNumber} has ${surah.numberOfAyahs} ayahs`,
+      );
+    }
+
+    const ayahNumbers = Array.from({ length: to - from + 1 }, (_, i) => from + i);
+    await this.prisma.$transaction(
+      ayahNumbers.map((ayahNumber) =>
+        this.prisma.hifzAyahStatus.upsert({
+          where: {
+            userId_surahNumber_ayahNumber: {
+              userId,
+              surahNumber: dto.surahNumber,
+              ayahNumber,
+            },
+          },
+          create: {
+            userId,
+            surahNumber: dto.surahNumber,
+            ayahNumber,
+            status: dto.status,
+          },
+          update: { status: dto.status },
+        }),
+      ),
+    );
+
+    return { ok: true, surahNumber: dto.surahNumber, from, to, status: dto.status };
+  }
+
+  /** Current status of every marked ayah in a surah, for this user only. */
+  async getStatuses(userId: number, surahNumber: number) {
+    const rows = await this.prisma.hifzAyahStatus.findMany({
+      where: { userId, surahNumber },
+      select: { ayahNumber: true, status: true, updatedAt: true },
+      orderBy: { ayahNumber: 'asc' },
+    });
+    return rows;
   }
 
   private async findAyah(surahNumber: number, ayahNumber: number) {

@@ -73,3 +73,30 @@ export class RecordHifzAttemptDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   practiceDate!: string;
 }
+
+
+export const HIFZ_STATUSES = ['learning', 'practicing', 'reviewed'] as const;
+export type HifzStatus = (typeof HIFZ_STATUSES)[number];
+
+export class SetHifzStatusDto {
+  @ApiProperty()
+  @IsInt()
+  @Min(1)
+  @Max(114)
+  surahNumber!: number;
+
+  @ApiProperty({ description: 'First ayah to mark' })
+  @IsInt()
+  @Min(1)
+  fromAyah!: number;
+
+  @ApiPropertyOptional({ description: 'Last ayah to mark; defaults to fromAyah' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  toAyah?: number;
+
+  @ApiProperty({ enum: HIFZ_STATUSES })
+  @IsIn(HIFZ_STATUSES as unknown as string[])
+  status!: HifzStatus;
+}

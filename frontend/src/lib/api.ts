@@ -241,6 +241,9 @@ export type HifzDailyStat = {
   avgAccuracy: number;
 };
 
+/** Memorisation state of a single ayah. Mirrors HIFZ_STATUSES on the server. */
+export type HifzAyahStatus = 'learning' | 'practicing' | 'reviewed';
+
 export const hifzApi = {
   check: (body: {
     surahNumber: number;
@@ -279,6 +282,21 @@ export const hifzApi = {
         attempts: number;
       }>;
     }>(`/hifz/progress/${surahNumber}`),
+  /** Mark one ayah, or an inclusive range, with its memorisation status. */
+  setStatus: (body: {
+    surahNumber: number;
+    fromAyah: number;
+    toAyah?: number;
+    status: HifzAyahStatus;
+  }) =>
+    api<{ ok: boolean; surahNumber: number; from: number; to: number; status: HifzAyahStatus }>(
+      '/hifz/status',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+  statuses: (surahNumber: number) =>
+    api<Array<{ ayahNumber: number; status: HifzAyahStatus; updatedAt: string }>>(
+      `/hifz/status/${surahNumber}`,
+    ),
 };
 
 export type FeedbackCategory = 'bug' | 'idea' | 'hifz' | 'translation' | 'other';

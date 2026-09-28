@@ -13,7 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../users/guards/jwt-auth.guard';
 import { HifzService } from './hifz.service';
-import { CheckHifzDto, RecordHifzAttemptDto } from './dto/hifz.dto';
+import { CheckHifzDto, RecordHifzAttemptDto, SetHifzStatusDto } from './dto/hifz.dto';
 
 type AuthedRequest = { user: { userId: number } };
 
@@ -60,4 +60,24 @@ export class HifzController {
   ) {
     return this.hifz.surahProgress(this.uid(req), surahNumber);
   }
+
+  @Post('status')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Mark an ayah or inclusive range as learning/practicing/reviewed' })
+  setStatus(@Request() req: AuthedRequest, @Body() body: SetHifzStatusDto) {
+    return this.hifz.setStatus(this.uid(req), body);
+  }
+
+  @Get('status/:surahNumber')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Memorisation status of the signed-in user's marked ayahs in a surah" })
+  getStatuses(
+    @Request() req: AuthedRequest,
+    @Param('surahNumber', ParseIntPipe) surahNumber: number,
+  ) {
+    return this.hifz.getStatuses(this.uid(req), surahNumber);
+  }
+
 }

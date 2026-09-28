@@ -19,6 +19,13 @@ import { hifzApi, ApiError } from '@/lib/api';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useAuthStore } from '@/stores/authStore';
 import { useHifzStore } from '@/stores/hifzStore';
+import type { HifzAyahStatus } from '@/lib/api';
+
+const HIFZ_STATUS_OPTIONS: Array<{ value: HifzAyahStatus; label: string }> = [
+  { value: 'learning', label: 'Learning' },
+  { value: 'practicing', label: 'Practicing' },
+  { value: 'reviewed', label: 'Reviewed' },
+];
 
 type AyahItem = {
   id: number;
@@ -43,6 +50,9 @@ export function HifzPracticeSession({
 }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const recordLocal = useHifzStore((s) => s.record);
+  const setAyahStatus = useHifzStore((s) => s.setAyahStatus);
+  const mergeServerStatuses = useHifzStore((s) => s.mergeServerStatuses);
+  const ayahStatuses = useHifzStore((s) => s.statuses);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [learned, setLearned] = useState<Set<number>>(() => new Set());
   const [mode, setMode] = useState<'speech' | 'type'>(() =>
@@ -63,6 +73,41 @@ export function HifzPracticeSession({
   const speechOk = isSpeechSupported();
 
   const ayah = ayahs[currentIndex] ?? null;
+
+  // Saved statuses live on the account; pull them so a device that has never
+  // practised this surah still shows what was marked elsewhere.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    void hifzApi
+      .statuses(surahNumber)
+      .then((rows) => {
+        if (!cancelled && Array.isArray(rows)) mergeServerStatuses(surahNumber, rows);
+      })
+      .catch(() => {
+        /* local statuses remain usable offline */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, surahNumber, mergeServerStatuses]);
+
+  const currentStatus = ayah ? ayahStatuses[`${surahNumber}:${ayah.number}`] ?? null : null;
+
+  const markStatus = useCallback(
+    (status: HifzAyahStatus) => {
+      if (!ayah) return;
+      // Local first so the control responds even when signed out or offline.
+      setAyahStatus({ surahNumber, fromAyah: ayah.number, status });
+      if (!isAuthenticated) return;
+      void hifzApi
+        .setStatus({ surahNumber, fromAyah: ayah.number, status })
+        .catch(() => {
+          /* kept locally; Feature 4 sync will reconcile */
+        });
+    },
+    [ayah, isAuthenticated, setAyahStatus, surahNumber],
+  );
   const liveFill = useMemo(
     () => (ayah ? progressiveAyahFill(ayah.textUthmani, transcript) : null),
     [ayah, transcript],
@@ -393,6 +438,39 @@ export function HifzPracticeSession({
           </button>
         </div>
       </div>
+
+      {ayah && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-[var(--muted)]">
+            Ayah {ayah.number}
+          </span>
+          <div
+            className="flex rounded-[4px] border border-[var(--border)] p-1"
+            role="group"
+            aria-label={`Memorisation status for ayah ${ayah.number}`}
+          >
+            {HIFZ_STATUS_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => markStatus(option.value)}
+                aria-pressed={currentStatus === option.value}
+                className={cn(
+                  'rounded-[3px] px-3 py-1.5 text-xs font-medium transition-colors',
+                  currentStatus === option.value
+                    ? 'bg-[var(--accent)] text-brand-contrast'
+                    : 'text-[var(--muted)] hover:bg-surface-3 hover:text-[var(--fg)]',
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          {!isAuthenticated && (
+            <span className="text-xs text-ink-faint">Saved on this device</span>
+          )}
+        </div>
+      )}
 
       <div className="rounded-[4px] border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
         <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
