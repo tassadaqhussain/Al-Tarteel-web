@@ -41,7 +41,7 @@ export function isSitemapShardId(value: number): value is SitemapShardId {
   return (SITEMAP_SHARD_IDS as readonly number[]).includes(value);
 }
 
-/** Core hubs + juz + tajweed. */
+/** Core hubs + juz + tajweed + learn namaz. */
 function coreEntries(): SitemapEntry[] {
   return [
     { url: SITE_URL, changeFrequency: 'weekly', priority: 1 },
@@ -53,6 +53,12 @@ function coreEntries(): SitemapEntry[] {
     { url: `${SITE_URL}/learning-plans`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/quran-in-year`, changeFrequency: 'monthly', priority: 0.65 },
     { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/learn-namaz`, changeFrequency: 'monthly', priority: 0.6 },
+    ...['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].map((prayer) => ({
+      url: `${SITE_URL}/learn-namaz/${prayer}`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.55,
+    })),
     ...Array.from({ length: 30 }, (_, i) => ({
       url: `${SITE_URL}/juz/${i + 1}`,
       changeFrequency: 'monthly' as const,

@@ -95,6 +95,11 @@ export function SiteFooter() {
                   Tajweed guide
                 </Link>
               </li>
+              <li>
+                <Link href="/learn-namaz" className="text-emerald-50/75 transition hover:text-white">
+                  {t('learnNamaz')}
+                </Link>
+              </li>
               {DONATE_ENABLED && (
                 <li>
                   <Link href="/donate" className="text-emerald-50/75 transition hover:text-white">

@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test:tajweed": "node scripts/test-tajweed-integrity.mjs",
     "test:ayah-preview": "node --experimental-strip-types --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-ayah-preview.mjs",
-    "test:reciter-tiles": "node scripts/test-reciter-tiles.mjs"
+    "test:reciter-tiles": "node scripts/test-reciter-tiles.mjs",
+    "test:namaz": "node --experimental-strip-types --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-namaz.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.20",

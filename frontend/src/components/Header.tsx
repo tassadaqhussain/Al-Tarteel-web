@@ -403,6 +403,7 @@ function MobileNav({
               { label: t('hifz'), href: '/hifz', icon: BookOpen, id: 'hifz' },
               { label: t('bookmarks'), href: '/bookmarks', icon: BookOpen, id: 'bookmarks' },
               { label: t('tajweed'), href: '/tajweed', icon: GraduationCap, id: 'tajweed' },
+              { label: t('learnNamaz'), href: '/learn-namaz', icon: GraduationCap, id: 'learn-namaz' },
               { label: t('quranInYear'), href: '/quran-in-year', icon: LayoutGrid, id: 'quran-year' },
               { label: t('settings'), href: '/settings', icon: Settings, id: 'settings' },
               { label: t('feedback'), href: '/feedback', icon: MessageSquareHeart, id: 'feedback' },

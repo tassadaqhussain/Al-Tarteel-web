@@ -11,7 +11,7 @@ const LOCALE_SPEECH_TAGS: Record<string, string[]> = {
   hi: ['hi-IN', 'hi'],
 };
 
-function pickVoice(langCode: string): SpeechSynthesisVoice | null {
+export function pickVoice(langCode: string): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
