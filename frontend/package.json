@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:tajweed": "node scripts/test-tajweed-integrity.mjs",
+    "test:salah": "node scripts/test-salah-lesson-integrity.mjs",
     "test:ayah-preview": "node --experimental-strip-types --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-ayah-preview.mjs",
     "test:reciter-tiles": "node scripts/test-reciter-tiles.mjs",
     "test:bookmark-merge": "node --experimental-strip-types --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-bookmark-merge.mjs"

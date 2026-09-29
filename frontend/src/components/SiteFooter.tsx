@@ -63,6 +63,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/learn-salah" className="text-emerald-50/75 transition hover:text-white">
+                  Learn Salah
+                </Link>
+              </li>
+              <li>
                 <Link href="/feedback" className="text-emerald-50/75 transition hover:text-white">
                   {t('feedback')}
                 </Link>

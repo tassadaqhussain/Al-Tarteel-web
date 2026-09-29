@@ -72,6 +72,23 @@ export const GLOBAL_NAV_ROUTES: NavRoute[] = [
     label: 'Learning Plans',
     keywords: ['learning plans', 'plans', 'courses', 'تعلیمی منصوبے'],
   },
+  {
+    id: 'learn-salah',
+    path: '/learn-salah',
+    label: 'Learn Salah',
+    keywords: [
+      'learn salah',
+      'learn namaz',
+      'full salah',
+      'how to pray',
+      'salah motion',
+      'namaz',
+      'salah',
+      'نماز',
+      'صلاة',
+      'learn prayer',
+    ],
+  },
   ...(DONATE_ENABLED
     ? [
         {

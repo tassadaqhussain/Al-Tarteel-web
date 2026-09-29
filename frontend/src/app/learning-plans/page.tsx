@@ -40,6 +40,24 @@ export default function LearningPlansPage() {
           </p>
         </div>
 
+        <Link
+          href="/learn-salah"
+          className="mb-8 flex flex-col gap-3 overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 p-6 text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-7"
+        >
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200/90">
+              Interactive Guide · Step by Step
+            </p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight">Salah Step-by-Step Visual Check</h2>
+            <p className="mt-2 text-sm leading-6 text-emerald-50/80">
+              Visual posture alignment guides, 7-point Sujood verification, audio dhikr recitation, and complete daily prayer walkthroughs.
+            </p>
+          </div>
+          <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-bold text-emerald-950">
+            Open visual check →
+          </span>
+        </Link>
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {LEARNING_PLANS.map((plan) => (
             <Link

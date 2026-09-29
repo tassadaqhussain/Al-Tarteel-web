@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Layers3, Search, SortAsc } from 'lucide-react';
+import { BookOpen, Layers3, Search, SortAsc, Sparkles } from 'lucide-react';
 import type { Surah } from '@/lib/api';
 import { getSurahArabicName, getSurahMeaning, getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
@@ -119,6 +119,21 @@ export function SurahGrid({
                 </div>
               )}
             </div>
+
+            {showTabs && (
+              <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-line/60 pt-3 text-xs">
+                <span className="text-ink-muted">
+                  Learning prayer postures, recitations, and alignment?
+                </span>
+                <Link
+                  href="/learn-salah"
+                  className="inline-flex items-center gap-1.5 font-bold text-brand hover:underline"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-brand" />
+                  <span>Salah Step-by-Step Visual Check →</span>
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
