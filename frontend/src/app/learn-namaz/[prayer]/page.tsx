@@ -5,6 +5,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { NamazHeading } from '@/components/namaz/NamazParts';
 import { NamazLesson } from '@/components/namaz/NamazLesson';
+import { NamazOutline } from '@/components/namaz/NamazOutline';
 import { NAMAZ_CONTENT } from '@/lib/namaz/content';
 import { getPrayer, isPrayerId, PRAYER_IDS } from '@/lib/namaz/lesson';
 
@@ -26,6 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: `/learn-namaz/${prayer.id}`,
     keywords: [`how to pray ${prayer.name.en}`, `${prayer.name.en} namaz`, 'salah steps'],
     type: 'article',
+    // Held out of the index until the lesson content passes scholarly review
+    // (see the review status in src/lib/namaz/content.ts).
+    noIndex: true,
   });
 }
 
@@ -47,6 +51,7 @@ export default async function NamazPrayerPage({ params }: Props) {
         />
         <NamazHeading prayerId={prayer.id} />
         <NamazLesson prayerId={prayer.id} />
+        <NamazOutline prayerId={prayer.id} />
       </main>
     </div>
   );

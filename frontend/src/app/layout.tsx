@@ -18,7 +18,6 @@ import { LocaleSync } from '@/components/LocaleSync';
 import { LocaleFromPath } from '@/components/LocaleFromPath';
 import {
   DEFAULT_DESCRIPTION,
-  DEFAULT_KEYWORDS,
   SITE_NAME,
   SITE_URL,
   absoluteUrl,
@@ -58,7 +57,6 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: DEFAULT_DESCRIPTION,
-  keywords: DEFAULT_KEYWORDS,
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
@@ -66,9 +64,6 @@ export const metadata: Metadata = {
   category: 'religion',
   referrer: 'origin-when-cross-origin',
   formatDetection: { telephone: false, email: false, address: false },
-  alternates: {
-    canonical: SITE_URL,
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

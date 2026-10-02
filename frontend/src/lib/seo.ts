@@ -21,23 +21,6 @@ export const SITE_NAME = 'QuranPilot';
 export const DEFAULT_DESCRIPTION =
   'Read the Holy Quran online with Arabic Uthmani text, English translation, and verse-by-verse audio. Browse all 114 surahs on QuranPilot.';
 
-export const DEFAULT_KEYWORDS = [
-  'Quran',
-  'Holy Quran',
-  'Quran online',
-  'read Quran',
-  'read Quran online',
-  'Quran translation',
-  'Quran audio',
-  'listen to Quran',
-  'Surah',
-  'ayah',
-  'Islamic',
-  'QuranPilot',
-  'Uthmani script',
-  'Quran English translation',
-];
-
 /** Default OG/Twitter image from `app/opengraph-image.tsx`. */
 export const DEFAULT_OG_IMAGE_PATH = '/opengraph-image';
 
@@ -63,8 +46,9 @@ export function openGraphLocale(locale: ContentLocale): string {
  *
  * Returns undefined when `alternatePath` is omitted, so single-locale pages
  * emit no alternates rather than claiming translations that do not exist.
- * Every locale in the set points at the others AND at itself, and English
- * doubles as x-default — both required for Google to honour the cluster.
+ * Every locale in the set points at the others AND at itself (Google ignores
+ * annotations that aren't reciprocal). English doubles as x-default, the
+ * recommended fallback for languages we don't publish.
  */
 export function hreflangAlternates(
   alternatePath?: string,
@@ -82,7 +66,6 @@ export function buildPageMetadata({
   title,
   description,
   path = '/',
-  keywords = [],
   noIndex = false,
   type = 'website',
   locale = DEFAULT_CONTENT_LOCALE,
@@ -94,6 +77,7 @@ export function buildPageMetadata({
   title: string;
   description: string;
   path?: string;
+  /** @deprecated Ignored: Google doesn't use the keywords meta tag. Kept so callers compile. */
   keywords?: string[];
   noIndex?: boolean;
   type?: 'website' | 'article';
@@ -121,7 +105,6 @@ export function buildPageMetadata({
   return {
     title: fullTitle ? { absolute: fullTitle } : title,
     description,
-    keywords: [...DEFAULT_KEYWORDS, ...keywords],
     alternates: {
       canonical: url,
       languages: hreflangLanguages ?? hreflangAlternates(alternatePath),

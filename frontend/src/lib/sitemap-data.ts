@@ -53,12 +53,8 @@ function coreEntries(): SitemapEntry[] {
     { url: `${SITE_URL}/learning-plans`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/quran-in-year`, changeFrequency: 'monthly', priority: 0.65 },
     { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
+    // Prayer lesson pages are noindex until their content is reviewed; only the hub is listed.
     { url: `${SITE_URL}/learn-namaz`, changeFrequency: 'monthly', priority: 0.6 },
-    ...['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].map((prayer) => ({
-      url: `${SITE_URL}/learn-namaz/${prayer}`,
-      changeFrequency: 'monthly' as const,
-      priority: 0.55,
-    })),
     ...Array.from({ length: 30 }, (_, i) => ({
       url: `${SITE_URL}/juz/${i + 1}`,
       changeFrequency: 'monthly' as const,

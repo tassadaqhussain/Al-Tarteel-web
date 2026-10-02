@@ -8,13 +8,15 @@ export const LOCALE_TEXT_TRANSLATION_SLUG: Record<ContentLocale, string> = {
   en: 'en-sahih-international',
   ur: 'bayan-ul-quran',
   ps: 'ps-zakaria-abulsalam-118',
-  fa: 'qf-translation-135',
+  fa: 'fa-islamhouse-com-135',
 };
 
 /** Legacy / mistaken slugs → API slugs (cookie + old bookmarks). */
 const SLUG_ALIASES: Record<string, string> = {
   'ur-bayan-ul-quran': 'bayan-ul-quran',
   'ps-shafeeq-ur-rahman': 'ps-zakaria-abulsalam-118',
+  // Never existed in the production API; Persian pages rendered no translation.
+  'qf-translation-135': 'fa-islamhouse-com-135',
 };
 
 export function normalizeTranslationSlugForApi(slug: string): string {

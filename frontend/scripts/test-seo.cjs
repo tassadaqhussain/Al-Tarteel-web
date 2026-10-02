@@ -137,3 +137,34 @@ assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', {
   method: 'POST', headers: { 'next-action': 'invalid' },
 })).status, 400);
 console.log('All 114 zero-padded legacy surah redirects preserve query parameters; invalid paths and server-action checks remain unchanged.');
+
+// ── Audit 2026-10-02 regressions ──────────────────────────────────────────
+{
+  const slugs = load('lib/i18n/locale-translation-slugs');
+  // `qf-translation-135` never existed in production, so /fa pages showed no translation.
+  assert.equal(slugs.LOCALE_TEXT_TRANSLATION_SLUG.fa, 'fa-islamhouse-com-135');
+  assert.equal(slugs.normalizeTranslationSlugForApi('qf-translation-135'), 'fa-islamhouse-com-135');
+  for (const [locale, slug] of Object.entries(slugs.LOCALE_TEXT_TRANSLATION_SLUG)) {
+    assert.ok(slug.startsWith(`${locale}-`) || locale === 'ur', `${locale} text translation slug should be ${locale}-specific: ${slug}`);
+  }
+
+  // Fields Google ignores or doesn't support.
+  const urlset = xml.renderUrlset([{ url: 'https://quranpilot.com/a', changeFrequency: 'weekly', priority: 1 }]);
+  assert.ok(!/changefreq|priority|lastmod/.test(urlset), 'sitemap emits <loc> only');
+  const robotsSrc = fs.readFileSync(path.resolve(root, 'app/robots.ts'), 'utf8');
+  assert.ok(!/\bhost:/.test(robotsSrc), 'robots.txt has no unsupported Host field');
+  const page = seo.buildPageMetadata({ title: 'T', description: 'D', path: '/x', keywords: ['k'] });
+  assert.equal(page.keywords, undefined, 'no meta keywords');
+
+  // Root layout must not hand every route the homepage as canonical.
+  const layoutSrc = fs.readFileSync(path.resolve(root, 'app/layout.tsx'), 'utf8');
+  assert.ok(!/canonical:\s*SITE_URL/.test(layoutSrc), 'no inherited homepage canonical');
+
+  // Learn Namaz prayer pages stay out of the sitemap while content awaits review.
+  const urls = sitemap.SITEMAP_SHARD_IDS.flatMap((id) => sitemap.sitemapShardEntries(id).map((e) => e.url));
+  assert.ok(urls.includes('https://quranpilot.com/learn-namaz'));
+  assert.ok(!urls.some((u) => /\/learn-namaz\/.+/.test(u)), 'prayer lesson pages not listed');
+  const prayerSrc = fs.readFileSync(path.resolve(root, 'app/learn-namaz/[prayer]/page.tsx'), 'utf8');
+  assert.ok(/noIndex:\s*true/.test(prayerSrc), 'prayer lesson pages are noindex');
+}
+console.log('Audit 2026-10-02 checks passed: Persian slug, ignored fields removed, canonical default, Learn Namaz indexing.');
