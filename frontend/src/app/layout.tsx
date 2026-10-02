@@ -66,9 +66,6 @@ export const metadata: Metadata = {
   category: 'religion',
   referrer: 'origin-when-cross-origin',
   formatDetection: { telephone: false, email: false, address: false },
-  alternates: {
-    canonical: SITE_URL,
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -171,6 +168,10 @@ export default function RootLayout({
               "if(s.uiLocale){r.lang=s.uiLocale;" +
               // keep in sync with RTL_LOCALES in lib/i18n/messages.ts
               "r.dir=['ar','fa','ur','ps'].indexOf(s.uiLocale)>-1?'rtl':'ltr';}" +
+              // Locale-prefixed routes (/ur, /ps, /fa) are written in that
+              // language, so it wins over the UI locale for lang; dir stays
+              // with the UI chrome.
+              "if(['ur','ps','fa'].indexOf(seg[0])>-1)r.lang=seg[0];" +
               "}catch(e){}})();",
           }}
         />

@@ -16,9 +16,8 @@ export function renderUrlset(entries: SitemapEntry[]): string {
   const urls = entries
     .map(
       (entry) =>
-        `<url><loc>${escapeXml(entry.url)}</loc>` +
-        `<changefreq>${entry.changeFrequency}</changefreq>` +
-        `<priority>${entry.priority}</priority></url>`,
+        // Google ignores <changefreq> and <priority>, so only <loc> is emitted.
+        `<url><loc>${escapeXml(entry.url)}</loc></url>`,
     )
     .join('');
   return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${URLSET_NS}">${urls}</urlset>`;

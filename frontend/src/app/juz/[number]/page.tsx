@@ -137,10 +137,12 @@ export default async function JuzPage({ params, searchParams }: Props) {
 
         {/* Juz heading */}
         <div className="mb-8 rounded-2xl border border-line bg-surface px-6 py-5 text-center shadow-sm">
-          <h1 className="font-arabic text-4xl font-bold text-ink">الجزء {juzNumber}</h1>
-          <p className="mt-2 text-sm text-ink-3">
-            Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
-          </p>
+          <h1>
+            <span lang="ar" dir="rtl" className="block font-arabic text-4xl font-bold text-ink">الجزء {juzNumber}</span>
+            <span className="mt-2 block text-sm font-normal text-ink-3">
+              Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
+            </span>
+          </h1>
         </div>
 
         {/* Ayahs grouped by surah */}

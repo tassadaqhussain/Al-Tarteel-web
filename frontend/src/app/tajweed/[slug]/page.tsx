@@ -8,6 +8,19 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { TajweedLessonExperience } from '@/components/tajweed/TajweedLessonExperience';
 import type { TajweedLessonSlug } from '@/lib/tajweed/rules';
 
+/** Whole sentences of the summary up to ~160 chars, never cut mid-word. */
+function summaryDescription(summary: string, max = 160): string {
+  if (summary.length <= max) return summary;
+  const sentences = summary.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [];
+  let out = '';
+  for (const s of sentences) {
+    if ((out + s).trim().length > max) break;
+    out += s;
+  }
+  if (out.trim()) return out.trim();
+  return `${summary.slice(0, max).replace(/\s+\S*$/, '')}…`;
+}
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
@@ -20,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!lesson) return { title: 'Tajweed lesson' };
   return buildPageMetadata({
     title: `${lesson.name} – Tajweed Lesson | QuranPilot`,
-    description: lesson.summary.slice(0, 155),
+    description: summaryDescription(lesson.summary),
     path: `/tajweed/${lesson.slug}`,
     keywords: [lesson.name, 'Tajweed', 'Quran Tajweed'],
     type: 'article',

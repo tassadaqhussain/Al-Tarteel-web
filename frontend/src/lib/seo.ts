@@ -245,15 +245,6 @@ export function juzSeo(juzNumber: number, page = 1) {
   });
 }
 
-export function translationHubHreflang(): Record<string, string> {
-  return {
-    en: absoluteUrl('/quran-english-translation'),
-    ur: absoluteUrl('/quran-urdu-translation'),
-    ps: absoluteUrl('/quran-pashto-translation'),
-    'x-default': absoluteUrl('/quran-english-translation'),
-  };
-}
-
 /** High-intent ayahs with search-friendly names (used for sitemap + static generation). */
 export const FAMOUS_AYAHS: { surah: number; ayah: number }[] = [
   { surah: 2, ayah: 255 },
