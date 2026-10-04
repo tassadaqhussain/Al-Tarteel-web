@@ -4,20 +4,22 @@ import Link from 'next/link';
 import { ArticleCard } from '@/components/articles/ArticleCard';
 import { getDailyFeaturedArticles } from '@/lib/articles';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { useT } from '@/lib/i18n';
 
 export function StartLearning() {
   const articles = getDailyFeaturedArticles(3);
+  const { t } = useT();
 
   return (
     <section className="w-full bg-brand/[0.02] py-16 2xl:py-20">
       <div className={SITE_SHELL}>
         <div className="mb-10 flex flex-col items-center justify-between gap-3 text-center lg:flex-row lg:text-left">
           <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
-            Learn Quran and Islam <br className="sm:hidden" />
-            <span className="text-brand">basics everyday.</span>
+            {t('learnBasicsTitle')} <br className="sm:hidden" />
+            <span className="text-brand">{t('learnBasicsAccent')}</span>
           </h2>
           <p className="max-w-md text-sm text-ink-muted lg:text-right">
-            New featured reads rotate daily from our growing library of Islam &amp; Quran guides.
+            {t('learnBasicsBody')}
           </p>
         </div>
 
@@ -26,7 +28,7 @@ export function StartLearning() {
             <ArticleCard
               key={article.slug}
               article={article}
-              badge={index === 0 ? 'New today' : undefined}
+              badge={index === 0 ? t('newToday') : undefined}
               priority={false}
             />
           ))}
@@ -37,7 +39,7 @@ export function StartLearning() {
             href="/articles"
             className="inline-flex items-center justify-center rounded-full bg-emerald-800 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-950"
           >
-            Read More Articles
+            {t('readMoreArticles')}
           </Link>
         </div>
       </div>

@@ -7,6 +7,8 @@ import type { Surah } from '@/lib/api';
 import { getSurahArabicName, getSurahMeaning, getSurahPath } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { format } from '@/components/i18n/Msg';
+import { useT } from '@/lib/i18n';
 
 type Tab = 'surah' | 'juz' | 'revelation';
 
@@ -19,8 +21,8 @@ export function SurahGrid({
   embedded = false,
   showHeader = true,
   showTabs = true,
-  sectionTitle = 'Browse chapters',
-  sectionSubtitle = 'Choose a Surah, Juz, or revelation order.',
+  sectionTitle,
+  sectionSubtitle,
 }: {
   surahs: Surah[];
   embedded?: boolean;
@@ -29,6 +31,7 @@ export function SurahGrid({
   sectionTitle?: string;
   sectionSubtitle?: string;
 }) {
+  const { t } = useT();
   const [tab, setTab] = useState<Tab>('surah');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -69,10 +72,10 @@ export function SurahGrid({
             <div data-surah-toolbar className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
-                  {sectionTitle}
+                  {sectionTitle ?? t('homeBrowseChapters')}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-ink-muted">
-                  {sectionSubtitle}
+                  {sectionSubtitle ?? t('homeBrowseChaptersSub')}
                 </p>
               </div>
 
@@ -81,9 +84,9 @@ export function SurahGrid({
                   <div className="grid grid-cols-3 gap-1 rounded-2xl bg-surface-3 p-1">
                     {(
                       [
-                        ['surah', 'Surah', BookOpen],
-                        ['juz', 'Juz', Layers3],
-                        ['revelation', 'Order', SortAsc],
+                        ['surah', t('tabSurah'), BookOpen],
+                        ['juz', t('tabJuz'), Layers3],
+                        ['revelation', t('tabOrder'), SortAsc],
                       ] as const
                     ).map(([id, label, Icon]) => (
                       <button
@@ -110,7 +113,7 @@ export function SurahGrid({
                     <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
                     <input
                       type="text"
-                      placeholder="Search surah name or number..."
+                      placeholder={t('searchSurahPlaceholder')}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full rounded-full border border-line bg-surface py-2 pl-9 pr-4 text-xs text-ink placeholder-ink-faint outline-none transition focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
@@ -138,7 +141,7 @@ export function SurahGrid({
                   >
                     <DiamondNumber n={juz} isActive={false} />
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-ink transition group-hover:text-brand">Juz {juz}</h3>
+                      <h3 className="font-bold text-ink transition group-hover:text-brand">{format(t('juzN'), { n: juz })}</h3>
                       <p className="truncate text-xs text-ink-faint">
                         Starts at {surah?.nameSimple || `Surah ${startSurah}`}
                       </p>
@@ -174,7 +177,7 @@ export function SurahGrid({
                       {getSurahArabicName(surah.number, surah.nameArabic)}
                     </p>
                     <p className="mt-1.5 text-xs text-ink-faint">
-                      {surah.numberOfAyahs} verses
+                      {format(t('nVerses'), { n: surah.numberOfAyahs })}
                     </p>
                   </div>
                 </Link>

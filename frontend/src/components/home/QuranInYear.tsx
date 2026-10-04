@@ -6,6 +6,7 @@ import {
   weekReadingHref,
 } from '@/lib/quranic-calendar';
 import { getSurahPath } from '@/lib/surah-meta';
+import { Msg } from '@/components/i18n/Msg';
 import { PageSection } from '@/components/layout/MainContainer';
 
 export function QuranInYear() {
@@ -15,13 +16,13 @@ export function QuranInYear() {
   return (
     <PageSection id="quran-in-year">
       <div className="mb-5 flex items-center justify-between gap-2 sm:mb-6">
-        <h2 className="text-lg font-bold text-ink sm:text-xl md:text-2xl">Quran in a Year</h2>
+        <h2 className="text-lg font-bold text-ink sm:text-xl md:text-2xl"><Msg k="quranInYear" /></h2>
         <Link
           href="/quran-in-year"
           className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-[var(--accent)] underline underline-offset-4"
         >
           <Calendar className="h-4 w-4" />
-          Calendar
+          <Msg k="calendar" />
         </Link>
       </div>
 
@@ -30,19 +31,18 @@ export function QuranInYear() {
           <div className="mx-auto w-32 shrink-0 overflow-hidden rounded-xl bg-surface shadow-sm ring-1 ring-line sm:mx-0 sm:w-36">
             <div className="h-1.5 bg-[var(--accent)]" />
             <div className="px-3 py-4 text-center sm:py-5">
-              <p className="text-xs font-medium uppercase tracking-wider text-ink-faint">Week</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-ink-faint"><Msg k="week" /></p>
               <p className="mt-1 text-4xl font-bold tabular-nums text-ink">{week.week}</p>
             </div>
           </div>
 
           <div className="min-w-0 flex-1">
             <p className="text-sm leading-relaxed text-ink-3 sm:text-[15px]">
-              A thoughtfully designed schedule that makes it easy for you to read and understand the
-              entire Quran from one Ramadan to the next, at a steady and manageable pace.
+              <Msg k="quranInYearBody" />
             </p>
 
             <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint sm:mt-5">
-              This Week&apos;s Readings
+              <Msg k="thisWeeksReadings" />
             </p>
 
             <div className="mt-2 flex flex-col items-stretch gap-3 rounded-xl bg-surface-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-4">
@@ -51,7 +51,7 @@ export function QuranInYear() {
                   {week.start.nameArabic}
                 </p>
                 <p className="mt-1 text-sm font-medium text-ink-2">
-                  {week.start.nameSimple} · Verse {week.start.ayah}
+                  {week.start.nameSimple} · <Msg k="verseN" vars={{ n: week.start.ayah }} />
                 </p>
                 <p className="text-xs text-ink-faint">
                   {week.start.surah}:{week.start.ayah}
@@ -68,7 +68,7 @@ export function QuranInYear() {
                   {week.end.nameArabic}
                 </p>
                 <p className="mt-1 text-sm font-medium text-ink-2">
-                  {week.end.nameSimple} · Verse {week.end.ayah}
+                  {week.end.nameSimple} · <Msg k="verseN" vars={{ n: week.end.ayah }} />
                 </p>
                 <p className="text-xs text-ink-faint">
                   {week.end.surah}:{week.end.ayah}
@@ -81,13 +81,13 @@ export function QuranInYear() {
                 href="/quran-in-year"
                 className="flex-1 rounded-full bg-surface-3 px-4 py-2.5 text-center text-sm font-semibold text-ink-2 transition hover:bg-line sm:flex-none"
               >
-                Learn More
+                <Msg k="learnMore" />
               </Link>
               <Link
                 href={weekReadingHref(week)}
                 className="flex-1 rounded-full bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90 sm:flex-none"
               >
-                Start reading
+                <Msg k="startReading" />
               </Link>
             </div>
           </div>

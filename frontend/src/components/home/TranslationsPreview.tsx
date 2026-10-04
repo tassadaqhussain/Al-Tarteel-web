@@ -26,6 +26,7 @@ import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { useT } from '@/lib/i18n';
 
 const PREVIEW_COUNT = 6;
 const PREFERRED_RECITER = 'alafasy';
@@ -106,6 +107,7 @@ export function TranslationsPreview({
   const [error, setError] = useState<string | null>(null);
   const [volume, setVolume] = useState(0.8);
 
+  const { t } = useT();
   const settingsReciter = useSettingsStore((s) => s.reciterSlug);
   const setReciterSlug = useSettingsStore((s) => s.setReciterSlug);
 
@@ -285,8 +287,8 @@ export function TranslationsPreview({
       <div className={SITE_SHELL}>
         <div className="mb-10 text-center lg:text-left">
           <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
-            Hear the Quran <br className="sm:hidden" />
-            <span className="text-brand">accompanied by translations.</span>
+            {t('hearQuranTitle')} <br className="sm:hidden" />
+            <span className="text-brand">{t('hearQuranAccent')}</span>
           </h2>
         </div>
 
@@ -338,7 +340,7 @@ export function TranslationsPreview({
                   href="/surahs"
                   className="inline-flex items-center gap-1.5 py-2 text-xs font-bold text-brand hover:underline"
                 >
-                  View More Chapters
+                  {t('viewMoreChapters')}
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -358,7 +360,7 @@ export function TranslationsPreview({
                   href={getSurahPath(activeSurah)}
                   className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-brand transition hover:bg-emerald-800/20"
                 >
-                  Open Reader
+                  {t('openReader')}
                 </Link>
               </div>
 
@@ -368,7 +370,7 @@ export function TranslationsPreview({
                 ) : previewUi === 'retry' ? (
                   <div className="flex flex-col items-center gap-3">
                     <p className="text-sm text-ink-muted">
-                      {error || 'Could not load verses for this chapter.'}
+                      {error || t('loadVersesError')}
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-2">
                       <button
@@ -382,7 +384,7 @@ export function TranslationsPreview({
                         href={getSurahPath(activeSurah)}
                         className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-brand hover:bg-emerald-800/20"
                       >
-                        Open reader
+                        {t('openReader')}
                       </Link>
                     </div>
                   </div>
@@ -424,7 +426,7 @@ export function TranslationsPreview({
                         href={getSurahPath(activeSurah)}
                         className="inline-flex text-xs font-bold text-brand hover:underline"
                       >
-                        Continue in full reader →
+                        {t('continueFullReader')}
                       </Link>
                     )}
                   </div>

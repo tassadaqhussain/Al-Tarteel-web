@@ -1,18 +1,20 @@
 import { Headphones } from 'lucide-react';
 import { ReciterTile, type ReciterTileVariant } from '@/components/audio/ReciterTile';
+import { Msg } from '@/components/i18n/Msg';
+import type { MessageKey } from '@/lib/i18n/messages';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
 
 const RECITERS: Array<{
   variant: ReciterTileVariant;
   name: string;
-  desc: string;
+  desc: MessageKey;
 }> = [
-  { variant: 'alafasy', name: 'Mishary Rashid Alafasy', desc: 'Renowned Kuwaiti Reciter' },
-  { variant: 'sudais', name: 'Abdul Rahman Al-Sudais', desc: 'Chief Imam of Grand Mosque' },
-  { variant: 'basit', name: 'Abdul Basit Abdus Samad', desc: 'Golden Voice from Egypt' },
-  { variant: 'dosari', name: 'Yasser Al-Dosari', desc: 'Imam of Masjid al-Haram' },
-  { variant: 'balila', name: 'Abdul Aziz Bin Bandar Balila', desc: 'Imam of Masjid al-Haram' },
-  { variant: 'ousi', name: 'Abdur Rahman Al-Ousi', desc: 'Imam and Reciter' },
+  { variant: 'alafasy', name: 'Mishary Rashid Alafasy', desc: 'reciterDescAlafasy' },
+  { variant: 'sudais', name: 'Abdul Rahman Al-Sudais', desc: 'reciterDescSudais' },
+  { variant: 'basit', name: 'Abdul Basit Abdus Samad', desc: 'reciterDescBasit' },
+  { variant: 'dosari', name: 'Yasser Al-Dosari', desc: 'reciterDescHaramImam' },
+  { variant: 'balila', name: 'Abdul Aziz Bin Bandar Balila', desc: 'reciterDescHaramImam' },
+  { variant: 'ousi', name: 'Abdur Rahman Al-Ousi', desc: 'reciterDescOusi' },
 ];
 
 export function RecitersSection() {
@@ -21,8 +23,8 @@ export function RecitersSection() {
       <div className={SITE_SHELL}>
         <div className="mb-10 text-center lg:text-left">
           <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
-            Enjoy Holy Quran recited <br className="sm:hidden" />
-            <span className="text-brand">by your preferred reciters.</span>
+            <Msg k="recitersTitle" /> <br className="sm:hidden" />
+            <span className="text-brand"><Msg k="recitersAccent" /></span>
           </h2>
         </div>
 
@@ -42,7 +44,7 @@ export function RecitersSection() {
               <h3 className="text-base font-bold text-ink transition group-hover:text-brand 2xl:text-lg">
                 {r.name}
               </h3>
-              <p className="mt-1 text-xs text-ink-muted">{r.desc}</p>
+              <p className="mt-1 text-xs text-ink-muted"><Msg k={r.desc} /></p>
             </div>
           ))}
         </div>
