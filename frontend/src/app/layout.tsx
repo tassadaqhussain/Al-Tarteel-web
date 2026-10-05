@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Amiri, Amiri_Quran, Figtree } from 'next/font/google';
+import { Amiri, Amiri_Quran, Figtree, Fredoka } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
@@ -40,6 +40,14 @@ const amiriQuran = Amiri_Quran({
   weight: '400',
   subsets: ['arabic', 'latin'],
   variable: '--font-amiri-quran',
+  display: 'swap',
+  preload: false,
+});
+
+/** Kids experience only. Self-hosted, so no render-blocking third-party CSS. */
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  variable: '--font-fredoka',
   display: 'swap',
   preload: false,
 });
@@ -176,7 +184,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${amiri.variable} ${amiriQuran.variable} ${figtree.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
+      <body className={`${amiri.variable} ${amiriQuran.variable} ${figtree.variable} ${fredoka.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
         <TajweedStyles />
         <ThemeProvider>
