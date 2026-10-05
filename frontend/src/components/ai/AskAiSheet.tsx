@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { AiMarkdown } from '@/components/ai/AiMarkdown';
 import {
   Loader2,
   MessageCircle,
@@ -314,13 +315,17 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
             <div
               key={`${m.role}-${i}`}
               className={cn(
-                'max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
+                'max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                 m.role === 'user'
                   ? 'ml-auto bg-[var(--accent)] text-brand-contrast'
                   : 'mr-auto border border-line bg-surface-2 text-ink',
               )}
             >
-              {m.content}
+              {m.role === 'assistant' ? (
+                <AiMarkdown>{m.content}</AiMarkdown>
+              ) : (
+                <span className="whitespace-pre-wrap">{m.content}</span>
+              )}
             </div>
           ))}
 
