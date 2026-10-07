@@ -28,7 +28,7 @@ export function ScrollToHashAyah() {
 
     const run = () => {
       const hash = window.location.hash;
-      const match = /^#ayah-(?:number-)?(\d{1,3})$/.exec(hash);
+      const match = /^#ayah-(?:number-)?(\d{1,4})$/.exec(hash);
       if (!match) return;
       const id = hash.slice(1);
       let attempts = 0;

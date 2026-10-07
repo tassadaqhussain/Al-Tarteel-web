@@ -99,6 +99,15 @@ export function parseVoiceIntent(rawQuery: string): VoiceIntent {
     return { type: 'UNKNOWN', query: raw, confidence: 0 };
   }
 
+  // A juz, page or hizb reference counts that unit, never a surah. Without an
+  // early exit the name part ("صفحة", "page") reaches the fuzzy surah matcher
+  // and scores against a real surah — "صفحة ٣" opened Sad.
+  const UNIT_REFERENCE =
+    /^(?:page|pg|mushaf page|juz|para|hizb|جزء|پارہ|پارا|سپارہ|صفحة|صفحه|صفحہ|حزب)(?:\s+\d{1,3})?(?:\s|$)/i;
+  if (UNIT_REFERENCE.test(norm)) {
+    return { type: 'UNKNOWN', query: raw, confidence: 0 };
+  }
+
   // -------------------------------------------------------------
   // TIER 1: Exact Quran Reference (e.g., "2:255", "36:1", "surah 2 verse 255")
   // -------------------------------------------------------------
@@ -168,7 +177,9 @@ export function parseVoiceIntent(rawQuery: string): VoiceIntent {
   // juz/page/hizb references are counted separately and must not be caught.
   const bareNumberPattern = /^(?:surah\s+|سورة\s+|سورۃ\s+)?(.+?)\s+(\d{1,3})$/i;
   const bareNumberMatch = norm.match(bareNumberPattern);
-  if (bareNumberMatch && !/^(?:juz|para|page|pg|hizb|جزء|صفحة|حزب)\b/i.test(norm)) {
+  // \b does not apply after Arabic letters, so match an explicit boundary.
+  const unitPrefix = /^(?:juz|para|page|pg|hizb|جزء|پارہ|پارا|سپارہ|صفحة|صفحه|صفحہ|حزب)(?:\s|$)/i;
+  if (bareNumberMatch && !unitPrefix.test(norm)) {
     const surahNamePart = bareNumberMatch[1].trim();
     const ayahNumber = parseInt(bareNumberMatch[2], 10);
     const surahMatch = findBestSurahMatch(surahNamePart);
