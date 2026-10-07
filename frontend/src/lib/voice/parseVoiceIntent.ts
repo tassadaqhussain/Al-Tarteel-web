@@ -122,7 +122,10 @@ export function parseVoiceIntent(rawQuery: string): VoiceIntent {
   // -------------------------------------------------------------
   // TIER 2: Surah + Ayah (e.g. "Surah Baqarah ayah 255", "Surah Yaseen verse 10", "Surah Mulk 2")
   // -------------------------------------------------------------
-  const surahAyahPattern = /^(?:surah\s+)?(.+?)\s+(?:ayah|ayat|verse| verse | #)\s*(\d{1,3})$/i;
+  // Arabic/Urdu speakers say آية / آیت rather than "ayah", and may prefix
+  // the surah name with سورة / سورۃ.
+  const surahAyahPattern =
+    /^(?:surah\s+|سورة\s+|سورۃ\s+)?(.+?)\s+(?:ayah|ayat|verse|#|آية|آیة|اية|ايه|آیت|ایت|رقم)\s*(\d{1,3})$/i;
   const surahAyahMatch = norm.match(surahAyahPattern);
   if (surahAyahMatch) {
     const surahNamePart = surahAyahMatch[1].trim();
@@ -152,6 +155,30 @@ export function parseVoiceIntent(rawQuery: string): VoiceIntent {
         type: 'OPEN_AYAH',
         query: raw,
         confidence: Math.min(0.95, surahMatch.score + 0.1),
+        surahNumber: surahMatch.surah.number,
+        ayahNumber,
+        surahName: surahMatch.surah.nameSimple,
+      };
+    }
+  }
+
+  // A bare trailing number after a surah name ("Baqarah 255", "البقرة ٢٥٥").
+  // Without this the name matched on its own and the number was dropped, so
+  // the reader opened the surah at verse 1. Keyword forms are handled above;
+  // juz/page/hizb references are counted separately and must not be caught.
+  const bareNumberPattern = /^(?:surah\s+|سورة\s+|سورۃ\s+)?(.+?)\s+(\d{1,3})$/i;
+  const bareNumberMatch = norm.match(bareNumberPattern);
+  if (bareNumberMatch && !/^(?:juz|para|page|pg|hizb|جزء|صفحة|حزب)\b/i.test(norm)) {
+    const surahNamePart = bareNumberMatch[1].trim();
+    const ayahNumber = parseInt(bareNumberMatch[2], 10);
+    const surahMatch = findBestSurahMatch(surahNamePart);
+    // Stricter than the keyword forms: with no "ayah" marker, a weak name
+    // match is more likely to be a phrase search than a verse reference.
+    if (surahMatch && surahMatch.score >= 0.7 && ayahNumber >= 1) {
+      return {
+        type: 'OPEN_AYAH',
+        query: raw,
+        confidence: Math.min(0.9, surahMatch.score),
         surahNumber: surahMatch.surah.number,
         ayahNumber,
         surahName: surahMatch.surah.nameSimple,
