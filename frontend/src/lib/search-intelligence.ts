@@ -4,6 +4,7 @@
  */
 
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES, getSurahPath } from '@/lib/surah-meta';
+import { fromArabicNumerals } from '@/lib/arabic-number';
 
 export type SuggestKind = 'surah' | 'topic' | 'query';
 
@@ -72,7 +73,8 @@ function stripDiacritics(s: string) {
 }
 
 export function normalizeSearchText(q: string) {
-  return stripDiacritics(q)
+  // Typed or dictated Arabic-Indic numerals must behave like ASCII digits.
+  return fromArabicNumerals(stripDiacritics(q))
     .toLowerCase()
     .replace(/surah|sura|chapter/gi, ' ')
     .replace(/[^a-z0-9\u0600-\u06ff\s:-]/gi, ' ')

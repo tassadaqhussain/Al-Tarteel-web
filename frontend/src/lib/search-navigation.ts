@@ -6,6 +6,15 @@ import {
 import { getSurahHref, getSurahPath } from '@/lib/surah-meta';
 import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
 
+/**
+ * Words that introduce a juz, page or hizb reference. A number after one of
+ * these counts that unit, never an ayah.
+ */
+// \b is defined over [A-Za-z0-9_], so it never matches after an Arabic
+// letter; use an explicit space-or-end boundary instead.
+const NON_AYAH_PREFIX =
+  /^(?:page|pg|juz|para|hizb|جزء|پارہ|پارا|سپارہ|صفحة|صفحه|صفحہ|حزب)(?:\s|$)/i;
+
 /** Resolve searches that identify a single Quran location without an API call. */
 export function resolveDirectSearchHref(raw: string): string | null {
   const query = raw.trim();
@@ -23,14 +32,15 @@ export function resolveDirectSearchHref(raw: string): string | null {
     return intent.destination;
   }
 
-  const juzMatch = normalized.match(/^(?:juz|para)\s+(\d{1,2})$/i);
+  // Arabic and Urdu speakers say جزء / پارہ rather than "juz".
+  const juzMatch = normalized.match(/^(?:juz|para|جزء|پارہ|پارا|سپارہ)\s+(\d{1,2})$/i);
   if (juzMatch) {
     const juzNumber = Number(juzMatch[1]);
     if (juzNumber >= 1 && juzNumber <= 30) return `/juz/${juzNumber}`;
   }
 
   const trailingAyah = normalized.match(/^(.+?)\s+(\d{1,3})$/);
-  if (trailingAyah && !/^(?:page|pg|juz|para)\b/.test(normalized)) {
+  if (trailingAyah && !NON_AYAH_PREFIX.test(normalized)) {
     const ayahNumber = Number(trailingAyah[2]);
     const surahHit = getSurahSuggestions(trailingAyah[1].trim(), 1)[0];
     if (surahHit && surahHit.score >= 0.68 && ayahNumber >= 1) {
@@ -53,7 +63,7 @@ export function resolveDirectSearchHref(raw: string): string | null {
 /** Mushaf page references need one API lookup before opening the first verse. */
 export function parseQuranPageSearch(raw: string): number | null {
   const normalized = normalizeSearchText(raw);
-  const match = normalized.match(/^(?:page|pg|mushaf page)\s+(\d{1,3})$/i);
+  const match = normalized.match(/^(?:page|pg|mushaf page|صفحة|صفحه|صفحہ)\s+(\d{1,3})$/i);
   if (!match) return null;
   const pageNumber = Number(match[1]);
   return pageNumber >= 1 && pageNumber <= 604 ? pageNumber : null;

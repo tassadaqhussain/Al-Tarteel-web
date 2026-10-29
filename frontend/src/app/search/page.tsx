@@ -128,7 +128,38 @@ function SearchPageContent() {
   useEffect(() => {
     if (!initialQ) return;
     const directHref = resolveDirectSearchHref(initialQ);
-    if (directHref) router.replace(directHref);
+    if (directHref) {
+      router.replace(directHref);
+      return;
+    }
+
+    // A mushaf page needs one lookup to find its first verse, so it cannot be
+    // resolved synchronously above. Shared links and voice results arrive as
+    // ?q=, which previously just showed the search page for "page 3".
+    const mushafPage = parseQuranPageSearch(initialQ);
+    if (!mushafPage) return;
+
+    let cancelled = false;
+    void quranApi
+      .ayahsByPage(mushafPage, { limit: 1 })
+      .then((pageAyahs) => {
+        if (cancelled) return;
+        const first = pageAyahs[0];
+        if (first?.surah?.number && first.number) {
+          router.replace(
+            getSurahHref(first.surah.number, {
+              ayahId: first.id,
+              ayahNumber: first.number,
+            }),
+          );
+        }
+      })
+      .catch(() => {
+        /* stay on the results page when the Quran API is unavailable */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [initialQ, router]);
 
   const suggestions = useMemo(

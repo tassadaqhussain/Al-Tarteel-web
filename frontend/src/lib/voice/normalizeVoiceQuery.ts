@@ -1,3 +1,4 @@
+import { fromArabicNumerals } from '@/lib/arabic-number';
 /**
  * Normalizes voice query text for intent parsing and search indexing.
  * Handles English, Arabic, Urdu, and Roman Urdu speech patterns.
@@ -120,7 +121,9 @@ export function convertWordNumbersToDigits(text: string): string {
 export function normalizeVoiceQuery(rawQuery: string): string {
   if (!rawQuery) return '';
 
-  let text = stripDiacritics(rawQuery.trim())
+  // Arabic-Indic numerals first: every downstream pattern uses \d, which is
+  // ASCII-only, so "٢:٢٥٥" would otherwise match nothing.
+  let text = fromArabicNumerals(stripDiacritics(rawQuery.trim()))
     .toLowerCase()
     // Replace non-alphanumeric except Arabic/Urdu unicode range and : or -
     .replace(/[^a-z0-9\u0600-\u06ff\s:-]/gi, ' ')
