@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { getTajweedLesson, TAJWEED_LESSONS } from '@/lib/tajweed/rules';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, tajweedLessonJsonLd } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { TajweedLessonExperience } from '@/components/tajweed/TajweedLessonExperience';
 import type { TajweedLessonSlug } from '@/lib/tajweed/rules';
 
@@ -47,6 +48,14 @@ export default async function TajweedLessonPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
+      <JsonLd
+        data={tajweedLessonJsonLd({
+          name: lesson.name,
+          nameArabic: lesson.nameArabic,
+          summary: lesson.summary,
+          slug: lesson.slug,
+        })}
+      />
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-10">
         <Breadcrumbs

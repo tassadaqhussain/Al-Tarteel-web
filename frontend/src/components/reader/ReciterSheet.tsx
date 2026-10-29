@@ -11,6 +11,7 @@ import {
 import { audioApi, type Reciter } from '@/lib/api';
 import { catalogTranslationReciters } from '@/lib/audio/translation-reciters';
 import { unavailableReciterReason } from '@/lib/audio/availability';
+import { trackSelectContent } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -207,6 +208,7 @@ export function ReciterSheet({
                       title={unavailable ?? undefined}
                       type="button"
                       onClick={() => {
+                        trackSelectContent('reciter', reciter.slug, label);
                         onSelect(reciter.slug);
                         onOpenChange(false);
                       }}

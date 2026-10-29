@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Check, Code2, ImageIcon, Link2, Video, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { trackShare } from '@/lib/analytics';
 import { getSurahHref, getSurahPath } from '@/lib/surah-meta';
 
 interface Props {
@@ -153,37 +154,55 @@ export function ShareVerseModal({
       id: 'facebook',
       label: 'Facebook',
       icon: <FacebookIcon className="h-5 w-5" />,
-      onClick: () => openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(verseUrl)}`),
+      onClick: () => {
+        trackShare('ayah', `${surahNumber}:${ayahNumber}`, 'facebook');
+        openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(verseUrl)}`);
+      },
     },
     {
       id: 'x',
       label: 'X',
       icon: <XIcon className="h-5 w-5" />,
-      onClick: () => openShare(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`),
+      onClick: () => {
+        trackShare('ayah', `${surahNumber}:${ayahNumber}`, 'x');
+        openShare(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`);
+      },
     },
     {
       id: 'whatsapp',
       label: 'WhatsApp',
       icon: <WhatsAppIcon className="h-5 w-5" />,
-      onClick: () => openShare(`https://wa.me/?text=${encodeURIComponent(shareText)}`),
+      onClick: () => {
+        trackShare('ayah', `${surahNumber}:${ayahNumber}`, 'whatsapp');
+        openShare(`https://wa.me/?text=${encodeURIComponent(shareText)}`);
+      },
     },
     {
       id: 'link',
       label: copied === 'link' ? 'Copied' : 'Copy Link',
       icon: copied === 'link' ? <Check className="h-5 w-5" /> : <Link2 className="h-5 w-5" />,
-      onClick: () => void copyLink(),
+      onClick: () => {
+        trackShare('ayah', `${surahNumber}:${ayahNumber}`, 'link');
+        void copyLink();
+      },
     },
     {
       id: 'embed',
       label: copied === 'embed' ? 'Copied' : 'Copy Embed',
       icon: copied === 'embed' ? <Check className="h-5 w-5" /> : <Code2 className="h-5 w-5" />,
-      onClick: () => void copyEmbed(),
+      onClick: () => {
+        trackShare('ayah', `${surahNumber}:${ayahNumber}`, 'embed');
+        void copyEmbed();
+      },
     },
     {
       id: 'video',
       label: 'Generate Video/Image',
       icon: <Video className="h-5 w-5" />,
-      onClick: () => void downloadImage(),
+      onClick: () => {
+        trackShare('ayah', `${surahNumber}:${ayahNumber}`, 'image');
+        void downloadImage();
+      },
     },
   ];
 

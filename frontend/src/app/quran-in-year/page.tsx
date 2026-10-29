@@ -13,6 +13,7 @@ import {
 } from '@/lib/quranic-calendar';
 import { buildPageMetadata } from '@/lib/seo';
 import { getSurahPath } from '@/lib/surah-meta';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Quran in a Year — Reading Schedule',
@@ -32,6 +33,14 @@ export default function QuranInYearPage() {
       <Header />
 
       <main>
+        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
+          <Breadcrumbs
+            items={[
+              { name: 'Home', path: '/' },
+              { name: 'Quran in a Year', path: '/quran-in-year' },
+            ]}
+          />
+        </div>
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-line-subtle bg-surface-2">

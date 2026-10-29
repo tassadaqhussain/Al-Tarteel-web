@@ -441,3 +441,89 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
     })),
   };
 }
+
+export function articleJsonLd(input: {
+  title: string;
+  description: string;
+  slug: string;
+  publishedAt: string;
+  image?: string;
+  category?: string;
+}) {
+  const url = absoluteUrl(`/articles/${input.slug}`);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: input.title,
+    description: input.description,
+    datePublished: input.publishedAt,
+    image: input.image ? absoluteUrl(input.image) : absoluteUrl(DEFAULT_OG_IMAGE_PATH),
+    author: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: absoluteUrl('/images/logo.png'),
+    },
+    inLanguage: 'en',
+    articleSection: input.category || 'Islam',
+    isAccessibleForFree: true,
+    mainEntityOfPage: url,
+    url,
+  };
+}
+
+export function learningPlanJsonLd(input: {
+  title: string;
+  summary: string;
+  slug: string;
+  days: number;
+}) {
+  const url = absoluteUrl(`/learning-plans/${input.slug}`);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LearningResource',
+    name: input.title,
+    description: input.summary,
+    learningResourceType: 'Lesson Plan',
+    educationalLevel: 'Beginner to Intermediate',
+    isAccessibleForFree: true,
+    inLanguage: 'en',
+    url,
+    mainEntityOfPage: url,
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+  };
+}
+
+export function tajweedLessonJsonLd(input: {
+  name: string;
+  nameArabic: string;
+  summary: string;
+  slug: string;
+}) {
+  const url = absoluteUrl(`/tajweed/${input.slug}`);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `${input.name} – Tajweed Lesson`,
+    name: input.name,
+    alternateName: input.nameArabic,
+    description: input.summary,
+    inLanguage: 'en',
+    articleSection: 'Tajweed',
+    isAccessibleForFree: true,
+    url,
+    mainEntityOfPage: url,
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: absoluteUrl('/images/logo.png'),
+    },
+  };
+}
+

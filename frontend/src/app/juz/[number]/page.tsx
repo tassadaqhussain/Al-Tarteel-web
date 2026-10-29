@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { quranApi, type AyahWithRelations } from '@/lib/api';
 import { Header } from '@/components/Header';
@@ -11,7 +10,7 @@ import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
-import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
+import { resolveTranslations } from '@/lib/translation-preference';
 import { parsePositiveInteger, readerPage, needsPageRedirect, surahPageHref } from '@/lib/surah-pagination';
 import { juzSeo } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
@@ -20,6 +19,9 @@ interface Props {
   params: Promise<{ number: string }>;
   searchParams: Promise<{ page?: string; trans?: string }>;
 }
+
+export const dynamic = 'force-static';
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   return Array.from({ length: 30 }, (_, i) => ({ number: String(i + 1) }));
@@ -33,8 +35,6 @@ export async function generateMetadata({ params, searchParams }: Props) {
   const page = readerPage(pageStr);
   return juzSeo(n, page);
 }
-
-export const revalidate = 3600;
 
 interface SurahGroup {
   surahId: number;
@@ -55,9 +55,8 @@ export default async function JuzPage({ params, searchParams }: Props) {
     permanentRedirect(trans ? `${target}${page > 1 ? '&' : '?'}trans=${encodeURIComponent(trans)}` : target);
   }
   const limit = 50;
-  const cookieStore = await cookies();
   const effectiveTranslations = resolveTranslations({
-    cookieValue: cookieStore.get(TRANSLATION_COOKIE)?.value,
+    cookieValue: undefined,
     queryTrans: trans,
   });
 

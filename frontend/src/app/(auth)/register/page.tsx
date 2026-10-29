@@ -7,6 +7,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { SiteLogo } from '@/components/SiteLogo';
 import { useAuthStore } from '@/stores/authStore';
 import { ApiError } from '@/lib/api';
+import { trackSignUp } from '@/lib/analytics';
 import { loginHref, sanitizeReturnUrl } from '@/lib/auth-redirect';
 import { cn } from '@/lib/utils';
 
@@ -53,6 +54,7 @@ function RegisterForm() {
         password,
         confirmPassword,
       });
+      trackSignUp('email');
       router.replace(returnUrl);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {

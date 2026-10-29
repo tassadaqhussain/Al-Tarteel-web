@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { donationsApi } from '@/lib/api';
+import { trackPurchase } from '@/lib/analytics';
 import { clearDonateDraft } from '@/lib/donate-draft';
 
 function formatAmount(amount: number | null, currency: string | null) {
@@ -41,6 +42,11 @@ function SuccessBody() {
           setEmail(session.customerEmail);
           setIsDemo(Boolean(session.demo || demo));
           setAmountLabel(formatAmount(session.amountTotal, session.currency));
+          trackPurchase({
+            transactionId: sessionId,
+            value: (session.amountTotal || 0) / 100,
+            currency: session.currency || 'USD',
+          });
           return;
         }
         if (paymentIntent) {
@@ -49,6 +55,11 @@ function SuccessBody() {
           setEmail(intent.customerEmail);
           setIsDemo(Boolean(intent.demo || demo));
           setAmountLabel(formatAmount(intent.amount, intent.currency));
+          trackPurchase({
+            transactionId: paymentIntent,
+            value: (intent.amount || 0) / 100,
+            currency: intent.currency || 'USD',
+          });
         }
       } catch {
         /* still show thank-you */

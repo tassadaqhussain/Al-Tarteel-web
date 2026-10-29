@@ -12,6 +12,7 @@ import {
 import { quranApi, type Translator } from '@/lib/api';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { setTranslationCookie, DEFAULT_TRANSLATION } from '@/lib/translation-preference';
+import { trackSelectContent } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -98,6 +99,7 @@ export function TranslationSheet({ open, onOpenChange }: Props) {
 
   const apply = useCallback(() => {
     const slugs = Array.from(selected);
+    trackSelectContent('translations', slugs.join(','));
     setTranslationSlugs(slugs);
     setTranslationCookie(slugs);
     if (slugs.length > 0) setShowTranslation(true);

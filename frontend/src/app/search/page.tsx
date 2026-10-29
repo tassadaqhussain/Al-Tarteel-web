@@ -31,6 +31,7 @@ import {
   type SearchSuggestion,
 } from '@/lib/search-intelligence';
 import { resolveDirectSearchHref, parseQuranPageSearch } from '@/lib/search-navigation';
+import { trackSearch } from '@/lib/analytics';
 import { useVoiceSearch } from '@/hooks/useVoiceSearch';
 
 const POPULAR = [
@@ -209,6 +210,7 @@ function SearchPageContent() {
         setAyahs(bestA);
         setTranslations(bestT);
         setUsedQuery(winner);
+        trackSearch(winner, bestA.length + bestT.length, 'search_page');
         setCorrectedFrom(
           !opts?.forceExact && winner.toLowerCase() !== typed.toLowerCase() ? typed : null
         );
