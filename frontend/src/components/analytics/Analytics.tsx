@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import {
@@ -14,8 +14,13 @@ import {
 function RouteChangeTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     const qs = searchParams?.toString();
     const path = qs ? `${pathname}?${qs}` : pathname;
     trackPageView(path);
@@ -49,7 +54,7 @@ export function Analytics() {
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: true });
+              gtag('config', '${GA_MEASUREMENT_ID}');
             `}
           </Script>
         </>

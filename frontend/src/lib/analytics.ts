@@ -1,7 +1,8 @@
 /** Analytics IDs from build-time env (NEXT_PUBLIC_*). */
 
 export const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim() || '';
-export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || '';
+export const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || 'G-X74S7JHWCL';
 
 export const analyticsEnabled = Boolean(PLAUSIBLE_DOMAIN || GA_MEASUREMENT_ID);
 
@@ -28,6 +29,10 @@ export function trackPageView(path: string) {
   }
 
   if (GA_MEASUREMENT_ID && window.gtag) {
-    window.gtag('config', GA_MEASUREMENT_ID, { page_path: path });
+    window.gtag('event', 'page_view', {
+      page_path: path,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
   }
 }
