@@ -111,6 +111,17 @@ COMPOSE=(docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
 mkdir -p "${APP_DIR}/backend/storage/audio" "${APP_DIR}/backend/storage/tts"
 
 if [[ "${NO_BUILD}" != "1" ]]; then
+  # Next.js image export needs hundreds of MB free; old layers fill small EC2 disks.
+  log "Free Docker disk space before build"
+  df -h / | awk 'NR==1 || /\/$/'
+  docker builder prune -af >/dev/null 2>&1 || true
+  docker image prune -af >/dev/null 2>&1 || true
+  docker container prune -f >/dev/null 2>&1 || true
+  # Keep volumes (Postgres/Redis data). Only drop unused networks + dangling cache.
+  docker system prune -f >/dev/null 2>&1 || true
+  ok "Docker prune finished"
+  df -h / | awk 'NR==1 || /\/$/'
+
   log "Build images (api, then web)"
   "${COMPOSE[@]}" build api
   "${COMPOSE[@]}" build web
