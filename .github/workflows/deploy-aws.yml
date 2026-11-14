@@ -60,6 +60,8 @@ jobs:
             sudo git -C "$APP_DIR" remote set-url origin "https://github.com/${GH_REPO}.git"
 
             cd "$APP_DIR"
+            export SITEMAP_LASTMOD="${SITEMAP_LASTMOD:-$(git log -1 --format=%cI)}"
+            export NEXT_PUBLIC_BUILD_DATE="${NEXT_PUBLIC_BUILD_DATE:-$SITEMAP_LASTMOD}"
             if ! command -v docker >/dev/null 2>&1; then
               echo "First install: docker/nginx missing — running deploy-production.sh"
               sudo bash "$APP_DIR/scripts/deploy-production.sh" -y --skip-ssl
