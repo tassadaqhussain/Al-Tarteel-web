@@ -292,12 +292,7 @@
   }
 }
 
-/* Keep content cards crisp throughout the app while preserving pill controls. */
-:where(div, section, article, aside, li, a)[class*='border'][class~='rounded-xl'],
-:where(div, section, article, aside, li, a)[class*='border'][class~='rounded-2xl'],
-:where(div, section, article, aside, li, a)[class*='border'][class~='rounded-3xl'] {
-  border-radius: 0.25rem;
-}
+/* Keep content cards crisp with modern rounded corners while preserving pill controls. */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -612,41 +607,41 @@
 
 /* ── Elderly / Easy Read Mode Styling ── */
 .experience-elderly {
-  --c-bg: 253 251 247; /* warm high contrast cream */
-  --c-ink: 0 0 0;
-  --c-ink-2: 24 24 27;
-  --c-ink-3: 39 39 42;
-  --c-ink-muted: 39 39 42;
-  --c-ink-faint: 63 63 70;
-  --c-line: 113 113 122;
-  --c-line-subtle: 161 161 170;
-  --c-line-strong: 82 82 91;
-  --c-accent: 9 9 11;
+  --c-bg: 250 249 245; /* warm high contrast paper */
+  --c-ink: 15 23 42;
+  --c-ink-2: 30 41 59;
+  --c-ink-3: 51 65 85;
+  --c-ink-muted: 71 85 105;
+  --c-ink-faint: 90 101 116;
+  --c-line: 203 213 225;
+  --c-line-subtle: 226 232 240;
+  --c-line-strong: 148 163 184;
+  --c-accent: 6 78 59;
   --c-accent-contrast: 255 255 255;
   --c-surface: 255 255 255;
-  --c-surface-2: 250 248 243;
-  --c-surface-3: 240 237 230;
+  --c-surface-2: 245 243 238;
+  --c-surface-3: 235 232 224;
   --c-surface-raised: 255 255 255;
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 }
 
 /* Easy Read at night: maximum contrast the other way round, not a dimmed cream. */
 .dark.experience-elderly {
-  --c-bg: 0 0 0;
-  --c-surface-2: 10 10 10;
-  --c-surface: 20 20 22;
-  --c-surface-3: 32 32 35;
-  --c-surface-raised: 28 28 31;
+  --c-bg: 8 14 16;
+  --c-surface-2: 12 20 23;
+  --c-surface: 17 27 30;
+  --c-surface-3: 25 38 44;
+  --c-surface-raised: 22 35 42;
   --c-ink: 255 255 255;
-  --c-ink-2: 244 244 245;
-  --c-ink-3: 228 228 231;
-  --c-ink-muted: 228 228 231;
-  --c-ink-faint: 212 212 216;
-  --c-line: 148 148 158;
-  --c-line-subtle: 100 100 110;
-  --c-line-strong: 180 180 190;
-  --c-accent: 255 255 255;
-  --c-accent-contrast: 0 0 0;
+  --c-ink-2: 241 245 249;
+  --c-ink-3: 226 232 240;
+  --c-ink-muted: 203 213 225;
+  --c-ink-faint: 148 163 184;
+  --c-line: 51 65 85;
+  --c-line-subtle: 30 41 59;
+  --c-line-strong: 100 116 139;
+  --c-accent: 52 211 153;
+  --c-accent-contrast: 4 24 26;
 }
 
 .experience-elderly body,
@@ -710,14 +705,12 @@
   line-height: 1.8 !important;
 }
 
-/* Enlarge touch targets to avoid misclicks */
+/* Enlarge touch targets on interactive pill controls without distorting layout cards */
 .experience-elderly button,
 .experience-elderly input,
 .experience-elderly select,
-.experience-elderly a[class*='rounded'] {
-  min-height: 3.25rem !important;
-  padding-left: 1.5rem !important;
-  padding-right: 1.5rem !important;
+.experience-elderly a[class*='rounded-full'] {
+  min-height: 2.85rem;
 }
 
 /* Enlarged Browse Chapters controls need their own row and protected icon space. */
@@ -738,12 +731,14 @@
 }
 
 .experience-elderly [data-surah-search] input {
-  padding-left: 3.5rem !important;
+  padding-left: 2.75rem !important;
   padding-right: 1rem !important;
 }
 
-.experience-elderly [data-surah-grid] {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+@media (min-width: 1024px) {
+  .experience-elderly [data-surah-grid] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
 }
 
 .experience-elderly [data-surah-grid] .font-arabic {

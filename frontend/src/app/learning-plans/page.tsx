@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { SiteFooter } from '@/components/SiteFooter';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { BookOpen } from 'lucide-react';
 import { buildPageMetadata } from '@/lib/seo';
@@ -19,7 +20,7 @@ export default function LearningPlansPage() {
     <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14">
+      <main className="mx-auto w-full max-w-none flex-1 px-4 py-10 sm:px-6 md:px-8 lg:px-12 lg:py-14 xl:px-16 2xl:px-20">
         <Breadcrumbs
           items={[
             { name: 'Home', path: '/' },
@@ -70,6 +71,7 @@ export default function LearningPlansPage() {
           ))}
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

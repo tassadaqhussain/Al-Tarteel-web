@@ -4,11 +4,14 @@ import { Suspense, useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import {
+  ANALYTICS_PROVIDER,
   analyticsEnabled,
   GA_DEBUG_MODE,
   GA_MEASUREMENT_ID,
   PLAUSIBLE_DOMAIN,
   PLAUSIBLE_SCRIPT_SRC,
+  UMAMI_SCRIPT_SRC,
+  UMAMI_WEBSITE_ID,
   trackOutboundClick,
   trackPageView,
 } from '@/lib/analytics';
@@ -65,11 +68,13 @@ function OutboundClickListener() {
 }
 
 export function Analytics() {
+  const pathname = usePathname();
   if (!analyticsEnabled) return null;
+  if (pathname === '/admin' || pathname?.startsWith('/admin/')) return null;
 
   return (
     <>
-      {PLAUSIBLE_DOMAIN ? (
+      {ANALYTICS_PROVIDER === 'plausible' && PLAUSIBLE_DOMAIN ? (
         <Script
           defer
           data-domain={PLAUSIBLE_DOMAIN}
@@ -78,7 +83,17 @@ export function Analytics() {
         />
       ) : null}
 
-      {GA_MEASUREMENT_ID ? (
+      {ANALYTICS_PROVIDER === 'umami' && UMAMI_WEBSITE_ID ? (
+        <Script
+          defer
+          src={UMAMI_SCRIPT_SRC}
+          data-website-id={UMAMI_WEBSITE_ID}
+          data-auto-track="false"
+          strategy="afterInteractive"
+        />
+      ) : null}
+
+      {ANALYTICS_PROVIDER === 'ga4' && GA_MEASUREMENT_ID ? (
         <>
           {/* Preconnect to Google Tag Manager for faster resource retrieval */}
           <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="" />

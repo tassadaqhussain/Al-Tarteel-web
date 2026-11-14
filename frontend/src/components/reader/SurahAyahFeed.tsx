@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
+import type { ContentLocale } from '@/lib/i18n/content-locales';
 
 export { SURAH_PAGE_SIZE };
 
@@ -22,6 +23,7 @@ interface Props {
   totalPages: number;
   translations: string;
   hasTranslations: boolean;
+  locale?: ContentLocale;
   endOfChapter?: ReactNode;
 }
 
@@ -33,6 +35,7 @@ export function SurahAyahFeed({
   totalPages,
   translations,
   hasTranslations,
+  locale = 'en',
   endOfChapter,
 }: Props) {
   const [ayahs, setAyahs] = useState(initialAyahs);
@@ -257,6 +260,7 @@ export function SurahAyahFeed({
             surahNumber={surahNumber}
             surahName={surahName}
             hasTranslations={hasTranslations}
+            locale={locale}
           />
         ))}
       </div>

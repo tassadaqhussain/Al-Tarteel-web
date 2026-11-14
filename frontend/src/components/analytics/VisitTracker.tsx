@@ -11,7 +11,10 @@ export function VisitTracker() {
   useEffect(() => {
     if (!pathname || pathname === '/admin' || pathname.startsWith('/admin/')) return;
     const url = `${apiBase()}/analytics/visit`;
-    const body = JSON.stringify({ path: pathname });
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const source = params?.get('utm_source')?.trim() || undefined;
+    const referrer = typeof document !== 'undefined' && document.referrer ? document.referrer : undefined;
+    const body = JSON.stringify({ path: pathname, source, referrer });
     try {
       void fetch(url, {
         method: 'POST',
@@ -19,6 +22,8 @@ export function VisitTracker() {
         body,
         keepalive: true,
         credentials: 'omit',
+      }).catch(() => {
+        /* ignore offline/network errors */
       });
     } catch {
       /* ignore */

@@ -129,6 +129,23 @@ export class AdminController {
     return this.campaigns.publish(id, dto.channels);
   }
 
+  @Post('campaigns/:id/dispatch')
+  @ApiOperation({ summary: 'Dispatch a campaign to connected external channels (Webhook, Telegram, Meta)' })
+  dispatchCampaign(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    body: {
+      webhookUrl?: string;
+      telegramBotToken?: string;
+      telegramChatId?: string;
+      metaPageId?: string;
+      metaAccessToken?: string;
+      instagramAccountId?: string;
+    },
+  ) {
+    return this.campaigns.dispatch(id, body);
+  }
+
   @Post('campaigns/:id/pause')
   @ApiOperation({ summary: 'Pause a live campaign' })
   pauseCampaign(@Param('id', ParseIntPipe) id: number) {

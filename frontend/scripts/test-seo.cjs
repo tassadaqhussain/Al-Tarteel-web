@@ -65,8 +65,8 @@ for (const locale of ['ur', 'ps', 'fa']) {
   assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah/255`));
 }
 const rendered = xml.renderUrlset(entries);
-assert.ok(!rendered.includes('<lastmod>'), 'Do not invent content modification dates');
-assert.ok(!xml.renderSitemapIndex(['https://example.com/sitemap.xml']).includes('<lastmod>'));
+assert.ok(rendered.includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`), 'Every URL uses stable build-time lastmod');
+assert.ok(xml.renderSitemapIndex(['https://example.com/sitemap.xml']).includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`));
 assert.ok(xml.renderUrlset([{ url: 'https://example.com/?a=1&b=2', changeFrequency: 'monthly', priority: 1 }]).includes('?a=1&amp;b=2'));
 assert.equal((rendered.match(/<url>/g) || []).length, entries.length);
 console.log(`SEO checks passed: ${slices} verse slices across all 114 surahs, four locales, URL validation and ${entries.length} sitemap URLs.`);

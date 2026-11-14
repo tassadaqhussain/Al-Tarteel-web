@@ -10,6 +10,7 @@ import {
   Volume2,
   ArrowRight,
   Loader2,
+  Languages,
 } from 'lucide-react';
 import { audioApi, quranApi, type AyahWithRelations, type Surah } from '@/lib/api';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
@@ -21,7 +22,7 @@ import {
   translationAttribution,
   type PreviewAyah,
 } from '@/lib/quran/ayah-preview';
-import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeaning, getSurahPath } from '@/lib/surah-meta';
 import { useAudioStore, type AudioAyahRef } from '@/stores/audioStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,13 @@ const PREVIEW_COUNT = 6;
 const PREFERRED_RECITER = 'alafasy';
 const DEFAULT_RECITER_NAME = 'Mishary Rashid Alafasy';
 const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+
+const PREVIEW_LANGUAGES = [
+  { code: 'en', label: 'English', slug: DEFAULT_TRANSLATION, dir: 'ltr' as const },
+  { code: 'ur', label: 'اردو', slug: 'bayan-ul-quran', dir: 'rtl' as const },
+  { code: 'ps', label: 'پښتو', slug: 'ps-zakaria-abulsalam-118', dir: 'rtl' as const },
+  { code: 'fa', label: 'فارسی', slug: 'qf-translation-135', dir: 'rtl' as const },
+] as const;
 
 const FALLBACK_SURAHS: Surah[] = [
   { id: 1, number: 1, nameSimple: 'Al-Fatihah', nameArabic: 'الفاتحة', nameComplex: null, revelationPlace: '', revelationOrder: null, numberOfAyahs: 7 },
@@ -65,8 +73,9 @@ function toPlaylist(list: Awaited<ReturnType<typeof audioApi.surah>>): AudioAyah
     }));
 }
 
-function translationText(ayah: AyahWithRelations) {
+function translationText(ayah: AyahWithRelations, targetSlug: string) {
   const preferred =
+    ayah.translations?.find((t) => t.translatorSlug === targetSlug)?.text ||
     ayah.translations?.find((t) => t.translatorSlug === DEFAULT_TRANSLATION)?.text ||
     ayah.translations?.[0]?.text;
   return preferred?.trim() || '';
@@ -98,6 +107,7 @@ export function TranslationsPreview({
   const defaultSurah = initialSurahNumber ?? list[0]?.number ?? 1;
 
   const [activeSurah, setActiveSurah] = useState(defaultSurah);
+  const [activeLangSlug, setActiveLangSlug] = useState<string>(DEFAULT_TRANSLATION);
   const [ayahs, setAyahs] = useState<AyahWithRelations[]>(
     seededAyahs.length > 0 ? seededAyahs : [],
   );
@@ -113,8 +123,7 @@ export function TranslationsPreview({
 
   const {
     playlist,
-    currentIndex,
-    isPlaying,
+     isPlaying,
     currentTime,
     duration,
     getCurrentAyah,
@@ -122,7 +131,6 @@ export function TranslationsPreview({
     setPlaying,
     setReciter,
     setContinuous,
-    setCurrentIndex,
     prev,
     next,
     reciterSlug,
@@ -130,13 +138,14 @@ export function TranslationsPreview({
 
   const current = getCurrentAyah();
   const activeMeta = list.find((s) => s.number === activeSurah) ?? list[0];
+  const activeLang =
+    PREVIEW_LANGUAGES.find((l) => l.slug === activeLangSlug) ?? PREVIEW_LANGUAGES[0];
   const isThisSurah =
     current?.surahNumber === activeSurah && playlist.length > 0;
   const showingPlay = isThisSurah && isPlaying;
 
   const previewAyahs = useMemo(() => {
     if (ayahs.length === 0) return [];
-    // Full short surahs; longer ones show a sample.
     if (ayahs.length <= PREVIEW_AYAHS + 2) return ayahs;
     return ayahs.slice(0, PREVIEW_AYAHS);
   }, [ayahs]);
@@ -144,42 +153,46 @@ export function TranslationsPreview({
   const translatorLabel =
     translationAttribution(previewAyahs) ?? 'Saheeh International';
 
-  const ayahCache = useRef<Record<number, AyahWithRelations[]>>(
-    seededAyahs.length > 0 ? { [defaultSurah]: seededAyahs } : {},
+  const ayahCache = useRef<Record<string, AyahWithRelations[]>>(
+    seededAyahs.length > 0 ? { [`${defaultSurah}:${DEFAULT_TRANSLATION}`]: seededAyahs } : {},
   );
 
-  const loadAyahs = useCallback(async (surahNumber: number, force = false) => {
-    const cached = ayahCache.current[surahNumber];
-    if (!force && cached?.length) {
-      setAyahs(cached);
-      setLoadingText(false);
-      setError(null);
-      return;
-    }
-    setLoadingText(true);
-    setError(null);
-    try {
-      const rows = await quranApi.ayahsBySurah(surahNumber, {
-        translations: DEFAULT_TRANSLATION,
-        limit: PREVIEW_FETCH_LIMIT,
-      });
-      const next = normalizeAyahList(rows) as AyahWithRelations[];
-      if (next.length > 0) ayahCache.current[surahNumber] = next;
-      setAyahs(next);
-      if (next.length === 0) {
-        setError('Could not load verses for this chapter.');
+  const loadAyahs = useCallback(
+    async (surahNumber: number, translationSlug: string, force = false) => {
+      const cacheKey = `${surahNumber}:${translationSlug}`;
+      const cached = ayahCache.current[cacheKey];
+      if (!force && cached?.length) {
+        setAyahs(cached);
+        setLoadingText(false);
+        setError(null);
+        return;
       }
-    } catch {
-      setAyahs([]);
-      setError('Could not load verses for this chapter.');
-    } finally {
-      setLoadingText(false);
-    }
-  }, []);
+      setLoadingText(true);
+      setError(null);
+      try {
+        const rows = await quranApi.ayahsBySurah(surahNumber, {
+          translations: translationSlug,
+          limit: PREVIEW_FETCH_LIMIT,
+        });
+        const nextRows = normalizeAyahList(rows) as AyahWithRelations[];
+        if (nextRows.length > 0) ayahCache.current[cacheKey] = nextRows;
+        setAyahs(nextRows);
+        if (nextRows.length === 0) {
+          setError('Could not load verses for this chapter.');
+        }
+      } catch {
+        setAyahs([]);
+        setError('Could not load verses for this chapter.');
+      } finally {
+        setLoadingText(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
-    void loadAyahs(activeSurah);
-  }, [activeSurah, loadAyahs]);
+    void loadAyahs(activeSurah, activeLangSlug);
+  }, [activeSurah, activeLangSlug, loadAyahs]);
 
   useEffect(() => {
     const el = document.querySelector('audio');
@@ -283,58 +296,85 @@ export function TranslationsPreview({
     : 'Recitation - Verse 1';
 
   return (
-    <section className="w-full bg-brand/[0.06] py-16 2xl:py-20">
+    <section className="w-full bg-brand/[0.06] py-14 2xl:py-18">
       <div className={SITE_SHELL}>
-        <div className="mb-10 text-center lg:text-left">
-          <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
-            {t('hearQuranTitle')} <br className="sm:hidden" />
-            <span className="text-brand">{t('hearQuranAccent')}</span>
-          </h2>
+        <div className="mb-8 flex flex-col items-center justify-between gap-4 text-center lg:flex-row lg:text-left">
+          <div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
+              {t('hearQuranTitle')} <br className="sm:hidden" />
+              <span className="text-brand">{t('hearQuranAccent')}</span>
+            </h2>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface p-1 shadow-sm">
+            <span className="inline-flex items-center gap-1 pl-2.5 pr-1 text-xs font-semibold text-ink-muted">
+              <Languages className="h-3.5 w-3.5 text-brand" aria-hidden />
+              <span className="hidden sm:inline">Translation:</span>
+            </span>
+            {PREVIEW_LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => setActiveLangSlug(lang.slug)}
+                className={cn(
+                  'rounded-full px-3 py-1.5 text-xs font-bold transition',
+                  activeLangSlug === lang.slug
+                    ? 'bg-emerald-800 text-white shadow-sm'
+                    : 'text-ink-2 hover:bg-surface-2 hover:text-brand'
+                )}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
           <div className="flex flex-col gap-2 lg:col-span-4">
-            <div className="rounded-2xl border border-line-subtle bg-surface p-3 shadow-sm">
-              {list.map((s) => (
-                <button
-                  key={s.number}
-                  type="button"
-                  onClick={() => {
-                    setActiveSurah(s.number);
-                    if (isPlaying && current?.surahNumber !== s.number) {
-                      setPlaying(false);
-                    }
-                  }}
-                  className={cn(
-                    'flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition-all duration-200',
-                    activeSurah === s.number
-                      ? 'bg-emerald-800/10 font-bold text-brand'
-                      : 'text-ink-3 hover:bg-surface-2'
-                  )}
-                >
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-ink-faint">
-                      {String(s.number).padStart(2, '0')}
-                    </p>
-                    <p
-                      className={cn(
-                        'text-sm font-bold',
-                        activeSurah === s.number ? 'text-brand' : 'text-ink'
-                      )}
-                    >
-                      {s.nameSimple}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-arabic text-sm text-ink" dir="rtl">
-                      {s.nameArabic}
-                    </p>
-                    <p className="text-[10px] text-ink-faint">
-                      {s.numberOfAyahs || '—'} Verses
-                    </p>
-                  </div>
-                </button>
-              ))}
+            <div className="rounded-3xl border border-line-subtle bg-surface p-3 shadow-sm">
+              {list.map((s) => {
+                const meaning = getSurahMeaning(s.number);
+                return (
+                  <button
+                    key={s.number}
+                    type="button"
+                    onClick={() => {
+                      setActiveSurah(s.number);
+                      if (isPlaying && current?.surahNumber !== s.number) {
+                        setPlaying(false);
+                      }
+                    }}
+                    className={cn(
+                      'flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all duration-200',
+                      activeSurah === s.number
+                        ? 'bg-emerald-800/10 font-bold text-brand ring-1 ring-emerald-800/20'
+                        : 'text-ink-3 hover:bg-surface-2'
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-ink-faint">
+                        {String(s.number).padStart(2, '0')} {meaning ? `· ${meaning}` : ''}
+                      </p>
+                      <p
+                        className={cn(
+                          'text-sm font-bold',
+                          activeSurah === s.number ? 'text-brand' : 'text-ink'
+                        )}
+                      >
+                        {s.nameSimple}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-arabic text-base text-ink" dir="rtl" lang="ar">
+                        {s.nameArabic}
+                      </p>
+                      <p className="text-[10px] text-ink-faint">
+                        {s.numberOfAyahs || '—'} Verses
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
               <div className="mt-2 border-t border-line-subtle pt-2 text-center">
                 <Link
                   href="/surahs"
@@ -348,34 +388,46 @@ export function TranslationsPreview({
           </div>
 
           <div className="lg:col-span-8">
-            <div className="flex h-full min-h-[420px] flex-col justify-between rounded-3xl border border-line-subtle bg-surface p-6 shadow-lg md:p-8">
-              <div className="mb-6 flex items-center justify-between border-b border-line-subtle pb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-ink">
-                    {activeMeta?.nameSimple ?? 'Surah'}
-                  </h3>
-                  <p className="text-xs text-ink-faint">English — {translatorLabel}</p>
+            <div className="flex h-full flex-col justify-between rounded-3xl border border-line-subtle bg-surface p-6 shadow-lg md:p-8">
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line-subtle pb-4">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="text-lg font-bold text-ink">
+                        {activeMeta?.nameSimple ?? 'Surah'}
+                      </h3>
+                      {activeMeta?.nameArabic && (
+                        <span className="font-arabic text-lg text-brand" dir="rtl" lang="ar">
+                          {activeMeta.nameArabic}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-ink-faint">
+                      {activeLang.label} — {translatorLabel}
+                    </p>
+                  </div>
                 </div>
                 <Link
                   href={getSurahPath(activeSurah)}
-                  className="rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-brand transition hover:bg-emerald-800/20"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-emerald-800/10 px-4 py-1.5 text-xs font-bold text-brand transition hover:bg-emerald-800/20"
                 >
                   {t('openReader')}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                 </Link>
               </div>
 
-              <div className="my-auto flex min-h-[200px] flex-col items-center justify-center py-4 text-center">
+              <div className="my-auto flex flex-col items-center justify-center py-2 text-center">
                 {previewUi === 'loading' ? (
                   <VersePreviewSkeleton />
                 ) : previewUi === 'retry' ? (
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-3 py-8">
                     <p className="text-sm text-ink-muted">
                       {error || t('loadVersesError')}
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-2">
                       <button
                         type="button"
-                        onClick={() => void loadAyahs(activeSurah, true)}
+                        onClick={() => void loadAyahs(activeSurah, activeLangSlug, true)}
                         className="rounded-full bg-emerald-800 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-900"
                       >
                         Try again
@@ -389,17 +441,19 @@ export function TranslationsPreview({
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full max-w-xl space-y-6">
+                  <div className="w-full max-w-4xl space-y-4">
                     {previewAyahs.map((ayah) => {
-                      const en = translationText(ayah);
+                      const tr = translationText(ayah, activeLangSlug);
                       const isActiveVerse =
                         isThisSurah && current?.ayahNumber === ayah.number;
                       return (
                         <div
                           key={ayah.id ?? ayah.number}
                           className={cn(
-                            'rounded-2xl px-2 py-1 transition',
-                            isActiveVerse && 'bg-emerald-800/5'
+                            'rounded-2xl border border-transparent px-4 py-3 transition',
+                            isActiveVerse
+                              ? 'border-emerald-800/20 bg-emerald-800/5 shadow-sm'
+                              : 'hover:bg-surface-2/60'
                           )}
                         >
                           <p
@@ -412,9 +466,16 @@ export function TranslationsPreview({
                               {toArabicNum(ayah.number)}
                             </span>
                           </p>
-                          {en && (
-                            <p className="mt-2 text-sm italic text-ink-muted">
-                              &ldquo;{en}&rdquo;
+                          {tr && (
+                            <p
+                              className={cn(
+                                'mt-2 text-sm leading-relaxed text-ink-muted',
+                                activeLang.dir === 'rtl' ? 'font-arabic text-base not-italic' : 'italic'
+                              )}
+                              dir={activeLang.dir}
+                              lang={activeLang.code}
+                            >
+                              {activeLang.dir === 'ltr' ? `“${tr}”` : tr}
                             </p>
                           )}
                         </div>
@@ -422,18 +483,20 @@ export function TranslationsPreview({
                     })}
                     {(ayahs.length > previewAyahs.length ||
                       (activeMeta?.numberOfAyahs ?? 0) > previewAyahs.length) && (
-                      <Link
-                        href={getSurahPath(activeSurah)}
-                        className="inline-flex text-xs font-bold text-brand hover:underline"
-                      >
-                        {t('continueFullReader')}
-                      </Link>
+                      <div className="pt-2">
+                        <Link
+                          href={getSurahPath(activeSurah)}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline"
+                        >
+                          {t('continueFullReader')}
+                        </Link>
+                      </div>
                     )}
                   </div>
                 )}
               </div>
 
-              <div className="mt-8 flex flex-col justify-between gap-4 rounded-2xl border border-line-subtle bg-surface-2 p-4 md:flex-row md:items-center">
+              <div className="mt-6 flex flex-col justify-between gap-4 rounded-2xl border border-line-subtle bg-surface-2 p-4 md:flex-row md:items-center">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -526,7 +589,7 @@ export function TranslationsPreview({
 
 function VersePreviewSkeleton() {
   return (
-    <div className="w-full max-w-xl space-y-6" aria-busy="true" aria-label="Loading verses">
+    <div className="w-full max-w-xl space-y-6 py-4" aria-busy="true" aria-label="Loading verses">
       {[0, 1, 2].map((i) => (
         <div key={i} className="space-y-3">
           <div className="ml-auto h-7 w-4/5 animate-pulse rounded-full bg-surface-3" />

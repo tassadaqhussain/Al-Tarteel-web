@@ -18,9 +18,14 @@ function siteOrigin(): string {
   return (process.env.PUBLIC_SITE_URL || 'https://quranpilot.com').replace(/\/$/, '');
 }
 
-function absoluteDestination(path: string): string {
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${siteOrigin()}${path.startsWith('/') ? path : `/${path}`}`;
+function absoluteDestination(path: string, channel?: CampaignChannelId): string {
+  const base =
+    path.startsWith('http://') || path.startsWith('https://')
+      ? path
+      : `${siteOrigin()}${path.startsWith('/') ? path : `/${path}`}`;
+  if (!channel || isInAppChannel(channel)) return base;
+  const sep = base.includes('?') ? '&' : '?';
+  return `${base}${sep}utm_source=${encodeURIComponent(channel)}`;
 }
 
 function encode(value: string): string {
@@ -31,7 +36,7 @@ export function buildChannelCopy(
   campaign: CampaignCopySource,
   channel: CampaignChannelId,
 ): ChannelCopy {
-  const url = absoluteDestination(campaign.destination);
+  const url = absoluteDestination(campaign.destination, channel);
   const { headline, body, ctaLabel } = campaign;
 
   switch (channel) {

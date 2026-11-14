@@ -118,13 +118,20 @@ export const metadata: Metadata = {
   // Set via env after Google Search Console / Bing give you real tokens.
   // Never commit real tokens to git if the repo is public — use server env / deploy secrets.
   verification: {
-    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    ...(process.env.GOOGLE_SITE_VERIFICATION || process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? {
+          google:
+            process.env.GOOGLE_SITE_VERIFICATION ||
+            process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        }
       : {}),
-    ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+    ...(process.env.BING_SITE_VERIFICATION || process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
       ? {
           other: {
-            'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION,
+            'msvalidate.01':
+              process.env.BING_SITE_VERIFICATION ||
+              process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ||
+              '',
           },
         }
       : {}),

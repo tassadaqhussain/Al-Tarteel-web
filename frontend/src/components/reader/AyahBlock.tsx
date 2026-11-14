@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Play,
   Pause,
@@ -41,7 +42,8 @@ import { TranslationSheet } from './TranslationSheet';
 import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { loadReaderWords, type ReaderWord } from '@/lib/word-data';
 import { cn } from '@/lib/utils';
-import { getSurahPath } from '@/lib/surah-meta';
+import { getAyahPath, getSurahPath } from '@/lib/surah-meta';
+import { localePath, type ContentLocale } from '@/lib/i18n/content-locales';
 import { toArabicNumber } from '@/lib/arabic-number';
 import {
   cancelWordMeaningSpeech,
@@ -58,9 +60,11 @@ interface Props {
   surahNumber: number;
   surahName?: string;
   hasTranslations?: boolean;
+  locale?: ContentLocale;
 }
 
-export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '' }: Props) {
+export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', locale = 'en' }: Props) {
+  const ayahHref = localePath(locale, getAyahPath(surahNumber, initialAyah.number));
   const { getCurrentAyah } = useAudioStore();
   const {
     fontSize,
@@ -498,15 +502,17 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '' }: Pr
       : 0;
 
   const endMarkerNode = (
-    <span
-      className="ayah-verse-marker select-none inline-flex items-center justify-center align-middle mx-1.5"
+    <Link
+      href={ayahHref}
+      prefetch={false}
+      className="ayah-verse-marker select-none inline-flex items-center justify-center align-middle mx-1.5 hover:text-brand"
       aria-label={`Verse ${ayah.number}`}
       title={`Ayah ${ayah.number}`}
     >
       <span className="font-arabic text-[12px] font-bold leading-none text-ink-2">
         {toArabicNumber(ayah.number)}
       </span>
-    </span>
+    </Link>
   );
 
   const useIndopakMushaf = mushafType === 'indopak';
@@ -759,7 +765,13 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '' }: Pr
               )}
             >
               {readerViewMode === 'translation' && (
-                <span className="me-1.5 font-semibold text-ink">{ayah.number}.</span>
+                <Link
+                  href={ayahHref}
+                  prefetch={false}
+                  className="me-1.5 font-semibold text-ink hover:text-brand hover:underline"
+                >
+                  {ayah.number}.
+                </Link>
               )}
               {t.text}
             </p>
@@ -829,9 +841,13 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '' }: Pr
           <div className="mx-auto max-w-[1064px]">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-1.5 text-ink-faint">
-                <span className="me-1 text-xl font-medium text-ink-faint tabular-nums">
+                <Link
+                  href={ayahHref}
+                  prefetch={false}
+                  className="me-1 text-xl font-medium text-ink-faint tabular-nums transition-colors hover:text-brand hover:underline"
+                >
                   {surahNumber}:{ayah.number}
-                </span>
+                </Link>
                 <button
                   type="button"
                   onClick={handlePlay}

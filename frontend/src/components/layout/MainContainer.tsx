@@ -1,18 +1,20 @@
 import { cn } from '@/lib/utils';
 
-/** Shared content column — keep marketing/home sections composed on wide displays. */
+/** Shared fluid content column — fits all screen sizes with responsive horizontal padding. */
 export const SITE_SHELL =
-  'mx-auto w-full max-w-[1120px] px-4 sm:px-6 lg:px-8';
+  'mx-auto w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20';
 
-/** Wider site chrome — avoids oversized blank bands around navigation and footer. */
+/** Wider site chrome — aligns horizontally with SITE_SHELL across all screens. */
 export const CHROME_SHELL =
-  'mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 2xl:px-12';
+  'mx-auto w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20';
 
-/** Mushaf reading column — matches the Quran.com chapter shell (~48px side inset). */
-export const READER_SHELL = 'mx-auto w-full max-w-[1400px] px-4 sm:px-8 lg:px-12';
+/** Mushaf reading column — fluid across all screens with comfortable side inset. */
+export const READER_SHELL =
+  'mx-auto w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20';
 
-/** Sticky reader context bar — slightly tighter inset than the reading column. */
-export const READER_BAR_SHELL = 'mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-10';
+/** Sticky reader context bar — aligns with READER_SHELL. */
+export const READER_BAR_SHELL =
+  'mx-auto w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20';
 
 type MainContainerProps = {
   as?: 'div' | 'section' | 'main' | 'article';

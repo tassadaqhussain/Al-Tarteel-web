@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { Header } from '@/components/Header';
+import { SiteFooter } from '@/components/SiteFooter';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-surface-app">
+    <div className="flex min-h-screen flex-col bg-surface-app">
       <Header />
-      <main className="mx-auto flex max-w-lg flex-col items-center px-6 py-24 text-center">
+      <main className="mx-auto flex max-w-lg flex-1 flex-col items-center justify-center px-6 py-24 text-center">
         <p className="text-sm font-semibold uppercase tracking-widest text-brand">404</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-ink">Page not found</h1>
         <p className="mt-3 text-sm leading-relaxed text-ink-muted">
@@ -32,6 +33,7 @@ export default function NotFound() {
           </Link>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -8,10 +8,27 @@
  * - Safe error handling (never crashes client runtime)
  */
 
-export const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim() || '';
-export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || '';
+export type AnalyticsProvider = 'ga4' | 'plausible' | 'umami';
 
-export const analyticsEnabled = Boolean(PLAUSIBLE_DOMAIN || GA_MEASUREMENT_ID);
+const RAW_PROVIDER = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim().toLowerCase() || '';
+export const ANALYTICS_PROVIDER: AnalyticsProvider | '' =
+  RAW_PROVIDER === 'ga4' || RAW_PROVIDER === 'plausible' || RAW_PROVIDER === 'umami'
+    ? RAW_PROVIDER
+    : '';
+
+export const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim() || '';
+export const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA_ID?.trim() ||
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() ||
+  '';
+export const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID?.trim() || '';
+export const UMAMI_SCRIPT_SRC =
+  process.env.NEXT_PUBLIC_UMAMI_SRC?.trim() || 'https://cloud.umami.is/script.js';
+
+export const analyticsEnabled =
+  (ANALYTICS_PROVIDER === 'ga4' && Boolean(GA_MEASUREMENT_ID)) ||
+  (ANALYTICS_PROVIDER === 'plausible' && Boolean(PLAUSIBLE_DOMAIN)) ||
+  (ANALYTICS_PROVIDER === 'umami' && Boolean(UMAMI_WEBSITE_ID));
 
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const GA_DEBUG_MODE =
@@ -27,6 +44,9 @@ declare global {
       event: string,
       options?: { props?: Record<string, string | number | boolean> },
     ) => void;
+    umami?: {
+      track: (payload?: unknown) => void;
+    };
     gtag?: (...args: unknown[]) => void;
     dataLayer?: unknown[];
   }
@@ -115,7 +135,7 @@ export function trackPageView(path: string, customTitle?: string) {
   const cleanLocation = sanitizeUrl(window.location.href);
   const pageTitle = sanitizeText(customTitle || document.title);
 
-  if (PLAUSIBLE_DOMAIN && window.plausible) {
+  if (ANALYTICS_PROVIDER === 'plausible' && PLAUSIBLE_DOMAIN && window.plausible) {
     try {
       window.plausible('pageview', { props: { path: cleanPath } });
     } catch {
@@ -123,7 +143,19 @@ export function trackPageView(path: string, customTitle?: string) {
     }
   }
 
-  if (GA_MEASUREMENT_ID && window.gtag) {
+  if (ANALYTICS_PROVIDER === 'umami' && UMAMI_WEBSITE_ID && window.umami) {
+    try {
+      window.umami.track((props: Record<string, unknown>) => ({
+        ...props,
+        url: cleanPath,
+        title: pageTitle,
+      }));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (ANALYTICS_PROVIDER === 'ga4' && GA_MEASUREMENT_ID && window.gtag) {
     safeGtag('event', 'page_view', {
       page_path: cleanPath,
       page_location: cleanLocation,

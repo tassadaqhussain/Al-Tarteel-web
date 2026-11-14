@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import { quranApi, type Surah } from '@/lib/api';
 import { Header } from '@/components/Header';
+import { SiteFooter } from '@/components/SiteFooter';
+import { SITE_SHELL } from '@/components/layout/MainContainer';
 import { SurahGrid } from '@/components/home/SurahGrid';
 import { SURAH_ARABIC, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
+import { getSurahAyahCount } from '@/lib/surah-pagination';
 import { buildPageMetadata } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { SurahDirectorySections } from '@/components/seo/SurahDirectorySections';
@@ -30,19 +33,22 @@ function fallbackSurahs(): Surah[] {
       nameComplex: null,
       revelationPlace: '',
       revelationOrder: null,
-      numberOfAyahs: 0,
+      numberOfAyahs: getSurahAyahCount(number),
     };
   });
 }
 
 export default async function SurahsPage() {
   const surahs = await quranApi.surahs().catch(() => [] as Surah[]);
-  const list = Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs();
+  const list = (Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs()).map((surah) => ({
+    ...surah,
+    numberOfAyahs: surah.numberOfAyahs || getSurahAyahCount(surah.number),
+  }));
 
   return (
     <div className="min-h-screen bg-surface-2">
       <Header />
-      <main className="mx-auto w-full max-w-[1120px] px-4 py-7 sm:px-6 lg:px-8">
+      <main className={`${SITE_SHELL} py-7`}>
         <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Surahs', path: '/surahs' }]} />
         <header className="relative mt-5 overflow-hidden rounded border border-emerald-900/10 bg-surface-2 shadow-sm">
           <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-950 via-emerald-700 to-amber-500" />
@@ -102,6 +108,7 @@ export default async function SurahsPage() {
         <SurahDirectorySections surahs={list} />
         <SurahGrid surahs={list} embedded sectionTitle="Complete surah list" />
       </main>
+      <SiteFooter />
     </div>
   );
 }

@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { Header } from '@/components/Header';
-import { getTajweedLesson, TAJWEED_LESSONS } from '@/lib/tajweed/rules';
+import { SiteFooter } from '@/components/SiteFooter';
+import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { getTajweedLesson, getTajweedRule, TAJWEED_LESSONS } from '@/lib/tajweed/rules';
 import { buildPageMetadata, tajweedLessonJsonLd } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -46,8 +49,10 @@ export default async function TajweedLessonPage({ params }: Props) {
   const lesson = getTajweedLesson(slug);
   if (!lesson) notFound();
 
+  const lessonIndex = TAJWEED_LESSONS.findIndex((l) => l.slug === lesson.slug) + 1;
+
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <JsonLd
         data={tajweedLessonJsonLd({
           name: lesson.name,
@@ -57,49 +62,91 @@ export default async function TajweedLessonPage({ params }: Props) {
         })}
       />
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <Breadcrumbs
-          items={[
-            { name: 'Home', path: '/' },
-            { name: 'Tajweed', path: '/tajweed' },
-            { name: lesson.name, path: `/tajweed/${lesson.slug}` },
-          ]}
-        />
-        <Link href="/tajweed" className="text-sm font-semibold text-[var(--accent)] hover:underline">
-          ← All lessons
-        </Link>
-        <h1 className="mt-3 font-serif text-3xl font-bold text-ink sm:text-4xl">{lesson.name}</h1>
-        <p className="mt-1 font-arabic text-2xl text-ink-3" lang="ar" dir="rtl">
-          {lesson.nameArabic}
-        </p>
-        <p className="mt-3 max-w-2xl text-sm text-ink-3 leading-relaxed">
-          Motivation here is educational encouragement only — never presented as Quran or Hadith.
-          Annotation colours in the reader remain dataset-backed and separate from this lesson flow.
-        </p>
 
-        <TajweedLessonExperience slug={lesson.slug as TajweedLessonSlug} />
+      <main className={`${SITE_SHELL} flex-1 py-8 sm:py-10`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Breadcrumbs
+            items={[
+              { name: 'Home', path: '/' },
+              { name: 'Tajweed', path: '/tajweed' },
+              { name: lesson.name, path: `/tajweed/${lesson.slug}` },
+            ]}
+          />
+          <Link
+            href="/tajweed"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-3 transition hover:text-[var(--accent)]"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+            All lessons
+          </Link>
+        </div>
 
-        {lesson.relatedSlugs.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-sm font-semibold text-ink-muted">Related lessons</h2>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {lesson.relatedSlugs.map((rel) => {
-                const related = getTajweedLesson(rel);
-                if (!related) return null;
-                return (
-                  <Link
-                    key={rel}
-                    href={`/tajweed/${rel}`}
-                    className="rounded-full border border-line px-3 py-1.5 text-sm font-medium hover:border-[var(--accent)]"
-                  >
-                    {related.name}
-                  </Link>
-                );
-              })}
+        {/* Clean Editorial Header */}
+        <header className="mt-4 flex flex-col justify-between gap-4 border-b border-line pb-6 sm:flex-row sm:items-end">
+          <div className="max-w-3xl">
+            <p className="text-xs font-medium text-ink-muted">
+              Lesson {lessonIndex} of {TAJWEED_LESSONS.length}
+            </p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-3">
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+                {lesson.name}
+              </h1>
+              <span className="font-arabic text-2xl text-ink-3 sm:text-3xl" lang="ar" dir="rtl">
+                {lesson.nameArabic}
+              </span>
             </div>
-          </section>
-        )}
+            <p className="mt-2 text-sm leading-relaxed text-ink-3 sm:text-base">
+              {lesson.summary}
+            </p>
+          </div>
+        </header>
+
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-12">
+          <div className="lg:col-span-8 xl:col-span-9">
+            <TajweedLessonExperience slug={lesson.slug as TajweedLessonSlug} />
+          </div>
+
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:col-span-4 xl:col-span-3">
+            <div className="rounded-xl border border-line bg-surface p-5">
+              <h2 className="text-sm font-semibold text-ink">Lessons</h2>
+              <ul className="mt-3 divide-y divide-line-subtle border-t border-line-subtle">
+                {TAJWEED_LESSONS.map((item, idx) => {
+                  const isCurrent = item.slug === lesson.slug;
+                  const r = getTajweedRule(item.relatedRuleIds[0]);
+                  return (
+                    <li key={item.slug}>
+                      <Link
+                        href={`/tajweed/${item.slug}`}
+                        className={`flex items-center justify-between gap-3 py-2.5 text-sm transition ${
+                          isCurrent
+                            ? 'font-bold text-[var(--accent)]'
+                            : 'font-medium text-ink-2 hover:text-ink'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2.5 truncate">
+                          <span
+                            className="h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: r?.color ?? '#059669' }}
+                            aria-hidden
+                          />
+                          <span className="truncate">
+                            {idx + 1}. {item.name}
+                          </span>
+                        </span>
+                        <span className="font-arabic text-base text-ink-muted" dir="rtl" lang="ar">
+                          {item.nameArabic}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </aside>
+        </div>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

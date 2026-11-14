@@ -10,6 +10,16 @@ class VisitDto {
   @IsString()
   @MaxLength(200)
   path?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  source?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  referrer?: string;
 }
 
 @ApiTags('Analytics')
@@ -30,6 +40,8 @@ export class AnalyticsController {
       ip,
       userAgent: req.headers['user-agent'],
       path: body.path,
+      source: body.source,
+      referrer: body.referrer,
     });
   }
 }

@@ -345,7 +345,7 @@ function SearchPageContent() {
     <div className="flex min-h-screen flex-col bg-surface-app">
       <Header />
 
-      <main className="mx-auto w-full max-w-[1120px] flex-1 px-4 pb-16 pt-8 sm:px-6 sm:pt-12 lg:px-8">
+      <main className="mx-auto w-full max-w-none flex-1 px-4 pb-16 pt-8 sm:px-6 md:px-8 sm:pt-12 lg:px-12 xl:px-16 2xl:px-20">
         <header className="mb-6 flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-[var(--accent)]">
