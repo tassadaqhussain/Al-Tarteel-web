@@ -1,83 +1,98 @@
-'use client';
-
-import { useMemo } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, BookOpen, CheckCircle2, Circle } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Header } from '@/components/Header';
-import { getLearningPlan, getLearningPlansForSurah, getPlanHref } from '@/lib/learning-plans';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { LearningPlanTracker } from '@/components/learning/LearningPlanTracker';
+import {
+  LEARNING_PLANS,
+  getLearningPlan,
+  getLearningPlansForSurah,
+  getPlanHref,
+} from '@/lib/learning-plans';
 import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
-import { useSettingsStore } from '@/stores/settingsStore';
-import { cn } from '@/lib/utils';
+import { buildPageMetadata, learningPlanJsonLd } from '@/lib/seo';
 
-export default function LearningPlanDetailPage() {
-  const params = useParams<{ slug: string }>();
-  const router = useRouter();
-  const plan = getLearningPlan(params.slug);
-  const progressMap = useSettingsStore((s) => s.learningProgress);
-  const toggleDay = useSettingsStore((s) => s.toggleLearningDay);
-  const completed = progressMap[params.slug] ?? [];
+type Props = {
+  params: Promise<{ slug: string }>;
+};
 
-  const days = useMemo(() => {
-    if (!plan) return [];
-    return Array.from({ length: plan.days }, (_, i) => i + 1);
-  }, [plan]);
+export const dynamic = 'force-static';
+export const revalidate = 86400;
+
+export function generateStaticParams() {
+  return LEARNING_PLANS.map((plan) => ({ slug: plan.slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const plan = getLearningPlan(slug);
+  if (!plan) return { title: 'Learning Plan | QuranPilot' };
+
+  return buildPageMetadata({
+    title: `${plan.title} – Quran Learning Plan | QuranPilot`,
+    description: plan.summary,
+    path: `/learning-plans/${plan.slug}`,
+    keywords: [plan.title, 'Quran learning plan', 'Quran study schedule', 'Islamic learning'],
+    type: 'article',
+  });
+}
+
+export default async function LearningPlanDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const plan = getLearningPlan(slug);
 
   if (!plan) {
-    return (
-      <div className="min-h-screen bg-surface-app">
-        <Header />
-        <div className="mx-auto max-w-lg px-6 py-20 text-center">
-          <p className="text-lg font-semibold text-ink">Plan not found</p>
-          <Link href="/learning-plans" className="mt-4 inline-block text-[var(--accent)] hover:underline">
-            Back to Learning Plans
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
-  const doneCount = completed.length;
-  const pct = Math.round((doneCount / plan.days) * 100);
   const readerHref = getPlanHref(plan);
   const surahMeta = plan.surahNumber ? getSurahMeta(plan.surahNumber) : null;
   const relatedPlans = plan.surahNumber
     ? getLearningPlansForSurah(plan.surahNumber).filter((p) => p.slug !== plan.slug)
     : [];
 
+  const schema = learningPlanJsonLd({
+    title: plan.title,
+    summary: plan.summary,
+    slug: plan.slug,
+    days: plan.days,
+  });
+
   return (
     <div className="min-h-screen bg-surface-app text-ink">
+      <JsonLd data={schema} />
       <Header />
 
       <div className={`bg-slate-800 bg-gradient-to-br ${plan.imageTone}`}>
         <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-          <button
-            type="button"
-            onClick={() => router.push('/learning-plans')}
+          <Link
+            href="/learning-plans"
             className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur transition hover:bg-white/25"
           >
             <ArrowLeft className="h-4 w-4" />
             Learning Plans
-          </button>
+          </Link>
           <h1 className="text-2xl font-bold leading-snug text-white sm:text-3xl">{plan.title}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/85 sm:text-base">
             {plan.summary}
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
-              {plan.days} days
-            </span>
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
-              {doneCount}/{plan.days} complete
-            </span>
-          </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/20">
-            <div className="h-full rounded-full bg-surface transition-all" style={{ width: `${pct}%` }} />
-          </div>
+
+          <LearningPlanTracker plan={plan} readerHref={readerHref} />
         </div>
       </div>
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <Breadcrumbs
+          items={[
+            { name: 'Home', path: '/' },
+            { name: 'Learning Plans', path: '/learning-plans' },
+            { name: plan.title, path: `/learning-plans/${plan.slug}` },
+          ]}
+        />
+
         <div className="mb-6 flex flex-wrap gap-3">
           <Link
             href={readerHref}
@@ -113,45 +128,6 @@ export default function LearningPlanDetailPage() {
             </ul>
           </aside>
         )}
-
-        <h2 className="mb-4 text-lg font-bold text-ink">Your daily lessons</h2>
-        <div className="space-y-2">
-          {days.map((day) => {
-            const done = completed.includes(day);
-            return (
-              <button
-                key={day}
-                type="button"
-                onClick={() => toggleDay(plan.slug, day)}
-                className={cn(
-                  'flex w-full items-center gap-4 rounded-2xl border bg-surface px-4 py-4 text-left transition',
-                  done ? 'border-[var(--accent)]/40' : 'border-line hover:border-[var(--accent)]/40'
-                )}
-              >
-                {done ? (
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-[var(--accent)]" />
-                ) : (
-                  <Circle className="h-5 w-5 shrink-0 text-ink-faint" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-ink">Day {day}</p>
-                  <p className="text-sm text-ink-muted">
-                    {plan.surahNumber
-                      ? `Reflect on Surah ${plan.surahNumber} — lesson ${day} of ${plan.days}`
-                      : `Study and reflect — lesson ${day} of ${plan.days}`}
-                  </p>
-                </div>
-                <Link
-                  href={readerHref}
-                  onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 text-sm font-medium text-[var(--accent)] hover:underline"
-                >
-                  Read
-                </Link>
-              </button>
-            );
-          })}
-        </div>
       </main>
     </div>
   );

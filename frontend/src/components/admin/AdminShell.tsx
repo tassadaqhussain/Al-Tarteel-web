@@ -38,27 +38,44 @@ function NavLinks({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="space-y-1 px-3" aria-label="Admin navigation">
-      {NAV.map(({ href, label, icon: Icon, exact }) => {
-        const active = exact ? pathname === href : pathname.startsWith(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            onClick={onNavigate}
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-              active
-                ? 'bg-white/15 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-white/10 hover:text-white',
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="px-3">
+      <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        Workspace
+      </p>
+      <nav className="space-y-1" aria-label="Admin navigation">
+        {NAV.map(({ href, label, icon: Icon, exact }) => {
+          const active = exact ? pathname === href : pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={onNavigate}
+              className={cn(
+                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                active
+                  ? 'bg-white/10 text-white'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200',
+              )}
+            >
+              {active && (
+                <span
+                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-emerald-500"
+                  aria-hidden
+                />
+              )}
+              <Icon
+                className={cn(
+                  'h-4 w-4 shrink-0 transition-colors',
+                  active ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-300',
+                )}
+                aria-hidden
+              />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
 
@@ -91,14 +108,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <div className="border-b border-white/10 px-5 py-5">
+      <div className="border-b border-slate-800/80 px-5 py-4">
         <Link href="/admin" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-700 text-xs font-bold tracking-tight text-white">
             QP
           </span>
           <div>
-            <p className="text-sm font-semibold text-white">QuranPilot</p>
-            <p className="text-xs text-slate-400">Administration</p>
+            <p className="text-sm font-semibold tracking-tight text-white">QuranPilot</p>
+            <p className="text-[11px] text-slate-400">Admin Console</p>
           </div>
         </Link>
       </div>
@@ -107,21 +124,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <NavLinks pathname={pathname} onNavigate={() => setMobileOpen(false)} />
       </div>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="flex items-center gap-3 rounded-lg bg-white/5 px-3 py-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
+      <div className="border-t border-slate-800/80 p-4">
+        <div className="flex items-center gap-3 rounded-lg bg-slate-900/80 px-3 py-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-semibold text-white">
             {initials}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">{adminName || 'Admin'}</p>
-            <p className="truncate text-xs text-slate-400">{adminEmail || 'Signed in'}</p>
+            <p className="truncate text-xs font-semibold text-white">{adminName || 'Admin'}</p>
+            <p className="truncate text-[11px] text-slate-400">{adminEmail || 'Signed in'}</p>
           </div>
         </div>
         <Link
           href="/"
-          className="mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white"
+          className="mt-2.5 flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
         >
-          <ExternalLink className="h-4 w-4" aria-hidden />
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
           View public site
         </Link>
       </div>
@@ -131,7 +148,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-ink dark:bg-slate-950">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-800/50 bg-slate-900 lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-800 bg-slate-950 lg:block">
         {sidebar}
       </aside>
 
@@ -139,14 +156,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs lg:hidden"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
         />
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-72 border-r border-slate-800/50 bg-slate-900 transition-transform duration-200 lg:hidden',
+          'fixed inset-y-0 left-0 z-50 w-72 border-r border-slate-800 bg-slate-950 transition-transform duration-200 lg:hidden',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -164,7 +181,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-white/90 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90 sm:px-8">
           <Button
             type="button"
             variant="ghost"
@@ -175,8 +192,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-ink dark:text-slate-100">
+          <div className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+            <span className="hidden text-ink-3 sm:inline">Admin</span>
+            <span className="hidden text-ink-faint sm:inline">/</span>
+            <p className="truncate font-semibold text-ink dark:text-slate-100">
               {NAV.find((item) =>
                 item.exact ? pathname === item.href : pathname.startsWith(item.href),
               )?.label ?? 'Admin'}
@@ -184,14 +203,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
           <Link
             href="/"
-            className="hidden items-center gap-1.5 text-sm text-ink-3 hover:text-[var(--accent)] sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-lg border border-line bg-surface-2 px-3 py-1.5 text-xs font-medium text-ink-2 transition hover:border-emerald-500/40 hover:text-emerald-700 dark:border-slate-800 dark:bg-slate-800/60 dark:hover:text-emerald-400 sm:inline-flex"
           >
-            <ExternalLink className="h-4 w-4" />
-            Site
+            <ExternalLink className="h-3.5 w-3.5" />
+            View Site
           </Link>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-8 sm:py-8">{children}</main>
       </div>
     </div>
   );
@@ -231,8 +250,8 @@ export function AdminCard({
   return (
     <div
       className={cn(
-        'rounded-xl border border-line bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900',
-        padding && 'p-5 sm:p-6',
+        'rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900',
+        padding && 'p-5',
         className,
       )}
     >
@@ -247,29 +266,46 @@ export function AdminStatCard({
   hint,
   icon: Icon,
   trend,
+  accent = 'emerald',
 }: {
   label: string;
   value: number | string;
   hint?: string;
   icon?: React.ComponentType<{ className?: string }>;
   trend?: string;
+  accent?: 'emerald' | 'blue' | 'amber' | 'violet' | 'slate';
 }) {
+  const accentStyles: Record<NonNullable<typeof accent>, string> = {
+    emerald: 'bg-emerald-50 text-emerald-800 border-emerald-200/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/40',
+    blue: 'bg-slate-50 text-slate-700 border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    amber: 'bg-amber-50/70 text-amber-800 border-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40',
+    violet: 'bg-slate-50 text-slate-700 border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    slate: 'bg-slate-50 text-slate-700 border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+  };
+
   return (
-    <AdminCard className="relative overflow-hidden">
+    <AdminCard className="transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">{label}</p>
-          <p className="mt-2 text-3xl font-bold tabular-nums tracking-tight text-ink dark:text-slate-50">
+          <p className="text-xs font-medium text-ink-3">{label}</p>
+          <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-ink dark:text-slate-50 sm:text-3xl">
             {value}
           </p>
-          {hint ? <p className="mt-1.5 text-xs leading-relaxed text-ink-3">{hint}</p> : null}
+          {hint ? <p className="mt-1.5 text-xs text-ink-3">{hint}</p> : null}
           {trend ? (
-            <p className="mt-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">{trend}</p>
+            <span className="mt-2 inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+              {trend}
+            </span>
           ) : null}
         </div>
         {Icon ? (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400">
-            <Icon className="h-5 w-5" aria-hidden />
+          <span
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border',
+              accentStyles[accent],
+            )}
+          >
+            <Icon className="h-4 w-4" aria-hidden />
           </span>
         ) : null}
       </div>

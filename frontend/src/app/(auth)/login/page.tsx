@@ -7,6 +7,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { SiteLogo } from '@/components/SiteLogo';
 import { useAuthStore } from '@/stores/authStore';
 import { ApiError } from '@/lib/api';
+import { trackLogin } from '@/lib/analytics';
 import { registerHref, sanitizeReturnUrl } from '@/lib/auth-redirect';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +43,7 @@ function LoginForm() {
     try {
       await login(email.trim(), password);
       void remember;
+      trackLogin('email');
       router.replace(returnUrl);
     } catch (err) {
       if (err instanceof ApiError && (err.status === 401 || err.status === 429)) {

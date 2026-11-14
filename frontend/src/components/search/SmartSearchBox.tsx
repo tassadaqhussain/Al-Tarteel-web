@@ -13,6 +13,7 @@ import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
 import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
 import { resolveDirectSearchHref } from '@/lib/search-navigation';
+import { trackSearch } from '@/lib/analytics';
 
 const SUGGEST_MIN_CHARS = 3;
 
@@ -70,6 +71,7 @@ export function SmartSearchBox({
     const typed = raw.trim();
     if (!typed) return;
     setSuggestOpen(false);
+    trackSearch(typed, undefined, 'smart_box');
 
     // Try structured Quran/navigation intents first, but keep generic searches
     // available for direct typed resolution below.

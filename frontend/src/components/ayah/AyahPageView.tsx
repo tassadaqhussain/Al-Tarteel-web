@@ -9,6 +9,7 @@ import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
+  CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
   localeConfig,
   localePath,
@@ -136,6 +137,7 @@ export async function renderAyahPage({
             surahNumber={surahNumber}
             surahName={meta.nameSimple}
             hasTranslations={Boolean(ayah.translations?.length)}
+            locale={activeLocale}
           />
         </div>
 
@@ -163,6 +165,27 @@ export async function renderAyahPage({
               <ChevronRight className="h-4 w-4" />
             </Link>
           ) : null}
+        </nav>
+
+        <nav
+          aria-label="Other languages for this ayah"
+          className="mt-6 flex flex-wrap items-center gap-2 text-xs text-ink-muted"
+        >
+          <span className="font-medium text-ink-3">Read in other languages:</span>
+          {CONTENT_LOCALES.filter((loc) => loc !== activeLocale).map((loc) => {
+            const cfg = localeConfig(loc);
+            return (
+              <Link
+                key={loc}
+                href={localePath(loc, getAyahPath(surahNumber, ayahNumber))}
+                prefetch={false}
+                hrefLang={cfg.hreflang}
+                className="rounded border border-line bg-surface px-2.5 py-1 font-medium text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              >
+                {cfg.nativeName}
+              </Link>
+            );
+          })}
         </nav>
       </main>
       <SiteFooter />

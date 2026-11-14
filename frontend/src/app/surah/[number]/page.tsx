@@ -16,7 +16,7 @@ import { SurahLearningPlans } from '@/components/learning/SurahLearningPlans';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
-import { getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
+import { getAyahPath, getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
@@ -132,7 +132,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
         page,
         limit,
         translations: effectiveTranslations,
-        words: true,
+        words: false,
       })
       .catch(() => []),
     surahNumber > 1 ? quranApi.surah(surahNumber - 1).catch(() => null) : Promise.resolve(null),
@@ -266,8 +266,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
       <main className={cn(READER_SHELL, 'flex-1 py-4 sm:py-6 pb-16')}>
         <Breadcrumbs
           items={[
-            { name: 'Home', path: '/' },
-            { name: 'Surahs', path: '/surahs' },
+            { name: 'Home', path: localePath(activeLocale, '/') },
+            { name: 'Surahs', path: activeLocale === 'en' ? '/surahs' : localePath(activeLocale, '/') },
             { name: `Surah ${surah.nameSimple}`, path: surahPath },
             ...(page > 1
               ? [{ name: `Verses ${range.start}–${range.end}`, path: `${surahPath}?page=${page}` }]
@@ -353,9 +353,34 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           totalPages={totalPages}
           translations={effectiveTranslations}
           hasTranslations={translationCount > 0}
+          locale={activeLocale}
           endOfChapter={endOfChapter}
         />
         </section>
+
+        <nav
+          aria-label={`All verses in Surah ${surah.nameSimple}`}
+          className="mt-8 rounded-lg border border-line bg-surface-2/50 px-4 py-3"
+        >
+          <p className="mb-2 text-xs font-semibold text-ink-3">
+            Verses in Surah {surah.nameSimple} (1–{ayahCount})
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {Array.from({ length: ayahCount }, (_, i) => {
+              const n = i + 1;
+              return (
+                <Link
+                  key={n}
+                  href={localePath(activeLocale, getAyahPath(surahNumber, n))}
+                  prefetch={false}
+                  className="inline-flex min-w-[2.1rem] items-center justify-center rounded border border-line bg-surface px-1.5 py-0.5 text-xs tabular-nums text-ink-2 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                >
+                  {n}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
 
         <SurahPaginationNav
           path={surahPath}

@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { CheckCircle2, Loader2, MessageSquareHeart, Star } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { ApiError, feedbackApi, type FeedbackCategory } from '@/lib/api';
+import { trackFormSubmit } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -52,9 +53,11 @@ export default function FeedbackPage() {
         pageUrl: typeof window !== 'undefined' ? window.location.href : undefined,
       });
       setDone(res.message);
+      trackFormSubmit('feedback', true);
       setMessage('');
       setRating(null);
     } catch (err) {
+      trackFormSubmit('feedback', false);
       if (err instanceof ApiError && err.status === 429) {
         setError('Too many submissions. Please wait a moment and try again.');
       } else if (err instanceof ApiError) {

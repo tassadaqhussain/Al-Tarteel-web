@@ -467,11 +467,13 @@ model SiteVisitor {
   visitorHash  String   @map("visitor_hash") @db.VarChar(64)
   hits         Int      @default(1)
   landingPath  String?  @map("landing_path") @db.VarChar(200)
+  source       String   @default("direct") @db.VarChar(40)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@unique([day, visitorHash])
   @@index([day])
+  @@index([day, source])
   @@map("site_visitors")
 }
 

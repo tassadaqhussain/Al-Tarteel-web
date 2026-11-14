@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, Loader2, ShieldCheck } from 'lucide-react';
 import { donationsApi } from '@/lib/api';
+import { trackBeginCheckout } from '@/lib/analytics';
 import {
   countryFromCurrency,
   formatDonateAmount,
@@ -111,6 +112,9 @@ export function DonateCheckoutForm() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(info.email.trim())) {
       setError('Enter a valid email address.');
       return;
+    }
+    if (draft) {
+      trackBeginCheckout({ value: draft.amount, currency: draft.currency });
     }
     setStep(2);
   };

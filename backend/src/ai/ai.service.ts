@@ -98,6 +98,37 @@ export class AiService {
     };
   }
 
+  /**
+   * Gemini sometimes returns brief 5xx errors (e.g. 503 "model overloaded").
+   * Retry those, and dropped connections, twice with a short backoff. Client
+   * errors, quota errors and timeouts are not retried.
+   */
+  private async postWithRetry(
+    url: string,
+    body: unknown,
+    config: Parameters<typeof axios.post>[2],
+  ) {
+    const delays = [800, 2000];
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await axios.post(url, body, config);
+      } catch (err) {
+        const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+        const code = axios.isAxiosError(err) ? err.code : undefined;
+        const transient =
+          (status !== undefined && status >= 500) ||
+          code === 'ECONNRESET' ||
+          code === 'ECONNREFUSED' ||
+          code === 'EAI_AGAIN';
+        if (!transient || attempt >= delays.length) throw err;
+        this.logger.warn(
+          `Gemini request failed (${status ?? code}); retrying in ${delays[attempt]}ms`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delays[attempt]));
+      }
+    }
+  }
+
   async ask(dto: AskAiDto) {
     const question = dto.question?.trim();
     if (!question) throw new BadRequestException('Question is required');
@@ -136,7 +167,7 @@ export class AiService {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
     try {
-      const { data } = await axios.post(
+      const { data } = await this.postWithRetry(
         url,
         {
           systemInstruction: {

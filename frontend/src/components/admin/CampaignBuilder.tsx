@@ -1,15 +1,18 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Check,
   Copy,
   ExternalLink,
+  Link2,
   Megaphone,
   Pause,
   Pencil,
   Plus,
   RefreshCw,
+  Send,
   Trash2,
 } from 'lucide-react';
 import {
@@ -41,6 +44,89 @@ import { cn } from '@/lib/utils';
 
 type FormState = typeof EMPTY_CAMPAIGN_FORM;
 type StatusFilter = '' | 'live' | 'draft' | 'paused';
+
+type PreviewChannel = 'facebook' | 'instagram' | 'x' | 'in_app' | 'whatsapp';
+
+function buildLiveChannelDrafts(
+  form: {
+    headline: string;
+    body: string;
+    ctaLabel: string;
+    destination: string;
+    channels: CampaignChannelId[];
+  },
+  origin = 'https://quranpilot.com',
+) {
+  const path = form.destination.startsWith('/') ? form.destination : `/${form.destination}`;
+  const baseUrl = `${origin.replace(/\/$/, '')}${path}`;
+  const withUtm = (ch: string) => `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}utm_source=${ch}`;
+  const headline = form.headline.trim() || 'Read and reflect on the Quran daily';
+  const body = form.body.trim() || 'Build a steady daily habit with guided reading, tajweed, and audio.';
+  const cta = form.ctaLabel.trim() || 'Start reading';
+
+  const entries: Array<{
+    channel: CampaignChannelId;
+    label: string;
+    text: string;
+    shareUrl?: string;
+  }> = [];
+
+  if (form.channels.includes('facebook')) {
+    const url = withUtm('facebook');
+    entries.push({
+      channel: 'facebook',
+      label: 'Facebook',
+      text: `${headline}\n\n${body}\n\n${cta}: ${url}`,
+      shareUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(`${headline} — ${body}`)}`,
+    });
+  }
+  if (form.channels.includes('instagram')) {
+    const url = withUtm('instagram');
+    entries.push({
+      channel: 'instagram',
+      label: 'Instagram',
+      text: `${headline}\n\n${body}\n\nLink in bio: ${url}\n#QuranPilot #Quran #Tajweed`,
+    });
+  }
+  if (form.channels.includes('x')) {
+    const url = withUtm('x');
+    const xText = `${headline} — ${body}`.slice(0, 220);
+    entries.push({
+      channel: 'x',
+      label: 'X (Twitter)',
+      text: `${xText}\n${url}`,
+      shareUrl: `https://twitter.com/intent/tweet?text=${encodeURIComponent(xText)}&url=${encodeURIComponent(url)}`,
+    });
+  }
+  if (form.channels.includes('whatsapp')) {
+    const url = withUtm('whatsapp');
+    entries.push({
+      channel: 'whatsapp',
+      label: 'WhatsApp',
+      text: `*${headline}*\n${body}\n\n${cta}: ${url}`,
+      shareUrl: `https://wa.me/?text=${encodeURIComponent(`*${headline}*\n${body}\n${url}`)}`,
+    });
+  }
+  if (form.channels.includes('telegram')) {
+    const url = withUtm('telegram');
+    entries.push({
+      channel: 'telegram',
+      label: 'Telegram',
+      text: `${headline}\n${body}\n${url}`,
+      shareUrl: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(`${headline} — ${body}`)}`,
+    });
+  }
+  if (form.channels.includes('email')) {
+    const url = withUtm('email');
+    entries.push({
+      channel: 'email',
+      label: 'Email Newsletter',
+      text: `Subject: ${headline}\n\n${body}\n\n${cta}: ${url}`,
+      shareUrl: `mailto:?subject=${encodeURIComponent(headline)}&body=${encodeURIComponent(`${body}\n\n${cta}: ${url}`)}`,
+    });
+  }
+  return entries;
+}
 
 const FIELD =
   'w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink outline-none ring-emerald-600 focus:ring-2 dark:border-slate-700 dark:bg-slate-900';
@@ -315,9 +401,86 @@ export function CampaignBuilder() {
     }
   };
 
+  const [previewChannel, setPreviewChannel] = useState<PreviewChannel>('facebook');
+  const [copiedAll, setCopiedAll] = useState(false);
+  const [connectionsOpen, setConnectionsOpen] = useState(false);
+  const [smtpConfigured, setSmtpConfigured] = useState<boolean | null>(null);
+  const [dispatching, setDispatching] = useState(false);
+  const [dispatchResults, setDispatchResults] = useState<
+    Array<{ channel: string; ok: boolean; detail: string }>
+  >([]);
+  const [connections, setConnections] = useState({
+    webhookUrl: '',
+    telegramBotToken: '',
+    telegramChatId: '',
+    metaPageId: '',
+    metaAccessToken: '',
+    instagramAccountId: '',
+  });
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('qp_campaign_connections');
+      if (saved) setConnections((prev) => ({ ...prev, ...JSON.parse(saved) }));
+    } catch {
+      // ignore storage errors
+    }
+    adminApi
+      .getMailSettings()
+      .then((s) => setSmtpConfigured(s.configured))
+      .catch(() => setSmtpConfigured(false));
+  }, []);
+
+  const updateConnection = (key: keyof typeof connections, value: string) => {
+    setConnections((prev) => {
+      const next = { ...prev, [key]: value };
+      try {
+        window.localStorage.setItem('qp_campaign_connections', JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  };
+
+  const hasTelegram = Boolean(connections.telegramBotToken.trim() && connections.telegramChatId.trim());
+  const hasMeta = Boolean(connections.metaPageId.trim() && connections.metaAccessToken.trim());
+  const hasWebhook = Boolean(connections.webhookUrl.trim());
+  const connectedExternalCount =
+    (hasWebhook ? 1 : 0) + (hasTelegram ? 1 : 0) + (hasMeta ? 1 : 0) + (smtpConfigured ? 1 : 0);
+
+  const onDispatch = async () => {
+    if (!editingId) {
+      setError('Save or publish the campaign first before dispatching to external connections.');
+      return;
+    }
+    setDispatching(true);
+    setError(null);
+    setDispatchResults([]);
+    try {
+      const res = await adminApi.dispatchCampaign(editingId, connections);
+      setDispatchResults(res.results);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to dispatch campaign.');
+    } finally {
+      setDispatching(false);
+    }
+  };
+
   const knownDestination = destinations.some((d) => d.path === form.destination);
   const inAppIds = IN_APP_CHANNELS.map((c) => c.id);
   const externalIds = EXTERNAL_CHANNELS.map((c) => c.id);
+  const allChannelIds = [...inAppIds, ...externalIds];
+  const allSelected = allChannelIds.every((id) => form.channels.includes(id));
+  const liveDrafts = buildLiveChannelDrafts(form);
+
+  const copyAllExternal = async () => {
+    if (!liveDrafts.length || typeof navigator === 'undefined' || !navigator.clipboard) return;
+    const bundle = liveDrafts.map((d) => `=== ${d.label} ===\n${d.text}`).join('\n\n');
+    await navigator.clipboard.writeText(bundle);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
+  };
 
   return (
     <>
@@ -325,7 +488,16 @@ export function CampaignBuilder() {
         title="Campaigns"
         description="Create one ad and publish it across the app and social channels. Publishing pauses any other live campaign."
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setConnectionsOpen((v) => !v)}
+            >
+              <Link2 className="h-3.5 w-3.5" />
+              Connections ({6 + connectedExternalCount})
+            </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
               <RefreshCw className={loading ? 'animate-spin' : ''} />
               Refresh
@@ -337,6 +509,142 @@ export function CampaignBuilder() {
           </div>
         }
       />
+
+      {connectionsOpen && (
+        <AdminCard className="mb-6">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800">
+            <div>
+              <h2 className="text-base font-semibold text-ink dark:text-slate-100">
+                Channel Connections
+              </h2>
+              <p className="text-xs text-ink-3">
+                In-app surfaces are built in and go live automatically. Connect external channels below for 1-click auto-dispatch.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 text-[11px] font-medium">
+              <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                6 In-App Live
+              </span>
+              <span
+                className={cn(
+                  'rounded-md px-2 py-0.5',
+                  smtpConfigured
+                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                )}
+              >
+                Email: {smtpConfigured ? 'SMTP Ready' : 'Not configured'}
+              </span>
+              <span
+                className={cn(
+                  'rounded-md px-2 py-0.5',
+                  hasMeta
+                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                )}
+              >
+                Meta (FB/IG): {hasMeta ? 'Connected' : 'Share link'}
+              </span>
+              <span
+                className={cn(
+                  'rounded-md px-2 py-0.5',
+                  hasTelegram
+                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                )}
+              >
+                Telegram: {hasTelegram ? 'Bot Ready' : 'Share link'}
+              </span>
+              <span
+                className={cn(
+                  'rounded-md px-2 py-0.5',
+                  hasWebhook
+                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                )}
+              >
+                Webhook (X / WhatsApp): {hasWebhook ? 'Connected' : 'Optional'}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2.5 rounded-lg border border-slate-200/80 p-3.5 dark:border-slate-800">
+              <p className="text-xs font-semibold text-ink dark:text-slate-100">
+                Meta (Facebook Page &amp; Instagram)
+              </p>
+              <input
+                type="text"
+                value={connections.metaPageId}
+                onChange={(e) => updateConnection('metaPageId', e.target.value)}
+                placeholder="Facebook Page ID"
+                className={FIELD}
+              />
+              <input
+                type="password"
+                value={connections.metaAccessToken}
+                onChange={(e) => updateConnection('metaAccessToken', e.target.value)}
+                placeholder="Meta Page Access Token"
+                className={FIELD}
+              />
+              <input
+                type="text"
+                value={connections.instagramAccountId}
+                onChange={(e) => updateConnection('instagramAccountId', e.target.value)}
+                placeholder="Instagram Business ID (optional)"
+                className={FIELD}
+              />
+            </div>
+
+            <div className="space-y-2.5 rounded-lg border border-slate-200/80 p-3.5 dark:border-slate-800">
+              <p className="text-xs font-semibold text-ink dark:text-slate-100">
+                Telegram Bot API
+              </p>
+              <input
+                type="password"
+                value={connections.telegramBotToken}
+                onChange={(e) => updateConnection('telegramBotToken', e.target.value)}
+                placeholder="Bot Token (from @BotFather)"
+                className={FIELD}
+              />
+              <input
+                type="text"
+                value={connections.telegramChatId}
+                onChange={(e) => updateConnection('telegramChatId', e.target.value)}
+                placeholder="Channel / Chat ID (e.g. @quranpilot)"
+                className={FIELD}
+              />
+              <p className="text-[11px] text-ink-4">
+                Add your bot as an administrator on your Telegram channel to auto-post.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 rounded-lg border border-slate-200/80 p-3.5 dark:border-slate-800">
+              <p className="text-xs font-semibold text-ink dark:text-slate-100">
+                Automation Webhook &amp; Email
+              </p>
+              <input
+                type="url"
+                value={connections.webhookUrl}
+                onChange={(e) => updateConnection('webhookUrl', e.target.value)}
+                placeholder="https://hooks.zapier.com/... (Make / n8n)"
+                className={FIELD}
+              />
+              <p className="text-[11px] text-ink-4">
+                Sends full JSON + per-channel copies for X, WhatsApp Business, or custom integrations.
+              </p>
+              <div className="pt-1">
+                <Link
+                  href="/admin/email"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 hover:underline dark:text-emerald-400"
+                >
+                  {smtpConfigured ? 'Manage SMTP & Email Broadcast →' : 'Configure SMTP in Email Settings →'}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </AdminCard>
+      )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
@@ -373,7 +681,7 @@ export function CampaignBuilder() {
               </Button>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
               <div className="space-y-4">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-ink-3" htmlFor="campaign-name">
@@ -472,23 +780,275 @@ export function CampaignBuilder() {
                     />
                   </div>
                 )}
+
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <label className="text-sm font-medium text-ink-3" htmlFor="campaign-image-url">
+                      Creative / Image URL <span className="font-normal text-ink-4">(optional, shown on Facebook &amp; Instagram)</span>
+                    </label>
+                    {form.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, imageUrl: '' }))}
+                        className="text-xs font-medium text-ink-4 hover:text-ink"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    id="campaign-image-url"
+                    type="url"
+                    value={form.imageUrl}
+                    onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
+                    className={FIELD}
+                    placeholder="https://quranpilot.com/og-image.png"
+                  />
+                </div>
               </div>
 
               <div>
-                <p className="mb-1.5 text-sm font-medium text-ink-3">Preview</p>
-                <div className="rounded-lg border border-line bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-                  <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                    {form.headline || 'Headline'}
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-ink-3">
-                    {form.body || 'Body copy appears here.'}
-                  </p>
-                  <span className="mt-3 inline-flex rounded-full bg-emerald-700 px-3 py-1 text-[11px] font-semibold text-white">
-                    {form.ctaLabel || 'Button'}
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-ink-3">Live Ad Preview</p>
+                  <span className="text-[11px] font-medium text-ink-4">
+                    {form.channels.length}/{allChannelIds.length} channels
                   </span>
-                  <p className="mt-2 truncate font-mono text-[11px] text-ink-3">{form.destination || '/'}</p>
+                </div>
+
+                <div className="mb-2.5 flex flex-wrap gap-1 rounded-lg border border-line bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-900/70">
+                  {(
+                    [
+                      ['facebook', 'Facebook'],
+                      ['instagram', 'Instagram'],
+                      ['x', 'X'],
+                      ['in_app', 'In-App'],
+                      ['whatsapp', 'WhatsApp'],
+                    ] as const
+                  ).map(([id, label]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setPreviewChannel(id)}
+                      className={`flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+                        previewChannel === id
+                          ? 'bg-white text-emerald-800 shadow-xs dark:bg-slate-800 dark:text-emerald-300'
+                          : 'text-ink-3 hover:text-ink'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {previewChannel === 'facebook' && (
+                  <div className="overflow-hidden rounded-xl border border-line bg-white shadow-xs dark:border-slate-700 dark:bg-slate-950">
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-800 text-xs font-bold text-white">
+                        QP
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold text-ink dark:text-slate-100">QuranPilot</p>
+                        <p className="text-[10px] text-ink-4">Sponsored · Omni-channel</p>
+                      </div>
+                    </div>
+                    <p className="px-3.5 pb-2.5 text-xs leading-relaxed text-ink-2 dark:text-slate-300">
+                      {form.body || 'Build a steady daily Quran habit with guided reading, tajweed, and audio.'}
+                    </p>
+                    {form.imageUrl ? (
+                      <img
+                        src={form.imageUrl}
+                        alt={form.headline || 'Campaign creative'}
+                        className="h-40 w-full object-cover bg-slate-100 dark:bg-slate-900"
+                      />
+                    ) : (
+                      <div className="flex h-32 flex-col justify-between bg-gradient-to-br from-emerald-900 via-emerald-800 to-slate-900 p-4 text-white">
+                        <span className="w-fit rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-200">
+                          QuranPilot
+                        </span>
+                        <p className="line-clamp-2 text-sm font-semibold leading-snug">
+                          {form.headline || 'Read and reflect on the Quran daily'}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-2 border-t border-line bg-slate-50 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-900">
+                      <div className="min-w-0">
+                        <p className="truncate text-[10px] uppercase tracking-wide text-ink-4">
+                          quranpilot.com{form.destination || '/'}
+                        </p>
+                        <p className="truncate text-xs font-semibold text-ink dark:text-slate-100">
+                          {form.headline || 'Headline'}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-md bg-emerald-800 px-2.5 py-1.5 text-[11px] font-semibold text-white">
+                        {form.ctaLabel || 'Start reading'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {previewChannel === 'instagram' && (
+                  <div className="overflow-hidden rounded-xl border border-line bg-white shadow-xs dark:border-slate-700 dark:bg-slate-950">
+                    <div className="flex items-center gap-2 px-3.5 py-2.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-800 text-[10px] font-bold text-white">
+                        QP
+                      </span>
+                      <p className="text-xs font-semibold text-ink dark:text-slate-100">quranpilot.app</p>
+                    </div>
+                    {form.imageUrl ? (
+                      <img
+                        src={form.imageUrl}
+                        alt={form.headline || 'Instagram creative'}
+                        className="h-44 w-full object-cover bg-slate-100 dark:bg-slate-900"
+                      />
+                    ) : (
+                      <div className="flex h-40 flex-col justify-center bg-gradient-to-br from-slate-900 via-emerald-950 to-emerald-900 p-5 text-center text-white">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-300">
+                          QuranPilot
+                        </p>
+                        <p className="mt-1.5 text-sm font-semibold leading-snug">
+                          {form.headline || 'Headline'}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between bg-emerald-800 px-3.5 py-2 text-xs font-semibold text-white">
+                      <span>{form.ctaLabel || 'Start reading'}</span>
+                      <span>→</span>
+                    </div>
+                    <p className="px-3.5 py-2.5 text-xs leading-relaxed text-ink-2 dark:text-slate-300">
+                      <span className="font-semibold text-ink dark:text-slate-100">quranpilot.app</span>{' '}
+                      {form.body || 'Body copy appears here.'}
+                    </p>
+                  </div>
+                )}
+
+                {previewChannel === 'x' && (
+                  <div className="rounded-xl border border-line bg-white p-3.5 shadow-xs dark:border-slate-700 dark:bg-slate-950">
+                    <div className="flex items-start gap-2.5">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-xs font-bold text-white">
+                        QP
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-semibold text-ink dark:text-slate-100">QuranPilot</span>
+                          <span className="text-[11px] text-ink-4">@quranpilot</span>
+                        </div>
+                        <p className="mt-1 text-xs leading-relaxed text-ink-2 dark:text-slate-300">
+                          <span className="font-semibold text-ink dark:text-slate-100">
+                            {form.headline || 'Headline'}
+                          </span>{' '}
+                          — {form.body || 'Body copy appears here.'}
+                        </p>
+                        <div className="mt-2.5 rounded-lg border border-line bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
+                          <p className="truncate font-mono text-[10px] text-emerald-700 dark:text-emerald-400">
+                            quranpilot.com{form.destination || '/'}
+                          </p>
+                          <p className="truncate text-xs font-medium text-ink dark:text-slate-100">
+                            {form.ctaLabel || 'Start reading'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {previewChannel === 'in_app' && (
+                  <div className="rounded-xl border border-emerald-700/30 bg-emerald-950/[0.04] p-4 dark:border-emerald-700/40 dark:bg-emerald-950/30">
+                    <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                      In-App Surface
+                    </span>
+                    <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                      {form.headline || 'Headline'}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-ink-3">
+                      {form.body || 'Body copy appears here.'}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className="inline-flex rounded-full bg-emerald-800 px-3 py-1 text-[11px] font-semibold text-white">
+                        {form.ctaLabel || 'Start reading'}
+                      </span>
+                      <span className="truncate font-mono text-[11px] text-ink-4">{form.destination || '/'}</span>
+                    </div>
+                  </div>
+                )}
+
+                {previewChannel === 'whatsapp' && (
+                  <div className="rounded-xl border border-line bg-slate-100 p-3.5 dark:border-slate-700 dark:bg-slate-900">
+                    <div className="rounded-lg bg-white p-3 shadow-xs dark:bg-slate-950">
+                      <p className="text-xs font-bold text-ink dark:text-slate-100">
+                        *{form.headline || 'Headline'}*
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-ink-2 dark:text-slate-300">
+                        {form.body || 'Body copy appears here.'}
+                      </p>
+                      <p className="mt-2 text-xs font-medium text-emerald-700 underline dark:text-emerald-400">
+                        https://quranpilot.com{form.destination || '/'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-emerald-700/20 bg-emerald-950/[0.03] p-3.5 dark:border-emerald-800/40 dark:bg-emerald-950/20">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                    Omni-channel placement ({form.channels.length} of {allChannelIds.length} active)
+                  </p>
+                  <p className="text-xs text-ink-3">
+                    Place this single campaign across every QuranPilot in-app surface and social channel at once.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, channels: allSelected ? ['in_app_global'] : [...allChannelIds] }))}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                      allSelected
+                        ? 'border border-emerald-700/40 bg-emerald-800 text-white'
+                        : 'border border-line bg-white text-ink hover:border-emerald-700 dark:border-slate-700 dark:bg-slate-900'
+                    }`}
+                  >
+                    {allSelected ? 'All 12 channels selected' : 'Select all 12 channels'}
+                  </button>
+                  {liveDrafts.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={copyAllExternal}
+                      className="rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-emerald-700 dark:border-slate-700 dark:bg-slate-900"
+                    >
+                      {copiedAll ? 'Copied all channels' : 'Copy all channel texts'}
+                    </button>
+                  )}
                 </div>
               </div>
+              {liveDrafts.length > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-line/70 pt-2.5 dark:border-slate-800">
+                  <span className="mr-1 text-[11px] font-medium text-ink-4">Quick share:</span>
+                  {liveDrafts.map((draft) =>
+                    draft.shareUrl ? (
+                      <a
+                        key={draft.channel}
+                        href={draft.shareUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-md border border-line bg-white px-2.5 py-1 text-[11px] font-semibold text-ink-2 transition hover:border-emerald-700 hover:text-emerald-800 dark:border-slate-700 dark:bg-slate-900 dark:hover:text-emerald-300"
+                      >
+                        {draft.label} ↗
+                      </a>
+                    ) : (
+                      <button
+                        key={draft.channel}
+                        type="button"
+                        onClick={() => navigator.clipboard?.writeText(draft.text)}
+                        className="rounded-md border border-line bg-white px-2.5 py-1 text-[11px] font-semibold text-ink-2 transition hover:border-emerald-700 hover:text-emerald-800 dark:border-slate-700 dark:bg-slate-900 dark:hover:text-emerald-300"
+                      >
+                        Copy {draft.label}
+                      </button>
+                    ),
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
@@ -562,14 +1122,14 @@ export function CampaignBuilder() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" variant="outline" disabled={saving || publishing}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="submit" variant="outline" disabled={saving || publishing || dispatching}>
                 {saving ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
                 ) : null}
                 Save draft
               </Button>
-              <Button type="button" onClick={() => void onPublish()} disabled={saving || publishing}>
+              <Button type="button" onClick={() => void onPublish()} disabled={saving || publishing || dispatching}>
                 {publishing ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 ) : (
@@ -577,7 +1137,46 @@ export function CampaignBuilder() {
                 )}
                 Publish to channels
               </Button>
+              {(hasWebhook || hasTelegram || hasMeta) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void onDispatch()}
+                  disabled={saving || publishing || dispatching || !editingId}
+                  title={!editingId ? 'Save or publish the campaign first' : 'Send directly to your connected channels'}
+                >
+                  {dispatching ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  Dispatch to connected APIs
+                </Button>
+              )}
             </div>
+
+            {dispatchResults.length > 0 && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+                <p className="mb-2 text-xs font-semibold text-ink dark:text-slate-100">
+                  Channel Dispatch Results
+                </p>
+                <div className="space-y-1.5">
+                  {dispatchResults.map((res) => (
+                    <div key={res.channel} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="font-medium capitalize text-ink-2">{res.channel}</span>
+                      <span
+                        className={cn(
+                          'font-medium',
+                          res.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
+                        )}
+                      >
+                        {res.detail}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </form>
         </AdminCard>
       )}

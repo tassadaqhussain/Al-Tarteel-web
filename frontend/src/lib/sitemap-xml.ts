@@ -1,4 +1,4 @@
-import type { SitemapEntry } from '@/lib/sitemap-data';
+import { SITEMAP_LASTMOD, type SitemapEntry } from '@/lib/sitemap-data';
 
 /** XML-escape a URL before embedding it in `<loc>`. */
 function escapeXml(value: string): string {
@@ -11,22 +11,36 @@ function escapeXml(value: string): string {
 }
 
 const URLSET_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+const XHTML_NS = 'http://www.w3.org/1999/xhtml';
 
 export function renderUrlset(entries: SitemapEntry[]): string {
+  const hasAlternates = entries.some((entry) => entry.alternates && entry.alternates.length > 0);
   const urls = entries
-    .map(
-      (entry) =>
-        `<url><loc>${escapeXml(entry.url)}</loc>` +
-        `<changefreq>${entry.changeFrequency}</changefreq>` +
-        `<priority>${entry.priority}</priority></url>`,
-    )
+    .map((entry) => {
+      const lastmod = `<lastmod>${escapeXml(entry.lastModified || SITEMAP_LASTMOD)}</lastmod>`;
+      const alts = entry.alternates?.length
+        ? entry.alternates
+            .map(
+              (alt) =>
+                `<xhtml:link rel="alternate" hreflang="${escapeXml(alt.hreflang)}" href="${escapeXml(alt.href)}" />`,
+            )
+            .join('')
+        : '';
+      return `<url><loc>${escapeXml(entry.url)}</loc>${lastmod}${alts}</url>`;
+    })
     .join('');
-  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="${URLSET_NS}">${urls}</urlset>`;
+  const nsAttr = hasAlternates
+    ? `xmlns="${URLSET_NS}" xmlns:xhtml="${XHTML_NS}"`
+    : `xmlns="${URLSET_NS}"`;
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset ${nsAttr}>${urls}</urlset>`;
 }
 
 export function renderSitemapIndex(locs: string[]): string {
   const sitemaps = locs
-    .map((loc) => `<sitemap><loc>${escapeXml(loc)}</loc></sitemap>`)
+    .map(
+      (loc) =>
+        `<sitemap><loc>${escapeXml(loc)}</loc><lastmod>${escapeXml(SITEMAP_LASTMOD)}</lastmod></sitemap>`,
+    )
     .join('');
   return `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="${URLSET_NS}">${sitemaps}</sitemapindex>`;
 }

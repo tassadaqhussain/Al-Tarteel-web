@@ -372,6 +372,15 @@ export const adminApi = {
         bookmarksTotal: number;
       };
       feedback: { total: number; last7Days: number };
+      traffic: {
+        visitorsToday: number;
+        pageViewsToday: number;
+        visitorsLast7Days: number;
+        pageViewsLast7Days: number;
+        visitorsLast30Days: number;
+        pageViewsLast30Days: number;
+        channelsLast30Days: Array<{ channel: string; visitors: number; pageViews: number }>;
+      } | null;
       trafficNote: string;
       generatedAt: string;
     }>('/admin/stats'),
@@ -427,6 +436,24 @@ export const adminApi = {
       method: 'POST',
       body: JSON.stringify(channels ? { channels } : {}),
     }),
+  dispatchCampaign: (
+    id: number,
+    config: {
+      webhookUrl?: string;
+      telegramBotToken?: string;
+      telegramChatId?: string;
+      metaPageId?: string;
+      metaAccessToken?: string;
+      instagramAccountId?: string;
+    },
+  ) =>
+    api<{ ok: boolean; results: Array<{ channel: string; ok: boolean; detail: string }> }>(
+      `/admin/campaigns/${id}/dispatch`,
+      {
+        method: 'POST',
+        body: JSON.stringify(config),
+      },
+    ),
   pauseCampaign: (id: number) =>
     api<AdminCampaign>(`/admin/campaigns/${id}/pause`, { method: 'POST', body: JSON.stringify({}) }),
   deleteCampaign: (id: number) =>

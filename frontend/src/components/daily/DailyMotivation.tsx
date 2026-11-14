@@ -208,10 +208,18 @@ export function DailyMotivation({
   }
 
   return (
-    <section className={cn('w-full', className)}>
+    <section
+      className={cn(
+        'w-full',
+        variant === 'full' && showAyahOfDay && ayahCard
+          ? 'grid items-stretch gap-5 lg:grid-cols-2'
+          : '',
+        className
+      )}
+    >
       <div
         className={cn(
-          'rounded-2xl border border-line bg-surface shadow-sm',
+          'flex flex-col justify-between rounded-2xl border border-line bg-surface shadow-sm',
           variant === 'compact' ? 'px-4 py-4' : 'px-5 py-6 sm:px-7 sm:py-7',
         )}
       >
@@ -333,30 +341,32 @@ export function DailyMotivation({
       </div>
 
       {variant === 'full' && showAyahOfDay && ayahCard && (
-        <div className="mt-4 rounded-2xl border border-line bg-surface px-5 py-5 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-            {t('ayahOfTheDay')}
-          </p>
-          <p
-            className="mt-4 text-center font-arabic text-2xl leading-loose text-ink"
-            dir="rtl"
-            lang="ar"
-            translate="no"
-          >
-            {ayahCard.textUthmani}
-          </p>
-          {ayahCard.translation && (
-            <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-ink-3">
-              {ayahCard.translation}
+        <div className="flex flex-col justify-between rounded-2xl border border-line bg-surface px-5 py-6 shadow-sm sm:px-7 sm:py-7">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
+              {t('ayahOfTheDay')}
             </p>
-          )}
-          <p className="mt-3 text-center text-sm font-medium text-ink-muted">
-            {ayahCard.surahName} · {ayahCard.surah}:{ayahCard.ayah}
-          </p>
-          <div className="mt-4 flex justify-center">
+            <p
+              className="mt-5 text-center font-arabic text-2xl leading-loose text-ink sm:text-3xl"
+              dir="rtl"
+              lang="ar"
+              translate="no"
+            >
+              {ayahCard.textUthmani}
+            </p>
+            {ayahCard.translation && (
+              <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-ink-3 sm:text-base">
+                {ayahCard.translation}
+              </p>
+            )}
+          </div>
+          <div className="mt-5 flex items-center justify-between border-t border-line-subtle pt-4">
+            <p className="text-sm font-semibold text-ink-muted">
+              {ayahCard.surahName} · {ayahCard.surah}:{ayahCard.ayah}
+            </p>
             <Link
               href={getSurahPath(ayahCard.surah)}
-              className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-[var(--accent)]"
+              className="rounded-full border border-line bg-surface-2 px-4 py-2 text-xs font-bold text-ink transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
             >
               {t('readInQuran')}
             </Link>

@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { SiteFooter } from '@/components/SiteFooter';
 import { ArticleCard } from '@/components/articles/ArticleCard';
 import { getArticlesSorted, getDailyFeaturedArticles } from '@/lib/articles';
 import { buildPageMetadata } from '@/lib/seo';
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Articles — Quran & Islam Basics',
@@ -28,7 +30,8 @@ export default function ArticlesPage() {
     <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6 lg:py-14">
+      <main className="mx-auto w-full max-w-none flex-1 px-4 py-10 sm:px-6 md:px-8 lg:px-12 lg:py-14 xl:px-16 2xl:px-20">
+        <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Articles', path: '/articles' }]} />
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">
             <BookOpen className="h-6 w-6" />
@@ -65,6 +68,7 @@ export default function ArticlesPage() {
           </Link>
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

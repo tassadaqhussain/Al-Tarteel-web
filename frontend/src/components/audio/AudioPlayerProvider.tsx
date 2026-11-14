@@ -9,6 +9,7 @@ import {
 } from '@/lib/audio/TemporaryAudioCache';
 
 import { createPlayRequest } from '@/lib/audio/play-request';
+import { trackAudioEvent } from '@/lib/analytics';
 
 const OFFLINE_NOTICE = 'Internet connection is required to continue.';
 
@@ -138,7 +139,13 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
       setPlaying(false);
       setPlaybackNotice('Playback could not start. Tap play to try again.');
     });
-  }, [setPlaying, setPlaybackNotice]);
+    trackAudioEvent('play', {
+      surahNumber: current?.surahNumber,
+      ayahNumber: current?.ayahNumber,
+      reciterSlug: current?.reciterSlug,
+      trackKind: current?.trackKind,
+    });
+  }, [setPlaying, setPlaybackNotice, current]);
 
   useEffect(() => {
     const el = audioRef.current;
@@ -185,6 +192,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         }
         const surah = list[0]?.surahNumber;
         setPlaying(false);
+        trackAudioEvent('complete', { surahNumber: surah });
         if (surah != null) temporaryAudioCache.clearSurah(surah);
         else temporaryAudioCache.clearSession();
         return;

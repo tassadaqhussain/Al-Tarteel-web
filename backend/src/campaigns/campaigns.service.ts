@@ -197,6 +197,201 @@ export class CampaignsService {
     };
   }
 
+  async dispatch(
+    id: number,
+    config: {
+      webhookUrl?: string;
+      telegramBotToken?: string;
+      telegramChatId?: string;
+      metaPageId?: string;
+      metaAccessToken?: string;
+      instagramAccountId?: string;
+    },
+  ) {
+    const campaign = await this.get(id);
+    const results: Array<{ channel: string; ok: boolean; detail: string }> = [];
+    const copiesMap = new Map(campaign.copies.map((c) => [c.channel, c]));
+
+    const siteUrl = (process.env.PUBLIC_SITE_URL || 'https://quranpilot.com').replace(/\/$/, '');
+    const targetUrl = `${siteUrl}${campaign.destination.startsWith('/') ? campaign.destination : `/${campaign.destination}`}`;
+    const fullImageUrl =
+      campaign.imageUrl && campaign.imageUrl.startsWith('/')
+        ? `${siteUrl}${campaign.imageUrl}`
+        : campaign.imageUrl || undefined;
+
+    if (config.webhookUrl?.trim()) {
+      const hook = config.webhookUrl.trim();
+      try {
+        const parsed = new URL(hook);
+        if (parsed.protocol !== 'https:') {
+          results.push({ channel: 'webhook', ok: false, detail: 'Webhook URL must use https://' });
+        } else {
+          const res = await fetch(hook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              event: 'campaign.dispatch',
+              campaign: {
+                id: campaign.id,
+                name: campaign.name,
+                headline: campaign.headline,
+                body: campaign.body,
+                ctaLabel: campaign.ctaLabel,
+                destination: campaign.destination,
+                url: targetUrl,
+                imageUrl: fullImageUrl ?? null,
+              },
+              copies: campaign.copies,
+            }),
+          });
+          results.push({
+            channel: 'webhook',
+            ok: res.ok,
+            detail: res.ok ? `Delivered (${res.status})` : `Webhook returned ${res.status}`,
+          });
+        }
+      } catch (err) {
+        results.push({
+          channel: 'webhook',
+          ok: false,
+          detail: err instanceof Error ? err.message : 'Webhook request failed',
+        });
+      }
+    }
+
+    if (config.telegramBotToken?.trim() && config.telegramChatId?.trim()) {
+      const token = config.telegramBotToken.trim();
+      const chatId = config.telegramChatId.trim();
+      const text = copiesMap.get('telegram')?.text || `${campaign.headline}\n\n${campaign.body}\n\n${targetUrl}`;
+      try {
+        const endpoint = fullImageUrl
+          ? `https://api.telegram.org/bot${encodeURIComponent(token)}/sendPhoto`
+          : `https://api.telegram.org/bot${encodeURIComponent(token)}/sendMessage`;
+        const payload = fullImageUrl
+          ? { chat_id: chatId, photo: fullImageUrl, caption: text.slice(0, 1024) }
+          : { chat_id: chatId, text };
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+        results.push({
+          channel: 'telegram',
+          ok: Boolean(res.ok && data.ok),
+          detail: data.ok ? `Sent to ${chatId}` : data.description || `HTTP ${res.status}`,
+        });
+      } catch (err) {
+        results.push({
+          channel: 'telegram',
+          ok: false,
+          detail: err instanceof Error ? err.message : 'Telegram request failed',
+        });
+      }
+    }
+
+    if (config.metaPageId?.trim() && config.metaAccessToken?.trim()) {
+      const pageId = config.metaPageId.trim();
+      const token = config.metaAccessToken.trim();
+      const fbText = copiesMap.get('facebook')?.text || `${campaign.headline}\n\n${campaign.body}`;
+      try {
+        const res = await fetch(`https://graph.facebook.com/v20.0/${encodeURIComponent(pageId)}/feed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: fbText,
+            link: targetUrl,
+            access_token: token,
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { id?: string; error?: { message?: string } };
+        results.push({
+          channel: 'facebook',
+          ok: Boolean(res.ok && data.id),
+          detail: data.id ? `Posted (${data.id})` : data.error?.message || `HTTP ${res.status}`,
+        });
+      } catch (err) {
+        results.push({
+          channel: 'facebook',
+          ok: false,
+          detail: err instanceof Error ? err.message : 'Facebook Graph API failed',
+        });
+      }
+
+      if (config.instagramAccountId?.trim()) {
+        const igId = config.instagramAccountId.trim();
+        if (!fullImageUrl) {
+          results.push({
+            channel: 'instagram',
+            ok: false,
+            detail: 'Instagram Graph API requires an image URL on the campaign',
+          });
+        } else {
+          const igText = copiesMap.get('instagram')?.text || `${campaign.headline}\n\n${campaign.body}`;
+          try {
+            const createRes = await fetch(
+              `https://graph.facebook.com/v20.0/${encodeURIComponent(igId)}/media`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  image_url: fullImageUrl,
+                  caption: igText,
+                  access_token: token,
+                }),
+              },
+            );
+            const created = (await createRes.json().catch(() => ({}))) as {
+              id?: string;
+              error?: { message?: string };
+            };
+            if (!createRes.ok || !created.id) {
+              results.push({
+                channel: 'instagram',
+                ok: false,
+                detail: created.error?.message || `Media container HTTP ${createRes.status}`,
+              });
+            } else {
+              const pubRes = await fetch(
+                `https://graph.facebook.com/v20.0/${encodeURIComponent(igId)}/media_publish`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ creation_id: created.id, access_token: token }),
+                },
+              );
+              const published = (await pubRes.json().catch(() => ({}))) as {
+                id?: string;
+                error?: { message?: string };
+              };
+              results.push({
+                channel: 'instagram',
+                ok: Boolean(pubRes.ok && published.id),
+                detail: published.id
+                  ? `Published (${published.id})`
+                  : published.error?.message || `Publish HTTP ${pubRes.status}`,
+              });
+            }
+          } catch (err) {
+            results.push({
+              channel: 'instagram',
+              ok: false,
+              detail: err instanceof Error ? err.message : 'Instagram Graph API failed',
+            });
+          }
+        }
+      }
+    }
+
+    if (!results.length) {
+      throw new BadRequestException(
+        'Configure at least one channel connection (Webhook URL, Telegram Bot, or Meta Page) to dispatch.',
+      );
+    }
+
+    return { ok: results.every((r) => r.ok), results };
+  }
+
   private normalize(dto: UpsertCampaignDto) {
     const destination = this.sanitizeDestination(dto.destination);
     const channels = [...new Set(dto.channels)].filter(isCampaignChannel);

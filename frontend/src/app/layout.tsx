@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Amiri, Amiri_Quran, Figtree } from 'next/font/google';
+import { Amiri, Amiri_Quran, Figtree, Fredoka } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
@@ -44,6 +44,14 @@ const amiriQuran = Amiri_Quran({
   preload: false,
 });
 
+/** Kids experience only. Self-hosted, so no render-blocking third-party CSS. */
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  variable: '--font-fredoka',
+  display: 'swap',
+  preload: false,
+});
+
 const figtree = Figtree({
   subsets: ['latin'],
   variable: '--font-ui',
@@ -66,9 +74,6 @@ export const metadata: Metadata = {
   category: 'religion',
   referrer: 'origin-when-cross-origin',
   formatDetection: { telephone: false, email: false, address: false },
-  alternates: {
-    canonical: SITE_URL,
-  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -105,7 +110,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '48x48' },
-      { url: '/images/logo.png', type: 'image/png' },
+      { url: '/images/icon-192.png', sizes: '192x192', type: 'image/png' },
     ],
     apple: '/images/apple-touch-icon.png',
   },
@@ -113,13 +118,20 @@ export const metadata: Metadata = {
   // Set via env after Google Search Console / Bing give you real tokens.
   // Never commit real tokens to git if the repo is public — use server env / deploy secrets.
   verification: {
-    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    ...(process.env.GOOGLE_SITE_VERIFICATION || process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? {
+          google:
+            process.env.GOOGLE_SITE_VERIFICATION ||
+            process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        }
       : {}),
-    ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+    ...(process.env.BING_SITE_VERIFICATION || process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
       ? {
           other: {
-            'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION,
+            'msvalidate.01':
+              process.env.BING_SITE_VERIFICATION ||
+              process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ||
+              '',
           },
         }
       : {}),
@@ -171,11 +183,15 @@ export default function RootLayout({
               "if(s.uiLocale){r.lang=s.uiLocale;" +
               // keep in sync with RTL_LOCALES in lib/i18n/messages.ts
               "r.dir=['ar','fa','ur','ps'].indexOf(s.uiLocale)>-1?'rtl':'ltr';}" +
+              // Locale-prefixed routes (/ur, /ps, /fa) are written in that
+              // language, so it wins over the UI locale for lang; dir stays
+              // with the UI chrome.
+              "if(['ur','ps','fa'].indexOf(seg[0])>-1)r.lang=seg[0];" +
               "}catch(e){}})();",
           }}
         />
       </head>
-      <body className={`${amiri.variable} ${amiriQuran.variable} ${figtree.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
+      <body className={`${amiri.variable} ${amiriQuran.variable} ${figtree.variable} ${fredoka.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
         <TajweedStyles />
         <ThemeProvider>

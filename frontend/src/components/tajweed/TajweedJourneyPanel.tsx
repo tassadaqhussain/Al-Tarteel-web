@@ -1,12 +1,17 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowRight, Check } from 'lucide-react';
 import {
   getMotivation,
   MASTERY_LABELS,
   suggestContinueSlug,
 } from '@/lib/tajweed/motivation';
-import { TAJWEED_LESSONS, getTajweedLesson } from '@/lib/tajweed/rules';
+import {
+  TAJWEED_LESSONS,
+  getTajweedLesson,
+  getTajweedRule,
+} from '@/lib/tajweed/rules';
 import {
   consistencyDays,
   getMasteryForSlug,
@@ -58,165 +63,149 @@ export function TajweedJourneyPanel({ showPersonal = false }: Props) {
   return (
     <section className="space-y-4">
       {personal && (
-        <div className="rounded-2xl border border-line bg-surface p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
-            Today&apos;s Learning
-          </p>
-          <p className="mt-2 text-sm text-ink-3">{welcome}</p>
-          <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-ink">Current lesson</h2>
+            {days > 1 && (
+              <span className="text-xs text-ink-muted">
+                {days} day{days === 1 ? '' : 's'} active
+              </span>
+            )}
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-4 border-t border-line-subtle pt-3">
             <div>
-              <p className="text-lg font-bold text-ink">Continue Tajweed</p>
-              <p className="text-sm text-ink-3">
-                {continueLesson.name} · {MASTERY_LABELS[masteryMap[continueSlug] ?? 'not_started']}
+              <div className="flex items-center gap-2">
+                <p className="text-base font-bold text-ink">{continueLesson.name}</p>
+                <span className="font-arabic text-base text-ink-muted" dir="rtl" lang="ar">
+                  {continueLesson.nameArabic}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-ink-muted">
+                {MASTERY_LABELS[masteryMap[continueSlug] ?? 'not_started']}
               </p>
             </div>
+
             <Link
               href={`/tajweed/${continueSlug}`}
-              className="rounded-full bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-brand-contrast hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-brand-contrast transition hover:opacity-90"
             >
-              Continue
+              <span>Continue</span>
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
-          {days > 1 && (
-            <p className="mt-4 text-xs text-ink-muted">
-              Learning consistency · {days} day{days === 1 ? '' : 's'}
-              <span className="mt-0.5 block text-ink-faint">
-                {days} day{days === 1 ? '' : 's'} of consistent learning.
-              </span>
-            </p>
-          )}
+
+          <p className="mt-3 text-xs leading-relaxed text-ink-muted">
+            {welcome}
+          </p>
         </div>
       )}
 
-      <div className="rounded-2xl border border-line bg-surface p-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="rounded-xl border border-line bg-surface p-5">
+        <div className="flex items-baseline justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold text-ink">Tajweed Journey</h2>
-            <p className="text-sm text-ink-muted">
-              Progress uses calm mastery states — not scores or competitions.
+            <h2 className="text-sm font-semibold text-ink">Your progress</h2>
+            <p className="mt-0.5 text-xs text-ink-muted">
+              {studied} of {TAJWEED_LESSONS.length} lessons started · {reviewed} reviewed
             </p>
           </div>
-          <p className="text-2xl font-bold text-[var(--accent)]">{overall}%</p>
+          <span className="text-lg font-bold tabular-nums text-ink">
+            {overall}%
+          </span>
         </div>
 
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-3">
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-3">
           <div
-            className="h-full rounded-full bg-[var(--accent)] transition-all"
+            className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
             style={{ width: `${overall}%` }}
           />
         </div>
 
-        <p className="mt-3 text-sm text-ink-3">
-          {studied} rules studied · {reviewed} reviewed · {practicing} practicing
-          {learning ? ` · ${learning} learning` : ''}
-        </p>
-
-        <ul className="mt-5 space-y-2">
+        <ul className="mt-4 divide-y divide-line-subtle border-t border-line-subtle">
           {TAJWEED_LESSONS.map((lesson) => {
             const mastery = getMasteryForSlug(store, lesson.slug);
-            const pct = store.completed.includes(lesson.slug)
-              ? 100
-              : store.progress[lesson.slug] ?? 0;
+            const ruleColor = getTajweedRule(lesson.relatedRuleIds[0])?.color ?? '#059669';
+
             return (
               <li key={lesson.slug}>
                 <Link
                   href={`/tajweed/${lesson.slug}`}
-                  className="flex items-center gap-3 rounded-xl px-1 py-1.5 hover:bg-surface-2"
+                  className="group flex items-center justify-between gap-3 py-2.5 text-sm transition hover:text-[var(--accent)]"
                 >
-                  <span className="w-24 shrink-0 text-sm font-medium text-ink">
-                    {lesson.name}
-                  </span>
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
-                    <div
-                      className="h-full rounded-full bg-[var(--accent)]"
-                      style={{ width: `${pct}%` }}
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: ruleColor }}
+                      aria-hidden
                     />
-                  </div>
+                    <span className="truncate font-medium text-ink group-hover:text-[var(--accent)]">
+                      {lesson.name}
+                    </span>
+                  </span>
                   <span
                     className={cn(
-                      'w-[5.5rem] text-right text-xs font-semibold',
-                      mastery === 'reviewed' ? 'text-brand' : 'text-ink-muted',
+                      'inline-flex shrink-0 items-center gap-1 text-xs',
+                      mastery === 'reviewed' ? 'font-semibold text-brand' : 'text-ink-muted',
                     )}
                   >
-                    {mastery === 'reviewed' ? 'Reviewed ✓' : MASTERY_LABELS[mastery]}
+                    {mastery === 'reviewed' ? (
+                      <>
+                        <Check className="h-3.5 w-3.5" aria-hidden />
+                        Reviewed
+                      </>
+                    ) : (
+                      MASTERY_LABELS[mastery]
+                    )}
                   </span>
                 </Link>
               </li>
             );
           })}
         </ul>
-
-        <div className="mt-5">
-          <Link
-            href={`/tajweed/${continueSlug}`}
-            className="text-sm font-semibold text-[var(--accent)] hover:underline"
-          >
-            Continue Learning · {continueLesson.name} →
-          </Link>
-        </div>
       </div>
 
       {personal && week.enoughData && (
-        <div className="rounded-2xl border border-line bg-surface p-5">
-          <h3 className="text-base font-bold text-ink">This week</h3>
-          <p className="mt-1 text-sm text-ink-3">
-            {getMotivation({ state: 'weekly_progress', reviewedCount: week.rulesReviewed })}
-          </p>
-          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <h3 className="text-sm font-semibold text-ink">This week</h3>
+          <dl className="mt-3 grid grid-cols-2 gap-3 text-xs">
             <div>
-              <dt className="text-ink-muted">Lessons completed</dt>
-              <dd className="font-semibold text-ink">{week.lessonsCompleted}</dd>
+              <dt className="text-ink-muted">Completed</dt>
+              <dd className="mt-0.5 text-sm font-bold text-ink">{week.lessonsCompleted}</dd>
             </div>
             <div>
-              <dt className="text-ink-muted">Rules reviewed</dt>
-              <dd className="font-semibold text-ink">{week.rulesReviewed}</dd>
+              <dt className="text-ink-muted">Reviewed</dt>
+              <dd className="mt-0.5 text-sm font-bold text-ink">{week.rulesReviewed}</dd>
             </div>
             <div>
-              <dt className="text-ink-muted">Practice visits</dt>
-              <dd className="font-semibold text-ink">{week.examplesPracticed}</dd>
+              <dt className="text-ink-muted">Practiced</dt>
+              <dd className="mt-0.5 text-sm font-bold text-ink">{week.examplesPracticed}</dd>
             </div>
             <div>
-              <dt className="text-ink-muted">Learning days</dt>
-              <dd className="font-semibold text-ink">{week.learningDays}</dd>
+              <dt className="text-ink-muted">Days active</dt>
+              <dd className="mt-0.5 text-sm font-bold text-ink">{week.learningDays}</dd>
             </div>
           </dl>
-          {week.strongest && (
-            <p className="mt-3 text-sm text-ink-3">
-              Most revisited:{' '}
-              <span className="font-semibold text-ink">
-                {getTajweedLesson(week.strongest)?.name}
-              </span>
-            </p>
-          )}
-          <p className="mt-1 text-sm text-ink-3">
-            Continue practicing:{' '}
-            <Link
-              href={`/tajweed/${week.continueSlug}`}
-              className="font-semibold text-[var(--accent)] hover:underline"
-            >
-              {getTajweedLesson(week.continueSlug)?.name}
-            </Link>
-          </p>
         </div>
       )}
 
       {recent.length > 0 && (
-        <div className="rounded-2xl border border-line bg-surface p-5">
-          <h3 className="text-base font-bold text-ink">Recent activity</h3>
-          <ul className="mt-3 space-y-2 text-sm text-ink-3">
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <h3 className="text-sm font-semibold text-ink">Recent activity</h3>
+          <ul className="mt-3 divide-y divide-line-subtle text-xs">
             {recent.map((item, i) => (
-              <li key={`${item.at}-${i}`}>
+              <li key={`${item.at}-${i}`} className="flex items-center justify-between py-2">
                 <span className="font-medium text-ink">
                   {getTajweedLesson(item.slug)?.name}
                 </span>
-                {' — '}
-                {item.action === 'completed' || item.action === 'reviewed'
-                  ? 'Reviewed'
-                  : item.action === 'practiced'
-                    ? 'Practiced'
-                    : item.action === 'checkpoint'
-                      ? 'In progress'
-                      : 'Opened'}
+                <span className="text-ink-muted">
+                  {item.action === 'completed' || item.action === 'reviewed'
+                    ? 'Reviewed'
+                    : item.action === 'practiced'
+                      ? 'Practiced'
+                      : item.action === 'checkpoint'
+                        ? 'In progress'
+                        : 'Opened'}
+                </span>
               </li>
             ))}
           </ul>

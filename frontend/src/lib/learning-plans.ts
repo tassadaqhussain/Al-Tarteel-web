@@ -19,7 +19,7 @@ export const LEARNING_PLANS: LearningPlan[] = [
     summary: 'Walk through each verse of Al-Fatihah over seven days — reflect, understand, and live the opening of the Quran.',
     days: 7,
     surahNumber: 1,
-    imageTone: 'from-violet-700 via-fuchsia-600 to-rose-500',
+    imageTone: 'from-emerald-900 via-emerald-800 to-teal-700',
     featured: true,
   },
   {
@@ -44,7 +44,7 @@ export const LEARNING_PLANS: LearningPlan[] = [
     summary: 'Discover the essence of Tawhid through one of the most beloved surahs in the Quran.',
     days: 4,
     surahNumber: 112,
-    imageTone: 'from-sky-800 via-blue-700 to-indigo-700',
+    imageTone: 'from-slate-800 via-teal-900 to-emerald-800',
     featured: true,
   },
   {
@@ -223,7 +223,7 @@ export const LEARNING_PLANS: LearningPlan[] = [
     summary: 'Spend a month with Al-Mulk — learn its meanings, reflect nightly, and memorize with purpose.',
     days: 30,
     surahNumber: 67,
-    imageTone: 'from-indigo-800 via-violet-700 to-purple-600',
+    imageTone: 'from-amber-900 via-stone-800 to-emerald-900',
     featured: true,
   },
   {

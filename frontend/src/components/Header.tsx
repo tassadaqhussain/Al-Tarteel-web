@@ -143,16 +143,45 @@ export function Header() {
         'dark:shadow-none',
         pathname?.startsWith('/surah/') ? 'relative' : 'sticky top-0 z-50'
       )}>
-        <div className={cn(CHROME_SHELL, 'flex h-14 items-center justify-between gap-3 sm:h-[58px]')}>
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 font-serif text-[1.35rem] font-bold tracking-tight text-ink sm:text-[1.7rem]"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-900/10 bg-brand-gold/10 shadow-sm">
-              <SiteLogo size={30} className="h-7 w-7" priority alt="QuranPilot" />
-            </span>
-            <span className="truncate">QuranPilot</span>
-          </Link>
+        <div className={cn(CHROME_SHELL, 'flex h-16 items-center justify-between gap-4')}>
+          <div className="flex items-center gap-7">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 font-serif text-[1.35rem] font-bold tracking-tight text-ink sm:text-[1.6rem]"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-900/15 bg-brand-gold/10 shadow-sm">
+                <SiteLogo size={30} className="h-7 w-7" priority alt="QuranPilot" />
+              </span>
+              <span className="truncate">QuranPilot</span>
+            </Link>
+
+            <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
+              {[
+                { href: '/surahs', label: 'Surahs' },
+                { href: '/juz/1', label: 'Juz' },
+                { href: '/hifz', label: 'Hifz' },
+                { href: '/learning-plans', label: 'Learning Plans' },
+                { href: '/tajweed', label: 'Tajweed' },
+                { href: '/articles', label: 'Articles' },
+              ].map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'rounded-full px-3.5 py-1.5 text-sm font-semibold transition',
+                      active
+                        ? 'bg-[var(--accent)]/12 text-[var(--accent)]'
+                        : 'text-ink-2 hover:bg-surface-3 hover:text-ink'
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
           <div className="flex shrink-0 items-center gap-0.5 sm:gap-2.5">
             {!authLoading && !isAuthenticated && (

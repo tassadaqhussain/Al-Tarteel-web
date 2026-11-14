@@ -10,7 +10,6 @@ interface Props {
 }
 
 export const revalidate = 3600;
-export const dynamic = 'force-static';
 
 export function generateStaticParams() {
   return ayahStaticParams();

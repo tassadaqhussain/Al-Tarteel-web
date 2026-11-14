@@ -87,6 +87,11 @@ export function campaignDestinations(): CampaignDestination[] {
   return [...hubs, ...surahs, ...tajweed, ...plans, ...articles];
 }
 
+export const ALL_CAMPAIGN_CHANNELS: CampaignChannelId[] = [
+  ...IN_APP_CHANNELS.map((c) => c.id),
+  ...EXTERNAL_CHANNELS.map((c) => c.id),
+];
+
 export const EMPTY_CAMPAIGN_FORM = {
   name: '',
   headline: '',
@@ -95,7 +100,7 @@ export const EMPTY_CAMPAIGN_FORM = {
   destination: '/',
   destinationKind: 'home',
   imageUrl: '',
-  channels: ['in_app_global'] as CampaignChannelId[],
+  channels: [...ALL_CAMPAIGN_CHANNELS] as CampaignChannelId[],
 };
 
 export function channelLabel(id: string): string {

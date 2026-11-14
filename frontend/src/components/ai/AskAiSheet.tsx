@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { AiMarkdown } from '@/components/ai/AiMarkdown';
 import {
   Loader2,
   MessageCircle,
@@ -32,6 +33,29 @@ type SpeechRecognitionCtor = new () => {
 };
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
+
+/** Per-tab chat state, so a page refresh keeps the conversation and draft. */
+const CHAT_STORAGE_KEY = 'quranpilot-ask-ai-chat';
+
+function loadChat(): { messages: ChatTurn[]; input: string } | null {
+  try {
+    const raw = sessionStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as { messages?: unknown; input?: unknown };
+    const messages = Array.isArray(data.messages)
+      ? data.messages.filter(
+          (m): m is ChatTurn =>
+            !!m &&
+            typeof m === 'object' &&
+            ((m as ChatTurn).role === 'user' || (m as ChatTurn).role === 'assistant') &&
+            typeof (m as ChatTurn).content === 'string',
+        )
+      : [];
+    return { messages, input: typeof data.input === 'string' ? data.input : '' };
+  } catch {
+    return null;
+  }
+}
 
 const SUGGESTIONS = [
   'What is the meaning of Surah Al-Fatihah?',
@@ -69,6 +93,26 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [promptLimit, setPromptLimit] = useState(0);
   const [promptsRemaining, setPromptsRemaining] = useState<number | null>(null);
+  const [chatRestored, setChatRestored] = useState(false);
+
+  // Restore after mount (not during render) to avoid a hydration mismatch.
+  useEffect(() => {
+    const saved = loadChat();
+    if (saved) {
+      setMessages(saved.messages);
+      setInput((current) => current || saved.input);
+    }
+    setChatRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!chatRestored) return;
+    try {
+      sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify({ messages, input }));
+    } catch {
+      // Storage can be unavailable (private mode, blocked site data).
+    }
+  }, [chatRestored, messages, input]);
   const listRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<InstanceType<SpeechRecognitionCtor> | null>(null);
 
@@ -182,6 +226,8 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
       if (res.promptsRemaining !== undefined) setPromptsRemaining(res.promptsRemaining);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reach AI.');
+      // Give the question back so the user can retry without retyping it.
+      setInput((current) => current || q);
       setMessages((prev) => {
         if (prev.length && prev[prev.length - 1]?.role === 'user' && prev[prev.length - 1]?.content === q) {
           return prev.slice(0, -1);
@@ -314,13 +360,17 @@ export function AskAiSheet({ open, onOpenChange }: Props) {
             <div
               key={`${m.role}-${i}`}
               className={cn(
-                'max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap',
+                'max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
                 m.role === 'user'
                   ? 'ml-auto bg-[var(--accent)] text-brand-contrast'
                   : 'mr-auto border border-line bg-surface-2 text-ink',
               )}
             >
-              {m.content}
+              {m.role === 'assistant' ? (
+                <AiMarkdown>{m.content}</AiMarkdown>
+              ) : (
+                <span className="whitespace-pre-wrap">{m.content}</span>
+              )}
             </div>
           ))}
 

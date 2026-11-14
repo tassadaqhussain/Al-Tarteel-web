@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { quranApi, type AyahWithRelations } from '@/lib/api';
 import { Header } from '@/components/Header';
@@ -11,7 +10,7 @@ import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
-import { resolveTranslations, TRANSLATION_COOKIE } from '@/lib/translation-preference';
+import { resolveTranslations } from '@/lib/translation-preference';
 import { parsePositiveInteger, readerPage, needsPageRedirect, surahPageHref } from '@/lib/surah-pagination';
 import { juzSeo } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
@@ -20,6 +19,9 @@ interface Props {
   params: Promise<{ number: string }>;
   searchParams: Promise<{ page?: string; trans?: string }>;
 }
+
+export const dynamic = 'force-static';
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   return Array.from({ length: 30 }, (_, i) => ({ number: String(i + 1) }));
@@ -33,8 +35,6 @@ export async function generateMetadata({ params, searchParams }: Props) {
   const page = readerPage(pageStr);
   return juzSeo(n, page);
 }
-
-export const revalidate = 3600;
 
 interface SurahGroup {
   surahId: number;
@@ -55,9 +55,8 @@ export default async function JuzPage({ params, searchParams }: Props) {
     permanentRedirect(trans ? `${target}${page > 1 ? '&' : '?'}trans=${encodeURIComponent(trans)}` : target);
   }
   const limit = 50;
-  const cookieStore = await cookies();
   const effectiveTranslations = resolveTranslations({
-    cookieValue: cookieStore.get(TRANSLATION_COOKIE)?.value,
+    cookieValue: undefined,
     queryTrans: trans,
   });
 
@@ -137,10 +136,12 @@ export default async function JuzPage({ params, searchParams }: Props) {
 
         {/* Juz heading */}
         <div className="mb-8 rounded-2xl border border-line bg-surface px-6 py-5 text-center shadow-sm">
-          <h1 className="font-arabic text-4xl font-bold text-ink">الجزء {juzNumber}</h1>
-          <p className="mt-2 text-sm text-ink-3">
-            Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
-          </p>
+          <h1>
+            <span lang="ar" dir="rtl" className="block font-arabic text-4xl font-bold text-ink">الجزء {juzNumber}</span>
+            <span className="mt-2 block text-sm font-normal text-ink-3">
+              Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
+            </span>
+          </h1>
         </div>
 
         {/* Ayahs grouped by surah */}
