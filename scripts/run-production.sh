@@ -103,6 +103,16 @@ fi
 
 log "Sync public URLs"
 bash "${APP_DIR}/scripts/sync-public-env.sh"
+load_env_file "${ENV_FILE}" || true
+
+if [[ -z "${SITEMAP_LASTMOD:-}" ]] && command -v git >/dev/null 2>&1; then
+  SITEMAP_LASTMOD="$(git -C "${APP_DIR}" log -1 --format=%cI 2>/dev/null || true)"
+  export SITEMAP_LASTMOD
+fi
+if [[ -z "${NEXT_PUBLIC_BUILD_DATE:-}" && -n "${SITEMAP_LASTMOD:-}" ]]; then
+  NEXT_PUBLIC_BUILD_DATE="${SITEMAP_LASTMOD}"
+  export NEXT_PUBLIC_BUILD_DATE
+fi
 
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
@@ -174,6 +184,20 @@ if [[ -f "${NGINX_FILTER}" ]] && command -v nginx >/dev/null 2>&1; then
 fi
 
 PUBLIC_ORIGIN="${FRONTEND_URL:-https://${DOMAIN}}"
+
+if [[ -n "${INDEXNOW_KEY:-}" && "${SKIP_INDEXNOW:-0}" != "1" ]]; then
+  log "Submitting sitemaps to IndexNow"
+  if command -v node >/dev/null 2>&1; then
+    INDEXNOW_KEY="${INDEXNOW_KEY}" SITE_URL="${PUBLIC_ORIGIN}" \
+      node "${APP_DIR}/frontend/scripts/submit-indexnow.mjs" \
+      || warn "IndexNow submission failed (non-blocking)"
+  else
+    "${COMPOSE[@]}" exec -T -e "INDEXNOW_KEY=${INDEXNOW_KEY}" -e "SITE_URL=${PUBLIC_ORIGIN}" \
+      web node --input-type=module - < "${APP_DIR}/frontend/scripts/submit-indexnow.mjs" \
+      || warn "IndexNow submission failed (non-blocking)"
+  fi
+fi
+
 log "Production is running — ${DOMAIN}"
 cat <<EOF
 

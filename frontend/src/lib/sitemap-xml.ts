@@ -35,12 +35,15 @@ export function renderUrlset(entries: SitemapEntry[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?><urlset ${nsAttr}>${urls}</urlset>`;
 }
 
-export function renderSitemapIndex(locs: string[]): string {
-  const sitemaps = locs
-    .map(
-      (loc) =>
-        `<sitemap><loc>${escapeXml(loc)}</loc><lastmod>${escapeXml(SITEMAP_LASTMOD)}</lastmod></sitemap>`,
-    )
+export function renderSitemapIndex(
+  items: Array<string | { loc: string; lastModified?: string }>,
+): string {
+  const sitemaps = items
+    .map((item) => {
+      const loc = typeof item === 'string' ? item : item.loc;
+      const lastmod = typeof item === 'string' ? SITEMAP_LASTMOD : item.lastModified || SITEMAP_LASTMOD;
+      return `<sitemap><loc>${escapeXml(loc)}</loc><lastmod>${escapeXml(lastmod)}</lastmod></sitemap>`;
+    })
     .join('');
   return `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="${URLSET_NS}">${sitemaps}</sitemapindex>`;
 }

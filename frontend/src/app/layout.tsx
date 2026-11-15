@@ -13,6 +13,7 @@ import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
+import { ANALYTICS_PROVIDER, analyticsEnabled } from '@/lib/analytics';
 import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import { LocaleSync } from '@/components/LocaleSync';
 import { LocaleFromPath } from '@/components/LocaleFromPath';
@@ -154,7 +155,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      data-analytics-provider={analyticsEnabled ? ANALYTICS_PROVIDER : 'disabled'}
+      suppressHydrationWarning
+    >
       <head>
         {/* Apply the stored (or system) theme before first paint — no light flash at night. */}
         <script

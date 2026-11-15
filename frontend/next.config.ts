@@ -10,12 +10,14 @@ const nextConfig: NextConfig = {
     });
   },
   async rewrites() {
-    return [
-      {
-        source: '/:key([A-Za-z0-9-]{8,128}).txt',
-        destination: '/api/indexnow/key?key=:key',
-      },
-    ];
+    return {
+      beforeFiles: [
+        {
+          source: '/:key([A-Za-z0-9-]{8,128}).txt',
+          destination: '/api/indexnow/key?key=:key',
+        },
+      ],
+    };
   },
   output: 'standalone',
   reactStrictMode: true,

@@ -140,7 +140,9 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   ]);
 
   const arabicName = getSurahArabicName(surahNumber, surah.nameArabic);
-  const initialAyahs = Array.isArray(ayahs) ? ayahs : [];
+  const initialAyahs = (Array.isArray(ayahs) ? ayahs : []).map(
+    ({ words: _omitWords, ...rest }) => rest,
+  );
   const firstAyah = initialAyahs.length > 0 ? initialAyahs[0].number : range.start;
   const translationCount = effectiveTranslations.split(',').filter(Boolean).length;
   const primaryTranslationSlug = effectiveTranslations.split(',')[0]?.trim() || '';
@@ -365,7 +367,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           <p className="mb-2 text-xs font-semibold text-ink-3">
             Verses in Surah {surah.nameSimple} (1–{ayahCount})
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 [&_a]:inline-flex [&_a]:min-w-[2rem] [&_a]:items-center [&_a]:justify-center [&_a]:rounded [&_a]:border [&_a]:border-line [&_a]:bg-surface [&_a]:px-1.5 [&_a]:py-0.5 [&_a]:text-xs [&_a]:tabular-nums [&_a]:text-ink-2 [&_a:hover]:border-[var(--accent)] [&_a:hover]:text-[var(--accent)]">
             {Array.from({ length: ayahCount }, (_, i) => {
               const n = i + 1;
               return (
@@ -373,7 +375,6 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
                   key={n}
                   href={localePath(activeLocale, getAyahPath(surahNumber, n))}
                   prefetch={false}
-                  className="inline-flex min-w-[2.1rem] items-center justify-center rounded border border-line bg-surface px-1.5 py-0.5 text-xs tabular-nums text-ink-2 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
                 >
                   {n}
                 </Link>

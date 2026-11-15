@@ -16,6 +16,12 @@ server {
     listen [::]:80;
     server_name __SERVER_NAMES__;
 
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/xml image/svg+xml;
+
     client_max_body_size 20m;
 
     location ^~ /.well-known/acme-challenge/ {

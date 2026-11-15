@@ -55,7 +55,15 @@ sync_public_urls() {
   AUDIO_PUBLIC_BASE_URL="${origin}/api/v1/audio/files"
   DOMAIN="${domain}"
 
-  export DOMAIN FRONTEND_URL CORS_ORIGINS NEXT_PUBLIC_API_URL AUDIO_PUBLIC_BASE_URL
+  if [[ -z "${INDEXNOW_KEY:-}" ]]; then
+    if command -v openssl >/dev/null 2>&1; then
+      INDEXNOW_KEY="$(openssl rand -hex 16)"
+    elif [[ -r /dev/urandom ]]; then
+      INDEXNOW_KEY="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
+    fi
+  fi
+
+  export DOMAIN FRONTEND_URL CORS_ORIGINS NEXT_PUBLIC_API_URL AUDIO_PUBLIC_BASE_URL INDEXNOW_KEY
 
   if [[ -n "${prod_env}" ]]; then
     _sync_upsert_env "DOMAIN" "${DOMAIN}" "${prod_env}"
@@ -63,6 +71,9 @@ sync_public_urls() {
     _sync_upsert_env "CORS_ORIGINS" "${CORS_ORIGINS}" "${prod_env}"
     _sync_upsert_env "NEXT_PUBLIC_API_URL" "${NEXT_PUBLIC_API_URL}" "${prod_env}"
     _sync_upsert_env "AUDIO_PUBLIC_BASE_URL" "${AUDIO_PUBLIC_BASE_URL}" "${prod_env}"
+    if [[ -n "${INDEXNOW_KEY:-}" ]]; then
+      _sync_upsert_env "INDEXNOW_KEY" "${INDEXNOW_KEY}" "${prod_env}"
+    fi
   fi
 
   if [[ -n "${backend_env}" ]]; then

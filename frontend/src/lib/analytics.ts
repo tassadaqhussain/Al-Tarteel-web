@@ -10,12 +10,6 @@
 
 export type AnalyticsProvider = 'ga4' | 'plausible' | 'umami';
 
-const RAW_PROVIDER = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim().toLowerCase() || '';
-export const ANALYTICS_PROVIDER: AnalyticsProvider | '' =
-  RAW_PROVIDER === 'ga4' || RAW_PROVIDER === 'plausible' || RAW_PROVIDER === 'umami'
-    ? RAW_PROVIDER
-    : '';
-
 export const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim() || '';
 export const GA_MEASUREMENT_ID =
   process.env.NEXT_PUBLIC_GA_ID?.trim() ||
@@ -24,6 +18,20 @@ export const GA_MEASUREMENT_ID =
 export const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID?.trim() || '';
 export const UMAMI_SCRIPT_SRC =
   process.env.NEXT_PUBLIC_UMAMI_SRC?.trim() || 'https://cloud.umami.is/script.js';
+
+const RAW_PROVIDER = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim().toLowerCase() || '';
+export const ANALYTICS_PROVIDER: AnalyticsProvider | '' =
+  RAW_PROVIDER === 'none' || RAW_PROVIDER === 'disabled' || RAW_PROVIDER === 'false'
+    ? ''
+    : RAW_PROVIDER === 'ga4' || RAW_PROVIDER === 'plausible' || RAW_PROVIDER === 'umami'
+      ? RAW_PROVIDER
+      : GA_MEASUREMENT_ID
+        ? 'ga4'
+        : PLAUSIBLE_DOMAIN
+          ? 'plausible'
+          : UMAMI_WEBSITE_ID
+            ? 'umami'
+            : '';
 
 export const analyticsEnabled =
   (ANALYTICS_PROVIDER === 'ga4' && Boolean(GA_MEASUREMENT_ID)) ||

@@ -1,5 +1,9 @@
 import { SITE_URL } from '@/lib/seo';
-import { SITEMAP_SHARD_IDS, sitemapShardPath } from '@/lib/sitemap-data';
+import {
+  SITEMAP_SHARD_IDS,
+  sitemapShardLastmod,
+  sitemapShardPath,
+} from '@/lib/sitemap-data';
 import { renderSitemapIndex, xmlResponse } from '@/lib/sitemap-xml';
 
 /**
@@ -15,6 +19,9 @@ export const dynamic = 'force-static';
 export const revalidate = 86400;
 
 export function GET(): Response {
-  const locs = SITEMAP_SHARD_IDS.map((id) => `${SITE_URL}${sitemapShardPath(id)}`);
-  return xmlResponse(renderSitemapIndex(locs));
+  const items = SITEMAP_SHARD_IDS.map((id) => ({
+    loc: `${SITE_URL}${sitemapShardPath(id)}`,
+    lastModified: sitemapShardLastmod(id),
+  }));
+  return xmlResponse(renderSitemapIndex(items));
 }

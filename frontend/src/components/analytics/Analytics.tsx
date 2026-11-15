@@ -69,8 +69,17 @@ function OutboundClickListener() {
 
 export function Analytics() {
   const pathname = usePathname();
-  if (!analyticsEnabled) return null;
-  if (pathname === '/admin' || pathname?.startsWith('/admin/')) return null;
+  const isAdmin = pathname === '/admin' || pathname?.startsWith('/admin/');
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.info(
+        `[Analytics] provider=${analyticsEnabled && !isAdmin ? ANALYTICS_PROVIDER : 'disabled'}`,
+      );
+    }
+  }, [isAdmin]);
+
+  if (!analyticsEnabled || isAdmin) return null;
 
   return (
     <>

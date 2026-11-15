@@ -12,13 +12,19 @@ import {
 } from '@/lib/i18n/content-locales';
 
 /**
- * Stable build-time lastmod constant (never `new Date()` per request).
- * Override via SITEMAP_LASTMOD or NEXT_PUBLIC_BUILD_DATE in CI/CD.
+ * Stable build-time lastmod constant for static pages (from git commit date in CI/CD).
  */
 export const SITEMAP_LASTMOD =
   process.env.SITEMAP_LASTMOD?.trim() ||
   process.env.NEXT_PUBLIC_BUILD_DATE?.trim() ||
-  '2026-11-01T00:00:00.000Z';
+  '2026-11-14T00:00:00.000Z';
+
+/**
+ * Single config value for Quran text, surah, juz, and ayah pages.
+ * Bump when Quran translations, tafsir, or audio change.
+ */
+export const QURAN_CONTENT_UPDATED_AT =
+  process.env.QURAN_CONTENT_UPDATED_AT?.trim() || '2026-11-01T00:00:00.000Z';
 
 /**
  * Sitemap contents, shared by the index (`/sitemap.xml`) and the shard routes
@@ -76,11 +82,13 @@ function coreEntries(): SitemapEntry[] {
     { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
     ...Array.from({ length: 30 }, (_, i) => ({
       url: `${SITE_URL}/juz/${i + 1}`,
+      lastModified: QURAN_CONTENT_UPDATED_AT,
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     })),
     ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
       url: `${SITE_URL}/tajweed/${slug}`,
+      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly' as const,
       priority: 0.55,
     })),
@@ -93,6 +101,7 @@ function surahEntries(): SitemapEntry[] {
     const number = i + 1;
     return {
       url: `${SITE_URL}${getSurahPath(number)}`,
+      lastModified: QURAN_CONTENT_UPDATED_AT,
       changeFrequency: 'monthly' as const,
       priority: number <= 10 ? 0.9 : 0.8,
     };
@@ -104,11 +113,13 @@ function contentEntries(): SitemapEntry[] {
   return [
     ...LEARNING_PLANS.map((plan) => ({
       url: `${SITE_URL}/learning-plans/${plan.slug}`,
+      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly' as const,
       priority: plan.featured ? 0.65 : 0.55,
     })),
     ...ARTICLES.map((article) => ({
       url: `${SITE_URL}/articles/${article.slug}`,
+      lastModified: new Date(article.publishedAt).toISOString(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     })),
@@ -131,6 +142,7 @@ function localeEntries(): SitemapEntry[] {
       const number = i + 1;
       return {
         url: `${SITE_URL}${localePath(locale, getSurahPath(number))}`,
+        lastModified: QURAN_CONTENT_UPDATED_AT,
         changeFrequency: 'monthly' as const,
         priority: number <= 10 ? 0.8 : 0.7,
       };
@@ -154,7 +166,7 @@ function ayahEntriesForLocale(locale: ContentLocale): SitemapEntry[] {
       ];
       entries.push({
         url: `${SITE_URL}${localePath(locale, basePath)}`,
-        lastModified: SITEMAP_LASTMOD,
+        lastModified: QURAN_CONTENT_UPDATED_AT,
         changeFrequency: 'monthly',
         priority: 0.6,
         alternates,
@@ -162,6 +174,16 @@ function ayahEntriesForLocale(locale: ContentLocale): SitemapEntry[] {
     }
   }
   return entries;
+}
+
+export function sitemapShardLastmod(id: SitemapShardId): string {
+  const entries = sitemapShardEntries(id);
+  let newest = '';
+  for (const entry of entries) {
+    const lm = entry.lastModified || SITEMAP_LASTMOD;
+    if (!newest || lm > newest) newest = lm;
+  }
+  return newest || SITEMAP_LASTMOD;
 }
 
 export function sitemapShardEntries(id: SitemapShardId): SitemapEntry[] {
