@@ -111,11 +111,18 @@ export default async function HomePage() {
       })
       .catch(() => []),
   ]);
-  const list = (Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs()).map((surah) => ({
-    ...surah,
-    nameArabic: SURAH_ARABIC[surah.number] || surah.nameArabic,
-    numberOfAyahs: surah.numberOfAyahs || getSurahAyahCount(surah.number),
-  }));
+  const list: Surah[] = (Array.isArray(surahs) && surahs.length > 0 ? surahs : fallbackSurahs()).map(
+    (surah) => ({
+      id: surah.number,
+      number: surah.number,
+      nameArabic: SURAH_ARABIC[surah.number] || surah.nameArabic,
+      nameSimple: surah.nameSimple,
+      nameComplex: null,
+      revelationPlace: surah.revelationPlace,
+      revelationOrder: surah.revelationOrder,
+      numberOfAyahs: surah.numberOfAyahs || getSurahAyahCount(surah.number),
+    }),
+  );
   const initialPreviewAyahs = normalizeAyahList(previewRows);
 
   return (
@@ -133,7 +140,7 @@ export default async function HomePage() {
           initialLimit={24}
         />
         <TranslationsPreview
-          surahs={list}
+          surahs={list.slice(0, 6)}
           initialSurahNumber={PREVIEW_SURAH_NUMBER}
           initialAyahs={initialPreviewAyahs}
         />
