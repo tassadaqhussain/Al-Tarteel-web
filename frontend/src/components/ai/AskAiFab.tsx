@@ -8,6 +8,7 @@ import { useAudioStore } from '@/stores/audioStore';
 import { useAskAiStore } from '@/stores/askAiStore';
 import { useT } from '@/lib/i18n';
 import { isQuranReaderPath } from '@/lib/reader-path';
+import { trackAskAiOpen } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 const AskAiSheet = dynamic(
@@ -39,6 +40,7 @@ export function AskAiFab() {
         onClick={() => {
           setLoaded(true);
           setOpen(true);
+          trackAskAiOpen(onReader ? 'reader_fab' : 'global_fab');
         }}
         className={cn(
           'fixed right-4 z-[55] flex items-center rounded-full transition active:scale-95 sm:right-6',

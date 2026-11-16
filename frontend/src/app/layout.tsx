@@ -13,7 +13,7 @@ import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
-import { ANALYTICS_PROVIDER, analyticsEnabled } from '@/lib/analytics';
+import { ANALYTICS_PROVIDER, IS_PRODUCTION, analyticsEnabled } from '@/lib/analytics';
 import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import { LocaleSync } from '@/components/LocaleSync';
 import { LocaleFromPath } from '@/components/LocaleFromPath';
@@ -119,11 +119,16 @@ export const metadata: Metadata = {
   // Set via env after Google Search Console / Bing give you real tokens.
   // Never commit real tokens to git if the repo is public — use server env / deploy secrets.
   verification: {
-    ...(process.env.GOOGLE_SITE_VERIFICATION || process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ...(process.env.GOOGLE_SITE_VERIFICATION ||
+    process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
+    process.env.GSC_VERIFICATION ||
+    process.env.NEXT_PUBLIC_GSC_VERIFICATION
       ? {
           google:
             process.env.GOOGLE_SITE_VERIFICATION ||
-            process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+            process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
+            process.env.GSC_VERIFICATION ||
+            process.env.NEXT_PUBLIC_GSC_VERIFICATION,
         }
       : {}),
     ...(process.env.BING_SITE_VERIFICATION || process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
@@ -158,7 +163,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      data-analytics-provider={analyticsEnabled ? ANALYTICS_PROVIDER : 'disabled'}
+      data-analytics-provider={IS_PRODUCTION && analyticsEnabled ? ANALYTICS_PROVIDER : 'disabled'}
       suppressHydrationWarning
     >
       <head>

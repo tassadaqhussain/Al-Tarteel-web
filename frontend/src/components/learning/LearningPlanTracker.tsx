@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CheckCircle2, Circle } from 'lucide-react';
 import type { LearningPlan } from '@/lib/learning-plans';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { trackSelectContent } from '@/lib/analytics';
+import { trackSelectContent, trackStartPlan } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 export function LearningPlanTracker({
@@ -27,7 +27,11 @@ export function LearningPlanTracker({
   const pct = Math.round((doneCount / plan.days) * 100);
 
   const handleToggleDay = (day: number) => {
+    const isStarting = doneCount === 0 && !completed.includes(day);
     toggleDay(plan.slug, day);
+    if (isStarting) {
+      trackStartPlan(plan.slug, plan.title);
+    }
     trackSelectContent('learning_plan_day', `${plan.slug}:${day}`, `Day ${day} of ${plan.title}`);
   };
 

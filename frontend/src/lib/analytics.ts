@@ -292,6 +292,48 @@ export function trackShare(contentType: string, itemId: string, method?: string)
 }
 
 /**
+ * Conversion Event: start_plan
+ */
+export function trackStartPlan(planSlug: string, planTitle?: string) {
+  safeGtag('event', 'start_plan', {
+    plan_slug: sanitizeText(planSlug),
+    ...(planTitle ? { plan_title: sanitizeText(planTitle) } : {}),
+    ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
+  });
+}
+
+/**
+ * Conversion Event: newsletter_subscribe
+ */
+export function trackNewsletterSubscribe(source: string) {
+  safeGtag('event', 'newsletter_subscribe', {
+    source: sanitizeText(source),
+    ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
+  });
+}
+
+/**
+ * Conversion Event: ask_ai_open
+ */
+export function trackAskAiOpen(source = 'fab') {
+  safeGtag('event', 'ask_ai_open', {
+    source: sanitizeText(source),
+    ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
+  });
+}
+
+/**
+ * Conversion Event: continue_reading_click
+ */
+export function trackContinueReadingClick(surahNumber?: number, ayahNumber?: number) {
+  safeGtag('event', 'continue_reading_click', {
+    ...(typeof surahNumber === 'number' ? { surah_number: surahNumber } : {}),
+    ...(typeof ayahNumber === 'number' ? { ayah_number: ayahNumber } : {}),
+    ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
+  });
+}
+
+/**
  * Outbound link click tracking.
  */
 export function trackOutboundClick(url: string, label?: string) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import {
@@ -8,6 +8,7 @@ import {
   analyticsEnabled,
   GA_DEBUG_MODE,
   GA_MEASUREMENT_ID,
+  IS_PRODUCTION,
   PLAUSIBLE_DOMAIN,
   PLAUSIBLE_SCRIPT_SRC,
   UMAMI_SCRIPT_SRC,
@@ -15,6 +16,8 @@ import {
   trackOutboundClick,
   trackPageView,
 } from '@/lib/analytics';
+import { adminApi } from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
 
 function RouteChangeTracker() {
   const pathname = usePathname();
@@ -69,17 +72,46 @@ function OutboundClickListener() {
 
 export function Analytics() {
   const pathname = usePathname();
-  const isAdmin = pathname === '/admin' || pathname?.startsWith('/admin/');
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [adminCheckState, setAdminCheckState] = useState<'idle' | 'checking' | 'admin' | 'user'>('idle');
+  const isAdminPath = pathname === '/admin' || pathname?.startsWith('/admin/');
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
+    if (!isAuthenticated) {
+      setAdminCheckState('user');
+      return;
+    }
+    let cancelled = false;
+    setAdminCheckState('checking');
+    adminApi
+      .me()
+      .then((res) => {
+        if (!cancelled) setAdminCheckState(res.isAdmin ? 'admin' : 'user');
+      })
+      .catch(() => {
+        if (!cancelled) setAdminCheckState('user');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
+
+  const shouldLoad =
+    IS_PRODUCTION &&
+    analyticsEnabled &&
+    !isAdminPath &&
+    adminCheckState !== 'admin' &&
+    !(isAuthenticated && adminCheckState === 'checking');
+
+  useEffect(() => {
+    if (!IS_PRODUCTION) {
       console.info(
-        `[Analytics] provider=${analyticsEnabled && !isAdmin ? ANALYTICS_PROVIDER : 'disabled'}`,
+        `[Analytics] provider=${analyticsEnabled && !isAdminPath ? `${ANALYTICS_PROVIDER} (dev-skipped)` : 'disabled'}`,
       );
     }
-  }, [isAdmin]);
+  }, [isAdminPath]);
 
-  if (!analyticsEnabled || isAdmin) return null;
+  if (!shouldLoad) return null;
 
   return (
     <>

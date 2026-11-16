@@ -5,6 +5,7 @@ import { Bookmark, ChevronRight, Settings, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { useT } from '@/lib/i18n';
+import { trackContinueReadingClick } from '@/lib/analytics';
 import { PageSection } from '@/components/layout/MainContainer';
 
 const DEFAULT_CONTINUE = {
@@ -46,6 +47,7 @@ export function ContinueReading() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Link
           href={getSurahPath(surahNumber)}
+          onClick={() => trackContinueReadingClick(surahNumber, ayahNumber)}
           className="group flex min-h-[150px] flex-col justify-between rounded-xl border border-line bg-surface p-5 transition hover:border-[var(--accent)]/60 sm:min-h-[170px] sm:p-6"
         >
           <p
