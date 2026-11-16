@@ -289,6 +289,17 @@ function ayahSeoName(surah: number, ayah: number, locale: ContentLocale): string
   return AYAH_SEO_NAMES[`${surah}:${ayah}`]?.[locale] ?? AYAH_SEO_NAMES[`${surah}:${ayah}`]?.en ?? null;
 }
 
+export function isVersePageIndexed(locale: ContentLocale): boolean {
+  const raw = process.env.INDEX_VERSE_PAGES?.trim().toLowerCase();
+  if (!raw) return locale === 'en';
+  if (raw === 'true' || raw === '1' || raw === 'all') return true;
+  if (raw === 'false' || raw === '0' || raw === 'none') return false;
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .includes(locale);
+}
+
 export function ayahSeo(
   surahNumber: number,
   ayahNumber: number,
@@ -330,6 +341,7 @@ export function ayahSeo(
         'read Quran online',
       ].filter(Boolean) as string[],
       type: 'article',
+      noIndex: !isVersePageIndexed(locale),
       locale,
       alternatePath: path,
     }),
@@ -482,19 +494,23 @@ export function learningPlanJsonLd(input: {
   const url = absoluteUrl(`/learning-plans/${input.slug}`);
   return {
     '@context': 'https://schema.org',
-    '@type': 'LearningResource',
+    '@type': 'Course',
     name: input.title,
     description: input.summary,
-    learningResourceType: 'Lesson Plan',
     educationalLevel: 'Beginner to Intermediate',
     isAccessibleForFree: true,
     inLanguage: 'en',
     url,
     mainEntityOfPage: url,
-    publisher: {
+    provider: {
       '@type': 'Organization',
       name: SITE_NAME,
       url: SITE_URL,
+    },
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      courseWorkload: `P${input.days}D`,
     },
   };
 }

@@ -61,8 +61,11 @@ for (const locale of ['ur', 'ps', 'fa']) {
 }
 const entries = sitemap.SITEMAP_SHARD_IDS.flatMap(sitemap.sitemapShardEntries);
 assert.equal(new Set(entries.map((e) => e.url)).size, entries.length);
+assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/al-baqarah/255`));
 for (const locale of ['ur', 'ps', 'fa']) {
-  assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah/255`));
+  assert.equal(seo.isVersePageIndexed(locale), false);
+  assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah`));
+  assert.ok(!entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah/255`));
 }
 const rendered = xml.renderUrlset(entries);
 assert.ok(rendered.includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`), 'Every URL uses stable build-time lastmod');
@@ -109,8 +112,9 @@ assert.equal(seo.buildPageMetadata({ title: 'Home', description: 'Home' }).openG
 assert.equal(seo.ayahSeo(2, 255).heading, 'Ayatul Kursi — Al-Baqarah 2:255');
 assert.ok(seo.ayahSeo(2, 255, { locale: 'ur' }).heading.startsWith('آیت الکرسی'));
 for (const ayah of [285, 286]) {
-  for (const prefix of ['', '/ur', '/ps', '/fa']) {
-    assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}${prefix}/al-baqarah/${ayah}`));
+  assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/al-baqarah/${ayah}`));
+  for (const locale of ['ur', 'ps', 'fa']) {
+    assert.equal(seo.ayahSeo(2, ayah, { locale }).metadata.robots.index, false);
   }
 }
 console.log('Article previews, verse headings and featured verse sitemap checks passed.');

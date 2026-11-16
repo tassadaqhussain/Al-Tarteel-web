@@ -2,7 +2,7 @@ import { ARTICLES } from '@/lib/articles';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { getSurahPath, getAyahPath } from '@/lib/surah-meta';
 import { SURAH_AYAH_COUNTS } from '@/lib/surah-pagination';
-import { SITE_URL } from '@/lib/seo';
+import { SITE_URL, isVersePageIndexed } from '@/lib/seo';
 import {
   CONTENT_LOCALES,
   PREFIXED_LOCALES,
@@ -151,6 +151,7 @@ function localeEntries(): SitemapEntry[] {
 }
 
 function ayahEntriesForLocale(locale: ContentLocale): SitemapEntry[] {
+  if (!isVersePageIndexed(locale)) return [];
   const entries: SitemapEntry[] = [];
   for (let i = 0; i < SURAH_AYAH_COUNTS.length; i += 1) {
     const surahNumber = i + 1;

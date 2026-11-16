@@ -1,6 +1,7 @@
 import { SITE_URL } from '@/lib/seo';
 import {
   SITEMAP_SHARD_IDS,
+  sitemapShardEntries,
   sitemapShardLastmod,
   sitemapShardPath,
 } from '@/lib/sitemap-data';
@@ -19,7 +20,7 @@ export const dynamic = 'force-static';
 export const revalidate = 86400;
 
 export function GET(): Response {
-  const items = SITEMAP_SHARD_IDS.map((id) => ({
+  const items = SITEMAP_SHARD_IDS.filter((id) => sitemapShardEntries(id).length > 0).map((id) => ({
     loc: `${SITE_URL}${sitemapShardPath(id)}`,
     lastModified: sitemapShardLastmod(id),
   }));
