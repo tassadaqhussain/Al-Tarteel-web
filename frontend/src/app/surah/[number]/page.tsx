@@ -317,6 +317,15 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
                 <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink-3 lg:truncate">
                   {surahPageSubtitle(activeLocale, surah.nameSimple, surahNumber)}
                 </p>
+                <p className="mt-1 text-xs text-ink-muted">
+                  {[
+                    surah.revelationPlace ? `${surah.revelationPlace.charAt(0).toUpperCase()}${surah.revelationPlace.slice(1)} revelation` : null,
+                    `${ayahCount} verses`,
+                    SURAH_MEANINGS[surahNumber] ? `Meaning: ${SURAH_MEANINGS[surahNumber]}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
               </div>
             </div>
 
@@ -391,6 +400,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           surahName={surah.nameSimple}
           locale={activeLocale}
         />
+
+        <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
         </article>
 
       </main>

@@ -8,6 +8,7 @@ import { AyahBlock } from '@/components/reader/AyahBlock';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { SurahLearningPlans } from '@/components/learning/SurahLearningPlans';
 import {
   CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
@@ -71,6 +72,8 @@ export async function renderAyahPage({
   ]);
 
   if (!ayah) notFound();
+
+  const tafsirs = await quranApi.tafsir(ayah.id).catch(() => []);
 
   const meta = getSurahMeta(surahNumber, surah?.nameSimple);
   const arabicName = getSurahArabicName(surahNumber, surah?.nameArabic);
@@ -139,6 +142,50 @@ export async function renderAyahPage({
             hasTranslations={Boolean(ayah.translations?.length)}
             locale={activeLocale}
           />
+        </div>
+
+        {tafsirs.length > 0 && (
+          <section
+            aria-label={`Tafsir for ${meta.nameSimple} ${surahNumber}:${ayahNumber}`}
+            className="mt-8 space-y-4 rounded-xl border border-line bg-surface p-6"
+          >
+            <h2 className="text-lg font-bold text-ink">
+              Tafsir &amp; Commentary ({meta.nameSimple} {surahNumber}:{ayahNumber})
+            </h2>
+            <div className="space-y-4">
+              {tafsirs.slice(0, 2).map((item) => (
+                <article key={item.id} className="rounded-lg border border-line/70 bg-surface-2/40 p-4">
+                  <h3 className="text-sm font-semibold text-ink">{item.source.name}</h3>
+                  {item.source.author && (
+                    <p className="mt-0.5 text-xs text-ink-faint">{item.source.author}</p>
+                  )}
+                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-ink-2">
+                    {item.text}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <SurahLearningPlans surahNumber={surahNumber} surahName={meta.nameSimple} />
+
+        <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-ink-muted">
+          <Link href={surahPath} className="font-medium text-[var(--accent)] hover:underline">
+            Back to Surah {meta.nameSimple}
+          </Link>
+          {ayah.juz ? (
+            <>
+              <span aria-hidden>·</span>
+              <Link href={`/juz/${ayah.juz}`} className="font-medium text-[var(--accent)] hover:underline">
+                Juz {ayah.juz}
+              </Link>
+            </>
+          ) : null}
+          <span aria-hidden>·</span>
+          <Link href="/learning-plans" className="font-medium text-[var(--accent)] hover:underline">
+            Explore Learning Plans
+          </Link>
         </div>
 
         <nav
