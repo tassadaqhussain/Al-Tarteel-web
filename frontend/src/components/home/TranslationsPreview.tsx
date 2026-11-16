@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { audioApi, quranApi, type AyahWithRelations, type Surah } from '@/lib/api';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
+import { cleanTranslationText } from '@/lib/clean-translation';
 import {
   ayahPreviewUi,
   normalizeAyahList,
@@ -78,7 +79,7 @@ function translationText(ayah: AyahWithRelations, targetSlug: string) {
     ayah.translations?.find((t) => t.translatorSlug === targetSlug)?.text ||
     ayah.translations?.find((t) => t.translatorSlug === DEFAULT_TRANSLATION)?.text ||
     ayah.translations?.[0]?.text;
-  return preferred?.trim() || '';
+  return cleanTranslationText(preferred || '');
 }
 
 type Props = {

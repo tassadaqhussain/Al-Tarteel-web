@@ -39,7 +39,12 @@ const headers = async () => ({
   Accept: 'application/json',
 });
 
-const stripHtml = (text: string) => text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+const stripHtml = (text: string) =>
+  text
+    .replace(/<sup\b[^>]*>[\s\S]*?<\/sup>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 const slugify = (value: string) =>
   value
     .toLowerCase()

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { quranApi } from '@/lib/api';
+import { cleanTranslationText } from '@/lib/clean-translation';
 import { getSurahPath, getSurahMeta } from '@/lib/surah-meta';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -96,7 +97,9 @@ export function DailyMotivation({
           surah: ref.surah,
           ayah: ref.ayah,
           textUthmani: ayah.textUthmani,
-          translation: ayah.translations?.[0]?.text,
+          translation: ayah.translations?.[0]?.text
+            ? cleanTranslationText(ayah.translations[0].text)
+            : undefined,
           surahName: surah.nameSimple,
         });
       } catch {
@@ -108,7 +111,9 @@ export function DailyMotivation({
             surah: 1,
             ayah: 1,
             textUthmani: ayah.textUthmani,
-            translation: ayah.translations?.[0]?.text,
+            translation: ayah.translations?.[0]?.text
+            ? cleanTranslationText(ayah.translations[0].text)
+            : undefined,
             surahName: 'Al-Fatihah',
           });
         } catch {

@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import type { AyahsBySurahQueryDto, AyahsByPageQueryDto } from './dto/query.dto';
 import { vocalizedSurahName } from './surah-arabic';
+import { cleanTranslationText } from './clean-translation';
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_SECONDS || '3600', 10);
 
@@ -186,7 +187,7 @@ export class QuranService {
         translatorId: t.translator.id,
         translatorSlug: t.translator.slug,
         translatorName: t.translator.name,
-        text: t.text,
+        text: cleanTranslationText(t.text),
       })),
     }));
   }
@@ -232,7 +233,7 @@ export class QuranService {
         translatorId: t.translator.id,
         translatorSlug: t.translator.slug,
         translatorName: t.translator.name,
-        text: t.text,
+        text: cleanTranslationText(t.text),
       })),
     }));
   }
@@ -278,7 +279,7 @@ export class QuranService {
         translatorId: t.translator.id,
         translatorSlug: t.translator.slug,
         translatorName: t.translator.name,
-        text: t.text,
+        text: cleanTranslationText(t.text),
       })),
     }));
   }
@@ -317,7 +318,7 @@ export class QuranService {
         translatorId: t.translator.id,
         translatorSlug: t.translator.slug,
         translatorName: t.translator.name,
-        text: t.text,
+        text: cleanTranslationText(t.text),
       })),
     };
   }
