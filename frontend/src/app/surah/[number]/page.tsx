@@ -266,7 +266,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
       <CompareVerseModal />
       <CleanTranslationUrl />
 
-      <main className={cn(READER_SHELL, 'flex-1 py-4 sm:py-6 pb-16')}>
+      <main className={cn(READER_SHELL, 'flex-1 py-4 sm:py-6 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] sm:pb-24')}>
         <Breadcrumbs
           items={[
             { name: 'Home', path: localePath(activeLocale, '/') },

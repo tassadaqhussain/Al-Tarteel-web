@@ -21,6 +21,7 @@ import {
   PanelsTopLeft,
 } from 'lucide-react';
 import { useAudioStore } from '@/stores/audioStore';
+import { cleanTranslationText } from '@/lib/clean-translation';
 import { useSettingsStore, WORD_BY_WORD_LOCALES } from '@/stores/settingsStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
@@ -188,7 +189,9 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           surahName: surahName || `Surah ${surahNumber}`,
           ayahNumber: ayah.number,
           textUthmani: ayah.textUthmani,
-          translation: ayah.translations?.[0]?.text,
+          translation: ayah.translations?.[0]?.text
+            ? cleanTranslationText(ayah.translations[0].text)
+            : undefined,
           note: '',
           color: 'gold',
         });
@@ -205,7 +208,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
   // ── Copy ─────────────────────────────────────────────────────────────────
   const handleCopy = useCallback(async () => {
     const parts = [ayah.textUthmani];
-    if (ayah.translations?.length) parts.push(...ayah.translations.map((t) => t.text));
+    if (ayah.translations?.length) parts.push(...ayah.translations.map((t) => cleanTranslationText(t.text)));
     parts.push(`— ${surahName || `Surah ${surahNumber}`}:${ayah.number}`);
     await navigator.clipboard.writeText(parts.join('\n\n')).catch(() => null);
     setCopied(true);
@@ -233,7 +236,9 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           surahName: surahName || `Surah ${surahNumber}`,
           ayahNumber: ayah.number,
           textUthmani: ayah.textUthmani,
-          translation: ayah.translations?.[0]?.text,
+          translation: ayah.translations?.[0]?.text
+            ? cleanTranslationText(ayah.translations[0].text)
+            : undefined,
           note: noteDraft,
           color: 'gold',
         });
@@ -277,7 +282,9 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
             surahName: surahName || `Surah ${surahNumber}`,
             ayahNumber: ayah.number,
             textUthmani: ayah.textUthmani,
-            translation: ayah.translations?.[0]?.text,
+            translation: ayah.translations?.[0]?.text
+            ? cleanTranslationText(ayah.translations[0].text)
+            : undefined,
           });
           showToast(pins.length ? 'Pinned for compare' : 'Pinned for compare');
         }
@@ -773,7 +780,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                   {ayah.number}.
                 </Link>
               )}
-              {t.text}
+              {cleanTranslationText(t.text)}
             </p>
             {readerViewMode === 'verse' && (
               <p
@@ -962,7 +969,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
               </div>
             )}
 
-            <div className="mt-[50px] flex w-full items-center justify-end overflow-visible text-right">
+            <div className="mt-5 flex w-full items-center justify-end overflow-visible text-right sm:mt-6">
               {arabicTextNode}
             </div>
 
@@ -972,7 +979,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
               </div>
             )}
 
-            <div className="mt-[50px] flex items-center gap-2 overflow-x-auto pb-1 text-xs sm:text-sm text-ink-faint [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-3 [&::-webkit-scrollbar]:hidden">
+            <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 pb-1 text-xs text-ink-faint sm:mt-8 sm:gap-3 sm:text-sm">
               <button
                 type="button"
                 onClick={() => setTafsirStudyOpen(true)}
@@ -1043,7 +1050,11 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           surahName={surahName || `Surah ${surahNumber}`}
           ayahNumber={ayah.number}
           textUthmani={ayah.textUthmani}
-          translation={ayah.translations?.[0]?.text}
+          translation={
+            ayah.translations?.[0]?.text
+              ? cleanTranslationText(ayah.translations[0].text)
+              : undefined
+          }
         />
       )}
       {advancedCopyOpen && (
@@ -1056,7 +1067,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           textUthmani={ayah.textUthmani}
           translations={(ayah.translations ?? []).map((t) => ({
             name: t.translatorName || t.translatorSlug,
-            text: t.text,
+            text: cleanTranslationText(t.text),
           }))}
           transliteration={ayah.words?.map((w) => w.transliteration).filter(Boolean).join(' ')}
         />

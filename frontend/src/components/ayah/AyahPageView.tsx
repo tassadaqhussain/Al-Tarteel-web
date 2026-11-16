@@ -111,7 +111,7 @@ export async function renderAyahPage({
       <main
         lang={localeConfig(activeLocale).hreflang}
         dir={localeConfig(activeLocale).dir}
-        className={`${READER_SHELL} flex-1 py-6 sm:py-8`}
+        className={`${READER_SHELL} flex-1 py-6 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] sm:py-8`}
       >
         <Breadcrumbs
           items={[

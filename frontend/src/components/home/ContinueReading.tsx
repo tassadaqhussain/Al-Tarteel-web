@@ -49,7 +49,7 @@ export function ContinueReading() {
           )}
           <Link
             href="/my-quran"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-3 transition hover:text-[var(--accent)]"
+            className="inline-flex min-h-11 items-center gap-1.5 px-2 text-sm font-medium text-ink-3 transition hover:text-[var(--accent)]"
           >
             <Bookmark className="h-4 w-4" />
             {t('myQuran')}

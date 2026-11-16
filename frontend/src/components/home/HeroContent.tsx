@@ -47,7 +47,7 @@ export function HeroContent() {
           <Link
             key={item.number}
             href={getSurahPath(item.number)}
-            className="rounded-lg border border-line bg-surface/90 px-3 py-1 text-xs font-medium text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            className="inline-flex min-h-11 items-center rounded-lg border border-line bg-surface/90 px-3 py-2 text-xs font-medium text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
           >
             {item.name}
           </Link>
