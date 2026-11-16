@@ -10,6 +10,8 @@ import { getSurahAyahCount } from '@/lib/surah-pagination';
 import { buildPageMetadata, DEFAULT_DESCRIPTION } from '@/lib/seo';
 import { SiteFooter } from '@/components/SiteFooter';
 import { FeaturedLearningPlans } from '@/components/home/FeaturedLearningPlans';
+import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
+import { PageSection } from '@/components/layout/MainContainer';
 import { DEFAULT_TRANSLATION } from '@/lib/translation-preference';
 import {
   normalizeAyahList,
@@ -140,6 +142,9 @@ export default async function HomePage() {
         <FeaturedLearningPlans />
         <QuranInYear />
         <DailyMotivationHome />
+        <PageSection>
+          <DailyAyahSubscribeCard source="homepage" />
+        </PageSection>
         <Community />
         <QuranApps />
       </main>

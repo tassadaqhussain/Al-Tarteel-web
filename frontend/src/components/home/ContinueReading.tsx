@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Bookmark, ChevronRight, Settings, Target } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useAuthStore } from '@/stores/authStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { useT } from '@/lib/i18n';
 import { trackContinueReadingClick } from '@/lib/analytics';
@@ -19,6 +20,8 @@ const DEFAULT_CONTINUE = {
 export function ContinueReading() {
   const { t } = useT();
   const lastRead = useSettingsStore((s) => s.lastRead);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authStatus = useAuthStore((s) => s.status);
   const meta = lastRead
     ? getSurahMeta(lastRead.surahNumber, lastRead.surahName)
     : getSurahMeta(DEFAULT_CONTINUE.surahNumber);
@@ -35,13 +38,23 @@ export function ContinueReading() {
         <h2 className="text-lg font-bold text-ink sm:text-xl">
           {lastRead ? t('continueReading') : t('startReading')}
         </h2>
-        <Link
-          href="/my-quran"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-3 transition hover:text-[var(--accent)]"
-        >
-          <Bookmark className="h-4 w-4" />
-          {t('myQuran')}
-        </Link>
+        <div className="flex items-center gap-4">
+          {authStatus !== 'loading' && !isAuthenticated && (
+            <Link
+              href="/register?next=/my-quran"
+              className="hidden text-xs font-medium text-[var(--accent)] hover:underline sm:inline"
+            >
+              Create free account to save progress
+            </Link>
+          )}
+          <Link
+            href="/my-quran"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-3 transition hover:text-[var(--accent)]"
+          >
+            <Bookmark className="h-4 w-4" />
+            {t('myQuran')}
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

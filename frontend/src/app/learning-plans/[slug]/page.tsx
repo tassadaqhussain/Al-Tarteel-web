@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { LearningPlanTracker } from '@/components/learning/LearningPlanTracker';
+import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
 import {
   LEARNING_PLANS,
   getLearningPlan,
@@ -128,6 +129,8 @@ export default async function LearningPlanDetailPage({ params }: Props) {
             </ul>
           </aside>
         )}
+
+        <DailyAyahSubscribeCard source="learning_plan" />
       </main>
     </div>
   );

@@ -14,6 +14,7 @@ import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
+import { DailyAyahSlideIn } from '@/components/lead/DailyAyahSubscribe';
 import { ANALYTICS_PROVIDER, IS_PRODUCTION, analyticsEnabled } from '@/lib/analytics';
 import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import { LocaleSync } from '@/components/LocaleSync';
@@ -229,6 +230,7 @@ export default async function RootLayout({
                 <AskAiFab />
                 <VisitTracker />
                 <GlobalVoiceSearch />
+                <DailyAyahSlideIn />
                 <Analytics />
               </VoiceSearchProvider>
             </AudioPlayerProvider>

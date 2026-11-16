@@ -13,6 +13,7 @@ import { SurahNavTrigger } from '@/components/reader/SurahNavTrigger';
 import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { SurahPaginationNav } from '@/components/reader/SurahPaginationNav';
 import { SurahLearningPlans } from '@/components/learning/SurahLearningPlans';
+import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
@@ -402,6 +403,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
         />
 
         <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
+        <DailyAyahSubscribeCard source="surah_page" className="mt-8" />
         </article>
 
       </main>
