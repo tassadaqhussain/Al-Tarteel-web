@@ -14,6 +14,7 @@ import {
 import { buildPageMetadata } from '@/lib/seo';
 import { getSurahPath } from '@/lib/surah-meta';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Quran in a Year — Reading Schedule',
@@ -27,6 +28,8 @@ export default function QuranInYearPage() {
   const currentWeek = getCurrentProgramWeek();
   const week = getCalendarWeek(currentWeek) ?? getCalendarWeek(1)!;
   const prompts = getReflectionPrompts(week.week);
+  const whatsappUrl = process.env.NEXT_PUBLIC_WHATSAPP_URL?.trim();
+  const telegramUrl = process.env.NEXT_PUBLIC_TELEGRAM_URL?.trim();
 
   return (
     <div className="min-h-screen bg-surface text-ink">
@@ -72,29 +75,33 @@ export default function QuranInYearPage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/settings"
+              <a
+                href="#subscribe"
                 className="inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-brand-contrast shadow-sm transition hover:bg-[var(--accent)]/90"
               >
                 <Mail className="h-4 w-4" />
                 Subscribe
-              </Link>
-              <a
-                href="https://chat.whatsapp.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/50 bg-surface px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/10"
-              >
-                Join our Whatsapp
               </a>
-              <a
-                href="https://t.me/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/50 bg-surface px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/10"
-              >
-                Join our Telegram
-              </a>
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/50 bg-surface px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/10"
+                >
+                  Join our Whatsapp
+                </a>
+              )}
+              {telegramUrl && (
+                <a
+                  href={telegramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--accent)]/50 bg-surface px-5 py-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/10"
+                >
+                  Join our Telegram
+                </a>
+              )}
             </div>
           </div>
 
@@ -162,6 +169,9 @@ export default function QuranInYearPage() {
       </section>
 
       <MyProgress currentWeek={week.week} />
+      <section id="subscribe" className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
+        <DailyAyahSubscribeCard source="quran_in_year" />
+      </section>
       <FaqSection />
       </main>
 

@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import { SiteFooter } from '@/components/SiteFooter';
+
+export const metadata: Metadata = {
+  title: { absolute: 'Page not found | QuranPilot' },
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (

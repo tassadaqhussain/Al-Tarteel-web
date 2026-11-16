@@ -286,23 +286,35 @@ export function DailyMotivation({
 
         {/* Goal progress — soft local suggestion until a goal is confirmed */}
         <div className="mt-4">
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="font-medium text-ink-2">
-              {goalComplete
-                ? t('todaysGoalDone')
-                : goalIsSoft
-                  ? t('suggestedToday')
-                  : t('todaysGoal')}
+              {goalComplete && goalCurrent > goalTarget
+                ? 'Goal met'
+                : goalComplete
+                  ? t('todaysGoalDone')
+                  : goalIsSoft
+                    ? t('suggestedToday')
+                    : t('todaysGoal')}
             </span>
             <span className="text-ink-muted">
-              {goalCurrent} / {goalTarget}
-              {displayGoal.goalType === 'read_minutes'
-                ? t('unitMin')
-                : displayGoal.goalType.includes('ayah') ||
-                    displayGoal.goalType === 'read_ayahs' ||
-                    displayGoal.goalType === 'read_page'
-                  ? t('unitAyahs')
-                  : ''}
+              {goalComplete && goalCurrent > goalTarget ? (
+                <>
+                  {goalCurrent}{' '}
+                  {displayGoal.goalType === 'read_minutes' ? 'min' : 'ayahs'} read today (goal{' '}
+                  {goalTarget})
+                </>
+              ) : (
+                <>
+                  {goalCurrent} / {goalTarget}
+                  {displayGoal.goalType === 'read_minutes'
+                    ? t('unitMin')
+                    : displayGoal.goalType.includes('ayah') ||
+                        displayGoal.goalType === 'read_ayahs' ||
+                        displayGoal.goalType === 'read_page'
+                      ? t('unitAyahs')
+                      : ''}
+                </>
+              )}
             </span>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-3">

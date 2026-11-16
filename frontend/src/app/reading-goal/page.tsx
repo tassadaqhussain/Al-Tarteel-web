@@ -20,7 +20,7 @@ const GOALS: {
   {
     id: 'minutes-10',
     title: 'Read 10 Minutes A Day',
-    description: 'A Simple Beginner-Friendly Goal',
+    description: 'A simple beginner-friendly goal.',
     icon: Clock,
     recommended: true,
     hrefAfter: getSurahPath(1),
@@ -28,21 +28,21 @@ const GOALS: {
   {
     id: 'days-30',
     title: 'Read The Quran In 30 Days',
-    description: 'A Classic Khatm Goal. Read 1 Juz A Day',
+    description: 'A classic Khatm goal. Read 1 juz a day.',
     icon: BookOpen,
     hrefAfter: '/juz/1',
   },
   {
     id: 'year',
     title: 'Read The Quran In A Year',
-    description: 'Read The Quran At Your Own Pace Over The Next Year',
+    description: 'Read the Quran at your own pace over the next year.',
     icon: Calendar,
     hrefAfter: '/quran-in-year',
   },
   {
     id: 'custom',
     title: 'Custom',
-    description: 'Set A Custom Goal That Suits You',
+    description: 'Set a custom goal that suits you.',
     icon: Settings,
     hrefAfter: '/settings',
   },

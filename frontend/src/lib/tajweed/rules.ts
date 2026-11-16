@@ -287,7 +287,7 @@ export const TAJWEED_LESSONS: TajweedLesson[] = [
     name: 'Ghunnah',
     nameArabic: 'غنة',
     summary:
-      'Ghunnah is the nasal quality that accompanies certain letters and noon/meem rules. In the Quran.com tajweed colouring used by QuranPilot, ghunnah segments are highlighted so you can notice where nasalization is sustained.',
+      'Ghunnah is the nasal quality that accompanies certain letters and noon/meem rules. In QuranPilot’s tajweed highlighting, ghunnah segments are marked so you can notice where nasalization is sustained.',
     pronunciation: 'Produce a clear nasal sound through the nose while the articulation point of ن/م remains controlled—typically about two counts on shaddah.',
     when: 'Especially on نّ and مّ, and within rules that include ghunnah (such as idghām with ghunnah and ikhfāʾ).',
     relatedRuleIds: ['ghunnah'],
@@ -364,7 +364,7 @@ export const TAJWEED_LESSONS: TajweedLesson[] = [
     name: 'Madd (Elongation)',
     nameArabic: 'مد',
     summary:
-      'Madd lengthens ا و ي. The Quran.com tajweed field distinguishes natural, permissible (separate), and necessary madd with different colours.',
+      'Madd lengthens ا و ي. Tajweed highlighting distinguishes natural, permissible (separate), and necessary madd with different colours.',
     pronunciation: 'Keep the stretch even and measured; necessary madd is longer than natural madd.',
     when: 'Whenever a madd letter occurs, with length changing based on what follows (hamzah, sukūn/shaddah, word boundary).',
     relatedRuleIds: ['madda_normal', 'madda_permissible', 'madda_necessary'],

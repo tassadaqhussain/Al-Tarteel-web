@@ -65,7 +65,9 @@ export function LocaleHome({ locale }: { locale: PrefixedLocale }) {
                     className="flex items-center justify-between rounded-lg border border-line px-3 py-2 text-sm hover:bg-surface-2"
                   >
                     <span className="font-medium text-ink">
-                      {number}. {name}
+                      <bdi dir="ltr">
+                        {number}. {name}
+                      </bdi>
                     </span>
                     <span className="text-ink-3">{getSurahArabicName(number)}</span>
                   </Link>

@@ -8,6 +8,7 @@ import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
+import { ReaderBismillah } from '@/components/reader/ReaderBismillah';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
@@ -126,7 +127,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
         <Breadcrumbs
           items={[
             { name: 'Home', path: '/' },
-            { name: 'Surahs', path: '/surahs' },
+            { name: 'Juz', path: '/juz' },
             {
               name: page > 1 ? `Juz ${juzNumber} · Page ${page}` : `Juz ${juzNumber}`,
               path: page > 1 ? `/juz/${juzNumber}?page=${page}` : `/juz/${juzNumber}`,
@@ -160,6 +161,10 @@ export default async function JuzPage({ params, searchParams }: Props) {
               </Link>
               <div className="h-px flex-1 bg-[var(--border)]" />
             </div>
+
+            {group.ayahs[0]?.number === 1 && group.surahNumber !== 1 && group.surahNumber !== 9 && (
+              <ReaderBismillah />
+            )}
 
             <div className="divide-y divide-line border-t border-line">
               {group.ayahs.map((ayah) => (

@@ -157,12 +157,12 @@ export function Header() {
 
             <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
               {[
-                { href: '/surahs', label: 'Surahs' },
-                { href: '/juz/1', label: 'Juz' },
-                { href: '/hifz', label: 'Hifz' },
-                { href: '/learning-plans', label: 'Learning Plans' },
-                { href: '/tajweed', label: 'Tajweed' },
-                { href: '/articles', label: 'Articles' },
+                { href: '/surahs', label: t('navSurahs') },
+                { href: '/juz/1', label: t('tabJuz') },
+                { href: '/hifz', label: t('hifz') },
+                { href: '/learning-plans', label: t('learningPlans') },
+                { href: '/tajweed', label: t('tajweed') },
+                { href: '/articles', label: t('navArticles') },
               ].map((item) => {
                 const active = isActive(item.href);
                 return (

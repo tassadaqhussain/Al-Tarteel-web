@@ -67,6 +67,8 @@ export default function HifzHomePage() {
   }, [isAuthenticated]);
 
   const chartDays = remoteDays ?? localDays;
+  const hasAttempts =
+    Boolean(today && today.attempts > 0) || chartDays.some((d) => d.attempts > 0);
 
   const surahs = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -107,16 +109,22 @@ export default function HifzHomePage() {
           )}
         </div>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Today</p>
-            <p className="mt-2 text-3xl font-bold">{today ? `${Math.round(today.avgAccuracy)}%` : '—'}</p>
-            <p className="text-sm text-[var(--muted)]">{today?.attempts ?? 0} attempts</p>
+        {hasAttempts ? (
+          <div className="mb-8 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Today</p>
+              <p className="mt-2 text-3xl font-bold">{today ? `${Math.round(today.avgAccuracy)}%` : '—'}</p>
+              <p className="text-sm text-[var(--muted)]">{today?.attempts ?? 0} attempts</p>
+            </div>
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:col-span-2">
+              <HifzDailyChart days={chartDays} className="border-0 bg-transparent p-0" />
+            </div>
           </div>
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 sm:col-span-2">
-            <HifzDailyChart days={chartDays} className="border-0 bg-transparent p-0" />
+        ) : (
+          <div className="mb-8 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-6 text-sm text-[var(--muted)]">
+            No practice yet — pick a surah below to start.
           </div>
-        </div>
+        )}
 
         <section className="mb-8">
           <h2 className="mb-3 text-lg font-semibold">Start with a popular surah</h2>
