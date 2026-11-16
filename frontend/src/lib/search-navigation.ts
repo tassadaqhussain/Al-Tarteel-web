@@ -1,5 +1,4 @@
 import {
-  correctSearchQuery,
   getSurahSuggestions,
   normalizeSearchText,
 } from '@/lib/search-intelligence';
@@ -16,7 +15,7 @@ export function resolveDirectSearchHref(raw: string): string | null {
   if (intent.type === 'OPEN_AYAH' && intent.surahNumber && intent.ayahNumber) {
     return getSurahHref(intent.surahNumber, { ayahNumber: intent.ayahNumber });
   }
-  if (intent.type === 'OPEN_SURAH' && intent.surahNumber) {
+  if (intent.type === 'OPEN_SURAH' && intent.surahNumber && intent.confidence >= 0.99) {
     return getSurahPath(intent.surahNumber);
   }
   if (intent.type === 'NAVIGATION' && intent.destination && intent.destination !== 'BACK') {
@@ -33,19 +32,16 @@ export function resolveDirectSearchHref(raw: string): string | null {
   if (trailingAyah && !/^(?:page|pg|juz|para)\b/.test(normalized)) {
     const ayahNumber = Number(trailingAyah[2]);
     const surahHit = getSurahSuggestions(trailingAyah[1].trim(), 1)[0];
-    if (surahHit && surahHit.score >= 0.68 && ayahNumber >= 1) {
+    if (surahHit && surahHit.score === 1 && ayahNumber >= 1) {
       const surahNumber = Number(surahHit.id.replace('surah-', ''));
       return getSurahHref(surahNumber, { ayahNumber });
     }
   }
 
-  const correction = correctSearchQuery(query);
-  if (correction.bestSurah && correction.reason === 'surah') {
-    return getSurahPath(correction.bestSurah.number);
-  }
-
+  // Only auto-navigate for exact surah number, name, slug, or known alias.
+  // Topic words (e.g. "mercy", "patience") must always go to /search?q=...
   const surahHit = getSurahSuggestions(query, 1)[0];
-  if (surahHit?.href && surahHit.score >= 0.82) return surahHit.href;
+  if (surahHit?.href && surahHit.score === 1) return surahHit.href;
 
   return null;
 }

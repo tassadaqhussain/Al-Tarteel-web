@@ -194,7 +194,7 @@ function SearchPageContent() {
         for (const variant of variants) {
           const [a, t] = await Promise.all([
             searchApi.ayahs(variant, { limit: 30, surah: surahNum }),
-            searchApi.translations(variant, { limit: 30 }),
+            searchApi.translations(variant, { limit: 60 }),
           ]);
           const ayahList = Array.isArray(a) ? a : [];
           const trList = Array.isArray(t) ? t : [];

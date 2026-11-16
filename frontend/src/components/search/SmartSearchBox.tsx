@@ -4,14 +4,11 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BookMarked, Hash, Search, X } from 'lucide-react';
 import {
-  correctSearchQuery,
   getSearchSuggestions,
   type SearchSuggestion,
 } from '@/lib/search-intelligence';
 import { cn } from '@/lib/utils';
 import { VoiceSearchButton } from '@/components/VoiceSearchButton';
-import { parseVoiceIntent } from '@/lib/voice/parseVoiceIntent';
-import { executeVoiceCommand } from '@/lib/voice/executeVoiceCommand';
 import { resolveDirectSearchHref } from '@/lib/search-navigation';
 import { trackSearch } from '@/lib/analytics';
 
@@ -41,7 +38,7 @@ export function SmartSearchBox({
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [suggestOpen, setSuggestOpen] = useState(false);
-  const [activeSuggest, setActiveSuggest] = useState(0);
+  const [activeSuggest, setActiveSuggest] = useState(-1);
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +48,7 @@ export function SmartSearchBox({
   );
 
   useEffect(() => {
-    setActiveSuggest(0);
+    setActiveSuggest(-1);
     if (query.trim().length >= SUGGEST_MIN_CHARS && suggestions.length > 0) {
       setSuggestOpen(true);
     } else if (query.trim().length < SUGGEST_MIN_CHARS) {
@@ -73,27 +70,17 @@ export function SmartSearchBox({
     setSuggestOpen(false);
     trackSearch(typed, undefined, 'smart_box');
 
-    // Try structured Quran/navigation intents first, but keep generic searches
-    // available for direct typed resolution below.
-    const intent = parseVoiceIntent(typed);
-    if (intent.type !== 'QURAN_SEARCH' && intent.type !== 'UNKNOWN') {
-      const executed = executeVoiceCommand({ intent, router });
-      if (executed) return;
-    }
-
     const directHref = resolveDirectSearchHref(typed);
     if (directHref) {
       router.push(directHref);
       return;
     }
 
-    const correction = correctSearchQuery(typed);
-    const q = correction.didCorrect ? correction.corrected : typed;
     if (onSearchNavigate) {
-      onSearchNavigate(q);
+      onSearchNavigate(typed);
       return;
     }
-    router.push(`/search?q=${encodeURIComponent(q)}`);
+    router.push(`/search?q=${encodeURIComponent(typed)}`);
   };
 
   const applySuggestion = (s: SearchSuggestion) => {
@@ -120,15 +107,11 @@ export function SmartSearchBox({
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setActiveSuggest((i) => Math.max(i - 1, 0));
+        setActiveSuggest((i) => Math.max(i - 1, -1));
         return;
       }
-      if (e.key === 'Enter' && suggestions[activeSuggest]) {
+      if (e.key === 'Enter' && activeSuggest >= 0 && suggestions[activeSuggest]) {
         e.preventDefault();
-        if (resolveDirectSearchHref(query)) {
-          goSearch(query);
-          return;
-        }
         applySuggestion(suggestions[activeSuggest]);
         return;
       }
