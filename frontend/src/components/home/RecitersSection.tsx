@@ -136,7 +136,15 @@ export function RecitersSection() {
                       )}
                       <span>{isThisActive ? 'Playing Al-Fatihah' : 'Play Sample'}</span>
                     </button>
-                  ) : null}
+                  ) : (
+                    <span
+                      aria-disabled="true"
+                      className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-full border border-line bg-surface-2 px-4 py-1.5 text-xs font-semibold text-ink-faint opacity-70"
+                    >
+                      <Play className="h-3.5 w-3.5" aria-hidden />
+                      <span>Sample Soon</span>
+                    </span>
+                  )}
 
                   <Link
                     href="/al-fatihah"

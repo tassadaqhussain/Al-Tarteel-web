@@ -9,7 +9,7 @@ const OVERRIDES: Partial<
     en: {
       title: 'Surah Al-Fatihah – Read, Listen, English Translation & Audio',
       description:
-        'Read Surah Al-Fatihah (The Opening) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Al-Fatihah (The Opener) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ الفاتحہ – اردو ترجمہ، تلاوت اور آڈیو',
