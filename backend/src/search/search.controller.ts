@@ -13,11 +13,13 @@ export class SearchController {
   searchAyahs(
     @Query('q') q: string,
     @Query('limit') limit?: string,
+    @Query('page') page?: string,
     @Query('surah') surahNumber?: string,
     @Query('translator') translatorSlug?: string,
   ) {
     return this.search.searchAyahs(q || '', {
       limit: limit ? parseInt(limit, 10) : undefined,
+      page: page ? parseInt(page, 10) : undefined,
       surahNumber: surahNumber ? parseInt(surahNumber, 10) : undefined,
       translatorSlug,
     });
@@ -30,13 +32,11 @@ export class SearchController {
     @Query('q') q: string,
     @Query('limit') limit?: string,
     @Query('page') page?: string,
-    @Query('paginated') paginated?: string,
     @Query('translator') translatorSlug?: string,
   ) {
     return this.search.searchTranslations(q || '', {
       limit: limit ? parseInt(limit, 10) : undefined,
       page: page ? parseInt(page, 10) : undefined,
-      paginated: paginated === '1' || paginated === 'true',
       translatorSlug,
     });
   }

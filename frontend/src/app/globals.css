@@ -322,10 +322,16 @@
   }
 }
 
-/* Verse arabic sits on a compact line box so the ayah row keeps a tight rhythm. */
+/* Verse arabic needs >= 1.9–2.2 line-height so Amiri Quran Uthmani pause marks (ج, صلى) never detach above the line. */
 .ayah-arabic-block.font-arabic,
 .ayah-arabic-block .font-arabic {
-  line-height: 1.45;
+  line-height: 2;
+}
+
+@media (max-width: 480px) {
+  main {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .ayah-arabic {

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SemanticSearchService } from '../ai-knowledge/semantic-search.service';
 import { cleanTranslationText } from '../quran/clean-translation';
@@ -47,8 +48,13 @@ export class SearchService {
     private readonly semanticSearch: SemanticSearchService,
   ) {}
 
-  async searchAyahs(query: string, options: { limit?: number; surahNumber?: number; translatorSlug?: string } = {}) {
-    const limit = Math.min(options.limit ?? 20, 50);
+  async searchAyahs(
+    query: string,
+    options: { limit?: number; page?: number; surahNumber?: number; translatorSlug?: string } = {},
+  ) {
+    const pageSize = Math.min(Math.max(options.limit ?? 30, 1), 100);
+    const page = Math.max(options.page ?? 1, 1);
+    const skip = (page - 1) * pageSize;
     const where: { textUthmani?: { contains: string; mode: 'insensitive' }; surahId?: number } = {};
     if (query?.trim()) {
       where.textUthmani = { contains: query.trim(), mode: 'insensitive' };
@@ -57,21 +63,25 @@ export class SearchService {
       const surah = await this.prisma.surah.findUnique({ where: { number: options.surahNumber } });
       if (surah) where.surahId = surah.id;
     }
-    const ayahs = await this.prisma.ayah.findMany({
-      where,
-      take: limit,
-      orderBy: [{ surahId: 'asc' }, { number: 'asc' }],
-      include: {
-        surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } },
-        translations: options.translatorSlug
-          ? {
-              where: { translator: { slug: options.translatorSlug } },
-              include: { translator: { select: { id: true, slug: true } } },
-            }
-          : false,
-      },
-    });
-    return ayahs.map((a) => ({
+    const [total, ayahs] = await Promise.all([
+      this.prisma.ayah.count({ where }),
+      this.prisma.ayah.findMany({
+        where,
+        take: pageSize,
+        skip,
+        orderBy: [{ surahId: 'asc' }, { number: 'asc' }],
+        include: {
+          surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } },
+          translations: options.translatorSlug
+            ? {
+                where: { translator: { slug: options.translatorSlug } },
+                include: { translator: { select: { id: true, slug: true } } },
+              }
+            : false,
+        },
+      }),
+    ]);
+    const results = ayahs.map((a) => ({
       id: a.id,
       number: a.number,
       numberInQuran: a.numberInQuran,
@@ -82,19 +92,18 @@ export class SearchService {
         text: cleanTranslationText(t.text),
       })) ?? [],
     }));
+    return { results, total, page, pageSize };
   }
 
   async searchTranslations(
     query: string,
-    options: { limit?: number; page?: number; paginated?: boolean; translatorSlug?: string } = {},
+    options: { limit?: number; page?: number; translatorSlug?: string } = {},
   ) {
-    const limit = Math.min(Math.max(options.limit ?? 30, 1), 100);
+    const pageSize = Math.min(Math.max(options.limit ?? 30, 1), 100);
     const page = Math.max(options.page ?? 1, 1);
     const trimmed = query?.trim();
     if (!trimmed) {
-      return options.paginated
-        ? { items: [], total: 0, page, limit, hasMore: false }
-        : [];
+      return { results: [], total: 0, page, pageSize };
     }
 
     const isAscii = /^[\x00-\x7F]+$/.test(trimmed);
@@ -105,23 +114,60 @@ export class SearchService {
     let allMatches = this.trCache.get(cacheKey);
     if (!allMatches || allMatches.expiresAt <= Date.now()) {
       const terms = expandEnglishSearchTerms(trimmed);
-      const translations = await this.prisma.ayahTranslation.findMany({
-        where: {
-          OR: terms.map((term) => ({
-            text: { contains: term, mode: 'insensitive' as const },
-          })),
-          ...(translatorSlug ? { translator: { slug: translatorSlug } } : {}),
-        },
-        orderBy: { ayahId: 'asc' },
-        include: {
-          ayah: {
-            include: {
-              surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } },
-            },
+      let translations;
+
+      if (isAscii) {
+        const ilikeClauses = terms.map(
+          (term) => Prisma.sql`t.text ILIKE ${`%${term}%`}`,
+        );
+        const tsClauses = terms.map(
+          (term) =>
+            Prisma.sql`to_tsvector('english', t.text) @@ plainto_tsquery('english', ${term})`,
+        );
+        const combinedCond = Prisma.join([...tsClauses, ...ilikeClauses], ' OR ');
+        const matchedRows = await this.prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+          SELECT t.id
+          FROM ayah_translations t
+          JOIN translators tr ON tr.id = t.translator_id
+          WHERE (${translatorSlug ? Prisma.sql`tr.slug = ${translatorSlug}` : Prisma.sql`TRUE`})
+            AND (${combinedCond})
+          ORDER BY t.ayah_id ASC
+        `);
+        const matchedIds = matchedRows.map((r) => r.id);
+        translations =
+          matchedIds.length > 0
+            ? await this.prisma.ayahTranslation.findMany({
+                where: { id: { in: matchedIds } },
+                orderBy: { ayahId: 'asc' },
+                include: {
+                  ayah: {
+                    include: {
+                      surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } },
+                    },
+                  },
+                  translator: { select: { id: true, slug: true, name: true } },
+                },
+              })
+            : [];
+      } else {
+        translations = await this.prisma.ayahTranslation.findMany({
+          where: {
+            OR: terms.map((term) => ({
+              text: { contains: term, mode: 'insensitive' as const },
+            })),
+            ...(translatorSlug ? { translator: { slug: translatorSlug } } : {}),
           },
-          translator: { select: { id: true, slug: true, name: true } },
-        },
-      });
+          orderBy: { ayahId: 'asc' },
+          include: {
+            ayah: {
+              include: {
+                surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } },
+              },
+            },
+            translator: { select: { id: true, slug: true, name: true } },
+          },
+        });
+      }
 
       const exactPhrase = trimmed.toLowerCase();
       const escaped = exactPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -153,19 +199,10 @@ export class SearchService {
     }
 
     const total = allMatches.data.length;
-    const skip = (page - 1) * limit;
-    const items = allMatches.data.slice(skip, skip + limit);
+    const skip = (page - 1) * pageSize;
+    const results = allMatches.data.slice(skip, skip + pageSize);
 
-    if (options.paginated) {
-      return {
-        items,
-        total,
-        page,
-        limit,
-        hasMore: skip + items.length < total,
-      };
-    }
-    return items;
+    return { results, total, page, pageSize };
   }
 
   async searchSemantic(

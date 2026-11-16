@@ -728,7 +728,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
         showColors={canShowTajweed}
         interactive={canShowTajweed}
         className={cn(
-          'font-arabic ayah-arabic text-ink',
+          'font-arabic ayah-arabic leading-loose text-ink',
           fontSizeClass,
           'inline',
         )}
@@ -969,7 +969,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
               </div>
             )}
 
-            <div className="mt-2.5 flex w-full items-center justify-end overflow-visible text-right sm:mt-4">
+            <div className="mt-2 flex w-full items-center justify-end overflow-visible text-right sm:mt-3.5">
               {arabicTextNode}
             </div>
 

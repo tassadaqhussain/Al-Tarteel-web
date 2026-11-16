@@ -198,18 +198,18 @@ function SearchPageContent() {
         let winner = primary;
 
         for (const variant of variants) {
-          const [a, tRes] = await Promise.all([
-            searchApi.ayahs(variant, { limit: 30, surah: surahNum }),
-            searchApi.translationsPaginated(variant, { limit: 30, page: 1 }),
+          const [aRes, tRes] = await Promise.all([
+            searchApi.ayahs(variant, { limit: 30, page: 1, surah: surahNum }),
+            searchApi.translations(variant, { limit: 30, page: 1 }),
           ]);
-          const ayahList = Array.isArray(a) ? a : [];
-          const trList = Array.isArray(tRes?.items) ? tRes.items : [];
+          const ayahList = Array.isArray(aRes?.results) ? aRes.results : [];
+          const trList = Array.isArray(tRes?.results) ? tRes.results : [];
           const trTotal = typeof tRes?.total === 'number' ? tRes.total : trList.length;
           if (ayahList.length + trTotal > bestA.length + bestTotal) {
             bestA = ayahList;
             bestT = trList;
             bestTotal = trTotal;
-            bestHasMore = Boolean(tRes?.hasMore);
+            bestHasMore = trList.length < trTotal;
             winner = variant;
           }
           // Strong enough hit — stop early
@@ -249,19 +249,21 @@ function SearchPageContent() {
     setLoadingMore(true);
     try {
       const nextPage = translationsPage + 1;
-      const res = await searchApi.translationsPaginated(q, { limit: 30, page: nextPage });
-      if (Array.isArray(res?.items) && res.items.length > 0) {
-        setTranslations((prev) => [...prev, ...res.items]);
+      const res = await searchApi.translations(q, { limit: 30, page: nextPage });
+      const newItems = Array.isArray(res?.results) ? res.results : [];
+      if (newItems.length > 0) {
+        setTranslations((prev) => [...prev, ...newItems]);
       }
-      if (typeof res?.total === 'number') setTranslationsTotal(res.total);
+      const nextTotal = typeof res?.total === 'number' ? res.total : translationsTotal;
+      setTranslationsTotal(nextTotal);
       setTranslationsPage(nextPage);
-      setTranslationsHasMore(Boolean(res?.hasMore));
+      setTranslationsHasMore(nextPage * 30 < nextTotal && newItems.length > 0);
     } catch {
       /* ignore */
     } finally {
       setLoadingMore(false);
     }
-  }, [committed, loadingMore, translationsHasMore, translationsPage, usedQuery]);
+  }, [committed, loadingMore, translationsHasMore, translationsPage, translationsTotal, usedQuery]);
 
   const submitSearch = useCallback(
     (raw: string) => {
