@@ -330,7 +330,7 @@
 
 @media (max-width: 480px) {
   main {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

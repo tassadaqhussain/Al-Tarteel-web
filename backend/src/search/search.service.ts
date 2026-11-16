@@ -117,10 +117,12 @@ export class SearchService {
       let translations;
 
       if (isAscii) {
-        const ilikeClauses = terms.map(
+        const words = trimmed.split(/\s+/).filter(Boolean);
+        const searchTerms = words.length <= 1 ? terms : [trimmed];
+        const ilikeClauses = searchTerms.map(
           (term) => Prisma.sql`t.text ILIKE ${`%${term}%`}`,
         );
-        const tsClauses = terms.map(
+        const tsClauses = searchTerms.map(
           (term) =>
             Prisma.sql`to_tsvector('english', t.text) @@ plainto_tsquery('english', ${term})`,
         );

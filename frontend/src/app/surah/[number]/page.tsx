@@ -374,23 +374,33 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           aria-label={`All verses in Surah ${surah.nameSimple}`}
           className="mt-8 rounded-lg border border-line bg-surface-2/50 px-4 py-3"
         >
-          <p className="mb-2 text-xs font-semibold text-ink-3">
-            Verses in Surah {surah.nameSimple} (1–{ayahCount})
-          </p>
-          <div className="flex flex-wrap gap-1.5 [&_a]:inline-flex [&_a]:min-w-[2rem] [&_a]:items-center [&_a]:justify-center [&_a]:rounded [&_a]:border [&_a]:border-line [&_a]:bg-surface [&_a]:px-1.5 [&_a]:py-0.5 [&_a]:text-xs [&_a]:tabular-nums [&_a]:text-ink-2 [&_a:hover]:border-[var(--accent)] [&_a:hover]:text-[var(--accent)]">
-            {Array.from({ length: ayahCount }, (_, i) => {
-              const n = i + 1;
-              return (
-                <Link
-                  key={n}
-                  href={localePath(activeLocale, getAyahPath(surahNumber, n))}
-                  prefetch={false}
-                >
-                  {n}
-                </Link>
-              );
-            })}
-          </div>
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold text-ink-3 hover:text-ink [&::-webkit-details-marker]:hidden">
+              <span>
+                Verses in Surah {surah.nameSimple} (1–{ayahCount})
+              </span>
+              <span className="text-[11px] font-medium text-ink-muted group-open:hidden">
+                Show all
+              </span>
+              <span className="hidden text-[11px] font-medium text-ink-muted group-open:inline">
+                Hide
+              </span>
+            </summary>
+            <div className="mt-2.5 flex flex-wrap gap-1.5 [&_a]:inline-flex [&_a]:min-w-[2rem] [&_a]:items-center [&_a]:justify-center [&_a]:rounded [&_a]:border [&_a]:border-line [&_a]:bg-surface [&_a]:px-1.5 [&_a]:py-0.5 [&_a]:text-xs [&_a]:tabular-nums [&_a]:text-ink-2 [&_a:hover]:border-[var(--accent)] [&_a:hover]:text-[var(--accent)]">
+              {Array.from({ length: ayahCount }, (_, i) => {
+                const n = i + 1;
+                return (
+                  <Link
+                    key={n}
+                    href={localePath(activeLocale, getAyahPath(surahNumber, n))}
+                    prefetch={false}
+                  >
+                    {n}
+                  </Link>
+                );
+              })}
+            </div>
+          </details>
         </nav>
 
         <SurahPaginationNav

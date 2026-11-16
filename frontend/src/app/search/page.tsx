@@ -109,6 +109,7 @@ function SearchPageContent() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [ayahs, setAyahs] = useState<SearchAyahResult[]>([]);
+  const [ayahsTotal, setAyahsTotal] = useState(0);
   const [translations, setTranslations] = useState<SearchTranslationResult[]>([]);
   const [translationsTotal, setTranslationsTotal] = useState(0);
   const [translationsPage, setTranslationsPage] = useState(1);
@@ -192,6 +193,7 @@ function SearchPageContent() {
 
         const surahNum = surahFilter ? parseInt(surahFilter, 10) : undefined;
         let bestA: SearchAyahResult[] = [];
+        let bestATotal = 0;
         let bestT: SearchTranslationResult[] = [];
         let bestTotal = 0;
         let bestHasMore = false;
@@ -203,26 +205,29 @@ function SearchPageContent() {
             searchApi.translations(variant, { limit: 30, page: 1 }),
           ]);
           const ayahList = Array.isArray(aRes?.results) ? aRes.results : [];
+          const aTotal = typeof aRes?.total === 'number' ? aRes.total : ayahList.length;
           const trList = Array.isArray(tRes?.results) ? tRes.results : [];
           const trTotal = typeof tRes?.total === 'number' ? tRes.total : trList.length;
-          if (ayahList.length + trTotal > bestA.length + bestTotal) {
+          if (aTotal + trTotal > bestATotal + bestTotal) {
             bestA = ayahList;
+            bestATotal = aTotal;
             bestT = trList;
             bestTotal = trTotal;
             bestHasMore = trList.length < trTotal;
             winner = variant;
           }
           // Strong enough hit — stop early
-          if (ayahList.length + trTotal >= 5) break;
+          if (aTotal + trTotal >= 5) break;
         }
 
         setAyahs(bestA);
+        setAyahsTotal(bestATotal);
         setTranslations(bestT);
         setTranslationsTotal(bestTotal);
         setTranslationsPage(1);
         setTranslationsHasMore(bestHasMore);
         setUsedQuery(winner);
-        trackSearch(winner, bestA.length + bestTotal, 'search_page');
+        trackSearch(winner, bestATotal + bestTotal, 'search_page');
         setCorrectedFrom(
           !opts?.forceExact && winner.toLowerCase() !== typed.toLowerCase() ? typed : null
         );
@@ -230,6 +235,7 @@ function SearchPageContent() {
         setRecent(getRecent());
       } catch {
         setAyahs([]);
+        setAyahsTotal(0);
         setTranslations([]);
         setTranslationsTotal(0);
         setTranslationsPage(1);
@@ -743,7 +749,7 @@ function SearchPageContent() {
               </div>
               <p className="text-sm text-ink-muted">
                 <span className="font-semibold text-ink">
-                  {ayahs.length + translationsTotal}
+                  {ayahsTotal + translationsTotal}
                 </span>{' '}
                 results for “{usedQuery || committed}”
               </p>
