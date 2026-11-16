@@ -11,7 +11,7 @@ export function SiteFooter() {
   const { t } = useT();
 
   return (
-    <footer data-site-footer className="w-full border-t-4 border-amber-500 bg-[#063a32] text-white">
+    <footer data-site-footer className="w-full border-t-4 border-amber-500 bg-[#063a32] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] text-white sm:pb-0">
       <div className={SITE_SHELL}>
         <div className="grid grid-cols-2 gap-x-8 gap-y-9 py-10 sm:py-12 md:grid-cols-[minmax(0,1.6fr)_minmax(140px,0.7fr)_minmax(160px,0.7fr)] md:gap-12">
           <div className="col-span-2 md:col-span-1">

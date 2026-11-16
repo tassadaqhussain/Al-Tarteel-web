@@ -29,10 +29,14 @@ export class SearchController {
   searchTranslations(
     @Query('q') q: string,
     @Query('limit') limit?: string,
+    @Query('page') page?: string,
+    @Query('paginated') paginated?: string,
     @Query('translator') translatorSlug?: string,
   ) {
     return this.search.searchTranslations(q || '', {
       limit: limit ? parseInt(limit, 10) : undefined,
+      page: page ? parseInt(page, 10) : undefined,
+      paginated: paginated === '1' || paginated === 'true',
       translatorSlug,
     });
   }

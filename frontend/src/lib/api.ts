@@ -697,11 +697,26 @@ export interface SemanticSearchResponse {
   cached?: boolean;
 }
 
+export interface SearchTranslationsPaginatedResult {
+  items: SearchTranslationResult[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
 export const searchApi = {
   ayahs: (q: string, opts?: { limit?: number; surah?: number; translator?: string }) =>
     api<SearchAyahResult[]>(`/search/ayahs`, { params: { q, ...opts } }),
   translations: (q: string, opts?: { limit?: number; translator?: string }) =>
     api<SearchTranslationResult[]>(`/search/translations`, { params: { q, ...opts } }),
+  translationsPaginated: (
+    q: string,
+    opts?: { limit?: number; page?: number; translator?: string },
+  ) =>
+    api<SearchTranslationsPaginatedResult>(`/search/translations`, {
+      params: { q, paginated: '1', ...opts },
+    }),
   semantic: (q: string, opts?: { limit?: number; language?: string; documentType?: string; surah?: number }) =>
     api<SemanticSearchResponse>(`/search/semantic`, { params: { q, ...opts } }).catch(() => ({
       enabled: false,

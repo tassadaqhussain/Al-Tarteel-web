@@ -107,8 +107,12 @@ function SearchPageContent() {
   const [correctedFrom, setCorrectedFrom] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('all');
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [ayahs, setAyahs] = useState<SearchAyahResult[]>([]);
   const [translations, setTranslations] = useState<SearchTranslationResult[]>([]);
+  const [translationsTotal, setTranslationsTotal] = useState(0);
+  const [translationsPage, setTranslationsPage] = useState(1);
+  const [translationsHasMore, setTranslationsHasMore] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [surahFilter, setSurahFilter] = useState('');
@@ -189,28 +193,36 @@ function SearchPageContent() {
         const surahNum = surahFilter ? parseInt(surahFilter, 10) : undefined;
         let bestA: SearchAyahResult[] = [];
         let bestT: SearchTranslationResult[] = [];
+        let bestTotal = 0;
+        let bestHasMore = false;
         let winner = primary;
 
         for (const variant of variants) {
-          const [a, t] = await Promise.all([
+          const [a, tRes] = await Promise.all([
             searchApi.ayahs(variant, { limit: 30, surah: surahNum }),
-            searchApi.translations(variant, { limit: 60 }),
+            searchApi.translationsPaginated(variant, { limit: 30, page: 1 }),
           ]);
           const ayahList = Array.isArray(a) ? a : [];
-          const trList = Array.isArray(t) ? t : [];
-          if (ayahList.length + trList.length > bestA.length + bestT.length) {
+          const trList = Array.isArray(tRes?.items) ? tRes.items : [];
+          const trTotal = typeof tRes?.total === 'number' ? tRes.total : trList.length;
+          if (ayahList.length + trTotal > bestA.length + bestTotal) {
             bestA = ayahList;
             bestT = trList;
+            bestTotal = trTotal;
+            bestHasMore = Boolean(tRes?.hasMore);
             winner = variant;
           }
           // Strong enough hit — stop early
-          if (ayahList.length + trList.length >= 5) break;
+          if (ayahList.length + trTotal >= 5) break;
         }
 
         setAyahs(bestA);
         setTranslations(bestT);
+        setTranslationsTotal(bestTotal);
+        setTranslationsPage(1);
+        setTranslationsHasMore(bestHasMore);
         setUsedQuery(winner);
-        trackSearch(winner, bestA.length + bestT.length, 'search_page');
+        trackSearch(winner, bestA.length + bestTotal, 'search_page');
         setCorrectedFrom(
           !opts?.forceExact && winner.toLowerCase() !== typed.toLowerCase() ? typed : null
         );
@@ -219,6 +231,9 @@ function SearchPageContent() {
       } catch {
         setAyahs([]);
         setTranslations([]);
+        setTranslationsTotal(0);
+        setTranslationsPage(1);
+        setTranslationsHasMore(false);
         setUsedQuery(primary);
         setCorrectedFrom(null);
       } finally {
@@ -227,6 +242,26 @@ function SearchPageContent() {
     },
     [router, surahFilter]
   );
+
+  const loadMoreTranslations = useCallback(async () => {
+    const q = (usedQuery || committed).trim();
+    if (!q || loadingMore || !translationsHasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = translationsPage + 1;
+      const res = await searchApi.translationsPaginated(q, { limit: 30, page: nextPage });
+      if (Array.isArray(res?.items) && res.items.length > 0) {
+        setTranslations((prev) => [...prev, ...res.items]);
+      }
+      if (typeof res?.total === 'number') setTranslationsTotal(res.total);
+      setTranslationsPage(nextPage);
+      setTranslationsHasMore(Boolean(res?.hasMore));
+    } catch {
+      /* ignore */
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [committed, loadingMore, translationsHasMore, translationsPage, usedQuery]);
 
   const submitSearch = useCallback(
     (raw: string) => {
@@ -706,7 +741,7 @@ function SearchPageContent() {
               </div>
               <p className="text-sm text-ink-muted">
                 <span className="font-semibold text-ink">
-                  {ayahs.length + uniqueTranslations.length}
+                  {ayahs.length + translationsTotal}
                 </span>{' '}
                 results for “{usedQuery || committed}”
               </p>
@@ -764,7 +799,7 @@ function SearchPageContent() {
               <section>
                 {tab === 'all' && (
                   <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-faint">
-                    Translations · {uniqueTranslations.length}
+                    Translations · {translationsTotal}
                   </p>
                 )}
                 <div className="space-y-2.5">
@@ -789,6 +824,21 @@ function SearchPageContent() {
                     </Link>
                   ))}
                 </div>
+                {translationsHasMore && (
+                  <div className="mt-6 flex flex-col items-center gap-2">
+                    <p className="text-xs text-ink-muted">
+                      Showing {uniqueTranslations.length} of {translationsTotal} translation matches
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void loadMoreTranslations()}
+                      disabled={loadingMore}
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-surface px-6 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-60"
+                    >
+                      {loadingMore ? 'Loading more…' : 'Load more results'}
+                    </button>
+                  </div>
+                )}
               </section>
             )}
           </>

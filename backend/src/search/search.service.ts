@@ -6,14 +6,21 @@ import { cleanTranslationText } from '../quran/clean-translation';
 function expandEnglishSearchTerms(raw: string): string[] {
   const q = raw.trim();
   const terms = new Set<string>([q]);
-  const lower = q.toLowerCase();
-  if (/^[a-z]{5,}$/.test(lower)) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  for (const lower of words) {
+    if (!/^[a-z]{4,}$/.test(lower)) continue;
+    terms.add(lower);
     if (lower.endsWith('ence')) terms.add(lower.slice(0, -4) + 'ent');
+    else if (lower.endsWith('ent')) terms.add(lower.slice(0, -3) + 'ence');
     else if (lower.endsWith('ance')) terms.add(lower.slice(0, -4) + 'ant');
+    else if (lower.endsWith('ant')) terms.add(lower.slice(0, -3) + 'ance');
+    else if (lower === 'mercy') terms.add('merciful');
+    else if (lower === 'merciful') terms.add('mercy');
     else if (lower.endsWith('ness')) terms.add(lower.slice(0, -4));
     else if (lower.endsWith('ies')) terms.add(lower.slice(0, -3) + 'y');
     else if (lower.endsWith('ing')) terms.add(lower.slice(0, -3));
     else if (lower.endsWith('ed')) terms.add(lower.slice(0, -2));
+    else if (lower.endsWith('ly')) terms.add(lower.slice(0, -2));
     else if (lower.endsWith('s') && !lower.endsWith('ss')) terms.add(lower.slice(0, -1));
   }
   return Array.from(terms);
@@ -21,7 +28,19 @@ function expandEnglishSearchTerms(raw: string): string[] {
 
 @Injectable()
 export class SearchService {
-  private readonly trCache = new Map<string, { expiresAt: number; data: unknown }>();
+  private readonly trCache = new Map<
+    string,
+    {
+      expiresAt: number;
+      data: Array<{
+        ayahId: number;
+        ayahNumber: number;
+        surah: { id: number; number: number; nameArabic: string; nameSimple: string };
+        text: string;
+        translator: { id: number; slug: string; name: string };
+      }>;
+    }
+  >();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -65,48 +84,88 @@ export class SearchService {
     }));
   }
 
-  async searchTranslations(query: string, options: { limit?: number; translatorSlug?: string } = {}) {
-    const limit = Math.min(options.limit ?? 50, 100);
+  async searchTranslations(
+    query: string,
+    options: { limit?: number; page?: number; paginated?: boolean; translatorSlug?: string } = {},
+  ) {
+    const limit = Math.min(Math.max(options.limit ?? 30, 1), 100);
+    const page = Math.max(options.page ?? 1, 1);
     const trimmed = query?.trim();
-    if (!trimmed) return [];
+    if (!trimmed) {
+      return options.paginated
+        ? { items: [], total: 0, page, limit, hasMore: false }
+        : [];
+    }
 
     const isAscii = /^[\x00-\x7F]+$/.test(trimmed);
-    const translatorSlug = options.translatorSlug || (isAscii ? 'en-sahih-international' : undefined);
-    const cacheKey = `${limit}:${translatorSlug || 'all'}:${trimmed.toLowerCase()}`;
-    const cached = this.trCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.data;
+    const translatorSlug =
+      options.translatorSlug || (isAscii ? 'en-sahih-international' : undefined);
+    const cacheKey = `${translatorSlug || 'all'}:${trimmed.toLowerCase()}`;
+
+    let allMatches = this.trCache.get(cacheKey);
+    if (!allMatches || allMatches.expiresAt <= Date.now()) {
+      const terms = expandEnglishSearchTerms(trimmed);
+      const translations = await this.prisma.ayahTranslation.findMany({
+        where: {
+          OR: terms.map((term) => ({
+            text: { contains: term, mode: 'insensitive' as const },
+          })),
+          ...(translatorSlug ? { translator: { slug: translatorSlug } } : {}),
+        },
+        orderBy: { ayahId: 'asc' },
+        include: {
+          ayah: {
+            include: {
+              surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } },
+            },
+          },
+          translator: { select: { id: true, slug: true, name: true } },
+        },
+      });
+
+      const exactPhrase = trimmed.toLowerCase();
+      const escaped = exactPhrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const exactWordRe = new RegExp(`\\b${escaped}\\b`, 'i');
+
+      const mapped = translations
+        .map((t: any) => ({
+          ayahId: t.ayah.id,
+          ayahNumber: t.ayah.number,
+          surah: t.ayah.surah,
+          text: cleanTranslationText(t.text),
+          translator: t.translator,
+        }))
+        .sort((a, b) => {
+          const aLower = a.text.toLowerCase();
+          const bLower = b.text.toLowerCase();
+          const aTier = exactWordRe.test(aLower) ? 0 : aLower.includes(exactPhrase) ? 1 : 2;
+          const bTier = exactWordRe.test(bLower) ? 0 : bLower.includes(exactPhrase) ? 1 : 2;
+          if (aTier !== bTier) return aTier - bTier;
+          return a.ayahId - b.ayahId;
+        });
+
+      if (this.trCache.size >= 200) {
+        const oldestKey = this.trCache.keys().next().value;
+        if (oldestKey) this.trCache.delete(oldestKey);
+      }
+      allMatches = { expiresAt: Date.now() + 5 * 60 * 1000, data: mapped };
+      this.trCache.set(cacheKey, allMatches);
     }
 
-    const terms = expandEnglishSearchTerms(trimmed);
-    const translations = await this.prisma.ayahTranslation.findMany({
-      where: {
-        OR: terms.map((term) => ({
-          text: { contains: term, mode: 'insensitive' as const },
-        })),
-        ...(translatorSlug ? { translator: { slug: translatorSlug } } : {}),
-      },
-      take: limit,
-      orderBy: { ayahId: 'asc' },
-      include: {
-        ayah: { include: { surah: { select: { id: true, number: true, nameArabic: true, nameSimple: true } } } },
-        translator: { select: { id: true, slug: true, name: true } },
-      },
-    });
-    const result = translations.map((t: any) => ({
-      ayahId: t.ayah.id,
-      ayahNumber: t.ayah.number,
-      surah: t.ayah.surah,
-      text: cleanTranslationText(t.text),
-      translator: t.translator,
-    }));
+    const total = allMatches.data.length;
+    const skip = (page - 1) * limit;
+    const items = allMatches.data.slice(skip, skip + limit);
 
-    if (this.trCache.size >= 200) {
-      const oldestKey = this.trCache.keys().next().value;
-      if (oldestKey) this.trCache.delete(oldestKey);
+    if (options.paginated) {
+      return {
+        items,
+        total,
+        page,
+        limit,
+        hasMore: skip + items.length < total,
+      };
     }
-    this.trCache.set(cacheKey, { expiresAt: Date.now() + 5 * 60 * 1000, data: result });
-    return result;
+    return items;
   }
 
   async searchSemantic(

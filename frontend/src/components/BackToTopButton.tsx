@@ -6,13 +6,28 @@ import { cn } from '@/lib/utils';
 
 export function BackToTopButton() {
   const [visible, setVisible] = useState(false);
+  const [scrollingDownMobile, setScrollingDownMobile] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 520);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setVisible(y > 520);
+      if (window.innerWidth <= 480) {
+        if (y <= 520) setScrollingDownMobile(false);
+        else if (y > lastY + 8) setScrollingDownMobile(true);
+        else if (y < lastY - 8) setScrollingDownMobile(false);
+      } else {
+        setScrollingDownMobile(false);
+      }
+      lastY = y;
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const show = visible && !scrollingDownMobile;
 
   return (
     <button
@@ -21,7 +36,7 @@ export function BackToTopButton() {
       className={cn(
         'fixed right-4 z-[54] flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/85 bg-emerald-800 text-white shadow-xl backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 active:scale-95 sm:right-6',
         'bottom-[calc(var(--audio-bar-height,0px)+5rem)] sm:bottom-[calc(var(--audio-bar-height,0px)+6rem)]',
-        visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0',
+        show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0',
       )}
       aria-label="Back to top"
       title="Back to top"
