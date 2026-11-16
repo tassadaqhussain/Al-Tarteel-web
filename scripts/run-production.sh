@@ -158,6 +158,9 @@ if [[ "${ready_api}" -ne 1 ]]; then
   die "API not ready on 127.0.0.1:${API_PORT}"
 fi
 
+log "Sync Prisma schema (creates new analytics tables if needed)"
+"${COMPOSE[@]}" exec -T api npx prisma db push --skip-generate || warn "Prisma db push skipped"
+
 log "Download all 6236 ayahs into Postgres (skips if already complete)"
 "${COMPOSE[@]}" exec -T api npm run quran:download
 "${COMPOSE[@]}" exec -T api npm run reciters:import

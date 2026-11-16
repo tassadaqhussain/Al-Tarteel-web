@@ -533,6 +533,56 @@ export function OverviewDashboard() {
                 </div>
               )}
             </AdminCard>
+
+            <AdminCard className="mt-4 p-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-sm font-semibold text-ink dark:text-slate-100">
+                    Top Searches (Last 30 Days)
+                  </h2>
+                  <p className="mt-0.5 text-xs text-ink-3">
+                    Most searched topics, verses, and surahs on QuranPilot.
+                  </p>
+                </div>
+                <span className="text-xs text-ink-3">
+                  {stats.traffic?.topSearchesLast30Days?.length ?? 0} tracked terms
+                </span>
+              </div>
+
+              {!stats.traffic?.topSearchesLast30Days ||
+              stats.traffic.topSearchesLast30Days.length === 0 ? (
+                <p className="py-4 text-xs text-ink-3">
+                  No searches recorded yet. Site searches from the hero bar and /search page will appear here ranked by popularity.
+                </p>
+              ) : (
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+                  {stats.traffic.topSearchesLast30Days.map((row, idx) => (
+                    <a
+                      key={row.query}
+                      href={`/search?q=${encodeURIComponent(row.query)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-slate-50/50 px-3 py-2.5 text-xs transition hover:border-emerald-700/40 dark:border-slate-800 dark:bg-slate-900/50"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-ink dark:text-slate-100">
+                          <span className="mr-1.5 font-mono text-[11px] text-ink-3">
+                            #{idx + 1}
+                          </span>
+                          {row.query}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-ink-3">
+                          {row.resultsCount !== null ? `${row.resultsCount} results` : 'Direct / search'}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-emerald-800/10 px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300">
+                        {formatAdminNumber(row.count)}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </AdminCard>
           </section>
 
           {/* Recent Registrations Table */}

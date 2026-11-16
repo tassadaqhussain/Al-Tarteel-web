@@ -206,6 +206,25 @@ export function trackSearch(query: string, resultsCount?: number, searchType = '
     ...(typeof resultsCount === 'number' ? { results_count: resultsCount } : {}),
     ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
   });
+
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')) {
+    try {
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '');
+      void fetch(`${apiBase}/analytics/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: cleanQuery,
+          ...(typeof resultsCount === 'number' ? { resultsCount } : {}),
+          source: searchType,
+        }),
+        keepalive: true,
+        credentials: 'omit',
+      }).catch(() => {});
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 /**

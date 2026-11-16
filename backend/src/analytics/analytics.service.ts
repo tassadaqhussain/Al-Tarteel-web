@@ -87,17 +87,61 @@ export class AnalyticsService {
     return { ok: true as const };
   }
 
+  async recordSearch(meta: {
+    userAgent?: string;
+    query?: string;
+    resultsCount?: number;
+    source?: string;
+  }) {
+    const userAgent = meta.userAgent?.slice(0, 400) || '';
+    if (BOT_UA.test(userAgent)) return { ok: true as const, skipped: true as const };
+
+    const cleaned = (meta.query || '')
+      .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 120);
+    if (cleaned.length < 2) return { ok: true as const, skipped: true as const };
+
+    const normalizedQuery = cleaned.toLowerCase();
+    const day = utcDay(0);
+    const source = (meta.source || 'search').replace(/[^a-z0-9_-]/gi, '').slice(0, 32) || 'search';
+    const resultsCount =
+      typeof meta.resultsCount === 'number' && Number.isFinite(meta.resultsCount)
+        ? Math.max(0, Math.round(meta.resultsCount))
+        : undefined;
+
+    await this.prisma.searchQueryLog.upsert({
+      where: { day_normalizedQuery: { day, normalizedQuery } },
+      create: {
+        day,
+        query: cleaned,
+        normalizedQuery,
+        hits: 1,
+        lastResultsCount: resultsCount ?? null,
+        source,
+      },
+      update: {
+        hits: { increment: 1 },
+        ...(resultsCount !== undefined ? { lastResultsCount: resultsCount } : {}),
+      },
+    });
+
+    return { ok: true as const };
+  }
+
   async trafficOverview() {
     const today = utcDay(0);
     const since7 = utcDay(6);
     const since30 = utcDay(29);
 
-    const [todayRow, week, month, daily, channelsLast30Days] = await Promise.all([
+    const [todayRow, week, month, daily, channelsLast30Days, topSearchesLast30Days] = await Promise.all([
       this.dayTotals(today, today),
       this.rangeTotals(since7),
       this.rangeTotals(since30),
       this.visitorsByDay(30),
       this.channelsSince(since30),
+      this.topSearchesSince(since30).catch(() => []),
     ]);
 
     return {
@@ -109,7 +153,35 @@ export class AnalyticsService {
       pageViewsLast30Days: month.pageViews,
       visitorsByDay: daily,
       channelsLast30Days,
+      topSearchesLast30Days,
     };
+  }
+
+  private async topSearchesSince(sinceDay: string) {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        query: string;
+        count: number;
+        results_count: number | null;
+        last_searched_at: Date;
+      }>
+    >(Prisma.sql`
+      SELECT MAX(query) AS query,
+             COALESCE(SUM(hits), 0)::int AS count,
+             MAX(last_results_count)::int AS results_count,
+             MAX(updated_at) AS last_searched_at
+      FROM search_query_logs
+      WHERE day >= ${sinceDay}
+      GROUP BY normalized_query
+      ORDER BY count DESC, last_searched_at DESC
+      LIMIT 20
+    `);
+    return rows.map((row) => ({
+      query: String(row.query),
+      count: Number(row.count),
+      resultsCount: row.results_count !== null ? Number(row.results_count) : null,
+      lastSearchedAt: new Date(row.last_searched_at).toISOString(),
+    }));
   }
 
   private async channelsSince(sinceDay: string) {

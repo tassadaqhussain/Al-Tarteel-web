@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AnalyticsService } from './analytics.service';
@@ -20,6 +20,22 @@ class VisitDto {
   @IsString()
   @MaxLength(300)
   referrer?: string;
+}
+
+class SearchLogDto {
+  @IsString()
+  @MaxLength(120)
+  query!: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  resultsCount?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
+  source?: string;
 }
 
 @ApiTags('Analytics')
@@ -42,6 +58,18 @@ export class AnalyticsController {
       path: body.path,
       source: body.source,
       referrer: body.referrer,
+    });
+  }
+
+  @Post('search')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Record a site search query for top-searches analytics' })
+  search(@Body() body: SearchLogDto, @Req() req: Request) {
+    return this.analytics.recordSearch({
+      userAgent: req.headers['user-agent'],
+      query: body.query,
+      resultsCount: body.resultsCount,
+      source: body.source,
     });
   }
 }

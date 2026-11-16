@@ -380,6 +380,12 @@ export const adminApi = {
         visitorsLast30Days: number;
         pageViewsLast30Days: number;
         channelsLast30Days: Array<{ channel: string; visitors: number; pageViews: number }>;
+        topSearchesLast30Days?: Array<{
+          query: string;
+          count: number;
+          resultsCount: number | null;
+          lastSearchedAt: string;
+        }>;
       } | null;
       trafficNote: string;
       generatedAt: string;

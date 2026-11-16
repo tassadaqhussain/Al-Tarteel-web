@@ -477,6 +477,23 @@ model SiteVisitor {
   @@map("site_visitors")
 }
 
+/// Aggregated daily search queries (no user/IP PII stored).
+model SearchQueryLog {
+  id               Int      @id @default(autoincrement())
+  day              String   @db.VarChar(10)
+  query            String   @db.VarChar(120)
+  normalizedQuery  String   @map("normalized_query") @db.VarChar(120)
+  hits             Int      @default(1)
+  lastResultsCount Int?     @map("last_results_count")
+  source           String   @default("search") @db.VarChar(32)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([day, normalizedQuery])
+  @@index([day])
+  @@map("search_query_logs")
+}
+
 // ——— AI Knowledge Base (RAG / semantic search) ———
 
 /// Approved content sources for AI retrieval. Only status=approved is indexed.
