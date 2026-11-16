@@ -403,14 +403,16 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           </details>
         </nav>
 
-        <SurahPaginationNav
-          path={surahPath}
-          page={page}
-          totalPages={totalPages}
-          ayahCount={ayahCount}
-          surahName={surah.nameSimple}
-          locale={activeLocale}
-        />
+        <div className="sr-only">
+          <SurahPaginationNav
+            path={surahPath}
+            page={page}
+            totalPages={totalPages}
+            ayahCount={ayahCount}
+            surahName={surah.nameSimple}
+            locale={activeLocale}
+          />
+        </div>
 
         <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
         <DailyAyahSubscribeCard source="surah_page" className="mt-8" />

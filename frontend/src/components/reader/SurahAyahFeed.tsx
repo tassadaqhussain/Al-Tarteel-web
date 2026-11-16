@@ -176,19 +176,33 @@ export function SurahAyahFeed({
     void loadPage(pageRef.current + 1);
   }, [loadPage]);
 
-  // Infinite scroll sentinel
+  // Infinite scroll sentinel + scroll fallback (handles PageDown / fast scroll / staying in view)
   useEffect(() => {
     const node = sentinelRef.current;
     if (!node || !hasMore) return;
+
+    const checkAndLoad = () => {
+      if (loadingRef.current || !sentinelRef.current) return;
+      const rect = sentinelRef.current.getBoundingClientRect();
+      if (rect.top <= window.innerHeight + 800) {
+        loadNext();
+      }
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) loadNext();
       },
-      { rootMargin: '400px 0px' }
+      { rootMargin: '800px 0px' }
     );
     observer.observe(node);
-    return () => observer.disconnect();
+    window.addEventListener('scroll', checkAndLoad, { passive: true });
+    checkAndLoad();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', checkAndLoad);
+    };
   }, [hasMore, loadNext, ayahs.length]);
 
   // While reciting, keep loading pages until the spoken ayah is in the DOM.
