@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import { Amiri, Amiri_Quran, Figtree, Fredoka } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -154,14 +155,21 @@ export const viewport: Viewport = {
 import { VoiceSearchProvider } from '@/providers/VoiceSearchProvider';
 import { GlobalVoiceSearch } from '@/components/GlobalVoiceSearch';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const reqHeaders = await headers();
+  const rawLocale = reqHeaders.get('x-qp-locale');
+  const ssrLocale =
+    rawLocale === 'ur' || rawLocale === 'ps' || rawLocale === 'fa' ? rawLocale : 'en';
+  const ssrDir = ssrLocale === 'en' ? 'ltr' : 'rtl';
+
   return (
     <html
-      lang="en"
+      lang={ssrLocale}
+      dir={ssrDir}
       data-scroll-behavior="smooth"
       data-analytics-provider={IS_PRODUCTION && analyticsEnabled ? ANALYTICS_PROVIDER : 'disabled'}
       suppressHydrationWarning
@@ -195,9 +203,8 @@ export default function RootLayout({
               // keep in sync with RTL_LOCALES in lib/i18n/messages.ts
               "r.dir=['ar','fa','ur','ps'].indexOf(s.uiLocale)>-1?'rtl':'ltr';}" +
               // Locale-prefixed routes (/ur, /ps, /fa) are written in that
-              // language, so it wins over the UI locale for lang; dir stays
-              // with the UI chrome.
-              "if(['ur','ps','fa'].indexOf(seg[0])>-1)r.lang=seg[0];" +
+              // language, so it wins over the UI locale for lang and dir.
+              "if(['ur','ps','fa'].indexOf(seg[0])>-1){r.lang=seg[0];r.dir='rtl';}" +
               "}catch(e){}})();",
           }}
         />

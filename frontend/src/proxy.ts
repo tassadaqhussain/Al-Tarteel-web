@@ -25,7 +25,15 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.next();
+  const firstSeg = pathname.split('/').filter(Boolean)[0];
+  const routeLocale =
+    firstSeg === 'ur' || firstSeg === 'ps' || firstSeg === 'fa' ? firstSeg : 'en';
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-qp-locale', routeLocale);
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   if (pathname === '/search') {
     const q = searchParams.get('q')?.trim();
