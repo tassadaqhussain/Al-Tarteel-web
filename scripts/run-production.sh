@@ -15,9 +15,9 @@
 #   --pull               git fetch + reset --hard to origin before building
 #   --no-build           start existing images only
 #   --import-content     after API is up, import translations/tafsir/study
-#   --import-audio       mirror spoken-translation audio (EN/UR/FA + Pashto)
-#   --full-audio-import  with --import-audio: also Arabic reciters + WBW
-#   --skip-audio-import  do not auto-mirror audio when marker is missing
+#   --import-audio       mirror compact spoken-translation audio (EN + Urdu Shamshad + Pashto)
+#   --full-audio-import  all Arabic reciters + all translations + WBW (needs lots of disk)
+#   --all-translations   with --import-audio: all EN/UR/FA packs (not just compact)
 #   -y, --yes            non-interactive
 #   -h, --help
 #
@@ -33,7 +33,7 @@ NO_BUILD=0
 IMPORT_CONTENT=0
 IMPORT_AUDIO=0
 FULL_AUDIO_IMPORT=0
-SKIP_AUDIO_IMPORT=0
+ALL_TRANSLATIONS=0
 
 log()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m✓\033[0m %s\n' "$*"; }
@@ -52,7 +52,8 @@ while [[ $# -gt 0 ]]; do
     --import-content) IMPORT_CONTENT=1; shift ;;
     --import-audio) IMPORT_AUDIO=1; shift ;;
     --full-audio-import) FULL_AUDIO_IMPORT=1; IMPORT_AUDIO=1; shift ;;
-    --skip-audio-import) SKIP_AUDIO_IMPORT=1; shift ;;
+    --all-translations) ALL_TRANSLATIONS=1; IMPORT_AUDIO=1; shift ;;
+    --skip-audio-import) IMPORT_AUDIO=0; shift ;;
     -y|--yes) ASSUME_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
@@ -94,12 +95,16 @@ if [[ "${ASSUME_YES}" != "1" ]]; then
   echo "  Pull:     $([[ "${DO_PULL}" == "1" ]] && echo yes || echo no)"
   echo "  Build:    $([[ "${NO_BUILD}" == "1" ]] && echo skip || echo api then web)"
   echo "  Content:  $([[ "${IMPORT_CONTENT}" == "1" ]] && echo import || echo skip)"
-  if [[ "${SKIP_AUDIO_IMPORT}" == "1" ]]; then
-    echo "  Audio:    skip (--skip-audio-import)"
-  elif [[ "${IMPORT_AUDIO}" == "1" || ! -f "${REPO_ROOT}/deploy/.audio-imported" ]]; then
-    echo "  Audio:    $([[ "${FULL_AUDIO_IMPORT}" == "1" ]] && echo full mirror || echo translations + Pashto)"
+  if [[ "${IMPORT_AUDIO}" == "1" ]]; then
+    if [[ "${FULL_AUDIO_IMPORT}" == "1" ]]; then
+      echo "  Audio:    full mirror"
+    elif [[ "${ALL_TRANSLATIONS}" == "1" ]]; then
+      echo "  Audio:    all spoken translations + Pashto"
+    else
+      echo "  Audio:    compact (EN + Urdu Shamshad + Pashto)"
+    fi
   else
-    echo "  Audio:    skip (already mirrored)"
+    echo "  Audio:    skip (pass --import-audio when disk allows)"
   fi
   echo
   read -r -p "Start production stack? [y/N] " reply
@@ -188,25 +193,34 @@ if [[ "${IMPORT_CONTENT}" == "1" ]]; then
 fi
 
 AUDIO_MARKER="${APP_DIR}/deploy/.audio-imported"
-# First deploy (no marker) or explicit --import-audio mirrors spoken translations.
-if [[ "${SKIP_AUDIO_IMPORT}" == "1" ]]; then
-  warn "Skipping audio mirror (--skip-audio-import)"
-elif [[ "${IMPORT_AUDIO}" == "1" || ! -f "${AUDIO_MARKER}" ]]; then
+# Opt-in only: multi-GB mirrors must not run on every redeploy (small VPS disks fill fast).
+if [[ "${IMPORT_AUDIO}" == "1" ]]; then
   mkdir -p "${APP_DIR}/backend/storage/audio"
+  AUDIO_FREE_KB="$(df -Pk "${APP_DIR}/backend/storage/audio" 2>/dev/null | awk 'NR==2 {print $4}')"
+  AUDIO_FREE_MB=$(( ${AUDIO_FREE_KB:-0} / 1024 ))
   if [[ "${FULL_AUDIO_IMPORT}" == "1" ]]; then
-    log "Mirror full audio set (Arabic + translations + WBW)"
+    NEED_MB=40000
+    log "Mirror full audio set (Arabic + translations + WBW) — ${AUDIO_FREE_MB} MB free"
     AUDIO_IMPORT_ARGS=(--audio-only)
-  else
-    log "Mirror spoken-translation audio (EN/UR/FA + Pashto)"
+  elif [[ "${ALL_TRANSLATIONS}" == "1" ]]; then
+    NEED_MB=10000
+    log "Mirror all spoken-translation audio (EN/UR/FA + Pashto) — ${AUDIO_FREE_MB} MB free"
     AUDIO_IMPORT_ARGS=(--audio-only --translations-only)
+  else
+    NEED_MB=4000
+    log "Mirror compact spoken-translation audio (EN + Urdu Shamshad + Pashto) — ${AUDIO_FREE_MB} MB free"
+    AUDIO_IMPORT_ARGS=(--audio-only --translations-only --compact)
   fi
-  if API_PORT="${API_PORT}" bash "${APP_DIR}/scripts/import-all-content.sh" "${AUDIO_IMPORT_ARGS[@]}"; then
+  if [[ "${AUDIO_FREE_MB}" -lt "${NEED_MB}" ]]; then
+    warn "Skipping audio mirror: need ≥ ${NEED_MB} MB free, have ${AUDIO_FREE_MB} MB"
+    warn "Free disk (e.g. remove incomplete packs / docker prune), then: sudo bash scripts/run-production.sh -y --import-audio"
+  elif API_PORT="${API_PORT}" bash "${APP_DIR}/scripts/import-all-content.sh" "${AUDIO_IMPORT_ARGS[@]}"; then
     mkdir -p "$(dirname "${AUDIO_MARKER}")"
-    date -u +%FT%TZ > "${AUDIO_MARKER}"
+    date -u +%FT%TZ > "${AUDIO_MARKER}" || warn "Could not write ${AUDIO_MARKER}"
     ok "Audio mirrored under backend/storage/audio"
     "${COMPOSE[@]}" restart api || warn "API restart skipped"
   else
-    warn "Audio mirror failed — retry: sudo bash scripts/run-production.sh -y --import-audio"
+    warn "Audio mirror failed — retry after freeing disk: sudo bash scripts/run-production.sh -y --import-audio"
   fi
 fi
 
@@ -216,7 +230,8 @@ fi
 
 NGINX_FILTER="${APP_DIR}/deploy/nginx/next-action-filter.conf"
 if [[ -f "${NGINX_FILTER}" ]] && command -v nginx >/dev/null 2>&1; then
-  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf
+  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf \
+    || warn "Could not install nginx Next-Action filter (disk full?)"
   nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1 || true
 fi
 

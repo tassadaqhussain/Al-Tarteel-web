@@ -23,10 +23,22 @@ sudo bash scripts/run-production.sh -y --import-audio
 `--import-content` loads translations, tafsir, Hadith, lessons, and related Q&A
 into Postgres.
 
-`--import-audio` mirrors spoken-translation audio (English, Urdu, Persian, Pashto)
-into `backend/storage/audio` via `backend/scripts/download-all-audio.mjs`. The first
-successful deploy also runs this automatically and writes `deploy/.audio-imported`.
-Use `--full-audio-import` for every Arabic reciter plus word-by-word clips (large).
+`--import-audio` is **opt-in** (not run on every deploy). It mirrors a compact pack
+(English Ibrahim Walk ≈ 1.5 GB + Urdu Shamshad ≈ 0.5 GB + Pashto) into
+`backend/storage/audio`. Requires about **4 GB free**. Use `--all-translations` for
+all EN/UR/FA packs (~10 GB free), or `--full-audio-import` for every Arabic reciter
+plus WBW (tens of GB).
+
+If a previous run filled the disk, free space first:
+
+```bash
+df -h /
+du -sh /var/www/quranpilot/backend/storage/audio/*
+# remove incomplete / oversized packs if needed, e.g.:
+# sudo rm -rf /var/www/quranpilot/backend/storage/audio/ur-farhat-hashmi
+sudo docker system prune -f
+sudo bash scripts/run-production.sh -y --import-audio
+```
 
 ## Auto-deploy on AWS EC2
 

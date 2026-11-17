@@ -15,9 +15,9 @@
 #   --skip-docker-install     do not attempt Docker Engine install
 #   --skip-words-import       do not download word-by-word meanings
 #   --force-words-import      re-download word-by-word meanings even if done before
-#   --skip-audio-import       do not mirror spoken-translation / recitation audio
-#   --force-audio-import      re-run audio mirror even if already done
-#   --full-audio-import       mirror all Arabic reciters + WBW (large; default is translations)
+#   --import-audio            mirror compact spoken-translation audio after API is up
+#   --all-translations        with --import-audio: all EN/UR/FA packs
+#   --full-audio-import       mirror all Arabic reciters + WBW (large)
 #   -y, --yes                 non-interactive
 #
 set -euo pipefail
@@ -32,8 +32,8 @@ ASSUME_YES=0
 SKIP_DOCKER_INSTALL=0
 SKIP_WORDS_IMPORT=0
 FORCE_WORDS_IMPORT=0
-SKIP_AUDIO_IMPORT=0
-FORCE_AUDIO_IMPORT=0
+IMPORT_AUDIO=0
+ALL_TRANSLATIONS=0
 FULL_AUDIO_IMPORT=0
 
 DEFAULT_DOMAIN="quranpilot.com"
@@ -62,8 +62,8 @@ Options:
   --skip-docker-install   Fail if Docker is missing instead of installing
   --skip-words-import     Skip downloading word-by-word meanings
   --force-words-import    Re-download word-by-word meanings even if already done
-  --skip-audio-import     Skip mirroring translation/recitation audio
-  --force-audio-import    Re-run audio mirror even if marker exists
+  --import-audio          Mirror compact spoken translations (needs ≥4 GB free)
+  --all-translations      With --import-audio: all EN/UR/FA packs
   --full-audio-import     Full Arabic + translation + WBW mirror (tens of GB)
   -y, --yes               Non-interactive
   -h, --help              Show help
@@ -78,9 +78,11 @@ while [[ $# -gt 0 ]]; do
     --skip-docker-install) SKIP_DOCKER_INSTALL=1; shift ;;
     --skip-words-import) SKIP_WORDS_IMPORT=1; shift ;;
     --force-words-import) FORCE_WORDS_IMPORT=1; shift ;;
-    --skip-audio-import) SKIP_AUDIO_IMPORT=1; shift ;;
-    --force-audio-import) FORCE_AUDIO_IMPORT=1; shift ;;
-    --full-audio-import) FULL_AUDIO_IMPORT=1; shift ;;
+    --import-audio) IMPORT_AUDIO=1; shift ;;
+    --all-translations) ALL_TRANSLATIONS=1; IMPORT_AUDIO=1; shift ;;
+    --full-audio-import) FULL_AUDIO_IMPORT=1; IMPORT_AUDIO=1; shift ;;
+    --skip-audio-import) IMPORT_AUDIO=0; FULL_AUDIO_IMPORT=0; shift ;;
+    --force-audio-import) IMPORT_AUDIO=1; shift ;;
     -y|--yes) ASSUME_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
@@ -508,28 +510,35 @@ if [[ "${ready_api}" -eq 1 ]]; then
     fi
   fi
 
-  # Spoken translation audio (EN/UR/FA/Pashto) into backend/storage/audio.
-  # Default is translations-only; use --full-audio-import for all Arabic + WBW.
+  # Opt-in audio mirror (multi-GB). Default skip so small VPS disks stay healthy.
   AUDIO_MARKER="${REPO_ROOT}/deploy/.audio-imported"
   mkdir -p "${REPO_ROOT}/backend/storage/audio"
-  if [[ "${SKIP_AUDIO_IMPORT}" == "1" ]]; then
-    warn "Skipping audio mirror (--skip-audio-import)"
-  elif [[ -f "${AUDIO_MARKER}" && "${FORCE_AUDIO_IMPORT}" != "1" ]]; then
-    ok "Audio already mirrored (use --force-audio-import to redo)"
+  if [[ "${IMPORT_AUDIO}" != "1" && "${FULL_AUDIO_IMPORT}" != "1" ]]; then
+    ok "Audio mirror skipped (pass --import-audio when ≥4 GB free)"
   else
+    AUDIO_FREE_KB="$(df -Pk "${REPO_ROOT}/backend/storage/audio" 2>/dev/null | awk 'NR==2 {print $4}')"
+    AUDIO_FREE_MB=$(( ${AUDIO_FREE_KB:-0} / 1024 ))
     if [[ "${FULL_AUDIO_IMPORT}" == "1" ]]; then
-      log "Mirror full audio set (Arabic reciters + translations + WBW)"
+      NEED_MB=40000
       AUDIO_IMPORT_ARGS=(--audio-only)
-    else
-      log "Mirror spoken-translation audio (EN/UR/FA + Pashto)"
+      log "Mirror full audio set — ${AUDIO_FREE_MB} MB free"
+    elif [[ "${ALL_TRANSLATIONS}" == "1" ]]; then
+      NEED_MB=10000
       AUDIO_IMPORT_ARGS=(--audio-only --translations-only)
+      log "Mirror all spoken translations — ${AUDIO_FREE_MB} MB free"
+    else
+      NEED_MB=4000
+      AUDIO_IMPORT_ARGS=(--audio-only --translations-only --compact)
+      log "Mirror compact spoken translations — ${AUDIO_FREE_MB} MB free"
     fi
-    if API_PORT="${API_PORT}" bash "${SCRIPT_DIR}/import-all-content.sh" "${AUDIO_IMPORT_ARGS[@]}"; then
-      date -u +%FT%TZ > "${AUDIO_MARKER}"
+    if [[ "${AUDIO_FREE_MB}" -lt "${NEED_MB}" ]]; then
+      warn "Skipping audio mirror: need ≥ ${NEED_MB} MB free, have ${AUDIO_FREE_MB} MB"
+    elif API_PORT="${API_PORT}" bash "${SCRIPT_DIR}/import-all-content.sh" "${AUDIO_IMPORT_ARGS[@]}"; then
+      date -u +%FT%TZ > "${AUDIO_MARKER}" || warn "Could not write ${AUDIO_MARKER}"
       ok "Audio mirrored under backend/storage/audio"
       "${COMPOSE[@]}" restart api || warn "API restart skipped"
     else
-      warn "Audio mirror failed — retry: sudo bash scripts/import-all-content.sh --audio-only --translations-only"
+      warn "Audio mirror failed — free disk, then: sudo bash scripts/run-production.sh -y --import-audio"
     fi
   fi
 fi
