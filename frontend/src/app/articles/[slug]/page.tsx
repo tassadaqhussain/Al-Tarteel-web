@@ -84,7 +84,7 @@ export default async function ArticlePage({ params }: Props) {
       <Header />
       <JsonLd data={[jsonLd, breadcrumb]} />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
+      <main lang="en" dir="ltr" className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
         <Link
           href="/articles"
           className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand"

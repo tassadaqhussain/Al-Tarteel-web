@@ -19,7 +19,7 @@ const GOALS: {
 }[] = [
   {
     id: 'minutes-10',
-    title: 'Read 10 Minutes A Day',
+    title: 'Read 10 minutes a day',
     description: 'A simple beginner-friendly goal.',
     icon: Clock,
     recommended: true,
@@ -27,14 +27,14 @@ const GOALS: {
   },
   {
     id: 'days-30',
-    title: 'Read The Quran In 30 Days',
+    title: 'Read the Quran in 30 days',
     description: 'A classic Khatm goal. Read 1 juz a day.',
     icon: BookOpen,
     hrefAfter: '/juz/1',
   },
   {
     id: 'year',
-    title: 'Read The Quran In A Year',
+    title: 'Read the Quran in a year',
     description: 'Read the Quran at your own pace over the next year.',
     icon: Calendar,
     hrefAfter: '/quran-in-year',

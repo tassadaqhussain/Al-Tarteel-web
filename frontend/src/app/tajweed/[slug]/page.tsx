@@ -63,7 +63,7 @@ export default async function TajweedLessonPage({ params }: Props) {
       />
       <Header />
 
-      <main className={`${SITE_SHELL} flex-1 py-8 sm:py-10`}>
+      <main lang="en" dir="ltr" className={`${SITE_SHELL} flex-1 py-8 sm:py-10`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Breadcrumbs
             items={[

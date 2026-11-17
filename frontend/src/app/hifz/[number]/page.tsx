@@ -47,7 +47,7 @@ export default function HifzSurahPracticePage() {
   return (
     <div className="flex min-h-screen flex-col bg-[var(--bg)] text-[var(--fg)]">
       <Header />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+      <main lang="en" dir="ltr" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <Link href="/hifz" className="mb-2 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline">

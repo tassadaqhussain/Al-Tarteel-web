@@ -14,7 +14,7 @@ import {
 import { buildPageMetadata } from '@/lib/seo';
 import { getSurahPath } from '@/lib/surah-meta';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
-import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
+import { QuranInYearSubscribe } from '@/components/quran-in-year/QuranInYearSubscribe';
 
 export const metadata: Metadata = buildPageMetadata({
   title: 'Quran in a Year — Reading Schedule',
@@ -35,7 +35,7 @@ export default function QuranInYearPage() {
     <div className="min-h-screen bg-surface text-ink">
       <Header />
 
-      <main>
+      <main lang="en" dir="ltr">
         <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
           <Breadcrumbs
             items={[
@@ -170,7 +170,7 @@ export default function QuranInYearPage() {
 
       <MyProgress currentWeek={week.week} />
       <section id="subscribe" className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
-        <DailyAyahSubscribeCard source="quran_in_year" />
+        <QuranInYearSubscribe />
       </section>
       <FaqSection />
       </main>

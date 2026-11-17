@@ -30,7 +30,7 @@ export default function ArticlesPage() {
     <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
-      <main className="mx-auto w-full max-w-none flex-1 px-4 py-10 sm:px-6 md:px-8 lg:px-12 lg:py-14 xl:px-16 2xl:px-20">
+      <main lang="en" dir="ltr" className="mx-auto w-full max-w-none flex-1 px-4 py-10 sm:px-6 md:px-8 lg:px-12 lg:py-14 xl:px-16 2xl:px-20">
         <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Articles', path: '/articles' }]} />
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)]/10 text-[var(--accent)]">

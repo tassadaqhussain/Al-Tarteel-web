@@ -27,7 +27,7 @@ export default function TajweedIndexPage() {
     <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
-      <main className={`${SITE_SHELL} flex-1 py-8 sm:py-10`}>
+      <main lang="en" dir="ltr" className={`${SITE_SHELL} flex-1 py-8 sm:py-10`}>
         <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Tajweed', path: '/tajweed' }]} />
 
         {/* Clean Editorial Page Header */}
