@@ -261,7 +261,7 @@ export function SurahAyahFeed({
         ref={feedRef}
         className={cn(
           readerViewMode === 'verse' &&
-            'space-y-3 sm:space-y-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:divide-y sm:divide-line',
+            'space-y-3 sm:space-y-0 sm:[&>*:first-child]:rounded-t-2xl sm:[&>*:last-child]:rounded-b-2xl sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:divide-y sm:divide-line',
           readerViewMode === 'arabic' &&
             'arabic-mushaf-feed rounded-2xl border border-line bg-surface px-3 py-8 text-center sm:px-8 sm:py-10',
           readerViewMode === 'translation' &&
