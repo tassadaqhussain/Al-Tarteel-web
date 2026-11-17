@@ -348,8 +348,7 @@
 
 .ayah-current {
   background-color: var(--ayah-highlight);
-  box-shadow: inset 3px 0 0 var(--accent);
-  border-radius: 0.75rem;
+  border-inline-start: 3px solid var(--accent);
 }
 
 /* Keep recited ayah clear of sticky header + audio bar during auto-scroll */

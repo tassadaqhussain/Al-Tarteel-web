@@ -109,7 +109,7 @@ export function ChapterControls({
         <button
           type="button"
           onClick={() => void handleListen()}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
         >
           {isThisSurahPlaying ? (
             <Pause className="h-4 w-4 fill-current" />

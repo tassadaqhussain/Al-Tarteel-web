@@ -129,7 +129,7 @@ export function HeroContent() {
             <Link
               href={getSurahPath(surahNumber)}
               onClick={() => trackContinueReadingClick(surahNumber, currentAyah)}
-              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
             >
               <span>Resume</span>
               <ArrowRight className="h-4 w-4" aria-hidden />
@@ -164,7 +164,7 @@ export function HeroContent() {
 
             <Link
               href={getSurahPath(1)}
-              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
             >
               <BookOpen className="h-4 w-4" aria-hidden />
               <span>Start reading</span>

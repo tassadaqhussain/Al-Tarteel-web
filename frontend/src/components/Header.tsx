@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import {
   BookOpen,
   Bookmark,
@@ -56,6 +56,8 @@ export function Header() {
   const [popularOpen, setPopularOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [ageOpen, setAgeOpen] = useState(false);
+  const displayButtonRef = useRef<HTMLButtonElement | null>(null);
+  const displayMenuRef = useRef<HTMLDivElement | null>(null);
   const [query, setQuery] = useState('');
   const lastRead = useSettingsStore((s) => s.lastRead);
   const fontSize = useSettingsStore((s) => s.fontSize);
@@ -81,6 +83,41 @@ export function Header() {
     window.addEventListener('click', onClickOutside);
     return () => window.removeEventListener('click', onClickOutside);
   }, [accountOpen, ageOpen]);
+
+  useEffect(() => {
+    if (!ageOpen) return;
+    const menu = displayMenuRef.current;
+    const focusables = menu
+      ? Array.from(
+          menu.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        )
+      : [];
+    focusables[0]?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setAgeOpen(false);
+        displayButtonRef.current?.focus();
+        return;
+      }
+      if (e.key === 'Tab' && focusables.length > 0) {
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [ageOpen]);
 
   useEffect(() => {
     setOpen(false);
@@ -215,6 +252,7 @@ export function Header() {
             {/* Unified Display dropdown: Theme + Age/Look Style + Arabic font size */}
             <div className="relative">
               <button
+                ref={displayButtonRef}
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -224,13 +262,17 @@ export function Header() {
                 className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-ink-2 transition hover:bg-surface-3 sm:h-10 sm:border sm:border-line sm:bg-surface sm:px-3"
                 aria-label="Display settings"
                 aria-expanded={ageOpen}
+                aria-haspopup="dialog"
               >
                 <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
                 <span className="hidden text-xs font-semibold sm:inline">Display</span>
               </button>
               {ageOpen && (
                 <div
-                  className="absolute right-0 z-50 mt-2 w-72 rounded-2xl border border-line bg-surface p-3.5 shadow-xl"
+                  ref={displayMenuRef}
+                  role="dialog"
+                  aria-label="Display settings"
+                  className="end-0 absolute z-50 mt-2 w-72 rounded-2xl border border-line bg-surface p-3.5 shadow-xl"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="mb-3">
@@ -310,7 +352,7 @@ export function Header() {
                 </button>
                 {accountOpen && (
                   <div
-                    className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-xl"
+                    className="end-0 absolute z-50 mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Link

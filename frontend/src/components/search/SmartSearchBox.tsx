@@ -184,7 +184,7 @@ export function SmartSearchBox({
           {variant === 'hero' && (
             <button
               type="submit"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-sm font-semibold text-white transition hover:bg-emerald-900 sm:w-auto sm:px-6 sm:py-2.5"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-sm font-semibold text-[var(--accent-contrast)] transition hover:opacity-90 sm:w-auto sm:px-6 sm:py-2.5"
             >
               <Search className="h-4 w-4 sm:hidden" aria-hidden />
               <span className="sr-only sm:not-sr-only">{searchButtonLabel}</span>

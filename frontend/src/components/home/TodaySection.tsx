@@ -168,7 +168,7 @@ export function TodaySection() {
           <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line-subtle pt-4">
             <Link
               href={getSurahPath(ayah.surah)}
-              className="inline-flex min-h-11 items-center rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-white transition hover:opacity-90"
+              className="inline-flex min-h-11 items-center rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
             >
               Read in context
             </Link>
@@ -238,12 +238,20 @@ export function TodaySection() {
               />
             </svg>
             <div>
-              <p className="text-2xl font-bold text-ink">
-                {current} / {target}{' '}
-                <span className="text-sm font-medium text-ink-muted">
-                  {effectiveGoal.goalType === 'read_minutes' ? 'min' : 'ayahs'}
-                </span>
-              </p>
+              {current > target ? (
+                <p className="text-base font-bold text-ink">
+                  Goal met · {current}{' '}
+                  {effectiveGoal.goalType === 'read_minutes' ? 'min' : 'ayahs'} today (goal{' '}
+                  {target})
+                </p>
+              ) : (
+                <p className="text-2xl font-bold text-ink">
+                  {current} / {target}{' '}
+                  <span className="text-sm font-medium text-ink-muted">
+                    {effectiveGoal.goalType === 'read_minutes' ? 'min' : 'ayahs'}
+                  </span>
+                </p>
+              )}
               <p className="mt-1 text-xs text-ink-muted">
                 {current >= target
                   ? 'Today’s goal complete'
@@ -273,7 +281,10 @@ export function TodaySection() {
             <p className="mt-3 font-serif text-2xl font-bold text-ink">
               Week {week.week} of 50
             </p>
-            <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+            <p className="mt-1 text-xs font-medium text-ink-muted">
+              {yearPct}% through the year
+            </p>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
               <div
                 className="h-full rounded-full bg-[#8A5E14] dark:bg-amber-400"
                 style={{ width: `${yearPct}%` }}
@@ -286,7 +297,7 @@ export function TodaySection() {
 
           <Link
             href={weekReadingHref(week)}
-            className="mt-5 inline-flex min-h-11 items-center justify-between rounded-xl bg-[var(--accent)]/10 px-3.5 py-2 text-xs font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white"
+            className="mt-4 inline-flex min-h-11 items-center justify-between rounded-xl bg-[var(--accent)]/10 px-3.5 py-2 text-xs font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-[var(--accent-contrast)]"
           >
             <span>Start this week&apos;s reading</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />

@@ -382,7 +382,7 @@ function StudyBody({ showCloseButton }: { showCloseButton: boolean }) {
           />
           <button
             type="submit"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-white transition hover:opacity-90"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] text-[var(--accent-contrast)] transition hover:opacity-90"
             aria-label="Ask AI about this verse"
           >
             <Send className="h-3.5 w-3.5" />

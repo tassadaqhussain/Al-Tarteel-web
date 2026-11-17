@@ -197,7 +197,7 @@ export function AudioBar() {
           <button
             type="button"
             onClick={openVerseAi}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-sm transition hover:opacity-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--accent-contrast)] shadow-sm transition hover:opacity-90"
             aria-label="Ask AI about this verse"
           >
             <MessageCircle className="h-4 w-4" />
@@ -254,7 +254,7 @@ export function AudioBar() {
           <button
             type="button"
             onClick={openVerseAi}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--accent)] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--accent)] px-3.5 text-xs font-semibold text-[var(--accent-contrast)] shadow-sm transition hover:opacity-90"
           >
             <MessageCircle className="h-3.5 w-3.5" />
             <span>Ask AI</span>

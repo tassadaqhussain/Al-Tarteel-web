@@ -858,7 +858,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           readerViewMode === 'translation' && 'rounded-md px-2 py-2 sm:px-3',
           readerViewMode === 'verse' &&
             isActiveVerse &&
-            'ayah-current border-[var(--accent)] bg-[rgba(6,95,70,0.07)] sm:bg-[rgba(6,95,70,0.07)]',
+            'ayah-current border-[var(--accent)] border-s-[3px] border-s-[var(--accent)] bg-[var(--ayah-highlight)] sm:bg-[var(--ayah-highlight)]',
           readerViewMode === 'translation' && isCurrent && 'ayah-current-teal',
           readerViewMode === 'arabic' && isCurrent && 'ayah-current-arabic',
           versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30',
@@ -893,7 +893,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                 className={cn(
                   'inline-flex min-h-7 items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums transition-colors',
                   isActiveVerse
-                    ? 'bg-[var(--accent)] text-white'
+                    ? 'bg-[var(--accent)] text-[var(--accent-contrast)]'
                     : 'bg-surface-2 text-ink-2 hover:bg-[var(--accent)]/15 hover:text-[var(--accent)]',
                 )}
               >
@@ -911,7 +911,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                 className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-full border transition-colors sm:h-9 sm:w-9',
                   isCurrent && isPlaying
-                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                    ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-contrast)]'
                     : 'border-line bg-surface text-ink-2 hover:border-[var(--accent)] hover:text-[var(--accent)]',
                 )}
                 title={isCurrent && isPlaying ? 'Pause verse' : 'Play verse'}
@@ -961,7 +961,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                     <button
                       type="button"
                       onClick={() => openStudy(versePayload, 'tafsir')}
-                      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-white transition hover:opacity-90"
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
                       <span>Study</span>
@@ -1011,7 +1011,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                     <button
                       type="button"
                       onClick={() => openStudy(versePayload, 'tafsir')}
-                      className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2 text-xs font-semibold text-white"
+                      className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2 text-xs font-semibold text-[var(--accent-contrast)]"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
                       <span>Study</span>

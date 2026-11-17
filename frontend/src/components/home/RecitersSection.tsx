@@ -105,7 +105,7 @@ export function RecitersSection() {
                     className={cn(
                       'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition',
                       isThisActive
-                        ? 'bg-[var(--accent)] text-white'
+                        ? 'bg-[var(--accent)] text-[var(--accent-contrast)]'
                         : 'bg-surface-2 text-ink-2 hover:bg-[var(--accent)]/10 hover:text-[var(--accent)]',
                     )}
                   >
