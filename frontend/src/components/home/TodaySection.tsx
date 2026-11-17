@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { ArrowRight, Calendar, Flame, Play, Share2 } from 'lucide-react';
 import { PageSection } from '@/components/layout/MainContainer';
 import { quranApi } from '@/lib/api';
-import { ayahOfTheDayRef, localDateKey } from '@/lib/daily-motivation/messages';
 import { cleanTranslationText } from '@/lib/clean-translation';
 import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { startSurahPlayback } from '@/lib/audio/playback';
@@ -20,13 +19,32 @@ import {
   weekReadingHref,
 } from '@/lib/quranic-calendar';
 
+const CURATED_DAILY_VERSES: Array<{ surah: number; ayah: number }> = [
+  { surah: 2, ayah: 255 }, // Ayat al-Kursi
+  { surah: 13, ayah: 28 }, // Hearts find rest in remembrance of Allah
+  { surah: 94, ayah: 5 },  // With hardship comes ease
+  { surah: 2, ayah: 286 }, // Allah does not burden a soul beyond its capacity
+  { surah: 39, ayah: 53 }, // Do not despair of the mercy of Allah
+  { surah: 65, ayah: 3 },  // Whoever relies upon Allah, He is sufficient
+  { surah: 16, ayah: 90 }, // Justice and excellence
+  { surah: 3, ayah: 139 }, // Do not weaken and do not grieve
+  { surah: 24, ayah: 35 }, // Light upon light
+  { surah: 55, ayah: 13 }, // Which of the favors of your Lord would you deny
+];
+
+function getCuratedDailyVerse() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86_400_000);
+  return CURATED_DAILY_VERSES[dayOfYear % CURATED_DAILY_VERSES.length];
+}
+
 export function TodaySection() {
   const goal = useDailyMotivationStore((s) => s.goal);
   const progress = useDailyMotivationStore((s) => s.progress);
   const [shared, setShared] = useState(false);
 
-  const dateKey = localDateKey();
-  const initialRef = ayahOfTheDayRef(dateKey);
+  const initialRef = getCuratedDailyVerse();
   const [ayah, setAyah] = useState<{
     surah: number;
     ayah: number;
@@ -37,13 +55,13 @@ export function TodaySection() {
     surah: initialRef.surah,
     ayah: initialRef.ayah,
     surahName: getSurahMeta(initialRef.surah).nameSimple,
-    textUthmani: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-    translation: 'In the name of Allah, the Entirely Merciful, the Especially Merciful.',
+    textUthmani: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ',
+    translation: 'Allah - there is no deity except Him, the Ever-Living, the Sustainer of all existence.',
   });
 
   useEffect(() => {
     let cancelled = false;
-    const ref = ayahOfTheDayRef(dateKey);
+    const ref = getCuratedDailyVerse();
     quranApi
       .ayah(ref.surah, ref.ayah, { translations: 'en-sahih-international' })
       .then((res) => {
@@ -64,7 +82,7 @@ export function TodaySection() {
     return () => {
       cancelled = true;
     };
-  }, [dateKey]);
+  }, []);
 
   const effectiveGoal = goal ?? SOFT_DAILY_GOAL;
   const target = effectiveGoal.goalValue;
@@ -83,6 +101,7 @@ export function TodaySection() {
 
   const weekNum = getCurrentProgramWeek();
   const week = getCalendarWeek(weekNum) ?? getCalendarWeek(1)!;
+  const yearPct = Math.min(100, Math.max(2, Math.round((week.week / 50) * 100)));
 
   useEffect(() => {
     if (!shared) return;
@@ -186,7 +205,11 @@ export function TodaySection() {
             </p>
             <span className="inline-flex items-center gap-1 rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold text-ink-2">
               <Flame className="h-3.5 w-3.5 text-[#8A5E14] dark:text-amber-300" aria-hidden />
-              {progress.goalCompleted ? 'Goal met' : progress.ayahsRead > 0 ? 'Active today' : '0d streak'}
+              {progress.goalCompleted
+                ? 'Goal met'
+                : current > 0
+                  ? 'Active today'
+                  : 'Start your streak today'}
             </span>
           </div>
 
@@ -199,7 +222,7 @@ export function TodaySection() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="7"
-                className="text-surface-3"
+                className="text-line dark:text-surface-3"
               />
               <circle
                 cx="42"
@@ -222,7 +245,9 @@ export function TodaySection() {
                 </span>
               </p>
               <p className="mt-1 text-xs text-ink-muted">
-                {current >= target ? 'Today’s goal complete' : 'Keep your daily habit going'}
+                {current >= target
+                  ? 'Today’s goal complete'
+                  : `Read ${target} ${effectiveGoal.goalType === 'read_minutes' ? 'minutes' : 'ayahs'} today to build your habit`}
               </p>
             </div>
           </div>
@@ -246,9 +271,15 @@ export function TodaySection() {
               <Calendar className="h-4 w-4 text-ink-muted" aria-hidden />
             </div>
             <p className="mt-3 font-serif text-2xl font-bold text-ink">
-              Week {week.week}
+              Week {week.week} of 50
             </p>
-            <p className="mt-2 text-sm text-ink-2">
+            <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+              <div
+                className="h-full rounded-full bg-[#8A5E14] dark:bg-amber-400"
+                style={{ width: `${yearPct}%` }}
+              />
+            </div>
+            <p className="mt-3 text-sm text-ink-2">
               {formatVerseLabel(week.start)} → {formatVerseLabel(week.end)}
             </p>
           </div>

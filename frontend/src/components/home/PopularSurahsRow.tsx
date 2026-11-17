@@ -50,7 +50,9 @@ export function PopularSurahsRow() {
                   {meta.nameSimple}
                 </p>
                 <p className="mt-0.5 truncate text-xs text-ink-muted">
-                  {meta.meaning ? `${meta.meaning} · ` : ''}
+                  {meta.meaning && meta.meaning.toLowerCase() !== meta.nameSimple.toLowerCase()
+                    ? `${meta.meaning} · `
+                    : ''}
                   {verses} verses
                 </p>
               </div>

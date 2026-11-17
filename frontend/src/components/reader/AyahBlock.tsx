@@ -496,7 +496,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
   const activeVerse = useStudyStore((s) => s.activeVerse);
   const setActiveVerse = useStudyStore((s) => s.setActiveVerse);
   const openStudy = useStudyStore((s) => s.openStudy);
-  const isActiveVerse = isCurrent || activeVerse?.ayahId === ayah.id;
+  const isActiveVerse = activeVerse ? activeVerse.ayahId === ayah.id : isCurrent;
   const versePayload = {
     ayahId: ayah.id,
     surahNumber,
@@ -504,6 +504,13 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
     surahName: surahName || `Surah ${surahNumber}`,
     textUthmani: ayah.textUthmani,
   };
+
+  useEffect(() => {
+    if (isCurrent) {
+      setActiveVerse(versePayload);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCurrent, ayah.id]);
 
   const fontSizeClass = (
     readerViewMode === 'verse'

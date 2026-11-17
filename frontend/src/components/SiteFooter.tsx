@@ -13,7 +13,7 @@ export function SiteFooter() {
   return (
     <footer
       data-site-footer
-      className="w-full border-t border-white/10 bg-[#064E3B] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] text-white sm:pb-0"
+      className="w-full border-t border-white/10 bg-[#064E3B] pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] text-white sm:pb-20"
     >
       <div className={SITE_SHELL}>
         <div className="flex flex-col gap-6 py-8 sm:py-10">

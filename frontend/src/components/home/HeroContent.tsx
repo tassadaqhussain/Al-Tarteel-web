@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, BookOpen } from 'lucide-react';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { getSurahAyahCount } from '@/lib/surah-pagination';
+import { quranApi } from '@/lib/api';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useT } from '@/lib/i18n';
@@ -33,6 +35,28 @@ export function HeroContent() {
   const totalAyahs = getSurahAyahCount(surahNumber);
   const currentAyah = showContinue && lastRead ? Math.min(lastRead.ayahNumber, totalAyahs) : 1;
   const pct = Math.min(100, Math.max(4, Math.round((currentAyah / Math.max(1, totalAyahs)) * 100)));
+  const [verseArabicSnippet, setVerseArabicSnippet] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!showContinue || !lastRead) {
+      setVerseArabicSnippet(null);
+      return;
+    }
+    let cancelled = false;
+    quranApi
+      .ayah(surahNumber, currentAyah)
+      .then((res) => {
+        if (cancelled || !res?.textUthmani) return;
+        const words = res.textUthmani.trim().split(/\s+/).slice(0, 6).join(' ');
+        setVerseArabicSnippet(words ? `${words}…` : res.textUthmani);
+      })
+      .catch(() => {
+        if (!cancelled) setVerseArabicSnippet(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [showContinue, lastRead, surahNumber, currentAyah]);
 
   return (
     <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
@@ -81,9 +105,10 @@ export function HeroContent() {
               dir="rtl"
               lang="ar"
             >
-              {surahNumber === 1
-                ? 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
-                : `${arabicName} · الآية ${currentAyah}`}
+              {verseArabicSnippet ||
+                (surahNumber === 1
+                  ? 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
+                  : 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ')}
             </p>
 
             <div className="mt-4">

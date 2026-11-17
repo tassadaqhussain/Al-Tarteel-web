@@ -1,20 +1,29 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { BookOpen, Loader2, Send, X } from 'lucide-react';
 import {
   quranApi,
   type HadithItem,
   type LessonPost,
+  type OfficialTafsir,
+  type OfficialTafsirResource,
   type RelatedQuestion,
-  type TafsirItem,
-  type TafsirSource,
 } from '@/lib/api';
 import { useStudyStore, type StudyTab } from '@/stores/studyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAskAiStore } from '@/stores/askAiStore';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+
+const TABS: { id: StudyTab; label: string }[] = [
+  { id: 'tafsir', label: 'Tafsir' },
+  { id: 'lessons', label: 'Lessons' },
+  { id: 'hadith', label: 'Hadith' },
+  { id: 'related', label: 'Related' },
+];
+
+const DEFAULT_TAFSIR_RESOURCE_ID = 169; // Ibn Kathir (English)
 
 function sanitizeTafsirHtml(text: string) {
   if (typeof window === 'undefined') return text;
@@ -37,14 +46,22 @@ const cleanHadithHtml = (html: string) =>
     .replace(/\[quran[^\]]*\]\{([^}]*)\}/gi, '$1')
     .replace(/<(?!\/?(?:p|br|strong|em)\b)[^>]*>/gi, '');
 
-const TABS: { id: StudyTab; label: string }[] = [
-  { id: 'tafsir', label: 'Tafsir' },
-  { id: 'lessons', label: 'Lessons' },
-  { id: 'hadith', label: 'Hadith' },
-  { id: 'related', label: 'Related' },
-];
+function withTimeout<T>(promise: Promise<T>, ms = 10000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Request timed out')), ms);
+    promise
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
 
-function StudyBody() {
+function StudyBody({ showCloseButton }: { showCloseButton: boolean }) {
   const activeVerse = useStudyStore((s) => s.activeVerse);
   const studyTab = useStudyStore((s) => s.studyTab);
   const setStudyTab = useStudyStore((s) => s.setStudyTab);
@@ -54,80 +71,146 @@ function StudyBody() {
   const setTafsirSlug = useSettingsStore((s) => s.setTafsirSlug);
   const openWithPrompt = useAskAiStore((s) => s.openWithPrompt);
 
-  const [sources, setSources] = useState<TafsirSource[]>([]);
-  const [tafsirs, setTafsirs] = useState<TafsirItem[]>([]);
+  const [resources, setResources] = useState<OfficialTafsirResource[]>([]);
+  const [resourceId, setResourceId] = useState<number>(DEFAULT_TAFSIR_RESOURCE_ID);
+  const [tafsir, setTafsir] = useState<OfficialTafsir | null>(null);
   const [lessons, setLessons] = useState<LessonPost[]>([]);
   const [hadiths, setHadiths] = useState<HadithItem[]>([]);
   const [questions, setQuestions] = useState<RelatedQuestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [question, setQuestion] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
     quranApi
-      .tafsirSources()
-      .then((res) => setSources(Array.isArray(res) ? res : []))
-      .catch(() => setSources([]));
-  }, []);
+      .officialTafsirResources()
+      .then((res) => {
+        if (cancelled) return;
+        const list = Array.isArray(res) ? res : [];
+        setResources(list);
+        if (tafsirSlug) {
+          const preferred = list.find(
+            (item) => item.slug === tafsirSlug || `qf-${item.id}` === tafsirSlug,
+          );
+          if (preferred) setResourceId(preferred.id);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setResources([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tafsirSlug]);
+
+  const sortedResources = useMemo(() => {
+    return [...resources].sort((a, b) => {
+      const aEn = (a.language_name || '').toLowerCase() === 'english' ? 0 : 1;
+      const bEn = (b.language_name || '').toLowerCase() === 'english' ? 0 : 1;
+      if (aEn !== bEn) return aEn - bEn;
+      return a.name.localeCompare(b.name);
+    });
+  }, [resources]);
 
   useEffect(() => {
     if (!activeVerse) return;
     let cancelled = false;
     setLoading(true);
+    setError(null);
 
     if (studyTab === 'tafsir') {
-      quranApi
-        .tafsir(activeVerse.ayahId, tafsirSlug ?? undefined)
+      withTimeout(
+        quranApi.officialTafsir(activeVerse.surahNumber, activeVerse.ayahNumber, resourceId),
+      )
         .then((data) => {
-          if (cancelled) return;
-          const list = Array.isArray(data) ? data : [];
-          setTafsirs(list);
-          if (!tafsirSlug && list[0]?.source.slug) {
-            setTafsirSlug(list[0].source.slug);
+          if (!cancelled) setTafsir(data ?? null);
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setTafsir(null);
+            setError('Could not load tafsir for this verse. Please try again.');
           }
         })
-        .catch(() => !cancelled && setTafsirs([]))
-        .finally(() => !cancelled && setLoading(false));
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
     } else if (studyTab === 'lessons') {
-      quranApi
-        .lessons(activeVerse.surahNumber, activeVerse.ayahNumber, { languageId: 2, limit: 10 })
-        .then((res) => !cancelled && setLessons(res.data || []))
-        .catch(() => !cancelled && setLessons([]))
-        .finally(() => !cancelled && setLoading(false));
+      withTimeout(
+        quranApi.lessons(activeVerse.surahNumber, activeVerse.ayahNumber, {
+          languageId: 2,
+          limit: 10,
+        }),
+      )
+        .then((res) => {
+          if (!cancelled) setLessons(Array.isArray(res?.data) ? res.data : []);
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setLessons([]);
+            setError('Could not load lessons for this verse.');
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
     } else if (studyTab === 'hadith') {
-      quranApi
-        .hadiths(activeVerse.surahNumber, activeVerse.ayahNumber, { language: 'en', limit: 10 })
-        .then((res) => !cancelled && setHadiths(res.hadiths || []))
-        .catch(() => !cancelled && setHadiths([]))
-        .finally(() => !cancelled && setLoading(false));
-    } else {
-      quranApi
-        .relatedContent(activeVerse.surahNumber, activeVerse.ayahNumber, {
+      withTimeout(
+        quranApi.hadiths(activeVerse.surahNumber, activeVerse.ayahNumber, {
           language: 'en',
           limit: 10,
+        }),
+      )
+        .then((res) => {
+          if (!cancelled) setHadiths(Array.isArray(res?.hadiths) ? res.hadiths : []);
         })
-        .then((res) => !cancelled && setQuestions(res.questions || []))
-        .catch(() => !cancelled && setQuestions([]))
-        .finally(() => !cancelled && setLoading(false));
+        .catch(() => {
+          if (!cancelled) {
+            setHadiths([]);
+            setError('No hadith linked to this verse.');
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    } else {
+      withTimeout(
+        quranApi.relatedContent(activeVerse.surahNumber, activeVerse.ayahNumber, {
+          language: 'en',
+          limit: 10,
+        }),
+      )
+        .then((res) => {
+          if (!cancelled) setQuestions(Array.isArray(res?.questions) ? res.questions : []);
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setQuestions([]);
+            setError('Could not load related content for this verse.');
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
     }
 
     return () => {
       cancelled = true;
     };
-  }, [activeVerse, studyTab, tafsirSlug, setTafsirSlug]);
+  }, [activeVerse, studyTab, resourceId]);
 
   if (!activeVerse) return null;
 
-  const displayTafsir =
-    tafsirs.find((t) => t.source.slug === tafsirSlug) ?? tafsirs[0] ?? null;
-  const tafsirHtml = displayTafsir ? sanitizeTafsirHtml(displayTafsir.text) : '';
+  const tafsirHtml = tafsir?.text ? sanitizeTafsirHtml(tafsir.text) : '';
 
   const handleAsk = (e: FormEvent) => {
     e.preventDefault();
     const q = question.trim();
     const prefix = `Regarding ${activeVerse.surahName} ${activeVerse.surahNumber}:${activeVerse.ayahNumber}: `;
-    openWithPrompt(q ? `${prefix}${q}` : `Explain ${activeVerse.surahName} ${activeVerse.surahNumber}:${activeVerse.ayahNumber}`, {
-      autoAsk: Boolean(q),
-    });
+    openWithPrompt(
+      q ? `${prefix}${q}` : `Explain ${activeVerse.surahName} ${activeVerse.surahNumber}:${activeVerse.ayahNumber}`,
+      { autoAsk: Boolean(q) },
+    );
     setQuestion('');
   };
 
@@ -145,14 +228,16 @@ function StudyBody() {
             <p className="text-xs text-ink-muted">{activeVerse.surahName}</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={closeStudy}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-ink-muted hover:bg-surface-2 hover:text-ink"
-          aria-label="Close study panel"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {showCloseButton && (
+          <button
+            type="button"
+            onClick={closeStudy}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-ink-muted hover:bg-surface-2 hover:text-ink"
+            aria-label="Close study panel"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="mt-3 grid grid-cols-4 gap-1 rounded-xl bg-surface-2 p-1">
@@ -174,20 +259,25 @@ function StudyBody() {
       </div>
 
       <div className="mt-4 flex-1 overflow-y-auto pr-1">
-        {studyTab === 'tafsir' && sources.length > 0 && (
+        {studyTab === 'tafsir' && sortedResources.length > 0 && (
           <div className="mb-3">
             <label htmlFor="study-tafsir-source" className="sr-only">
               Tafsir source
             </label>
             <select
               id="study-tafsir-source"
-              value={tafsirSlug ?? displayTafsir?.source.slug ?? ''}
-              onChange={(e) => setTafsirSlug(e.target.value)}
+              value={resourceId}
+              onChange={(e) => {
+                const nextId = Number(e.target.value);
+                setResourceId(nextId);
+                const found = sortedResources.find((r) => r.id === nextId);
+                if (found) setTafsirSlug(found.slug || `qf-${found.id}`);
+              }}
               className="w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-xs font-semibold text-ink focus:border-[var(--accent)] focus:outline-none"
             >
-              {sources.map((src) => (
-                <option key={src.slug} value={src.slug}>
-                  {src.name}
+              {sortedResources.map((src) => (
+                <option key={src.id} value={src.id}>
+                  {src.name} ({src.language_name})
                 </option>
               ))}
             </select>
@@ -199,6 +289,8 @@ function StudyBody() {
             <Loader2 className="mr-2 h-4 w-4 animate-spin text-[var(--accent)]" />
             Loading…
           </div>
+        ) : error ? (
+          <p className="py-8 text-center text-xs text-ink-muted">{error}</p>
         ) : studyTab === 'tafsir' ? (
           tafsirHtml ? (
             <div
@@ -207,7 +299,7 @@ function StudyBody() {
             />
           ) : (
             <p className="py-8 text-center text-xs text-ink-muted">
-              No tafsir available for this verse.
+              No tafsir available for this verse and source.
             </p>
           )
         ) : studyTab === 'lessons' ? (
@@ -253,7 +345,7 @@ function StudyBody() {
             </div>
           ) : (
             <p className="py-8 text-center text-xs text-ink-muted">
-              No Hadith references linked to this verse.
+              No hadith linked to this verse.
             </p>
           )
         ) : questions.length > 0 ? (
@@ -305,33 +397,40 @@ export function StudyPanel() {
   const studyOpen = useStudyStore((s) => s.studyOpen);
   const activeVerse = useStudyStore((s) => s.activeVerse);
   const closeStudy = useStudyStore((s) => s.closeStudy);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   if (!studyOpen || !activeVerse) return null;
 
-  return (
-    <>
-      {/* Desktop ≥1024px sticky right-hand panel */}
+  if (isDesktop) {
+    return (
       <aside
         aria-label="Verse study panel"
-        className="sticky top-24 hidden max-h-[calc(100vh-7.5rem)] w-[360px] shrink-0 overflow-hidden rounded-2xl border border-line bg-surface p-5 lg:flex lg:flex-col"
+        className="sticky top-24 flex max-h-[calc(100vh-7.5rem)] w-[360px] shrink-0 flex-col self-start overflow-hidden rounded-2xl border border-line bg-surface p-5"
       >
-        <StudyBody />
+        <StudyBody showCloseButton={true} />
       </aside>
+    );
+  }
 
-      {/* Mobile / Tablet <1024px bottom sheet */}
-      <div className="lg:hidden">
-        <Sheet open={studyOpen} onOpenChange={(open) => !open && closeStudy()}>
-          <SheetContent
-            side="bottom"
-            className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-line bg-surface p-5"
-          >
-            <SheetTitle className="sr-only">
-              Study Verse {activeVerse.surahNumber}:{activeVerse.ayahNumber}
-            </SheetTitle>
-            <StudyBody />
-          </SheetContent>
-        </Sheet>
-      </div>
-    </>
+  return (
+    <Sheet open={studyOpen} onOpenChange={(open) => !open && closeStudy()}>
+      <SheetContent
+        side="bottom"
+        className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-line bg-surface p-5"
+      >
+        <SheetTitle className="sr-only">
+          Study Verse {activeVerse.surahNumber}:{activeVerse.ayahNumber}
+        </SheetTitle>
+        <StudyBody showCloseButton={false} />
+      </SheetContent>
+    </Sheet>
   );
 }
