@@ -2,9 +2,9 @@
 
 import { useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, type UiLocale } from '@/stores/settingsStore';
 import { isPrefixedLocale } from '@/lib/i18n/content-locales';
-import { t, type MessageKey, type UiLocale, isRtlLocale } from '@/lib/i18n/messages';
+import { t, type MessageKey, isRtlLocale } from '@/lib/i18n/messages';
 
 export function useT() {
   const pathname = usePathname() || '';

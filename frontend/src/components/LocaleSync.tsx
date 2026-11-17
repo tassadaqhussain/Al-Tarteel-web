@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, type UiLocale } from '@/stores/settingsStore';
 import { isPrefixedLocale } from '@/lib/i18n/content-locales';
-import { isRtlLocale, type UiLocale } from '@/lib/i18n/messages';
+import { isRtlLocale } from '@/lib/i18n/messages';
 
 export function LocaleSync() {
   const pathname = usePathname() || '';
