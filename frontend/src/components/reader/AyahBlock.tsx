@@ -45,6 +45,7 @@ import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { loadReaderWords, type ReaderWord } from '@/lib/word-data';
 import { cn } from '@/lib/utils';
 import { getAyahPath, getSurahPath } from '@/lib/surah-meta';
+import { useT } from '@/lib/i18n';
 import { localePath, type ContentLocale } from '@/lib/i18n/content-locales';
 import { toArabicNumber } from '@/lib/arabic-number';
 import {
@@ -97,6 +98,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
     }).catch(() => { /* Keep the original Quran text if the source is unavailable. */ });
     return () => { cancelled = true; };
   }, [initialAyah.words, initialAyah.number, surahNumber, wordByWordLocale, wordDataKey]);
+  const { t } = useT();
   const showTranslation = useSettingsStore((s) => s.showTranslation);
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
   const { add: addBookmark, remove: removeBookmark, isBookmarked, get: getBookmark, updateNote } = useBookmarksStore();
@@ -966,7 +968,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>Study</span>
+                      <span>{t('actStudy')}</span>
                     </button>
                     <button
                       type="button"
@@ -980,7 +982,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       )}
                     >
                       {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-                      <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+                      <span>{bookmarked ? t('actBookmarked') : t('actBookmark')}</span>
                     </button>
                     <button
                       type="button"
@@ -988,7 +990,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
                     >
                       <SquarePen className="h-3.5 w-3.5" />
-                      <span>Note</span>
+                      <span>{t('actNote')}</span>
                     </button>
                     <button
                       type="button"
@@ -996,7 +998,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
                     >
                       {copied ? <Check className="h-3.5 w-3.5 text-[var(--accent)]" /> : <Copy className="h-3.5 w-3.5" />}
-                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                      <span>{copied ? t('actCopied') : t('actCopy')}</span>
                     </button>
                     <button
                       type="button"
@@ -1004,7 +1006,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
                     >
                       <Share2 className="h-3.5 w-3.5" />
-                      <span>Share</span>
+                      <span>{t('actShare')}</span>
                     </button>
                   </div>
 
@@ -1016,7 +1018,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2 text-xs font-semibold text-[var(--accent-contrast)]"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>Study</span>
+                      <span>{t('actStudy')}</span>
                     </button>
                     <button
                       type="button"
@@ -1030,7 +1032,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       )}
                     >
                       {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-                      <span>Save</span>
+                      <span>{t('actSave')}</span>
                     </button>
                     <button
                       type="button"
@@ -1038,7 +1040,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="flex min-h-11 items-center justify-center gap-1 rounded-xl border border-line bg-surface px-2 text-xs font-semibold text-ink-2"
                     >
                       <SquarePen className="h-3.5 w-3.5" />
-                      <span>Note</span>
+                      <span>{t('actNote')}</span>
                     </button>
                     <button
                       type="button"
@@ -1047,7 +1049,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="flex min-h-11 items-center justify-center gap-1 rounded-xl border border-line bg-surface px-2 text-xs font-semibold text-ink-2"
                     >
                       <MoreHorizontal className="h-3.5 w-3.5" />
-                      <span>More</span>
+                      <span>{t('actMore')}</span>
                     </button>
                     <VerseMoreMenu
                       open={moreOpen}

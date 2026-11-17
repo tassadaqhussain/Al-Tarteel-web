@@ -3,6 +3,8 @@
  * Neutral educational encouragement — never presented as Quran or Hadith.
  */
 
+import { getCuratedDailyVerse } from './curated-ayah';
+
 export type MotivationCategory =
   | 'READING'
   | 'TAJWEED'
@@ -200,13 +202,9 @@ export function localDateKey(timeZone?: string): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Surah/ayah ref only — Arabic must be loaded from canonical API. */
+/** Surah/ayah ref only — same curated list as the homepage. Arabic must be loaded from canonical API. */
 export function ayahOfTheDayRef(dateKey: string): { surah: number; ayah: number } {
-  const index = selectDailyMotivationIndex(`ayah:${dateKey}`, 114);
-  const surah = (index % 114) + 1;
-  // Prefer early ayahs (safer for partial DBs); reader clamps via API fetch failures
-  const ayah = (selectDailyMotivationIndex(`ayahn:${dateKey}`, 7) % 7) + 1;
-  return { surah, ayah };
+  return getCuratedDailyVerse(dateKey);
 }
 
 export function tajweedOfTheDaySlug(dateKey: string): string {
