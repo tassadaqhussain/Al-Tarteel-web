@@ -1,9 +1,15 @@
+import { isPrefixedLocale } from '@/lib/i18n/content-locales';
 import { getSurahNumberFromSlug } from '@/lib/surah-meta';
 
-/** Surah / juz reading surfaces — keep Quran text high-contrast. */
+/**
+ * Surah / juz / ayah reading surfaces — keep Quran text high-contrast and let
+ * the reader sub-header stick (site Header scrolls away on these routes).
+ */
 export function isQuranReaderPath(pathname: string): boolean {
-  if (pathname.startsWith('/surah/') || pathname.startsWith('/juz/')) return true;
-  const slug = pathname.replace(/^\//, '').split('/')[0] ?? '';
-  if (!slug || slug.includes('.')) return false;
-  return Boolean(getSurahNumberFromSlug(slug));
+  const parts = pathname.split('/').filter(Boolean);
+  const start = parts[0] && isPrefixedLocale(parts[0]) ? 1 : 0;
+  const head = parts[start] ?? '';
+  if (!head || head.includes('.')) return false;
+  if (head === 'surah' || head === 'juz') return true;
+  return Boolean(getSurahNumberFromSlug(head));
 }

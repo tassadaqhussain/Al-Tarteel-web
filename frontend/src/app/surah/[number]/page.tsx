@@ -240,8 +240,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
       />
       <Header />
 
-      {/* Sticky Reader Sub-Header (Quran.com style) */}
-      <div className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
+      {/* Sticky Reader Sub-Header (Quran.com style) — stays pinned while Header scrolls away */}
+      <div className="sticky top-0 z-40 shrink-0 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/90">
         <div className={cn(READER_BAR_SHELL, 'flex items-center gap-4 py-0')}>
           <div className="flex min-w-0 flex-1 items-center">
             <SurahNavTrigger surahNumber={surahNumber} surahName={surah.nameSimple} />
