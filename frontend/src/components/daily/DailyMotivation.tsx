@@ -288,21 +288,23 @@ export function DailyMotivation({
         <div className="mt-4">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="font-medium text-ink-2">
-              {goalComplete && goalCurrent > goalTarget
-                ? 'Goal met'
-                : goalComplete
-                  ? t('todaysGoalDone')
-                  : goalIsSoft
-                    ? t('suggestedToday')
-                    : t('todaysGoal')}
+              {goalComplete && goalCurrent > goalTarget ? (
+                <bdi dir="ltr">Goal met</bdi>
+              ) : goalComplete ? (
+                t('todaysGoalDone')
+              ) : goalIsSoft ? (
+                t('suggestedToday')
+              ) : (
+                t('todaysGoal')
+              )}
             </span>
             <span className="text-ink-muted">
               {goalComplete && goalCurrent > goalTarget ? (
-                <>
+                <bdi dir="ltr">
                   {goalCurrent}{' '}
                   {displayGoal.goalType === 'read_minutes' ? 'min' : 'ayahs'} read today (goal{' '}
                   {goalTarget})
-                </>
+                </bdi>
               ) : (
                 <>
                   {goalCurrent} / {goalTarget}
@@ -372,14 +374,20 @@ export function DailyMotivation({
               {ayahCard.textUthmani}
             </p>
             {ayahCard.translation && (
-              <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-ink-3 sm:text-base">
+              <p
+                className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-ink-3 sm:text-base"
+                dir={/[\u0600-\u06FF]/.test(ayahCard.translation) ? 'rtl' : 'ltr'}
+                lang={/[\u0600-\u06FF]/.test(ayahCard.translation) ? undefined : 'en'}
+              >
                 {ayahCard.translation}
               </p>
             )}
           </div>
           <div className="mt-5 flex items-center justify-between border-t border-line-subtle pt-4">
             <p className="text-sm font-semibold text-ink-muted">
-              {ayahCard.surahName} · {ayahCard.surah}:{ayahCard.ayah}
+              <bdi dir="ltr">
+                {ayahCard.surahName} · {ayahCard.surah}:{ayahCard.ayah}
+              </bdi>
             </p>
             <Link
               href={getSurahPath(ayahCard.surah)}
@@ -396,7 +404,9 @@ export function DailyMotivation({
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">
             {t('todaysTajweed')}
           </p>
-          <p className="mt-2 text-lg font-bold text-ink">{tjLesson.name}</p>
+          <p className="mt-2 text-lg font-bold text-ink" lang="en" dir="ltr">
+            {tjLesson.name}
+          </p>
           <p className="mt-1 text-sm text-ink-3">{t('listenTajweedHint')}</p>
           <Link
             href={`/tajweed/${tjLesson.slug}`}

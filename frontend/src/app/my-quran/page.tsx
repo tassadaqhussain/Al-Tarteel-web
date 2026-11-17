@@ -55,7 +55,7 @@ function MyQuranContent() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+      <main lang="en" dir="ltr" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
         {/* Tabs */}
         <div className="mx-auto mb-10 flex max-w-md justify-center">
           <div className="inline-flex w-full rounded-full bg-surface-3 p-1 sm:w-auto">

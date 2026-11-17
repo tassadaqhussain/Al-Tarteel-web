@@ -192,7 +192,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-2xl space-y-5 px-4 py-8">
+      <main lang="en" dir="ltr" className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         {/* ── Experience Profile ───────────────────────────────────────────── */}
         <Section title="Experience Profile" icon={<Smile className="h-4 w-4" />}>
           <div className="p-5">
