@@ -16,10 +16,10 @@ export function StartLearning() {
       <div className="mb-6 flex items-baseline justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8A5E14] dark:text-amber-300">
-            Guides &amp; reflections
+            {t('guidesAndReflections')}
           </p>
           <h2 className="mt-1 font-serif text-[26px] font-bold tracking-tight text-ink">
-            Articles
+            {t('navArticles')}
           </h2>
         </div>
         <Link

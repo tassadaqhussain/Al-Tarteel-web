@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { getSurahAyahCount } from '@/lib/surah-pagination';
 import { PageSection } from '@/components/layout/MainContainer';
+import { Msg } from '@/components/i18n/Msg';
 
 const POPULAR_SURAH_NUMBERS = [1, 2, 18, 36, 55, 56, 67, 78, 112];
 
@@ -11,13 +12,13 @@ export function PopularSurahsRow() {
     <PageSection>
       <div className="mb-5 flex items-baseline justify-between gap-4">
         <h2 className="font-serif text-[26px] font-bold tracking-tight text-ink">
-          Popular surahs
+          <Msg k="popularSurahs" />
         </h2>
         <Link
           href="/surahs"
           className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
         >
-          <span>All 114 surahs</span>
+          <span><Msg k="all114Surahs" /></span>
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>

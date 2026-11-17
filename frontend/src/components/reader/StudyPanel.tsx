@@ -13,6 +13,7 @@ import {
 import { useStudyStore, type StudyTab } from '@/stores/studyStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAskAiStore } from '@/stores/askAiStore';
+import { useT } from '@/lib/i18n';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,19 @@ const TABS: { id: StudyTab; label: string }[] = [
 ];
 
 const DEFAULT_TAFSIR_RESOURCE_ID = 169; // Ibn Kathir (English)
+
+const LOCALE_TO_TAFSIR_LANG: Record<string, string[]> = {
+  ur: ['urdu'],
+  fa: ['persian', 'farsi'],
+  ar: ['arabic'],
+  bn: ['bengali'],
+  ru: ['russian'],
+  id: ['indonesian'],
+  tr: ['turkish'],
+  en: ['english'],
+};
+
+const RTL_TAFSIR_LANGS = new Set(['arabic', 'urdu', 'persian', 'farsi', 'pashto']);
 
 function sanitizeTafsirHtml(text: string) {
   if (typeof window === 'undefined') return text;
@@ -67,6 +81,7 @@ function StudyBody({ showCloseButton }: { showCloseButton: boolean }) {
   const setStudyTab = useStudyStore((s) => s.setStudyTab);
   const closeStudy = useStudyStore((s) => s.closeStudy);
 
+  const { locale } = useT();
   const tafsirSlug = useSettingsStore((s) => s.tafsirSlug);
   const setTafsirSlug = useSettingsStore((s) => s.setTafsirSlug);
   const openWithPrompt = useAskAiStore((s) => s.openWithPrompt);
@@ -93,7 +108,19 @@ function StudyBody({ showCloseButton }: { showCloseButton: boolean }) {
           const preferred = list.find(
             (item) => item.slug === tafsirSlug || `qf-${item.id}` === tafsirSlug,
           );
-          if (preferred) setResourceId(preferred.id);
+          if (preferred) {
+            setResourceId(preferred.id);
+            return;
+          }
+        }
+        const targetLangs = LOCALE_TO_TAFSIR_LANG[locale] || ['english'];
+        const byLocale = list.find((item) =>
+          targetLangs.includes((item.language_name || '').toLowerCase()),
+        );
+        if (byLocale) {
+          setResourceId(byLocale.id);
+        } else {
+          setResourceId(DEFAULT_TAFSIR_RESOURCE_ID);
         }
       })
       .catch(() => {
@@ -102,7 +129,7 @@ function StudyBody({ showCloseButton }: { showCloseButton: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [tafsirSlug]);
+  }, [locale, tafsirSlug]);
 
   const sortedResources = useMemo(() => {
     return [...resources].sort((a, b) => {
@@ -294,6 +321,15 @@ function StudyBody({ showCloseButton }: { showCloseButton: boolean }) {
         ) : studyTab === 'tafsir' ? (
           tafsirHtml ? (
             <div
+              dir={
+                RTL_TAFSIR_LANGS.has(
+                  (
+                    sortedResources.find((r) => r.id === resourceId)?.language_name || ''
+                  ).toLowerCase(),
+                )
+                  ? 'rtl'
+                  : 'ltr'
+              }
               className="tafsir-content text-sm leading-relaxed text-ink-2"
               dangerouslySetInnerHTML={{ __html: tafsirHtml }}
             />

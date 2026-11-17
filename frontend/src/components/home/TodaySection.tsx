@@ -8,6 +8,7 @@ import { quranApi } from '@/lib/api';
 import { cleanTranslationText } from '@/lib/clean-translation';
 import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { startSurahPlayback } from '@/lib/audio/playback';
+import { useT } from '@/lib/i18n';
 import {
   SOFT_DAILY_GOAL,
   useDailyMotivationStore,
@@ -40,6 +41,7 @@ function getCuratedDailyVerse() {
 }
 
 export function TodaySection() {
+  const { t } = useT();
   const goal = useDailyMotivationStore((s) => s.goal);
   const progress = useDailyMotivationStore((s) => s.progress);
   const [shared, setShared] = useState(false);
@@ -131,10 +133,10 @@ export function TodaySection() {
     <PageSection>
       <div className="mb-5">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8A5E14] dark:text-amber-300">
-          Daily rhythm
+          {t('dailyRhythm')}
         </p>
         <h2 className="mt-1 font-serif text-[26px] font-bold tracking-tight text-ink">
-          Today
+          {t('todayHeading')}
         </h2>
       </div>
 

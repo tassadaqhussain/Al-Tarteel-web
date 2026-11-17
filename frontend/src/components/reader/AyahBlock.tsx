@@ -897,7 +897,9 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                     : 'bg-surface-2 text-ink-2 hover:bg-[var(--accent)]/15 hover:text-[var(--accent)]',
                 )}
               >
-                {surahNumber}:{ayah.number}
+                <bdi dir="ltr">
+                  {surahNumber}:{ayah.number}
+                </bdi>
               </Link>
               <button
                 type="button"

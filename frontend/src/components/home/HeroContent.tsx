@@ -73,7 +73,7 @@ export function HeroContent() {
         <SmartSearchBox
           className="mt-6 max-w-xl sm:mt-7"
           variant="hero"
-          placeholder="Search a surah, verse (2:255) or topic"
+          placeholder={t('heroSearchPlaceholder')}
           searchButtonLabel={t('searchButton')}
         />
       </div>
@@ -116,7 +116,7 @@ export function HeroContent() {
                 <span>
                   {currentAyah} of {totalAyahs} verses
                 </span>
-                <span>Last read {formatTimeAgo(lastRead.timestamp)}</span>
+                <span>{t('lastReadAgo').replace('{time}', formatTimeAgo(lastRead.timestamp))}</span>
               </div>
               <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
                 <div
@@ -131,7 +131,7 @@ export function HeroContent() {
               onClick={() => trackContinueReadingClick(surahNumber, currentAyah)}
               className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
             >
-              <span>Resume</span>
+              <span>{t('resume')}</span>
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
           </>

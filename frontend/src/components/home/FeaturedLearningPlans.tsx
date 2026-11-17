@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { getFeaturedLearningPlans } from '@/lib/learning-plans';
 import { getSurahArabicName } from '@/lib/surah-meta';
 import { PageSection } from '@/components/layout/MainContainer';
+import { Msg } from '@/components/i18n/Msg';
 
 const BAND_COLORS = ['#065F46', '#1E3A5F', '#6B4423'];
 
@@ -14,17 +15,17 @@ export function FeaturedLearningPlans() {
       <div className="mb-6 flex items-baseline justify-between gap-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8A5E14] dark:text-amber-300">
-            Structured study
+            <Msg k="structuredStudy" />
           </p>
           <h2 className="mt-1 font-serif text-[26px] font-bold tracking-tight text-ink">
-            Learning plans
+            <Msg k="learningPlans" />
           </h2>
         </div>
         <Link
           href="/learning-plans"
           className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
         >
-          <span>View all plans</span>
+          <span><Msg k="viewAllPlans" /></span>
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>

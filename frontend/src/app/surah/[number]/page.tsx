@@ -223,8 +223,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
 
   return (
     <div
-      lang={contentLocale.hreflang}
-      dir={contentLocale.dir}
+      lang={activeLocale === 'en' ? undefined : contentLocale.hreflang}
+      dir={activeLocale === 'en' ? undefined : contentLocale.dir}
       className="min-h-screen flex flex-col bg-surface text-ink"
     >
       <JsonLd
