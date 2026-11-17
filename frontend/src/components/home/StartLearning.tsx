@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { ArticleCard } from '@/components/articles/ArticleCard';
 import { getDailyFeaturedArticles } from '@/lib/articles';
-import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { PageSection } from '@/components/layout/MainContainer';
 import { useT } from '@/lib/i18n';
 
 export function StartLearning() {
@@ -11,38 +12,35 @@ export function StartLearning() {
   const { t } = useT();
 
   return (
-    <section className="w-full bg-brand/[0.02] py-16 2xl:py-20">
-      <div className={SITE_SHELL}>
-        <div className="mb-10 flex flex-col items-center justify-between gap-3 text-center lg:flex-row lg:text-left">
-          <h2 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl 2xl:text-5xl">
-            {t('learnBasicsTitle')} <br className="sm:hidden" />
-            <span className="text-brand">{t('learnBasicsAccent')}</span>
-          </h2>
-          <p className="max-w-md text-sm text-ink-muted lg:text-right">
-            {t('learnBasicsBody')}
+    <PageSection>
+      <div className="mb-6 flex items-baseline justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8A5E14] dark:text-amber-300">
+            Guides &amp; reflections
           </p>
+          <h2 className="mt-1 font-serif text-[26px] font-bold tracking-tight text-ink">
+            Articles
+          </h2>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article, index) => (
-            <ArticleCard
-              key={article.slug}
-              article={article}
-              badge={index === 0 ? t('newToday') : undefined}
-              priority={false}
-            />
-          ))}
-        </div>
-
-        <div className="mt-12 text-center">
-          <Link
-            href="/articles"
-            className="inline-flex items-center justify-center rounded-full bg-emerald-800 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-950"
-          >
-            {t('readMoreArticles')}
-          </Link>
-        </div>
+        <Link
+          href="/articles"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
+        >
+          <span>{t('readMoreArticles')}</span>
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
       </div>
-    </section>
+
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {articles.map((article, index) => (
+          <ArticleCard
+            key={article.slug}
+            article={article}
+            badge={index === 0 ? t('newToday') : undefined}
+            priority={false}
+          />
+        ))}
+      </div>
+    </PageSection>
   );
 }

@@ -19,7 +19,7 @@ export function highlightText(text: string, query: string): React.ReactNode {
         regex.test(part) ? (
           <mark
             key={i}
-            className="rounded bg-[var(--accent)]/15 text-[var(--accent)] not-italic"
+            className="rounded bg-[rgba(192,136,41,0.18)] px-0.5 text-ink not-italic dark:text-ink"
           >
             {part}
           </mark>

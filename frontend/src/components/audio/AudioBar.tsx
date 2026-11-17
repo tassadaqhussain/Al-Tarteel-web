@@ -9,12 +9,15 @@ import {
   Pause,
   Repeat,
   Mic2,
+  MessageCircle,
   X,
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
 import { useReciterPicker } from '@/hooks/useReciterPicker';
 import { ReciterSheet } from '@/components/reader/ReciterSheet';
+import { useAskAiStore } from '@/stores/askAiStore';
+import { getSurahMeta } from '@/lib/surah-meta';
 import { cn } from '@/lib/utils';
 
 const AUDIO_BAR_HEIGHT_VAR = '--audio-bar-height';
@@ -99,6 +102,18 @@ export function AudioBar() {
   );
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const openAskAiWithPrompt = useAskAiStore((s) => s.openWithPrompt);
+  const currentSurahName = current ? getSurahMeta(current.surahNumber).nameSimple : '';
+  const openVerseAi = () => {
+    if (!current) {
+      useAskAiStore.getState().setOpen(true);
+      return;
+    }
+    openAskAiWithPrompt(
+      `Explain ${currentSurahName} ${current.surahNumber}:${current.ayahNumber}`,
+      { autoAsk: false },
+    );
+  };
 
   if (!hasPlaylist) return null;
 
@@ -126,111 +141,134 @@ export function AudioBar() {
         />
       </div>
 
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
-            <button
-              type="button"
-              onClick={prev}
-              disabled={currentIndex <= 0}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3 disabled:opacity-30"
-              aria-label="Previous verse"
-            >
-              <SkipBack className="h-4 w-4" />
-            </button>
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-5 sm:py-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={prev}
+            disabled={currentIndex <= 0}
+            className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3 disabled:opacity-30 sm:flex"
+            aria-label="Previous verse"
+          >
+            <SkipBack className="h-4 w-4" />
+          </button>
 
-            <button
-              type="button"
-              onClick={() => setPlaying(!isPlaying)}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-sm transition-opacity hover:bg-emerald-900"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? (
-                <Pause className="h-5 w-5" />
-              ) : (
-                <Play className="h-5 w-5 translate-x-0.5" />
-              )}
-            </button>
+          <button
+            type="button"
+            onClick={() => setPlaying(!isPlaying)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-sm transition-opacity hover:bg-emerald-900"
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? (
+              <Pause className="h-5 w-5" />
+            ) : (
+              <Play className="h-5 w-5 translate-x-0.5" />
+            )}
+          </button>
 
-            <button
-              type="button"
-              onClick={next}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3"
-              aria-label="Next verse"
-            >
-              <SkipForward className="h-4 w-4" />
-            </button>
+          <button
+            type="button"
+            onClick={next}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3 sm:h-9 sm:w-9"
+            aria-label="Next verse"
+          >
+            <SkipForward className="h-4 w-4" />
+          </button>
+        </div>
 
-            <div className="min-w-0 px-1">
-              <p className="truncate text-sm font-medium text-ink">
-                {current ? `Surah ${current.surahNumber} · ${current.trackKind === 'bismillah' ? 'Bismillah' : current.ayahNumber}` : '—'}
-              </p>
-              <p className="text-xs text-ink-muted">
-                {current?.trackKind === 'translation' ? 'Translation' : formatTime(currentTime)}
-                {current?.trackKind === 'translation' ? ` · ${formatTime(currentTime)}` : ''} / {formatTime(duration)}
-              </p>
-              {playbackNotice && (
-                <p className="mt-0.5 truncate text-xs font-medium text-warning" role="status">
-                  {playbackNotice}
-                </p>
-              )}
-            </div>
+        <div className="min-w-0 flex-1 px-1">
+          <p className="truncate text-sm font-medium text-ink">
+            {current
+              ? `${currentSurahName} · ${current.surahNumber}:${current.trackKind === 'bismillah' ? 'Bismillah' : current.ayahNumber} · ${activeReciterName || 'Reciter'}`
+              : '—'}
+          </p>
+          <p className="text-xs text-ink-muted">
+            {current?.trackKind === 'translation' ? 'Translation · ' : ''}
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </p>
+          {playbackNotice && (
+            <p className="mt-0.5 truncate text-xs font-medium text-warning" role="status">
+              {playbackNotice}
+            </p>
+          )}
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3 md:hidden"
-              aria-label={expanded ? 'Collapse player' : 'Expand player'}
-            >
-              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-            </button>
+        <div className="flex items-center gap-1.5 md:hidden">
+          <button
+            type="button"
+            onClick={openVerseAi}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-sm transition hover:opacity-90"
+            aria-label="Ask AI about this verse"
+          >
+            <MessageCircle className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3"
+            aria-label={expanded ? 'Collapse player' : 'Expand player'}
+          >
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          </button>
+        </div>
 
-            <div className="hidden items-center gap-2 md:flex">
-              <button
-                type="button"
-                onClick={() => setContinuous(!continuous)}
-                className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                  continuous
-                    ? 'bg-brand/10 text-brand'
-                    : 'text-ink-muted hover:bg-surface-3 hover:text-ink'
-                )}
-                aria-label={continuous ? 'Disable loop' : 'Enable loop'}
-                aria-pressed={continuous}
-              >
-                <Repeat className="h-4 w-4" />
-              </button>
+        <div className="hidden items-center gap-2 md:flex">
+          <button
+            type="button"
+            onClick={() => setContinuous(!continuous)}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+              continuous
+                ? 'bg-brand/10 text-brand'
+                : 'text-ink-muted hover:bg-surface-3 hover:text-ink'
+            )}
+            aria-label={continuous ? 'Disable loop' : 'Enable loop'}
+            aria-pressed={continuous}
+          >
+            <Repeat className="h-4 w-4" />
+          </button>
 
-              <select
-                value={playbackRate}
-                onChange={(e) => setPlaybackRate(Number(e.target.value))}
-                className="rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-xs font-medium text-ink hover:border-line-strong focus:outline-none"
-                aria-label="Playback speed"
-              >
-                {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
-                  <option key={r} value={r}>
-                    {r}×
-                  </option>
-                ))}
-              </select>
+          <select
+            value={playbackRate}
+            onChange={(e) => setPlaybackRate(Number(e.target.value))}
+            className="rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-xs font-medium text-ink hover:border-line-strong focus:outline-none"
+            aria-label="Playback speed"
+          >
+            {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map((r) => (
+              <option key={r} value={r}>
+                {r}×
+              </option>
+            ))}
+          </select>
 
-              <button
-                type="button"
-                onClick={() => setReciterOpen(true)}
-                className="flex max-w-[10rem] items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:border-line-strong"
-                aria-label="Change reciter"
-              >
-                <Mic2 className="h-3 w-3 shrink-0 text-ink-muted" />
-                <span className="truncate">{activeReciterName || 'Reciter'}</span>
-              </button>
+          <button
+            type="button"
+            onClick={() => setReciterOpen(true)}
+            className="flex max-w-[10rem] items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-xs font-medium text-ink hover:border-line-strong"
+            aria-label="Change reciter"
+          >
+            <Mic2 className="h-3 w-3 shrink-0 text-ink-muted" />
+            <span className="truncate">{activeReciterName || 'Reciter'}</span>
+          </button>
 
-              <button
-                type="button"
-                onClick={reset}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3 hover:text-ink"
-                aria-label="Close player"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+          <button
+            type="button"
+            onClick={openVerseAi}
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--accent)] px-3.5 text-xs font-semibold text-white shadow-sm transition hover:opacity-90"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span>Ask AI</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={reset}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-ink-muted hover:bg-surface-3 hover:text-ink"
+            aria-label="Close player"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
       <ReciterSheet
         open={reciterOpen}

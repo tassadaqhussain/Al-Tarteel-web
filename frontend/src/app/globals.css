@@ -63,7 +63,7 @@
   --accent-gold: rgb(var(--c-gold));
   /* Primary action / highlight — keep in sync with --accent app-wide */
   --recite-highlight: var(--accent);
-  --ayah-highlight: rgb(var(--c-accent) / 0.06);
+  --ayah-highlight: rgb(var(--c-accent) / 0.07);
   --header-bg: rgb(var(--c-surface) / 0.92);
   --page-glow: rgb(255 255 255 / 0.92);
 

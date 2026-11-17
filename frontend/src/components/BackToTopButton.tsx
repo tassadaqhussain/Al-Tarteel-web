@@ -1,20 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { ChevronUp } from 'lucide-react';
+import { useAudioStore } from '@/stores/audioStore';
+import { isQuranReaderPath } from '@/lib/reader-path';
 import { cn } from '@/lib/utils';
 
 export function BackToTopButton() {
   const [visible, setVisible] = useState(false);
   const [scrollingDownMobile, setScrollingDownMobile] = useState(false);
+  const pathname = usePathname();
+  const hasPlaylist = useAudioStore((s) => s.playlist.length > 0);
+  const onReader = isQuranReaderPath(pathname);
 
   useEffect(() => {
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      setVisible(y > 520);
+      const threshold = Math.max(900, window.innerHeight * 2);
+      setVisible(y > threshold);
       if (window.innerWidth <= 480) {
-        if (y <= 520) setScrollingDownMobile(false);
+        if (y <= threshold) setScrollingDownMobile(false);
         else if (y > lastY + 8) setScrollingDownMobile(true);
         else if (y < lastY - 8) setScrollingDownMobile(false);
       } else {
@@ -26,6 +33,8 @@ export function BackToTopButton() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  if (onReader && hasPlaylist) return null;
 
   const show = visible && !scrollingDownMobile;
 

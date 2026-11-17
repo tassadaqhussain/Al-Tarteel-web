@@ -17,6 +17,7 @@ import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
+import { StudyPanel } from '@/components/reader/StudyPanel';
 import { getAyahPath, getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEANINGS } from '@/lib/surah-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -284,61 +285,57 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           surahNameArabic={arabicName}
           firstAyahNumber={firstAyah}
         />
-        <DailyMotivationReader />
 
-        {/* Chapter identity and primary reading controls (Quran.com style banner) */}
+        {/* Chapter identity and primary reading controls */}
         <article>
-        <header className="mt-5 mb-2.5 rounded-[15px] bg-surface-2 px-5 py-5 sm:px-[30px]">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 flex-col items-center gap-2.5 text-center sm:flex-row sm:items-center sm:text-left">
-              <span
-                className="font-arabic chapter-arabic-name shrink-0 text-4xl font-bold text-ink lg:text-[52px]"
-                dir="rtl"
-                lang="ar"
-              >
-                {arabicName}
-              </span>
-
-              <div className="min-w-0">
-                <div className="flex flex-col items-center gap-x-2.5 gap-y-0.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-start">
-                  <h1 className="text-xl font-semibold text-ink sm:text-2xl">
-                    {surahPageHeading(activeLocale, {
-                      surahNumber,
-                      englishName: surah.nameSimple,
-                      page,
-                      range,
-                    })}
-                  </h1>
-                  {activeLocale === 'en' && SURAH_MEANINGS[surahNumber] && (
-                    <span className="text-xl font-medium text-ink-3 sm:text-2xl">
-                      {SURAH_MEANINGS[surahNumber]}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink-3 lg:truncate">
-                  {surahPageSubtitle(activeLocale, surah.nameSimple, surahNumber)}
-                </p>
-                <p className="mt-1 text-xs text-ink-muted">
-                  {[
-                    surah.revelationPlace ? `${surah.revelationPlace.charAt(0).toUpperCase()}${surah.revelationPlace.slice(1)} revelation` : null,
-                    `${ayahCount} verses`,
-                    SURAH_MEANINGS[surahNumber] ? `Meaning: ${SURAH_MEANINGS[surahNumber]}` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
+        <header className="mt-5 mb-5 rounded-2xl border border-line bg-surface px-5 py-5 sm:px-7 sm:py-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent)]">
+                {[
+                  `Surah ${surahNumber}`,
+                  surah.revelationPlace
+                    ? `${surah.revelationPlace.charAt(0).toUpperCase()}${surah.revelationPlace.slice(1)}`
+                    : null,
+                  `${ayahCount} verses`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+              <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+                <h1 className="font-serif text-2xl font-bold text-ink sm:text-3xl">
+                  {surahPageHeading(activeLocale, {
+                    surahNumber,
+                    englishName: surah.nameSimple,
+                    page,
+                    range,
+                  })}
+                </h1>
+                {activeLocale === 'en' && SURAH_MEANINGS[surahNumber] && (
+                  <span className="text-lg font-medium text-ink-muted sm:text-xl">
+                    · {SURAH_MEANINGS[surahNumber]}
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="shrink-0 lg:self-center">
-              <ChapterControls
-                translationCount={translationCount}
-                surahNumber={surahNumber}
-                surahName={surah.nameSimple}
-                effectiveTranslations={effectiveTranslations}
-                primaryTranslatorName={primaryTranslatorName}
-              />
-            </div>
+            <span
+              className="font-arabic chapter-arabic-name shrink-0 text-4xl font-bold text-ink sm:text-5xl"
+              dir="rtl"
+              lang="ar"
+            >
+              {arabicName}
+            </span>
+          </div>
+
+          <div className="mt-4 border-t border-line-subtle pt-4">
+            <ChapterControls
+              translationCount={translationCount}
+              surahNumber={surahNumber}
+              surahName={surah.nameSimple}
+              effectiveTranslations={effectiveTranslations}
+              primaryTranslatorName={primaryTranslatorName}
+            />
           </div>
         </header>
 
@@ -357,17 +354,22 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
         )}
 
         <section aria-label={`Verses ${range.start}–${range.end} of Surah ${surah.nameSimple}`}>
-        <SurahAyahFeed
-          surahNumber={surahNumber}
-          surahName={surah.nameSimple}
-          initialAyahs={initialAyahs}
-          initialPage={page}
-          totalPages={totalPages}
-          translations={effectiveTranslations}
-          hasTranslations={translationCount > 0}
-          locale={activeLocale}
-          endOfChapter={endOfChapter}
-        />
+        <div className="lg:flex lg:items-start lg:gap-6">
+          <div className="min-w-0 flex-1">
+            <SurahAyahFeed
+              surahNumber={surahNumber}
+              surahName={surah.nameSimple}
+              initialAyahs={initialAyahs}
+              initialPage={page}
+              totalPages={totalPages}
+              translations={effectiveTranslations}
+              hasTranslations={translationCount > 0}
+              locale={activeLocale}
+              endOfChapter={endOfChapter}
+            />
+          </div>
+          <StudyPanel />
+        </div>
         </section>
 
         <nav

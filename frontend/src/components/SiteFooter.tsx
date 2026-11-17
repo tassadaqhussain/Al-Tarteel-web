@@ -11,21 +11,81 @@ export function SiteFooter() {
   const { t } = useT();
 
   return (
-    <footer data-site-footer className="w-full border-t-4 border-amber-500 bg-[#063a32] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] text-white sm:pb-0">
+    <footer
+      data-site-footer
+      className="w-full border-t border-white/10 bg-[#064E3B] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] text-white sm:pb-0"
+    >
       <div className={SITE_SHELL}>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-9 py-10 sm:py-12 md:grid-cols-[minmax(0,1.6fr)_minmax(140px,0.7fr)_minmax(160px,0.7fr)] md:gap-12">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-3 font-serif text-2xl font-bold">
-              <span className="flex h-11 w-11 items-center justify-center rounded border border-white/15 bg-white shadow-sm">
-                <SiteLogo size={34} className="h-8 w-8" alt="QuranPilot logo" />
+        <div className="flex flex-col gap-6 py-8 sm:py-10">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <Link href="/" className="flex items-center gap-3 font-serif text-xl font-bold">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white shadow-sm">
+                <SiteLogo size={30} className="h-7 w-7" alt="QuranPilot logo" />
               </span>
               <span>QuranPilot</span>
-            </div>
-            <p className="mt-4 max-w-md text-sm leading-7 text-emerald-50/75">
-              {t('footerTagline')}
-            </p>
-            <nav aria-label="Quran translation languages" className="mt-5">
-              <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            </Link>
+
+            <nav aria-label="Footer navigation">
+              <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-emerald-50/85">
+                <li>
+                  <Link href="/surahs" className="transition hover:text-white">
+                    {t('navSurahs')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/juz" className="transition hover:text-white">
+                    {t('tabJuz')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/hifz" className="transition hover:text-white">
+                    {t('hifz')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/learning-plans" className="transition hover:text-white">
+                    {t('learn')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/tajweed" className="transition hover:text-white">
+                    {t('tajweed')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/articles" className="transition hover:text-white">
+                    {t('navArticles')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/quran-in-year" className="transition hover:text-white">
+                    {t('quranInYear')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/search" className="transition hover:text-white">
+                    {t('search')}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/feedback" className="transition hover:text-white">
+                    {t('feedback')}
+                  </Link>
+                </li>
+                {DONATE_ENABLED && (
+                  <li>
+                    <Link href="/donate" className="transition hover:text-white">
+                      {t('donate')}
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </nav>
+          </div>
+
+          <div className="flex flex-col gap-4 border-t border-white/10 pt-5 md:flex-row md:items-center md:justify-between">
+            <nav aria-label="Quran translation languages">
+              <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs sm:text-sm">
                 {CONTENT_LOCALES.map((locale) => (
                   <li key={locale}>
                     <Link
@@ -40,74 +100,10 @@ export function SiteFooter() {
                 ))}
               </ul>
             </nav>
+            <p className="text-xs text-emerald-50/65">
+              © {new Date().getFullYear()} QuranPilot. {t('footerRights')}
+            </p>
           </div>
-
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">
-              {t('sitemap')}
-            </h2>
-            <ul className="mt-4 space-y-2.5 text-sm">
-              <li>
-                <Link href="/" className="text-emerald-50/75 transition hover:text-white">
-                  {t('home')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/surahs" className="text-emerald-50/75 transition hover:text-white">
-                  {t('chapters')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/learning-plans" className="text-emerald-50/75 transition hover:text-white">
-                  {t('learningPlans')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/feedback" className="text-emerald-50/75 transition hover:text-white">
-                  {t('feedback')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">
-              {t('resources')}
-            </h2>
-            <ul className="mt-4 space-y-2.5 text-sm">
-              <li>
-                <Link href="/quran-in-year" className="text-emerald-50/75 transition hover:text-white">
-                  {t('quranInYear')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/search" className="text-emerald-50/75 transition hover:text-white">
-                  {t('search')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/articles" className="text-emerald-50/75 transition hover:text-white">
-                  Quran &amp; Islam articles
-                </Link>
-              </li>
-              <li>
-                <Link href="/tajweed" className="text-emerald-50/75 transition hover:text-white">
-                  Tajweed guide
-                </Link>
-              </li>
-              {DONATE_ENABLED && (
-                <li>
-                  <Link href="/donate" className="text-emerald-50/75 transition hover:text-white">
-                    {t('donate')}
-                  </Link>
-                </li>
-              )}
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-white/10 px-14 py-5 text-center text-xs text-emerald-50/55 sm:px-0">
-          © {new Date().getFullYear()} QuranPilot. {t('footerRights')}
         </div>
       </div>
     </footer>

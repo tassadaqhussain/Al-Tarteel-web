@@ -9,6 +9,7 @@ import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
 import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ReaderBismillah } from '@/components/reader/ReaderBismillah';
+import { StudyPanel } from '@/components/reader/StudyPanel';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
@@ -123,7 +124,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
       <CompareVerseModal />
       <CleanTranslationUrl />
 
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
         <Breadcrumbs
           items={[
             { name: 'Home', path: '/' },
@@ -145,40 +146,45 @@ export default async function JuzPage({ params, searchParams }: Props) {
           </h1>
         </div>
 
-        {/* Ayahs grouped by surah */}
-        {groupedBySurah.map((group) => (
-          <section key={group.surahId} className="mb-10">
-            {/* Surah section divider */}
-            <div className="mb-6 flex items-center gap-4">
-              <div className="h-px flex-1 bg-[var(--border)]" />
-              <Link
-                href={getSurahPath(group.surahNumber)}
-                className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-sm font-medium text-[var(--fg)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-              >
-                <span className="font-arabic" dir="rtl" lang="ar">{getSurahArabicName(group.ayahs[0]?.surah?.number ?? 0, group.ayahs[0]?.surah?.nameArabic ?? '')}</span>
-                <span>{group.surahName}</span>
-                <ArrowRight className="h-3 w-3" />
-              </Link>
-              <div className="h-px flex-1 bg-[var(--border)]" />
-            </div>
+        <div className="lg:flex lg:items-start lg:gap-6">
+          <div className="min-w-0 flex-1">
+            {/* Ayahs grouped by surah */}
+            {groupedBySurah.map((group) => (
+              <section key={group.surahId} className="mb-10">
+                {/* Surah section divider */}
+                <div className="mb-6 flex items-center gap-4">
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                  <Link
+                    href={getSurahPath(group.surahNumber)}
+                    className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-sm font-medium text-[var(--fg)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    <span className="font-arabic" dir="rtl" lang="ar">{getSurahArabicName(group.ayahs[0]?.surah?.number ?? 0, group.ayahs[0]?.surah?.nameArabic ?? '')}</span>
+                    <span>{group.surahName}</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                  <div className="h-px flex-1 bg-[var(--border)]" />
+                </div>
 
-            {group.ayahs[0]?.number === 1 && group.surahNumber !== 1 && group.surahNumber !== 9 && (
-              <ReaderBismillah />
-            )}
+                {group.ayahs[0]?.number === 1 && group.surahNumber !== 1 && group.surahNumber !== 9 && (
+                  <ReaderBismillah />
+                )}
 
-            <div className="divide-y divide-line border-t border-line">
-              {group.ayahs.map((ayah) => (
-                <AyahBlock
-                  key={ayah.id}
-                  ayah={ayah}
-                  surahNumber={group.surahNumber}
-                  surahName={group.surahName}
-                  hasTranslations={translationCount > 0}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+                <div className="space-y-3 sm:space-y-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:divide-y sm:divide-line">
+                  {group.ayahs.map((ayah) => (
+                    <AyahBlock
+                      key={ayah.id}
+                      ayah={ayah}
+                      surahNumber={group.surahNumber}
+                      surahName={group.surahName}
+                      hasTranslations={translationCount > 0}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+          <StudyPanel />
+        </div>
 
         {/* Pagination */}
         <nav className="mt-8 flex items-center justify-center gap-3" aria-label="Pagination">

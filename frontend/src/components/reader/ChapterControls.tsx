@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronDown, Info, Pause, Play } from 'lucide-react';
+import { BookOpen, ChevronDown, Pause, Play } from 'lucide-react';
 import { TranslationSheet } from './TranslationSheet';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useAudioStore } from '@/stores/audioStore';
@@ -38,6 +38,8 @@ export function ChapterControls({
   const [infoOpen, setInfoOpen] = useState(false);
   const { getCurrentAyah, isPlaying } = useAudioStore();
   const translationSlugs = useSettingsStore((s) => s.translationSlugs);
+  const readerViewMode = useSettingsStore((s) => s.readerViewMode);
+  const setReaderViewMode = useSettingsStore((s) => s.setReaderViewMode);
   // The page renders statically with the DEFAULT translation, so `translationCount`
   // is the server's view, not the reader's. Switch to the persisted selection only
   // after mount, otherwise the first paint would not match the server HTML.
@@ -103,47 +105,45 @@ export function ChapterControls({
 
   return (
     <>
-      <div className="flex w-full flex-col gap-2.5 lg:w-[350px]">
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => void handleListen()}
-            className={BUTTON_CLASS + ' flex-1'}
-          >
-            {isThisSurahPlaying ? (
-              <Pause className="h-4 w-4 fill-brand text-brand" />
-            ) : (
-              <Play className="h-4 w-4 fill-brand text-brand" />
-            )}
-            Listen
-          </button>
-          <button
-            type="button"
-            onClick={() => setInfoOpen((v) => !v)}
-            className={BUTTON_CLASS + ' flex-1'}
-            aria-expanded={infoOpen}
-          >
-            <Info className="h-4 w-4 fill-brand text-white" /> Info
-          </button>
-        </div>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <button
+          type="button"
+          onClick={() => void handleListen()}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          {isThisSurahPlaying ? (
+            <Pause className="h-4 w-4 fill-current" />
+          ) : (
+            <Play className="h-4 w-4 fill-current" />
+          )}
+          <span>{isThisSurahPlaying ? 'Pause' : 'Listen'}</span>
+        </button>
 
         <button
           type="button"
           onClick={() => setTranslationOpen(true)}
-          className={BUTTON_CLASS + ' w-full justify-between font-medium text-ink-3'}
+          className="inline-flex min-h-11 max-w-[16rem] items-center justify-between gap-2 rounded-xl border border-line bg-surface px-3.5 py-2 text-sm font-medium text-ink-2 transition hover:border-[var(--accent)]"
         >
           <span className="truncate">{translationLabel}</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-ink-3" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-ink-muted" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setReaderViewMode(readerViewMode === 'arabic' ? 'verse' : 'arabic')}
+          aria-pressed={readerViewMode === 'arabic'}
+          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition ${
+            readerViewMode === 'arabic'
+              ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+              : 'border-line bg-surface text-ink-2 hover:border-[var(--accent)]'
+          }`}
+        >
+          <BookOpen className="h-4 w-4" />
+          <span>Reading view</span>
         </button>
       </div>
 
       {audioError && <p role="status" className="mt-2 max-w-sm text-sm text-ink-muted">{audioError}</p>}
-      {infoOpen && (
-        <p className="mt-2 max-w-sm text-right text-xs leading-relaxed text-ink-muted">
-          Read and listen to{surahName ? ` Surah ${surahName}` : ' this chapter'} with translation,
-          tafsir, audio recitation, word-by-word meaning, and transliteration.
-        </p>
-      )}
 
       <TranslationSheet open={translationOpen} onOpenChange={setTranslationOpen} />
     </>

@@ -12,13 +12,13 @@ import {
   LayoutGrid,
   List,
   Menu,
-  Mic,
   Search,
   Settings,
+  SlidersHorizontal,
+  Smile,
   TrendingUp,
   X,
   ChevronRight,
-  Smile,
   MessageSquareHeart,
   Shield,
 } from 'lucide-react';
@@ -58,6 +58,8 @@ export function Header() {
   const [ageOpen, setAgeOpen] = useState(false);
   const [query, setQuery] = useState('');
   const lastRead = useSettingsStore((s) => s.lastRead);
+  const fontSize = useSettingsStore((s) => s.fontSize);
+  const setFontSize = useSettingsStore((s) => s.setFontSize);
   const languageLabel = LANGUAGES.find((l) => l.code === locale)?.label ?? 'English';
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -143,11 +145,11 @@ export function Header() {
         'dark:shadow-none',
         pathname?.startsWith('/surah/') ? 'relative' : 'sticky top-0 z-50'
       )}>
-        <div className={cn(CHROME_SHELL, 'flex h-16 items-center justify-between gap-4')}>
-          <div className="flex items-center gap-7">
+        <div className={cn(CHROME_SHELL, 'flex h-16 items-center justify-between gap-3')}>
+          <div className="flex min-w-0 items-center gap-5 xl:gap-7">
             <Link
               href="/"
-              className="flex items-center gap-2.5 font-serif text-[1.35rem] font-bold tracking-tight text-ink sm:text-[1.6rem]"
+              className="flex shrink-0 items-center gap-2.5 font-serif text-[1.25rem] font-bold tracking-tight text-ink sm:text-[1.5rem]"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-900/15 bg-brand-gold/10 shadow-sm">
                 <SiteLogo size={30} className="h-7 w-7" priority alt="QuranPilot" />
@@ -158,10 +160,9 @@ export function Header() {
             <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
               {[
                 { href: '/surahs', label: t('navSurahs') },
-                { href: '/juz/1', label: t('tabJuz') },
+                { href: '/juz', label: t('tabJuz') },
                 { href: '/hifz', label: t('hifz') },
-                { href: '/learning-plans', label: t('learningPlans') },
-                { href: '/tajweed', label: t('tajweed') },
+                { href: '/learning-plans', label: t('learn') },
                 { href: '/articles', label: t('navArticles') },
               ].map((item) => {
                 const active = isActive(item.href);
@@ -170,7 +171,7 @@ export function Header() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'rounded-full px-3.5 py-1.5 text-sm font-semibold transition',
+                      'rounded-full px-3 py-1.5 text-sm font-semibold transition',
                       active
                         ? 'bg-[var(--accent)]/12 text-[var(--accent)]'
                         : 'text-ink-2 hover:bg-surface-3 hover:text-ink'
@@ -183,25 +184,115 @@ export function Header() {
             </nav>
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5 sm:gap-2.5">
+          <form
+            onSubmit={onSearch}
+            className="hidden h-10 max-w-xs flex-1 items-center gap-1.5 rounded-full border border-line bg-surface-2 pl-3 pr-1.5 transition focus-within:border-[var(--accent)] focus-within:bg-surface md:flex"
+            role="search"
+          >
+            <Search className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('search')}
+              aria-label={t('search')}
+              className="min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
+            />
+            <VoiceSearchButton className="h-8 w-8 shrink-0" />
+          </form>
+
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            {/* Mobile search icon */}
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-ink-2 transition hover:bg-surface-3 md:hidden"
+              aria-label={t('search')}
+            >
+              <Search className="h-5 w-5" strokeWidth={1.75} />
+            </button>
+
+            {/* Unified Display dropdown: Theme + Age/Look Style + Arabic font size */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAccountOpen(false);
+                  setAgeOpen((v) => !v);
+                }}
+                className="flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-ink-2 transition hover:bg-surface-3 sm:h-10 sm:border sm:border-line sm:bg-surface sm:px-3"
+                aria-label="Display settings"
+                aria-expanded={ageOpen}
+              >
+                <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
+                <span className="hidden text-xs font-semibold sm:inline">Display</span>
+              </button>
+              {ageOpen && (
+                <div
+                  className="absolute right-0 z-50 mt-2 w-72 rounded-2xl border border-line bg-surface p-3.5 shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="mb-3">
+                    <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      {t('theme')}
+                    </p>
+                    <ThemeToggle variant="labeled" />
+                  </div>
+                  <div className="mb-3 border-t border-line-subtle pt-3">
+                    <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      {t('selectAgeStyle')}
+                    </p>
+                    <AgeModeSelector variant="dropdown" onSelect={() => setAgeOpen(false)} />
+                  </div>
+                  <div className="border-t border-line-subtle pt-3">
+                    <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                      Arabic font size
+                    </p>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {(['sm', 'md', 'lg', 'xl'] as const).map((sz) => (
+                        <button
+                          key={sz}
+                          type="button"
+                          onClick={() => setFontSize(sz)}
+                          className={cn(
+                            'rounded-lg border py-1.5 text-xs font-semibold uppercase transition',
+                            fontSize === sz
+                              ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                              : 'border-line text-ink-2 hover:bg-surface-2',
+                          )}
+                        >
+                          {sz}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setLanguageOpen(true)}
+              className="hidden h-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-ink-2 transition hover:bg-surface-3 sm:inline-flex"
+              aria-label={t('language')}
+            >
+              <Globe className="h-4 w-4" strokeWidth={1.75} />
+              <span className="hidden max-w-[5.5rem] truncate text-xs font-semibold xl:inline">{languageLabel}</span>
+            </button>
+
             {!authLoading && !isAuthenticated && (
               <>
                 <Link
                   href={loginHref(pathname)}
-                  className="inline-flex h-10 items-center justify-center rounded-full border border-emerald-900/30 bg-surface px-3 text-sm font-bold text-brand transition hover:bg-emerald-900 hover:text-white sm:px-5"
+                  className="hidden h-10 items-center justify-center rounded-full border border-emerald-900/30 bg-surface px-4 text-sm font-bold text-brand transition hover:bg-emerald-900 hover:text-white sm:inline-flex"
                 >
                   {t('signIn')}
-                </Link>
-                <Link
-                  href={registerHref(pathname)}
-                  className="hidden h-10 items-center justify-center rounded-full bg-emerald-900 px-5 text-sm font-bold text-white shadow-lg shadow-emerald-950/10 transition hover:bg-emerald-950 sm:inline-flex"
-                >
-                  {t('createAccount')}
                 </Link>
               </>
             )}
             {!authLoading && isAuthenticated && (
-              <div className="relative">
+              <div className="relative hidden sm:block">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -209,13 +300,13 @@ export function Header() {
                     setAgeOpen(false);
                     setAccountOpen((v) => !v);
                   }}
-                  className="flex h-9 items-center gap-2 rounded-full border border-line bg-surface px-2 pr-3 text-sm font-semibold text-ink transition hover:border-[var(--accent)] sm:h-10"
+                  className="flex h-10 items-center gap-2 rounded-full border border-line bg-surface px-1.5 pr-2.5 text-sm font-semibold text-ink transition hover:border-[var(--accent)]"
                   aria-label={t('accountMenu')}
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-bold text-brand-contrast">
                     {initials}
                   </span>
-                  <span className="hidden max-w-[7rem] truncate sm:inline">{user?.name || t('account')}</span>
+                  <span className="hidden max-w-[6rem] truncate xl:inline">{user?.name || t('account')}</span>
                 </button>
                 {accountOpen && (
                   <div
@@ -275,54 +366,13 @@ export function Header() {
               </div>
             )}
             {authLoading && (
-              <div className="h-9 w-20 animate-pulse rounded-full bg-surface-3 sm:w-28" aria-hidden />
+              <div className="hidden h-9 w-20 animate-pulse rounded-full bg-surface-3 sm:block" aria-hidden />
             )}
-            <div className="relative hidden sm:block">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAccountOpen(false);
-                  setAgeOpen((v) => !v);
-                }}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-ink-2 transition hover:bg-surface-3"
-                aria-label={t('selectAgeStyle')}
-              >
-                <Smile className="h-5 w-5" strokeWidth={1.75} />
-              </button>
-              {ageOpen && (
-                <div
-                  className="absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-xl"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="px-3 py-1.5 text-xs font-semibold text-ink-faint">{t('selectAgeStyle')}</div>
-                  <AgeModeSelector variant="dropdown" onSelect={() => setAgeOpen(false)} />
-                </div>
-              )}
-            </div>
-            <ThemeToggle variant="icon" className="hidden sm:flex" />
-            <button
-              type="button"
-              onClick={() => setLanguageOpen(true)}
-              className="hidden h-10 items-center justify-center gap-1.5 rounded-full px-2 text-ink-2 transition hover:bg-surface-3 sm:inline-flex sm:h-10 sm:min-w-10"
-              aria-label={t('language')}
-            >
-              <Globe className="h-5 w-5" strokeWidth={1.75} />
-              <span className="hidden max-w-[5.5rem] truncate text-xs font-semibold lg:inline">{languageLabel}</span>
-            </button>
-            <VoiceSearchButton />
-            <button
-              type="button"
-              onClick={() => setSearchOpen(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-ink-2 transition hover:bg-surface-3 sm:h-10 sm:w-10"
-              aria-label={t('search')}
-            >
-              <Search className="h-5 w-5" strokeWidth={1.75} />
-            </button>
+
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-2 transition hover:bg-surface-3 sm:h-10 sm:w-10"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-2 transition hover:bg-surface-3 lg:hidden"
               aria-label={t('openMenu')}
             >
               <Menu className="h-6 w-6" strokeWidth={1.75} />

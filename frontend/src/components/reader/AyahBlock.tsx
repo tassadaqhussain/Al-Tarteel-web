@@ -25,6 +25,7 @@ import { cleanTranslationText } from '@/lib/clean-translation';
 import { useSettingsStore, WORD_BY_WORD_LOCALES } from '@/stores/settingsStore';
 import { useBookmarksStore } from '@/stores/bookmarksStore';
 import { useComparePinStore } from '@/stores/comparePinStore';
+import { useStudyStore } from '@/stores/studyStore';
 import { usersApi, type AyahWithRelations } from '@/lib/api';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useRequireAuth } from '@/components/auth/AuthProvider';
@@ -492,9 +493,21 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
     }
   }, [playingWordPosition]);
 
+  const activeVerse = useStudyStore((s) => s.activeVerse);
+  const setActiveVerse = useStudyStore((s) => s.setActiveVerse);
+  const openStudy = useStudyStore((s) => s.openStudy);
+  const isActiveVerse = isCurrent || activeVerse?.ayahId === ayah.id;
+  const versePayload = {
+    ayahId: ayah.id,
+    surahNumber,
+    ayahNumber: ayah.number,
+    surahName: surahName || `Surah ${surahNumber}`,
+    textUthmani: ayah.textUthmani,
+  };
+
   const fontSizeClass = (
     readerViewMode === 'verse'
-      ? { sm: 'text-3xl', md: 'text-4xl', lg: 'text-5xl', xl: 'text-6xl' }
+      ? { sm: 'text-[24px] sm:text-[28px]', md: 'text-[28px] sm:text-[34px]', lg: 'text-[32px] sm:text-[40px]', xl: 'text-[36px] sm:text-[46px]' }
       : { sm: 'text-2xl', md: 'text-3xl', lg: 'text-4xl', xl: 'text-5xl' }
   )[fontSize];
   const translationSizeClass = { sm: 'text-base', md: 'text-lg', lg: 'text-xl', xl: 'text-2xl' }[translationFontSize];
@@ -766,7 +779,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           >
             <p
               className={cn(
-                'max-w-full break-words leading-relaxed text-ink [overflow-wrap:anywhere]',
+                'max-w-[68ch] break-words not-italic leading-relaxed text-[#334155] dark:text-ink-2 [overflow-wrap:anywhere]',
                 rtl ? 'font-arabic text-lg sm:text-xl leading-loose' : 'font-sans',
                 translationSizeClass,
               )}
@@ -814,17 +827,35 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
         data-ayah-id={ayah.id}
         data-surah={surahNumber}
         data-ayah-number={ayah.number}
-        onClick={readerViewMode !== 'verse' ? () => void handlePlay() : undefined}
+        tabIndex={readerViewMode === 'verse' ? 0 : undefined}
+        onClick={
+          readerViewMode === 'verse'
+            ? () => setActiveVerse(versePayload)
+            : () => void handlePlay()
+        }
+        onKeyDown={
+          readerViewMode === 'verse'
+            ? (e) => {
+                if (e.key === 'Enter' && e.target === e.currentTarget) {
+                  e.preventDefault();
+                  setActiveVerse(versePayload);
+                }
+              }
+            : undefined
+        }
         className={cn(
-          'group relative transition-all duration-200',
-          readerViewMode === 'verse' && 'py-[30px]',
+          'group relative transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+          readerViewMode === 'verse' &&
+            'rounded-2xl border border-line bg-surface p-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-6 sm:py-6',
           readerViewMode === 'arabic' && 'inline',
           readerViewMode === 'translation' && 'rounded-md px-2 py-2 sm:px-3',
-          readerViewMode === 'verse' && isCurrent && 'ayah-current -mx-4 border-l-[3px] border-emerald-700 bg-brand/[0.045] px-[13px] sm:-mx-6 sm:px-[21px]',
+          readerViewMode === 'verse' &&
+            isActiveVerse &&
+            'ayah-current border-[var(--accent)] bg-[rgba(6,95,70,0.07)] sm:bg-[rgba(6,95,70,0.07)]',
           readerViewMode === 'translation' && isCurrent && 'ayah-current-teal',
           readerViewMode === 'arabic' && isCurrent && 'ayah-current-arabic',
-          versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30 bg-[var(--accent)]/[0.03] rounded-[4px] px-4 -mx-4',
-          readerViewMode !== 'verse' && 'cursor-pointer'
+          versePinned && readerViewMode !== 'arabic' && 'ring-1 ring-[var(--accent)]/30',
+          'cursor-pointer',
         )}
       >
         <span
@@ -845,186 +876,179 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
         )}
 
         {readerViewMode === 'verse' ? (
-          <div className="mx-auto max-w-[1064px]">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5 text-ink-faint">
-                <Link
-                  href={ayahHref}
-                  prefetch={false}
-                  className="me-1 text-xl font-medium text-ink-faint tabular-nums transition-colors hover:text-brand hover:underline"
-                >
-                  {surahNumber}:{ayah.number}
-                </Link>
-                <button
-                  type="button"
-                  onClick={handlePlay}
-                  aria-label={isCurrent && isPlaying ? 'Pause verse' : `Play verse ${ayah.number}`}
-                  aria-pressed={isCurrent}
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                    isCurrent && isPlaying
-                      ? 'bg-brand/15 text-brand'
-                      : 'text-ink-faint hover:bg-surface-3 hover:text-ink-2',
-                  )}
-                  title={isCurrent && isPlaying ? 'Pause verse' : 'Play verse'}
-                >
-                  {isCurrent && isPlaying ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleBookmark}
-                  aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark verse'}
-                  aria-pressed={bookmarked}
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
-                    bookmarked
-                      ? 'text-brand bg-brand/10'
-                      : 'text-ink-faint hover:bg-surface-3 hover:text-ink-2',
-                  )}
-                  title="Bookmark verse"
-                >
-                  {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5 fill-current text-brand" /> : <Bookmark className="h-3.5 w-3.5" />}
-                </button>
-                {isCurrent && isPlaying && (
-                  <div className="ml-1 flex items-center gap-0.5" aria-label="Playing">
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="h-3 w-0.5 animate-bounce rounded-full bg-emerald-700"
-                        style={{ animationDelay: `${i * 120}ms` }}
-                      />
-                    ))}
-                  </div>
+          <div className="sm:flex sm:items-start sm:gap-5">
+            {/* Gutter: verse-ref pill + round play button */}
+            <div className="mb-3 flex shrink-0 items-center gap-2 sm:mb-0 sm:w-20 sm:flex-col sm:items-start sm:gap-2.5 sm:pt-1">
+              <Link
+                href={ayahHref}
+                prefetch={false}
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  'inline-flex min-h-7 items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums transition-colors',
+                  isActiveVerse
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'bg-surface-2 text-ink-2 hover:bg-[var(--accent)]/15 hover:text-[var(--accent)]',
                 )}
-              </div>
-
-              <div
-                className="relative flex shrink-0 items-center gap-1 text-ink-faint sm:opacity-60 sm:transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
-                role="toolbar"
-                aria-label={`Actions for verse ${ayah.number}`}
               >
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  aria-label={copied ? 'Copied!' : 'Copy verse'}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors"
-                  title="Copy verse"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5 text-brand" /> : <Copy className="h-3.5 w-3.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  aria-label="Share verse"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors"
-                  title="Share verse"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNoteOpen(true)}
-                  aria-label="Add verse note"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors"
-                  title="Add note"
-                >
-                  <SquarePen className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMoreOpen((value) => !value)}
-                  aria-label="More verse options"
-                  aria-expanded={moreOpen}
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-surface-3 hover:text-ink-2 transition-colors',
-                    moreOpen && 'bg-surface-3 text-ink-2',
-                  )}
-                  title="More options"
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </button>
-                <VerseMoreMenu
-                  open={moreOpen}
-                  onOpenChange={setMoreOpen}
-                  onAction={(action) => void handleMoreAction(action)}
-                  wordByWordEnabled={showWordByWord}
-                  pinned={versePinned}
-                />
-              </div>
+                {surahNumber}:{ayah.number}
+              </Link>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveVerse(versePayload);
+                  void handlePlay();
+                }}
+                aria-label={isCurrent && isPlaying ? 'Pause verse' : `Play verse ${ayah.number}`}
+                aria-pressed={isCurrent}
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-full border transition-colors sm:h-9 sm:w-9',
+                  isCurrent && isPlaying
+                    ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                    : 'border-line bg-surface text-ink-2 hover:border-[var(--accent)] hover:text-[var(--accent)]',
+                )}
+                title={isCurrent && isPlaying ? 'Pause verse' : 'Play verse'}
+              >
+                {isCurrent && isPlaying ? (
+                  <Pause className="h-3.5 w-3.5 fill-current" />
+                ) : (
+                  <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                )}
+              </button>
             </div>
 
-            {isCurrent && (
-              <div
-                className="mt-3.5 h-0.5 overflow-hidden bg-surface-3"
-                role="progressbar"
-                aria-label={`Playback progress for ayah ${ayah.number}`}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(verseProgress)}
-              >
+            <div className="min-w-0 flex-1">
+              {isCurrent && (
                 <div
-                  className="h-full bg-emerald-700 transition-[width] duration-200 ease-linear"
-                  style={{ width: `${verseProgress}%` }}
-                />
+                  className="mb-3 h-0.5 overflow-hidden rounded-full bg-surface-3"
+                  role="progressbar"
+                  aria-label={`Playback progress for ayah ${ayah.number}`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(verseProgress)}
+                >
+                  <div
+                    className="h-full bg-[var(--accent)] transition-[width] duration-200 ease-linear"
+                    style={{ width: `${verseProgress}%` }}
+                  />
+                </div>
+              )}
+
+              <div className="flex w-full items-center justify-end overflow-visible text-right">
+                {arabicTextNode}
               </div>
-            )}
 
-            <div className="mt-2 flex w-full items-center justify-end overflow-visible text-right sm:mt-3.5">
-              {arabicTextNode}
-            </div>
+              {showTranslation && (
+                <div className="mt-4 w-full">
+                  {translationBody}
+                </div>
+              )}
 
-            {showTranslation && (
-              <div className="mt-4 w-full">
-                {translationBody}
-              </div>
-            )}
+              {isActiveVerse && (
+                <div
+                  className="mt-4 border-t border-line-subtle pt-3"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Desktop active action bar */}
+                  <div className="hidden flex-wrap items-center gap-2 sm:flex">
+                    <button
+                      type="button"
+                      onClick={() => openStudy(versePayload, 'tafsir')}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-white transition hover:opacity-90"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>Study</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBookmark}
+                      aria-pressed={bookmarked}
+                      className={cn(
+                        'inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition',
+                        bookmarked
+                          ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                          : 'border-line bg-surface text-ink-2 hover:border-[var(--accent)]',
+                      )}
+                    >
+                      {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+                      <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNoteOpen(true)}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
+                    >
+                      <SquarePen className="h-3.5 w-3.5" />
+                      <span>Note</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
+                    >
+                      {copied ? <Check className="h-3.5 w-3.5 text-[var(--accent)]" /> : <Copy className="h-3.5 w-3.5" />}
+                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      <span>Share</span>
+                    </button>
+                  </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 pb-1 text-xs text-ink-faint sm:mt-8 sm:gap-3 sm:text-sm">
-              <button
-                type="button"
-                onClick={() => setTafsirStudyOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
-              >
-                <BookOpen className="h-3.5 w-3.5" /> Tafsirs
-              </button>
-              <span className="h-3.5 w-px shrink-0 bg-line" />
-              <button
-                type="button"
-                onClick={() => setLessonsStudyOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
-              >
-                <GraduationCap className="h-3.5 w-3.5" /> Lessons
-              </button>
-              <span className="h-3.5 w-px shrink-0 bg-line" />
-              <button
-                type="button"
-                onClick={() => setResourceOpen('reflections')}
-                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
-              >
-                <MessageCircle className="h-3.5 w-3.5" /> Reflections
-              </button>
-              <span className="h-3.5 w-px shrink-0 bg-line" />
-              <button
-                type="button"
-                onClick={() => setHadithOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
-              >
-                <BookMarked className="h-3.5 w-3.5" /> Hadith
-              </button>
-              <span className="h-3.5 w-px shrink-0 bg-line" />
-              <button
-                type="button"
-                onClick={() => setRelatedContentOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1.5 font-medium text-ink-faint hover:text-brand hover:bg-brand/[0.06] rounded px-2 py-1 transition-colors"
-              >
-                <PanelsTopLeft className="h-3.5 w-3.5" /> Related content
-              </button>
-              {(ayah.juz || ayah.page) && (
-                <span className="ml-auto hidden shrink-0 text-xs text-ink-faint lg:inline">
-                  {ayah.juz ? `Juz ${ayah.juz}` : ''}
-                  {ayah.juz && ayah.page ? ' · ' : ''}
-                  {ayah.page ? `Page ${ayah.page}` : ''}
-                </span>
+                  {/* Mobile active 4-button grid: Study, Save, Note, More */}
+                  <div className="relative grid grid-cols-4 gap-2 sm:hidden">
+                    <button
+                      type="button"
+                      onClick={() => openStudy(versePayload, 'tafsir')}
+                      className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2 text-xs font-semibold text-white"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>Study</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBookmark}
+                      aria-pressed={bookmarked}
+                      className={cn(
+                        'flex min-h-11 items-center justify-center gap-1 rounded-xl border px-2 text-xs font-semibold',
+                        bookmarked
+                          ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                          : 'border-line bg-surface text-ink-2',
+                      )}
+                    >
+                      {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+                      <span>Save</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNoteOpen(true)}
+                      className="flex min-h-11 items-center justify-center gap-1 rounded-xl border border-line bg-surface px-2 text-xs font-semibold text-ink-2"
+                    >
+                      <SquarePen className="h-3.5 w-3.5" />
+                      <span>Note</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMoreOpen((v) => !v)}
+                      aria-expanded={moreOpen}
+                      className="flex min-h-11 items-center justify-center gap-1 rounded-xl border border-line bg-surface px-2 text-xs font-semibold text-ink-2"
+                    >
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                      <span>More</span>
+                    </button>
+                    <VerseMoreMenu
+                      open={moreOpen}
+                      onOpenChange={setMoreOpen}
+                      onAction={(action) => void handleMoreAction(action)}
+                      wordByWordEnabled={showWordByWord}
+                      pinned={versePinned}
+                    />
+                  </div>
+                </div>
               )}
             </div>
           </div>

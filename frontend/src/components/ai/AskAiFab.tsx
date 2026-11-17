@@ -53,7 +53,7 @@ export function AskAiFab() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  if (onAdmin) return null;
+  if (onAdmin || (onReader && hasPlaylist)) return null;
 
   return (
     <>
@@ -65,10 +65,7 @@ export function AskAiFab() {
           trackAskAiOpen(onReader ? 'reader_fab' : 'global_fab');
         }}
         className={cn(
-          'fixed right-4 z-[55] flex items-center rounded-full transition active:scale-95 sm:right-6',
-          onReader
-            ? 'h-11 w-11 justify-center border border-line bg-surface text-ink-2 shadow-sm hover:border-line-strong hover:bg-surface-2'
-            : 'h-12 w-12 justify-center bg-emerald-800 text-sm font-bold text-white shadow-lg hover:bg-emerald-900 sm:h-14 sm:w-auto sm:gap-2 sm:px-4',
+          'fixed right-4 z-[55] flex h-11 items-center justify-center gap-2 rounded-full bg-emerald-800 px-4 text-sm font-bold text-white shadow-lg transition hover:bg-emerald-900 active:scale-95 sm:right-6 sm:h-12 sm:px-4',
           hasPlaylist
             ? 'bottom-[calc(var(--audio-bar-height,0px)+0.75rem)]'
             : 'bottom-[max(1.25rem,env(safe-area-inset-bottom,0px)+0.75rem)] sm:bottom-8',
@@ -79,12 +76,8 @@ export function AskAiFab() {
         aria-hidden={open}
         tabIndex={open ? -1 : 0}
       >
-        <span className={cn('flex items-center justify-center', onReader ? '' : 'h-8 w-8 rounded-full bg-white/15')}>
-          <MessageCircle className="h-4 w-4" />
-        </span>
-        {!onReader && (
-          <span className="hidden sm:inline">{t('askAi')}</span>
-        )}
+        <MessageCircle className="h-4 w-4 shrink-0" />
+        <span>{t('askAi')}</span>
       </button>
       {loaded && <AskAiSheet open={open} onOpenChange={setOpen} />}
     </>

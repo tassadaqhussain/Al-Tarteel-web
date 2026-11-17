@@ -1,90 +1,85 @@
 import Link from 'next/link';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { getFeaturedLearningPlans } from '@/lib/learning-plans';
-import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
-import { Msg } from '@/components/i18n/Msg';
+import { getSurahArabicName } from '@/lib/surah-meta';
 import { PageSection } from '@/components/layout/MainContainer';
 
+const BAND_COLORS = ['#065F46', '#1E3A5F', '#6B4423'];
+
 export function FeaturedLearningPlans() {
-  const plans = getFeaturedLearningPlans(6);
+  const plans = getFeaturedLearningPlans(3);
 
   return (
     <PageSection id="learning-plans">
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex items-baseline justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">
-            <Msg k="featuredPlans" />
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm text-ink-muted">
-            <Msg k="featuredPlansBody" />
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#8A5E14] dark:text-amber-300">
+            Structured study
           </p>
+          <h2 className="mt-1 font-serif text-[26px] font-bold tracking-tight text-ink">
+            Learning plans
+          </h2>
         </div>
         <Link
           href="/learning-plans"
-          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
+          className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-[var(--accent)] hover:underline"
         >
-          <Msg k="viewAllPlans" />
+          <span>View all plans</span>
           <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {plans.map((plan) => {
-          const surah = plan.surahNumber ? getSurahMeta(plan.surahNumber) : null;
-          const arabic = plan.surahNumber ? getSurahArabicName(plan.surahNumber) : null;
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {plans.map((plan, idx) => {
+          const arabic = plan.surahNumber ? getSurahArabicName(plan.surahNumber) : 'القرآن';
+          const bg = BAND_COLORS[idx % BAND_COLORS.length];
 
           return (
-            <article
+            <Link
               key={plan.slug}
-              className="group flex flex-col justify-between rounded-xl border border-line bg-surface p-5 transition hover:border-[var(--accent)]/60"
+              href={`/learning-plans/${plan.slug}`}
+              className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:border-[var(--accent)]"
             >
-              <Link href={`/learning-plans/${plan.slug}`} className="flex flex-1 flex-col">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-medium text-ink-muted">
-                    {surah ? `Surah ${surah.nameSimple} · ` : ''}
-                    <Msg k="nDays" vars={{ n: plan.days }} />
-                  </span>
-                  {arabic && (
-                    <span
-                      className="font-arabic text-xl leading-none text-ink"
-                      dir="rtl"
-                      lang="ar"
-                    >
-                      {arabic}
-                    </span>
-                  )}
-                </div>
+              <div
+                className="relative flex h-32 items-center justify-center overflow-hidden px-5"
+                style={{ backgroundColor: bg }}
+              >
+                <svg
+                  viewBox="0 0 200 120"
+                  className="pointer-events-none absolute inset-0 h-full w-full text-white/35"
+                  fill="none"
+                  aria-hidden
+                >
+                  <circle cx="100" cy="60" r="46" stroke="currentColor" strokeWidth="1" />
+                  <rect
+                    x="68"
+                    y="28"
+                    width="64"
+                    height="64"
+                    transform="rotate(45 100 60)"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                  />
+                  <rect x="68" y="28" width="64" height="64" stroke="currentColor" strokeWidth="1" />
+                </svg>
+                <span
+                  className="relative font-arabic text-4xl font-bold text-white"
+                  dir="rtl"
+                  lang="ar"
+                >
+                  {arabic}
+                </span>
+              </div>
 
-                <h3 className="mt-2.5 text-base font-bold leading-snug text-ink group-hover:text-[var(--accent)]">
+              <div className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  {plan.days}-day plan
+                </p>
+                <h3 className="mt-1.5 font-serif text-lg font-bold leading-snug text-ink group-hover:text-[var(--accent)]">
                   {plan.title}
                 </h3>
-
-                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-ink-3">
-                  {plan.summary}
-                </p>
-              </Link>
-
-              <div className="mt-4 flex items-center justify-between border-t border-line-subtle pt-3 text-xs">
-                {surah ? (
-                  <Link
-                    href={getSurahPath(plan.surahNumber!)}
-                    className="inline-flex items-center gap-1.5 font-medium text-ink-muted transition hover:text-[var(--accent)]"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" aria-hidden />
-                    <Msg k="readSurahName" vars={{ name: surah.nameSimple }} />
-                  </Link>
-                ) : (
-                  <span />
-                )}
-                <Link
-                  href={`/learning-plans/${plan.slug}`}
-                  className="inline-flex items-center gap-1 font-semibold text-[var(--accent)]"
-                >
-                  <span>Start plan</span>
-                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" aria-hidden />
-                </Link>
               </div>
-            </article>
+            </Link>
           );
         })}
       </div>
