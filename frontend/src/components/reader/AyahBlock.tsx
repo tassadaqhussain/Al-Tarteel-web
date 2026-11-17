@@ -45,6 +45,8 @@ import { ReaderSettingsSheet } from './ReaderSettingsSheet';
 import { loadReaderWords, type ReaderWord } from '@/lib/word-data';
 import { cn } from '@/lib/utils';
 import { getAyahPath, getSurahPath } from '@/lib/surah-meta';
+import { useT } from '@/lib/i18n';
+import { WordPopover } from './WordPopover';
 import { localePath, type ContentLocale } from '@/lib/i18n/content-locales';
 import { toArabicNumber } from '@/lib/arabic-number';
 import {
@@ -97,6 +99,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
     }).catch(() => { /* Keep the original Quran text if the source is unavailable. */ });
     return () => { cancelled = true; };
   }, [initialAyah.words, initialAyah.number, surahNumber, wordByWordLocale, wordDataKey]);
+  const { t } = useT();
   const showTranslation = useSettingsStore((s) => s.showTranslation);
   const readerViewMode = useSettingsStore((s) => s.readerViewMode);
   const { add: addBookmark, remove: removeBookmark, isBookmarked, get: getBookmark, updateNote } = useBookmarksStore();
@@ -143,16 +146,50 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
     warmSpeechVoices();
   }, []);
 
-  useEffect(() => {
-    if (selectedWordPosition == null) return;
-    const onPointerDown = (event: MouseEvent) => {
-      if (!wordsContainerRef.current?.contains(event.target as Node)) {
-        setSelectedWordPosition(null);
+  const [hoverWordPosition, setHoverWordPosition] = useState<number | null>(null);
+  const hoverOpenTimerRef = useRef<number | null>(null);
+  const hoverCloseTimerRef = useRef<number | null>(null);
+  const popoverOwnerId = ayah.id;
+
+  const clearHoverTimers = useCallback(() => {
+    if (hoverOpenTimerRef.current) window.clearTimeout(hoverOpenTimerRef.current);
+    if (hoverCloseTimerRef.current) window.clearTimeout(hoverCloseTimerRef.current);
+    hoverOpenTimerRef.current = null;
+    hoverCloseTimerRef.current = null;
+  }, []);
+
+  const closeWordPopover = useCallback(
+    (refocus: boolean) => {
+      clearHoverTimers();
+      if (wordTooltipTimerRef.current) window.clearTimeout(wordTooltipTimerRef.current);
+      const position = selectedWordPosition ?? hoverWordPosition;
+      setSelectedWordPosition(null);
+      setHoverWordPosition(null);
+      if (refocus && position != null) {
+        wordsContainerRef.current
+          ?.querySelector<HTMLElement>(`[data-word-position="${position}"]`)
+          ?.focus();
       }
+    },
+    [clearHoverTimers, hoverWordPosition, selectedWordPosition],
+  );
+
+  // Only one word popup open at a time, across all verses.
+  useEffect(() => {
+    const onOtherOpen = (event: Event) => {
+      if ((event as CustomEvent<number>).detail === popoverOwnerId) return;
+      clearHoverTimers();
+      setSelectedWordPosition(null);
+      setHoverWordPosition(null);
     };
-    document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [selectedWordPosition]);
+    window.addEventListener('wbw-popover-open', onOtherOpen);
+    return () => window.removeEventListener('wbw-popover-open', onOtherOpen);
+  }, [clearHoverTimers, popoverOwnerId]);
+
+  useEffect(() => {
+    if (selectedWordPosition == null && hoverWordPosition == null) return;
+    window.dispatchEvent(new CustomEvent('wbw-popover-open', { detail: popoverOwnerId }));
+  }, [selectedWordPosition, hoverWordPosition, popoverOwnerId]);
 
   // ── Playback ─────────────────────────────────────────────────────────────
   const handlePlay = useCallback(async () => {
@@ -572,6 +609,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
     >
       {ayah.words.map((word) => {
         const isSelected = selectedWordPosition === word.position;
+        const isHovered = hoverWordPosition === word.position;
         const isPlayingWord = playingWordPosition === word.position;
         const availableLocales = WORD_BY_WORD_LOCALES.filter(
           (locale) => Boolean(word.translations?.[locale.code]),
@@ -596,7 +634,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
           word.transliteration;
         const showClickPopover =
           readerViewMode !== 'translation' &&
-          isSelected &&
+          (isSelected || isHovered) &&
           (meaning || word.transliteration || availableLocales.length > 0 || wordClickPlayAudio || wordClickSpeakMeaning);
 
         return (
@@ -605,6 +643,16 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
             role="button"
             tabIndex={0}
             data-word-position={word.position}
+            onMouseEnter={(event) => {
+              if (!window.matchMedia('(hover: hover)').matches || event.buttons) return;
+              if (hoverCloseTimerRef.current) window.clearTimeout(hoverCloseTimerRef.current);
+              if (isSelected || isHovered) return;
+              hoverOpenTimerRef.current = window.setTimeout(() => setHoverWordPosition(word.position), 350);
+            }}
+            onMouseLeave={() => {
+              if (hoverOpenTimerRef.current) window.clearTimeout(hoverOpenTimerRef.current);
+              hoverCloseTimerRef.current = window.setTimeout(() => setHoverWordPosition(null), 200);
+            }}
             data-playing-word={isPlayingWord ? 'true' : undefined}
             onClick={(event) => {
               event.stopPropagation();
@@ -632,6 +680,8 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
             )}
             aria-label={`Word ${word.position}${meaning ? `: ${meaning}` : ''}`}
             aria-pressed={isSelected || isPlayingWord}
+            aria-expanded={showClickPopover ? true : false}
+            aria-describedby={showClickPopover ? `wbw-${ayah.id}-${word.position}` : undefined}
             aria-current={isPlayingWord ? 'true' : undefined}
           >
             <span className={cn('font-arabic leading-loose', fontSizeClass)}>
@@ -664,11 +714,17 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
               </span>
             )}
             {showClickPopover && (
-              <span
-                role="tooltip"
-                className="absolute bottom-full left-1/2 z-30 mb-2 flex w-max max-w-[16rem] -translate-x-1/2 flex-col items-stretch gap-1.5 rounded-xl bg-tooltip px-2.5 py-2 text-left text-[11px] font-medium text-tooltip-ink shadow-lg"
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
+              <WordPopover
+                id={`wbw-${ayah.id}-${word.position}`}
+                onClose={closeWordPopover}
+                onPointerEnter={() => {
+                  if (hoverCloseTimerRef.current) window.clearTimeout(hoverCloseTimerRef.current);
+                }}
+                onPointerLeave={() => {
+                  if (!isSelected) {
+                    hoverCloseTimerRef.current = window.setTimeout(() => setHoverWordPosition(null), 200);
+                  }
+                }}
               >
                 {(wordClickPlayAudio || wordClickSpeakMeaning) && (
                   <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[10px] font-normal text-tooltip-ink/70">
@@ -733,7 +789,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                     })}
                   </span>
                 )}
-              </span>
+              </WordPopover>
             )}
           </div>
         );
@@ -966,7 +1022,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-[var(--accent-contrast)] transition hover:opacity-90"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>Study</span>
+                      <span>{t('actStudy')}</span>
                     </button>
                     <button
                       type="button"
@@ -980,7 +1036,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       )}
                     >
                       {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-                      <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+                      <span>{bookmarked ? t('actBookmarked') : t('actBookmark')}</span>
                     </button>
                     <button
                       type="button"
@@ -988,7 +1044,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
                     >
                       <SquarePen className="h-3.5 w-3.5" />
-                      <span>Note</span>
+                      <span>{t('actNote')}</span>
                     </button>
                     <button
                       type="button"
@@ -996,7 +1052,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
                     >
                       {copied ? <Check className="h-3.5 w-3.5 text-[var(--accent)]" /> : <Copy className="h-3.5 w-3.5" />}
-                      <span>{copied ? 'Copied' : 'Copy'}</span>
+                      <span>{copied ? t('actCopied') : t('actCopy')}</span>
                     </button>
                     <button
                       type="button"
@@ -1004,7 +1060,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-[var(--accent)]"
                     >
                       <Share2 className="h-3.5 w-3.5" />
-                      <span>Share</span>
+                      <span>{t('actShare')}</span>
                     </button>
                   </div>
 
@@ -1016,7 +1072,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2 text-xs font-semibold text-[var(--accent-contrast)]"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>Study</span>
+                      <span>{t('actStudy')}</span>
                     </button>
                     <button
                       type="button"
@@ -1030,7 +1086,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       )}
                     >
                       {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-                      <span>Save</span>
+                      <span>{t('actSave')}</span>
                     </button>
                     <button
                       type="button"
@@ -1038,7 +1094,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="flex min-h-11 items-center justify-center gap-1 rounded-xl border border-line bg-surface px-2 text-xs font-semibold text-ink-2"
                     >
                       <SquarePen className="h-3.5 w-3.5" />
-                      <span>Note</span>
+                      <span>{t('actNote')}</span>
                     </button>
                     <button
                       type="button"
@@ -1047,7 +1103,7 @@ export function AyahBlock({ ayah: initialAyah, surahNumber, surahName = '', loca
                       className="flex min-h-11 items-center justify-center gap-1 rounded-xl border border-line bg-surface px-2 text-xs font-semibold text-ink-2"
                     >
                       <MoreHorizontal className="h-3.5 w-3.5" />
-                      <span>More</span>
+                      <span>{t('actMore')}</span>
                     </button>
                     <VerseMoreMenu
                       open={moreOpen}

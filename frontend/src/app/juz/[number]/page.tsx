@@ -169,7 +169,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
                   <ReaderBismillah />
                 )}
 
-                <div className="space-y-3 sm:space-y-0 sm:overflow-hidden sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:divide-y sm:divide-line">
+                <div className="space-y-3 sm:space-y-0 sm:[&>*:first-child]:rounded-t-2xl sm:[&>*:last-child]:rounded-b-2xl sm:rounded-2xl sm:border sm:border-line sm:bg-surface sm:divide-y sm:divide-line">
                   {group.ayahs.map((ayah) => (
                     <AyahBlock
                       key={ayah.id}

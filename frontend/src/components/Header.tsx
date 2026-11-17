@@ -265,7 +265,7 @@ export function Header() {
                 aria-haspopup="dialog"
               >
                 <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
-                <span className="hidden text-xs font-semibold sm:inline">Display</span>
+                <span className="hidden text-xs font-semibold sm:inline">{t('actDisplay')}</span>
               </button>
               {ageOpen && (
                 <div

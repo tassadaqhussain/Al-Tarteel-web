@@ -155,10 +155,30 @@ export type MessageKey =
   | 'thisWeeksReadings'
   | 'verseN'
   | 'learnMore'
+  | 'actStudy'
+  | 'actBookmark'
+  | 'actBookmarked'
+  | 'actSave'
+  | 'actNote'
+  | 'actCopy'
+  | 'actCopied'
+  | 'actShare'
+  | 'actDisplay'
+  | 'actMore'
 
 export type Messages = Record<MessageKey, string>;
 
 const en: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Sign in',
   createAccount: 'Create account',
   logOut: 'Log out',
@@ -315,6 +335,16 @@ const en: Messages = {
 };
 
 const ar: Messages = {
+  actStudy: 'دراسة',
+  actBookmark: 'علامة',
+  actBookmarked: 'تمت العلامة',
+  actSave: 'حفظ',
+  actNote: 'ملاحظة',
+  actCopy: 'نسخ',
+  actCopied: 'تم النسخ',
+  actShare: 'مشاركة',
+  actDisplay: 'العرض',
+  actMore: 'المزيد',
   signIn: 'تسجيل الدخول',
   createAccount: 'إنشاء حساب',
   logOut: 'تسجيل الخروج',
@@ -471,6 +501,16 @@ const ar: Messages = {
 };
 
 const bn: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'সাইন ইন',
   createAccount: 'অ্যাকাউন্ট তৈরি',
   logOut: 'লগ আউট',
@@ -627,6 +667,16 @@ const bn: Messages = {
 };
 
 const es: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Iniciar sesión',
   createAccount: 'Crear cuenta',
   logOut: 'Cerrar sesión',
@@ -783,6 +833,16 @@ const es: Messages = {
 };
 
 const fa: Messages = {
+  actStudy: 'مطالعه',
+  actBookmark: 'نشان‌گذاری',
+  actBookmarked: 'نشان‌شده',
+  actSave: 'ذخیره',
+  actNote: 'یادداشت',
+  actCopy: 'کپی',
+  actCopied: 'کپی شد',
+  actShare: 'اشتراک‌گذاری',
+  actDisplay: 'نمایش',
+  actMore: 'بیشتر',
   signIn: 'ورود',
   createAccount: 'ایجاد حساب',
   logOut: 'خروج',
@@ -939,6 +999,16 @@ const fa: Messages = {
 };
 
 const fr: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Connexion',
   createAccount: 'Créer un compte',
   logOut: 'Se déconnecter',
@@ -1095,6 +1165,16 @@ const fr: Messages = {
 };
 
 const hi: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'साइन इन',
   createAccount: 'खाता बनाएँ',
   logOut: 'लॉग आउट',
@@ -1251,6 +1331,16 @@ const hi: Messages = {
 };
 
 const id: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Masuk',
   createAccount: 'Buat akun',
   logOut: 'Keluar',
@@ -1407,6 +1497,16 @@ const id: Messages = {
 };
 
 const it: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Accedi',
   createAccount: 'Crea account',
   logOut: 'Esci',
@@ -1563,6 +1663,16 @@ const it: Messages = {
 };
 
 const ms: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Log masuk',
   createAccount: 'Buat akaun',
   logOut: 'Log keluar',
@@ -1719,6 +1829,16 @@ const ms: Messages = {
 };
 
 const nl: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Inloggen',
   createAccount: 'Account aanmaken',
   logOut: 'Uitloggen',
@@ -1875,6 +1995,16 @@ const nl: Messages = {
 };
 
 const ps: Messages = {
+  actStudy: 'مطالعه',
+  actBookmark: 'نښه',
+  actBookmarked: 'نښه شوی',
+  actSave: 'خوندي کړئ',
+  actNote: 'یادښت',
+  actCopy: 'کاپي',
+  actCopied: 'کاپي شو',
+  actShare: 'ونډه کول',
+  actDisplay: 'ښودنه',
+  actMore: 'نور',
   signIn: 'ننوتل',
   createAccount: 'حساب جوړول',
   logOut: 'وتل',
@@ -2031,6 +2161,16 @@ const ps: Messages = {
 };
 
 const pt: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Entrar',
   createAccount: 'Criar conta',
   logOut: 'Sair',
@@ -2187,6 +2327,16 @@ const pt: Messages = {
 };
 
 const ru: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Войти',
   createAccount: 'Создать аккаунт',
   logOut: 'Выйти',
@@ -2343,6 +2493,16 @@ const ru: Messages = {
 };
 
 const sq: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Hyr',
   createAccount: 'Krijo llogari',
   logOut: 'Dil',
@@ -2499,6 +2659,16 @@ const sq: Messages = {
 };
 
 const sw: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Ingia',
   createAccount: 'Fungua akaunti',
   logOut: 'Toka',
@@ -2655,6 +2825,16 @@ const sw: Messages = {
 };
 
 const th: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'เข้าสู่ระบบ',
   createAccount: 'สร้างบัญชี',
   logOut: 'ออกจากระบบ',
@@ -2811,6 +2991,16 @@ const th: Messages = {
 };
 
 const tr: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Giriş yap',
   createAccount: 'Hesap oluştur',
   logOut: 'Çıkış yap',
@@ -2967,6 +3157,16 @@ const tr: Messages = {
 };
 
 const ur: Messages = {
+  actStudy: 'مطالعہ',
+  actBookmark: 'بک مارک',
+  actBookmarked: 'بک مارک شدہ',
+  actSave: 'محفوظ کریں',
+  actNote: 'نوٹ',
+  actCopy: 'کاپی',
+  actCopied: 'کاپی ہو گیا',
+  actShare: 'شیئر',
+  actDisplay: 'ڈسپلے',
+  actMore: 'مزید',
   signIn: 'سائن اِن',
   createAccount: 'اکاؤنٹ بنائیں',
   logOut: 'لاگ آؤٹ',
@@ -3123,6 +3323,16 @@ const ur: Messages = {
 };
 
 const vi: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: 'Đăng nhập',
   createAccount: 'Tạo tài khoản',
   logOut: 'Đăng xuất',
@@ -3279,6 +3489,16 @@ const vi: Messages = {
 };
 
 const zh: Messages = {
+  actStudy: 'Study',
+  actBookmark: 'Bookmark',
+  actBookmarked: 'Bookmarked',
+  actSave: 'Save',
+  actNote: 'Note',
+  actCopy: 'Copy',
+  actCopied: 'Copied',
+  actShare: 'Share',
+  actDisplay: 'Display',
+  actMore: 'More',
   signIn: '登录',
   createAccount: '创建账户',
   logOut: '退出登录',

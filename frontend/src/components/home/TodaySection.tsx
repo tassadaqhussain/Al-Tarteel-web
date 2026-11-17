@@ -9,6 +9,7 @@ import { cleanTranslationText } from '@/lib/clean-translation';
 import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { startSurahPlayback } from '@/lib/audio/playback';
 import { useT } from '@/lib/i18n';
+import { getCuratedDailyVerse } from '@/lib/daily-motivation/curated-ayah';
 import {
   SOFT_DAILY_GOAL,
   useDailyMotivationStore,
@@ -19,26 +20,6 @@ import {
   getCurrentProgramWeek,
   weekReadingHref,
 } from '@/lib/quranic-calendar';
-
-const CURATED_DAILY_VERSES: Array<{ surah: number; ayah: number }> = [
-  { surah: 2, ayah: 255 }, // Ayat al-Kursi
-  { surah: 13, ayah: 28 }, // Hearts find rest in remembrance of Allah
-  { surah: 94, ayah: 5 },  // With hardship comes ease
-  { surah: 2, ayah: 286 }, // Allah does not burden a soul beyond its capacity
-  { surah: 39, ayah: 53 }, // Do not despair of the mercy of Allah
-  { surah: 65, ayah: 3 },  // Whoever relies upon Allah, He is sufficient
-  { surah: 16, ayah: 90 }, // Justice and excellence
-  { surah: 3, ayah: 139 }, // Do not weaken and do not grieve
-  { surah: 24, ayah: 35 }, // Light upon light
-  { surah: 55, ayah: 13 }, // Which of the favors of your Lord would you deny
-];
-
-function getCuratedDailyVerse() {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86_400_000);
-  return CURATED_DAILY_VERSES[dayOfYear % CURATED_DAILY_VERSES.length];
-}
 
 export function TodaySection() {
   const { t } = useT();
