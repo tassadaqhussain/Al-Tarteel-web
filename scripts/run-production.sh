@@ -15,7 +15,9 @@
 #   --pull               git fetch + reset --hard to origin before building
 #   --no-build           start existing images only
 #   --import-content     after API is up, import translations/tafsir/study
-#   --import-audio       also mirror recitation audio onto this host
+#   --import-audio       mirror spoken-translation audio (EN/UR/FA + Pashto)
+#   --full-audio-import  with --import-audio: also Arabic reciters + WBW
+#   --skip-audio-import  do not auto-mirror audio when marker is missing
 #   -y, --yes            non-interactive
 #   -h, --help
 #
@@ -30,6 +32,8 @@ DO_PULL=0
 NO_BUILD=0
 IMPORT_CONTENT=0
 IMPORT_AUDIO=0
+FULL_AUDIO_IMPORT=0
+SKIP_AUDIO_IMPORT=0
 
 log()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m✓\033[0m %s\n' "$*"; }
@@ -37,7 +41,7 @@ warn() { printf '\033[1;33m!\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
 
 usage() {
-  sed -n '2,22p' "$0"
+  sed -n '2,24p' "$0"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -46,7 +50,9 @@ while [[ $# -gt 0 ]]; do
     --pull) DO_PULL=1; shift ;;
     --no-build) NO_BUILD=1; shift ;;
     --import-content) IMPORT_CONTENT=1; shift ;;
-    --import-audio) IMPORT_AUDIO=1; IMPORT_CONTENT=1; shift ;;
+    --import-audio) IMPORT_AUDIO=1; shift ;;
+    --full-audio-import) FULL_AUDIO_IMPORT=1; IMPORT_AUDIO=1; shift ;;
+    --skip-audio-import) SKIP_AUDIO_IMPORT=1; shift ;;
     -y|--yes) ASSUME_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
@@ -88,6 +94,13 @@ if [[ "${ASSUME_YES}" != "1" ]]; then
   echo "  Pull:     $([[ "${DO_PULL}" == "1" ]] && echo yes || echo no)"
   echo "  Build:    $([[ "${NO_BUILD}" == "1" ]] && echo skip || echo api then web)"
   echo "  Content:  $([[ "${IMPORT_CONTENT}" == "1" ]] && echo import || echo skip)"
+  if [[ "${SKIP_AUDIO_IMPORT}" == "1" ]]; then
+    echo "  Audio:    skip (--skip-audio-import)"
+  elif [[ "${IMPORT_AUDIO}" == "1" || ! -f "${REPO_ROOT}/deploy/.audio-imported" ]]; then
+    echo "  Audio:    $([[ "${FULL_AUDIO_IMPORT}" == "1" ]] && echo full mirror || echo translations + Pashto)"
+  else
+    echo "  Audio:    skip (already mirrored)"
+  fi
   echo
   read -r -p "Start production stack? [y/N] " reply
   [[ "${reply}" =~ ^[Yy]$ ]] || die "Aborted"
@@ -170,10 +183,31 @@ bash "${APP_DIR}/scripts/import-indopak.sh" || warn "IndoPak import failed (Uthm
 
 if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   log "Import translations, tafsir, and study content"
-  CONTENT_ARGS=(--no-audio)
-  [[ "${IMPORT_AUDIO}" == "1" ]] && CONTENT_ARGS=()
-  bash "${APP_DIR}/scripts/import-all-content.sh" "${CONTENT_ARGS[@]}"
+  bash "${APP_DIR}/scripts/import-all-content.sh" --no-audio
   "${COMPOSE[@]}" restart api
+fi
+
+AUDIO_MARKER="${APP_DIR}/deploy/.audio-imported"
+# First deploy (no marker) or explicit --import-audio mirrors spoken translations.
+if [[ "${SKIP_AUDIO_IMPORT}" == "1" ]]; then
+  warn "Skipping audio mirror (--skip-audio-import)"
+elif [[ "${IMPORT_AUDIO}" == "1" || ! -f "${AUDIO_MARKER}" ]]; then
+  mkdir -p "${APP_DIR}/backend/storage/audio"
+  if [[ "${FULL_AUDIO_IMPORT}" == "1" ]]; then
+    log "Mirror full audio set (Arabic + translations + WBW)"
+    AUDIO_IMPORT_ARGS=(--audio-only)
+  else
+    log "Mirror spoken-translation audio (EN/UR/FA + Pashto)"
+    AUDIO_IMPORT_ARGS=(--audio-only --translations-only)
+  fi
+  if API_PORT="${API_PORT}" bash "${APP_DIR}/scripts/import-all-content.sh" "${AUDIO_IMPORT_ARGS[@]}"; then
+    mkdir -p "$(dirname "${AUDIO_MARKER}")"
+    date -u +%FT%TZ > "${AUDIO_MARKER}"
+    ok "Audio mirrored under backend/storage/audio"
+    "${COMPOSE[@]}" restart api || warn "API restart skipped"
+  else
+    warn "Audio mirror failed — retry: sudo bash scripts/run-production.sh -y --import-audio"
+  fi
 fi
 
 if [[ -f "${APP_DIR}/scripts/ensure-production-ssl.sh" ]]; then

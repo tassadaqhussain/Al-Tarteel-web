@@ -92,8 +92,8 @@ export default async function JuzPage({ params, searchParams }: Props) {
     <div className="min-h-screen flex flex-col bg-surface text-ink">
       <Header />
 
-      {/* Sub-header */}
-      <div className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
+      {/* Sticky sub-header — stays pinned while site Header scrolls away */}
+      <div className="sticky top-0 z-40 shrink-0 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/90">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-1 text-sm text-[var(--accent)] transition-colors hover:text-[var(--accent)]">
             <ChevronLeft className="h-4 w-4" />

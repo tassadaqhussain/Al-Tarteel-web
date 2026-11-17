@@ -15,6 +15,9 @@
 #   --skip-docker-install     do not attempt Docker Engine install
 #   --skip-words-import       do not download word-by-word meanings
 #   --force-words-import      re-download word-by-word meanings even if done before
+#   --skip-audio-import       do not mirror spoken-translation / recitation audio
+#   --force-audio-import      re-run audio mirror even if already done
+#   --full-audio-import       mirror all Arabic reciters + WBW (large; default is translations)
 #   -y, --yes                 non-interactive
 #
 set -euo pipefail
@@ -29,6 +32,9 @@ ASSUME_YES=0
 SKIP_DOCKER_INSTALL=0
 SKIP_WORDS_IMPORT=0
 FORCE_WORDS_IMPORT=0
+SKIP_AUDIO_IMPORT=0
+FORCE_AUDIO_IMPORT=0
+FULL_AUDIO_IMPORT=0
 
 DEFAULT_DOMAIN="quranpilot.com"
 DEFAULT_WWW_DOMAIN="www.quranpilot.com"
@@ -56,6 +62,9 @@ Options:
   --skip-docker-install   Fail if Docker is missing instead of installing
   --skip-words-import     Skip downloading word-by-word meanings
   --force-words-import    Re-download word-by-word meanings even if already done
+  --skip-audio-import     Skip mirroring translation/recitation audio
+  --force-audio-import    Re-run audio mirror even if marker exists
+  --full-audio-import     Full Arabic + translation + WBW mirror (tens of GB)
   -y, --yes               Non-interactive
   -h, --help              Show help
 EOF
@@ -69,6 +78,9 @@ while [[ $# -gt 0 ]]; do
     --skip-docker-install) SKIP_DOCKER_INSTALL=1; shift ;;
     --skip-words-import) SKIP_WORDS_IMPORT=1; shift ;;
     --force-words-import) FORCE_WORDS_IMPORT=1; shift ;;
+    --skip-audio-import) SKIP_AUDIO_IMPORT=1; shift ;;
+    --force-audio-import) FORCE_AUDIO_IMPORT=1; shift ;;
+    --full-audio-import) FULL_AUDIO_IMPORT=1; shift ;;
     -y|--yes) ASSUME_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
@@ -495,6 +507,31 @@ if [[ "${ready_api}" -eq 1 ]]; then
       warn "Word-by-word import failed — retry: sudo bash scripts/import-all-translations.sh --words-only"
     fi
   fi
+
+  # Spoken translation audio (EN/UR/FA/Pashto) into backend/storage/audio.
+  # Default is translations-only; use --full-audio-import for all Arabic + WBW.
+  AUDIO_MARKER="${REPO_ROOT}/deploy/.audio-imported"
+  mkdir -p "${REPO_ROOT}/backend/storage/audio"
+  if [[ "${SKIP_AUDIO_IMPORT}" == "1" ]]; then
+    warn "Skipping audio mirror (--skip-audio-import)"
+  elif [[ -f "${AUDIO_MARKER}" && "${FORCE_AUDIO_IMPORT}" != "1" ]]; then
+    ok "Audio already mirrored (use --force-audio-import to redo)"
+  else
+    if [[ "${FULL_AUDIO_IMPORT}" == "1" ]]; then
+      log "Mirror full audio set (Arabic reciters + translations + WBW)"
+      AUDIO_IMPORT_ARGS=(--audio-only)
+    else
+      log "Mirror spoken-translation audio (EN/UR/FA + Pashto)"
+      AUDIO_IMPORT_ARGS=(--audio-only --translations-only)
+    fi
+    if API_PORT="${API_PORT}" bash "${SCRIPT_DIR}/import-all-content.sh" "${AUDIO_IMPORT_ARGS[@]}"; then
+      date -u +%FT%TZ > "${AUDIO_MARKER}"
+      ok "Audio mirrored under backend/storage/audio"
+      "${COMPOSE[@]}" restart api || warn "API restart skipped"
+    else
+      warn "Audio mirror failed — retry: sudo bash scripts/import-all-content.sh --audio-only --translations-only"
+    fi
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -614,5 +651,6 @@ cat <<EOF
     sudo bash scripts/run-production.sh -y
     sudo bash scripts/run-production.sh -y --pull
     sudo bash scripts/run-production.sh -y --import-content
+    sudo bash scripts/run-production.sh -y --import-audio
 
 EOF

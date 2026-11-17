@@ -38,6 +38,7 @@ import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 import { loginHref, registerHref } from '@/lib/auth-redirect';
 import { useT } from '@/lib/i18n';
 import { CHROME_SHELL } from '@/components/layout/MainContainer';
+import { isQuranReaderPath } from '@/lib/reader-path';
 
 type SpeechRecognitionCtor = new () => {
   lang: string;
@@ -180,7 +181,9 @@ export function Header() {
       <header className={cn(
         'w-full border-b border-line bg-[var(--header-bg)] shadow-sm shadow-black/[0.03] backdrop-blur-xl',
         'dark:shadow-none',
-        pathname?.startsWith('/surah/') ? 'relative' : 'sticky top-0 z-50'
+        // On reader routes the surah/juz sub-bar is sticky; keep site header
+        // in normal flow so it scrolls away instead of covering that bar.
+        pathname && isQuranReaderPath(pathname) ? 'relative' : 'sticky top-0 z-50'
       )}>
         <div className={cn(CHROME_SHELL, 'flex h-16 items-center justify-between gap-3')}>
           <div className="flex min-w-0 items-center gap-5 xl:gap-7">

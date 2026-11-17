@@ -18,7 +18,7 @@ jobs:
   deploy:
     name: SSH deploy to EC2
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     permissions:
       contents: read
     steps:
@@ -34,7 +34,7 @@ jobs:
           username: ${{ secrets.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_SSH_KEY }}
           port: ${{ secrets.AWS_EC2_PORT || 22 }}
-          command_timeout: 60m
+          command_timeout: 150m
           envs: DEPLOY_BRANCH,APP_DIR,GH_REPO,GH_TOKEN
           script: |
             set -euo pipefail
@@ -64,7 +64,9 @@ jobs:
             export NEXT_PUBLIC_BUILD_DATE="${NEXT_PUBLIC_BUILD_DATE:-$SITEMAP_LASTMOD}"
             if ! command -v docker >/dev/null 2>&1; then
               echo "First install: docker/nginx missing — running deploy-production.sh"
+              # Includes spoken-translation audio mirror (EN/UR/FA + Pashto) on first run
               sudo bash "$APP_DIR/scripts/deploy-production.sh" -y --skip-ssl
             else
+              # run-production auto-mirrors translation audio when deploy/.audio-imported is missing
               sudo bash "$APP_DIR/scripts/run-production.sh" -y
             fi

@@ -17,11 +17,16 @@ cd /var/www/quranpilot
 sudo bash scripts/run-production.sh -y
 sudo bash scripts/run-production.sh -y --pull
 sudo bash scripts/run-production.sh -y --import-content
+sudo bash scripts/run-production.sh -y --import-audio
 ```
 
 `--import-content` loads translations, tafsir, Hadith, lessons, and related Q&A
-into Postgres. Add `--import-audio` to also mirror recitation files onto the host
-(`backend/storage/audio`).
+into Postgres.
+
+`--import-audio` mirrors spoken-translation audio (English, Urdu, Persian, Pashto)
+into `backend/storage/audio` via `backend/scripts/download-all-audio.mjs`. The first
+successful deploy also runs this automatically and writes `deploy/.audio-imported`.
+Use `--full-audio-import` for every Arabic reciter plus word-by-word clips (large).
 
 ## Auto-deploy on AWS EC2
 
