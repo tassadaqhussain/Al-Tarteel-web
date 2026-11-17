@@ -6,13 +6,15 @@
  *   cd backend && npm run audio:download
  *   node scripts/download-all-audio.mjs --reciters=alafasy,husary
  *   node scripts/download-all-audio.mjs --translations-only
+ *   node scripts/download-all-audio.mjs --translations-only --compact
  *   node scripts/download-all-audio.mjs --wbw-only
  *   node scripts/download-all-audio.mjs --skip-wbw
  *
  * Existing files larger than 512 bytes are skipped unless --force is set.
  * Full Arabic set is ~38 reciters × 6,236 MP3s (tens of GB).
+ * Compact translations ≈ EN (~1.5 GB) + Urdu Shamshad (~0.5 GB) + Pashto.
  */
-import { createWriteStream, readFileSync } from 'node:fs';
+import { createWriteStream, readFileSync, statfsSync } from 'node:fs';
 import { mkdir, stat, rename } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
 import { dirname, join } from 'node:path';
@@ -32,7 +34,15 @@ const API = arg('api', 'http://localhost:4010/api/v1');
 const TRANSLATIONS_ONLY = process.argv.includes('--translations-only');
 const WBW_ONLY = process.argv.includes('--wbw-only');
 const SKIP_WBW = process.argv.includes('--skip-wbw');
+const SKIP_PASHTO = process.argv.includes('--skip-pashto');
 const reciterFilter = arg('reciters', '');
+/** Comma list of translation slugs. Default: all. --compact = en + smaller Urdu. */
+const translationFilter = arg(
+  'translations',
+  process.argv.includes('--compact') ? 'en-ibrahim-walk,ur-shamshad-ali-khan' : '',
+);
+/** Abort a pack when free space on the storage volume drops below this many MB. */
+const MIN_FREE_MB = Math.max(256, Number(arg('min-free-mb', '2048')));
 
 const TRANSLATION_ORIGINS = [
   {
@@ -61,6 +71,36 @@ const TRANSLATION_ORIGINS = [
     granularity: 'ayah',
   },
 ];
+
+function freeMb(dir) {
+  try {
+    const s = statfsSync(dir);
+    return Math.floor((Number(s.bavail) * Number(s.bsize)) / (1024 * 1024));
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+}
+
+function assertFreeSpace(label) {
+  const mb = freeMb(STORAGE);
+  if (mb < MIN_FREE_MB) {
+    throw new Error(
+      `Not enough free disk for ${label}: ${mb} MB available (need ≥ ${MIN_FREE_MB} MB). Free space on the host or pass --min-free-mb=512.`,
+    );
+  }
+  return mb;
+}
+
+function selectedTranslations() {
+  if (!translationFilter) return TRANSLATION_ORIGINS;
+  const wanted = new Set(
+    translationFilter
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  );
+  return TRANSLATION_ORIGINS.filter((item) => wanted.has(item.slug));
+}
 
 function parseArabicReciters() {
   const source = readFileSync(join(BACKEND, 'prisma', 'import-reciters.ts'), 'utf8');
@@ -109,24 +149,32 @@ async function downloadOne(url, dest) {
 }
 
 async function mirrorFolder(slug, origin, files) {
+  await mkdir(STORAGE, { recursive: true });
+  const free = assertFreeSpace(slug);
   const outDir = join(STORAGE, slug);
   await mkdir(outDir, { recursive: true });
-  console.log(`\n[${slug}] ${files.length} files -> ${outDir}`);
+  console.log(`\n[${slug}] ${files.length} files -> ${outDir} (${free} MB free)`);
   const queue = [...files];
   let done = 0;
   let skipped = 0;
   let bytes = 0;
   const failures = [];
 
+  let abortReason = null;
   const worker = async () => {
-    while (queue.length) {
+    while (queue.length && !abortReason) {
       const file = queue.shift();
+      if (!file || abortReason) return;
       try {
         const result = await downloadOne(`${origin}/${file}`, join(outDir, file));
         if (result.skipped) skipped += 1;
         else bytes += result.bytes;
       } catch (error) {
         failures.push(`${file}: ${error.message}`);
+        if (error.code === 'ENOSPC' || /no space left/i.test(String(error.message))) {
+          abortReason = 'ENOSPC';
+          queue.length = 0;
+        }
       }
       done += 1;
       if (done % 500 === 0) {
@@ -143,6 +191,11 @@ async function mirrorFolder(slug, origin, files) {
   );
   if (failures.length) {
     for (const failure of failures.slice(0, 8)) console.error(`   ${failure}`);
+  }
+  if (abortReason === 'ENOSPC') {
+    const err = new Error(`ENOSPC while mirroring ${slug}`);
+    err.code = 'ENOSPC';
+    throw err;
   }
   return { slug, total: files.length, failures: failures.length };
 }
@@ -215,8 +268,11 @@ async function downloadWbw(surahs) {
 
 async function main() {
   const results = [];
+  await mkdir(STORAGE, { recursive: true });
+  console.log(`Audio storage: ${STORAGE} (${assertFreeSpace('startup')} MB free, guard ${MIN_FREE_MB} MB)`);
   const surahs = await fetchSurahs();
   const ayahFiles = verseFiles(surahs);
+  const spokenList = selectedTranslations();
 
   if (!WBW_ONLY) {
     if (!TRANSLATIONS_ONLY) {
@@ -232,15 +288,28 @@ async function main() {
       }
     }
 
-    console.log(`Mirroring ${TRANSLATION_ORIGINS.length} spoken translations`);
-    for (const spoken of TRANSLATION_ORIGINS) {
-      results.push(await mirrorFolder(spoken.slug, spoken.origin.replace(/\/$/, ''), ayahFiles));
+    if (!spokenList.length) throw new Error('No spoken translations matched --translations= filter');
+    console.log(`Mirroring ${spokenList.length} spoken translations`);
+    for (const spoken of spokenList) {
+      try {
+        results.push(await mirrorFolder(spoken.slug, spoken.origin.replace(/\/$/, ''), ayahFiles));
+      } catch (error) {
+        console.error(`[${spoken.slug}] aborted: ${error.message}`);
+        results.push({ slug: spoken.slug, total: ayahFiles.length, failures: ayahFiles.length });
+        if (String(error.message).includes('Not enough free disk') || error.code === 'ENOSPC') {
+          console.error('Stopping remaining packs — free disk space, then re-run (existing files are skipped).');
+          break;
+        }
+      }
     }
-    try {
-      await runNode(join(ROOT, 'scripts', 'fetch-pashto-audio.mjs'));
-    } catch (error) {
-      console.error(`Pashto mirror failed: ${error.message}`);
-      results.push({ slug: 'ps-shafeeq-ur-rahman', total: 558, failures: 1 });
+    if (!SKIP_PASHTO) {
+      try {
+        assertFreeSpace('ps-shafeeq-ur-rahman');
+        await runNode(join(ROOT, 'scripts', 'fetch-pashto-audio.mjs'));
+      } catch (error) {
+        console.error(`Pashto mirror failed: ${error.message}`);
+        results.push({ slug: 'ps-shafeeq-ur-rahman', total: 558, failures: 1 });
+      }
     }
   }
 

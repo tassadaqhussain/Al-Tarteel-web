@@ -5,6 +5,7 @@
 #   ./scripts/import-all-content.sh --no-audio
 #   ./scripts/import-all-content.sh --audio-only
 #   ./scripts/import-all-content.sh --audio-only --translations-only
+#   ./scripts/import-all-content.sh --audio-only --translations-only --compact
 #
 set -euo pipefail
 
@@ -13,6 +14,7 @@ NO_AUDIO=0
 AUDIO_ONLY=0
 SKIP_WBW_AUDIO=0
 TRANSLATIONS_ONLY_AUDIO=0
+COMPACT_AUDIO=0
 EXTRA=()
 API_PORT="${API_PORT:-4010}"
 
@@ -22,6 +24,7 @@ for arg in "$@"; do
     --audio-only) AUDIO_ONLY=1 ;;
     --skip-wbw-audio) SKIP_WBW_AUDIO=1 ;;
     --translations-only) TRANSLATIONS_ONLY_AUDIO=1 ;;
+    --compact) COMPACT_AUDIO=1 ;;
     *) EXTRA+=("$arg") ;;
   esac
 done
@@ -87,6 +90,9 @@ if [[ "${NO_AUDIO}" -eq 0 ]]; then
     AUDIO_ARGS+=(--translations-only)
   elif [[ "${SKIP_WBW_AUDIO}" -eq 1 ]]; then
     AUDIO_ARGS+=(--skip-wbw)
+  fi
+  if [[ "${COMPACT_AUDIO}" -eq 1 ]]; then
+    AUDIO_ARGS+=(--compact)
   fi
   run_audio_mirror "${AUDIO_ARGS[@]+"${AUDIO_ARGS[@]}"}"
 fi
