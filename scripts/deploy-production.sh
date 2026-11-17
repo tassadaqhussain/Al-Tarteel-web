@@ -13,6 +13,8 @@
 #   --force-vhost             overwrite existing Nginx site
 #   --skip-ssl                HTTP only
 #   --skip-docker-install     do not attempt Docker Engine install
+#   --skip-words-import       do not download word-by-word meanings
+#   --force-words-import      re-download word-by-word meanings even if done before
 #   -y, --yes                 non-interactive
 #
 set -euo pipefail
@@ -25,6 +27,8 @@ CLI_FORCE_VHOST=0
 CLI_SKIP_SSL=0
 ASSUME_YES=0
 SKIP_DOCKER_INSTALL=0
+SKIP_WORDS_IMPORT=0
+FORCE_WORDS_IMPORT=0
 
 DEFAULT_DOMAIN="quranpilot.com"
 DEFAULT_WWW_DOMAIN="www.quranpilot.com"
@@ -50,6 +54,8 @@ Options:
   --force-vhost           Recreate Nginx site even if it exists
   --skip-ssl              Skip Certbot
   --skip-docker-install   Fail if Docker is missing instead of installing
+  --skip-words-import     Skip downloading word-by-word meanings
+  --force-words-import    Re-download word-by-word meanings even if already done
   -y, --yes               Non-interactive
   -h, --help              Show help
 EOF
@@ -61,6 +67,8 @@ while [[ $# -gt 0 ]]; do
     --force-vhost) CLI_FORCE_VHOST=1; shift ;;
     --skip-ssl) CLI_SKIP_SSL=1; shift ;;
     --skip-docker-install) SKIP_DOCKER_INSTALL=1; shift ;;
+    --skip-words-import) SKIP_WORDS_IMPORT=1; shift ;;
+    --force-words-import) FORCE_WORDS_IMPORT=1; shift ;;
     -y|--yes) ASSUME_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
@@ -469,6 +477,24 @@ if [[ "${ready_api}" -eq 1 ]]; then
   log "Download all 6236 ayahs into Postgres (skips if already complete)"
   "${COMPOSE[@]}" exec -T api npm run quran:download || warn "quran:download failed"
   "${COMPOSE[@]}" exec -T api npm run reciters:import || warn "reciters:import failed"
+
+  # Word-by-word meanings for every language the Quran.com source provides
+  # (en, ur, bn, id, tr, fa, hi). Other UI languages have no WBW source data.
+  # Idempotent upserts; a marker file avoids the long re-download on every deploy.
+  WBW_MARKER="${REPO_ROOT}/deploy/.wbw-imported"
+  if [[ "${SKIP_WORDS_IMPORT}" == "1" ]]; then
+    warn "Skipping word-by-word import (--skip-words-import)"
+  elif [[ -f "${WBW_MARKER}" && "${FORCE_WORDS_IMPORT}" != "1" ]]; then
+    ok "Word-by-word meanings already imported (use --force-words-import to redo)"
+  else
+    log "Download word-by-word meanings (en, ur, bn, id, tr, fa, hi)"
+    if bash "${SCRIPT_DIR}/import-all-translations.sh" --words-only; then
+      date -u +%FT%TZ > "${WBW_MARKER}"
+      ok "Word-by-word meanings imported"
+    else
+      warn "Word-by-word import failed — retry: sudo bash scripts/import-all-translations.sh --words-only"
+    fi
+  fi
 fi
 
 # ---------------------------------------------------------------------------

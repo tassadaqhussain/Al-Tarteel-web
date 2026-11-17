@@ -48,3 +48,6 @@ backend/prisma/*.db-journal
 backend/storage/audio/
 # Locally synthesized speech cache (regenerated on demand by services/tts)
 backend/storage/tts/
+
+# deploy-production.sh marker: word-by-word meanings already imported
+deploy/.wbw-imported
