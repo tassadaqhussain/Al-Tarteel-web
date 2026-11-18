@@ -235,14 +235,20 @@ export function OverviewDashboard() {
               System Online
             </span>
             {analyticsEnabled ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <Link
+                href="/admin/site-settings"
+                className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              >
                 <BarChart3 className="h-3 w-3 text-emerald-700 dark:text-emerald-400" aria-hidden />
                 {GA_MEASUREMENT_ID ? `GA4 · ${GA_MEASUREMENT_ID}` : `Plausible · ${PLAUSIBLE_DOMAIN}`}
-              </span>
+              </Link>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                Analytics unconfigured
-              </span>
+              <Link
+                href="/admin/site-settings"
+                className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+              >
+                Configure analytics
+              </Link>
             )}
             {stats ? (
               <span className="text-xs text-ink-3">

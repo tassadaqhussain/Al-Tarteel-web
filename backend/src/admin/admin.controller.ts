@@ -21,6 +21,7 @@ import { PublishCampaignDto, UpsertCampaignDto } from '../campaigns/dto/upsert-c
 import { SendUserEmailDto } from './dto/send-user-email.dto';
 import { UpsertMailSettingsDto } from '../mail/dto/upsert-mail-settings.dto';
 import { UpsertMailTemplateDto } from '../mail/dto/upsert-mail-template.dto';
+import { UpsertSiteSettingsDto } from '../site-settings/dto/upsert-site-settings.dto';
 import { isAdminEmail } from './admin.util';
 
 type AuthedRequest = { user?: { userId: number; email?: string | null; name?: string | null } };
@@ -180,6 +181,18 @@ export class AdminController {
   @ApiOperation({ summary: 'Save SMTP settings to the database' })
   saveMailSettings(@Body() dto: UpsertMailSettingsDto) {
     return this.admin.saveMailSettings(dto);
+  }
+
+  @Get('site-settings')
+  @ApiOperation({ summary: 'Get public SEO / analytics site settings' })
+  getSiteSettings() {
+    return this.admin.getSiteSettings();
+  }
+
+  @Patch('site-settings')
+  @ApiOperation({ summary: 'Save SEO / analytics site settings (no rebuild required)' })
+  saveSiteSettings(@Body() dto: UpsertSiteSettingsDto) {
+    return this.admin.saveSiteSettings(dto);
   }
 
   @Get('mail/templates')

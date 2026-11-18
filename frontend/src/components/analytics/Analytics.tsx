@@ -4,19 +4,21 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import {
-  ANALYTICS_PROVIDER,
-  analyticsEnabled,
+  applySiteAnalyticsConfig,
   GA_DEBUG_MODE,
-  GA_MEASUREMENT_ID,
+  getAnalyticsProvider,
+  getAnalyticsRuntime,
+  getGaMeasurementId,
+  getPlausibleDomain,
+  getPlausibleScriptSrc,
+  getUmamiScriptSrc,
+  getUmamiWebsiteId,
   IS_PRODUCTION,
-  PLAUSIBLE_DOMAIN,
-  PLAUSIBLE_SCRIPT_SRC,
-  UMAMI_SCRIPT_SRC,
-  UMAMI_WEBSITE_ID,
+  isAnalyticsEnabled,
   trackOutboundClick,
   trackPageView,
 } from '@/lib/analytics';
-import { adminApi } from '@/lib/api';
+import { adminApi, apiBase, type PublicSiteSettings } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 
 function RouteChangeTracker() {
@@ -28,11 +30,9 @@ function RouteChangeTracker() {
     const qs = searchParams?.toString();
     const fullPath = qs ? `${pathname}?${qs}` : pathname;
 
-    // Prevent duplicate page_view events for the identical URL
     if (lastTrackedPath.current === fullPath) return;
     lastTrackedPath.current = fullPath;
 
-    // Small delay allows Next.js to update document.title
     const timer = setTimeout(() => {
       trackPageView(fullPath);
     }, 50);
@@ -43,9 +43,6 @@ function RouteChangeTracker() {
   return null;
 }
 
-/**
- * Delegated outbound link click listener for automatic GA4 outbound tracking.
- */
 function OutboundClickListener() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -56,7 +53,10 @@ function OutboundClickListener() {
         const url = new URL(target.href);
         const currentHost = window.location.hostname;
         if (url.hostname && url.hostname !== currentHost) {
-          trackOutboundClick(target.href, target.textContent?.trim() || target.getAttribute('aria-label') || undefined);
+          trackOutboundClick(
+            target.href,
+            target.textContent?.trim() || target.getAttribute('aria-label') || undefined,
+          );
         }
       } catch {
         /* ignore invalid URLs */
@@ -70,11 +70,41 @@ function OutboundClickListener() {
   return null;
 }
 
+async function loadPublicSiteConfig(): Promise<PublicSiteSettings | null> {
+  try {
+    const res = await fetch(`${apiBase()}/site/config`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PublicSiteSettings;
+  } catch {
+    return null;
+  }
+}
+
 export function Analytics() {
   const pathname = usePathname();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [adminCheckState, setAdminCheckState] = useState<'idle' | 'checking' | 'admin' | 'user'>('idle');
+  const [adminCheckState, setAdminCheckState] = useState<'idle' | 'checking' | 'admin' | 'user'>(
+    'idle',
+  );
+  const [configReady, setConfigReady] = useState(false);
+  const [configTick, setConfigTick] = useState(0);
   const isAdminPath = pathname === '/admin' || pathname?.startsWith('/admin/');
+
+  useEffect(() => {
+    let cancelled = false;
+    loadPublicSiteConfig().then((cfg) => {
+      if (cancelled) return;
+      if (cfg) applySiteAnalyticsConfig(cfg);
+      setConfigReady(true);
+      setConfigTick((n) => n + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -96,51 +126,62 @@ export function Analytics() {
     };
   }, [isAuthenticated]);
 
+  // Touch runtime after configTick so Script branches re-render with live IDs.
+  void configTick;
+  const runtime = getAnalyticsRuntime();
+  const provider = getAnalyticsProvider();
+  const gaId = getGaMeasurementId();
+  const plausibleDomain = getPlausibleDomain();
+  const plausibleScript = getPlausibleScriptSrc();
+  const umamiId = getUmamiWebsiteId();
+  const umamiScript = getUmamiScriptSrc();
+  const enabled = isAnalyticsEnabled();
+
   const shouldLoad =
+    configReady &&
     IS_PRODUCTION &&
-    analyticsEnabled &&
+    enabled &&
     !isAdminPath &&
     adminCheckState !== 'admin' &&
     !(isAuthenticated && adminCheckState === 'checking');
 
   useEffect(() => {
-    if (!IS_PRODUCTION) {
+    if (!IS_PRODUCTION && configReady) {
       console.info(
-        `[Analytics] provider=${analyticsEnabled && !isAdminPath ? `${ANALYTICS_PROVIDER} (dev-skipped)` : 'disabled'}`,
+        `[Analytics] provider=${enabled && !isAdminPath ? `${provider} (dev-skipped)` : 'disabled'} source-ready`,
+        runtime,
       );
     }
-  }, [isAdminPath]);
+  }, [isAdminPath, configReady, enabled, provider, runtime]);
 
   if (!shouldLoad) return null;
 
   return (
     <>
-      {ANALYTICS_PROVIDER === 'plausible' && PLAUSIBLE_DOMAIN ? (
+      {provider === 'plausible' && plausibleDomain ? (
         <Script
           defer
-          data-domain={PLAUSIBLE_DOMAIN}
-          src={PLAUSIBLE_SCRIPT_SRC}
+          data-domain={plausibleDomain}
+          src={plausibleScript}
           strategy="afterInteractive"
         />
       ) : null}
 
-      {ANALYTICS_PROVIDER === 'umami' && UMAMI_WEBSITE_ID ? (
+      {provider === 'umami' && umamiId ? (
         <Script
           defer
-          src={UMAMI_SCRIPT_SRC}
-          data-website-id={UMAMI_WEBSITE_ID}
+          src={umamiScript}
+          data-website-id={umamiId}
           data-auto-track="false"
           strategy="afterInteractive"
         />
       ) : null}
 
-      {ANALYTICS_PROVIDER === 'ga4' && GA_MEASUREMENT_ID ? (
+      {provider === 'ga4' && gaId ? (
         <>
-          {/* Preconnect to Google Tag Manager for faster resource retrieval */}
           <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="" />
           <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-          {/* Consent Mode v2 Default Configuration before Tag Loader */}
           <Script id="ga4-consent-default" strategy="beforeInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
@@ -155,19 +196,17 @@ export function Analytics() {
             `}
           </Script>
 
-          {/* GA4 Core Script */}
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
             strategy="afterInteractive"
           />
 
-          {/* Initialize with send_page_view: false to prevent duplicate initial page_views */}
           <Script id="ga4-init" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}', {
+              gtag('config', '${gaId}', {
                 send_page_view: false,
                 debug_mode: ${GA_DEBUG_MODE ? 'true' : 'false'},
                 anonymize_ip: true,

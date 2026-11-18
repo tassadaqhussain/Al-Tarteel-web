@@ -339,6 +339,19 @@ export type AdminMailSettings = {
   passwordSet: boolean;
 };
 
+export type PublicSiteSettings = {
+  source: 'database' | 'env' | null;
+  analyticsProvider: '' | 'ga4' | 'plausible' | 'umami';
+  gaMeasurementId: string;
+  plausibleDomain: string;
+  plausibleScriptSrc: string;
+  umamiWebsiteId: string;
+  umamiScriptSrc: string;
+  googleSiteVerification: string;
+  bingSiteVerification: string;
+  analyticsEnabled: boolean;
+};
+
 export type AdminMailTemplate = {
   id: number;
   name: string;
@@ -477,6 +490,12 @@ export const adminApi = {
     notifyEmail?: string;
   }) =>
     api<AdminMailSettings>('/admin/mail/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  getSiteSettings: () => api<PublicSiteSettings>('/admin/site-settings'),
+  saveSiteSettings: (body: Partial<PublicSiteSettings>) =>
+    api<PublicSiteSettings>('/admin/site-settings', {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),

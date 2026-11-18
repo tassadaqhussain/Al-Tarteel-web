@@ -15,10 +15,10 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
 import { DailyAyahSlideIn } from '@/components/lead/DailyAyahSubscribe';
-import { ANALYTICS_PROVIDER, IS_PRODUCTION, analyticsEnabled } from '@/lib/analytics';
 import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import { LocaleSync } from '@/components/LocaleSync';
 import { LocaleFromPath } from '@/components/LocaleFromPath';
+import { fetchPublicSiteConfig } from '@/lib/site-config';
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_KEYWORDS,
@@ -118,32 +118,7 @@ export const metadata: Metadata = {
     apple: '/images/apple-touch-icon.png',
   },
   manifest: '/manifest.webmanifest',
-  // Set via env after Google Search Console / Bing give you real tokens.
-  // Never commit real tokens to git if the repo is public — use server env / deploy secrets.
-  verification: {
-    ...(process.env.GOOGLE_SITE_VERIFICATION ||
-    process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
-    process.env.GSC_VERIFICATION ||
-    process.env.NEXT_PUBLIC_GSC_VERIFICATION
-      ? {
-          google:
-            process.env.GOOGLE_SITE_VERIFICATION ||
-            process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ||
-            process.env.GSC_VERIFICATION ||
-            process.env.NEXT_PUBLIC_GSC_VERIFICATION,
-        }
-      : {}),
-    ...(process.env.BING_SITE_VERIFICATION || process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
-      ? {
-          other: {
-            'msvalidate.01':
-              process.env.BING_SITE_VERIFICATION ||
-              process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ||
-              '',
-          },
-        }
-      : {}),
-  },
+  // Verification meta tags are injected from Admin → Site (or env fallback) in RootLayout.
 };
 
 export const viewport: Viewport = {
@@ -166,16 +141,27 @@ export default async function RootLayout({
   const ssrLocale =
     rawLocale === 'ur' || rawLocale === 'ps' || rawLocale === 'fa' ? rawLocale : 'en';
   const ssrDir = ssrLocale === 'en' ? 'ltr' : 'rtl';
+  const siteConfig = await fetchPublicSiteConfig();
+  const analyticsProviderAttr =
+    process.env.NODE_ENV === 'production' && siteConfig.analyticsEnabled
+      ? siteConfig.analyticsProvider || 'disabled'
+      : 'disabled';
 
   return (
     <html
       lang={ssrLocale}
       dir={ssrDir}
       data-scroll-behavior="smooth"
-      data-analytics-provider={IS_PRODUCTION && analyticsEnabled ? ANALYTICS_PROVIDER : 'disabled'}
+      data-analytics-provider={analyticsProviderAttr}
       suppressHydrationWarning
     >
       <head>
+        {siteConfig.googleSiteVerification ? (
+          <meta name="google-site-verification" content={siteConfig.googleSiteVerification} />
+        ) : null}
+        {siteConfig.bingSiteVerification ? (
+          <meta name="msvalidate.01" content={siteConfig.bingSiteVerification} />
+        ) : null}
         {/* Apply the stored (or system) theme before first paint — no light flash at night. */}
         <script
           dangerouslySetInnerHTML={{
