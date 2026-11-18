@@ -17,6 +17,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { AiKnowledgeModule } from './ai-knowledge/ai-knowledge.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { MailModule } from './mail/mail.module';
+import { SiteSettingsModule } from './site-settings/site-settings.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MailModule } from './mail/mail.module';
     ]),
     PrismaModule,
     MailModule,
+    SiteSettingsModule,
     CacheModule,
     QuranModule,
     AudioModule,

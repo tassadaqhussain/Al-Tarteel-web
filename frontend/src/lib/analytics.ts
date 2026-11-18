@@ -10,41 +10,137 @@
 
 export type AnalyticsProvider = 'ga4' | 'plausible' | 'umami';
 
-export const PLAUSIBLE_DOMAIN = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim() || '';
-export const GA_MEASUREMENT_ID =
+type RuntimeAnalyticsConfig = {
+  analyticsProvider: AnalyticsProvider | '';
+  gaMeasurementId: string;
+  plausibleDomain: string;
+  plausibleScriptSrc: string;
+  umamiWebsiteId: string;
+  umamiScriptSrc: string;
+};
+
+function providerFromEnv(): AnalyticsProvider | '' {
+  const raw = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim().toLowerCase() || '';
+  if (raw === 'none' || raw === 'disabled' || raw === 'false') return '';
+  if (raw === 'ga4' || raw === 'plausible' || raw === 'umami') return raw;
+  return '';
+}
+
+const ENV_GA =
   process.env.NEXT_PUBLIC_GA_ID?.trim() ||
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() ||
   '';
-export const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID?.trim() || '';
-export const UMAMI_SCRIPT_SRC =
-  process.env.NEXT_PUBLIC_UMAMI_SRC?.trim() || 'https://cloud.umami.is/script.js';
+const ENV_PLAUSIBLE = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN?.trim() || '';
+const ENV_UMAMI = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID?.trim() || '';
 
-const RAW_PROVIDER = process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER?.trim().toLowerCase() || '';
-export const ANALYTICS_PROVIDER: AnalyticsProvider | '' =
-  RAW_PROVIDER === 'none' || RAW_PROVIDER === 'disabled' || RAW_PROVIDER === 'false'
-    ? ''
-    : RAW_PROVIDER === 'ga4' || RAW_PROVIDER === 'plausible' || RAW_PROVIDER === 'umami'
-      ? RAW_PROVIDER
-      : GA_MEASUREMENT_ID
-        ? 'ga4'
-        : PLAUSIBLE_DOMAIN
-          ? 'plausible'
-          : UMAMI_WEBSITE_ID
-            ? 'umami'
-            : '';
+function resolveProvider(
+  explicit: AnalyticsProvider | '',
+  ga: string,
+  plausible: string,
+  umami: string,
+): AnalyticsProvider | '' {
+  if (explicit) return explicit;
+  if (ga) return 'ga4';
+  if (plausible) return 'plausible';
+  if (umami) return 'umami';
+  return '';
+}
+
+/** Env fallback; overridden at runtime by Admin → Site (`applySiteAnalyticsConfig`). */
+let runtime: RuntimeAnalyticsConfig = {
+  analyticsProvider: resolveProvider(providerFromEnv(), ENV_GA, ENV_PLAUSIBLE, ENV_UMAMI),
+  gaMeasurementId: ENV_GA,
+  plausibleDomain: ENV_PLAUSIBLE,
+  plausibleScriptSrc:
+    process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT_SRC?.trim() || 'https://plausible.io/js/script.js',
+  umamiWebsiteId: ENV_UMAMI,
+  umamiScriptSrc: process.env.NEXT_PUBLIC_UMAMI_SRC?.trim() || 'https://cloud.umami.is/script.js',
+};
+
+/** Apply public `/site/config` values (DB admin settings, else env on API). */
+export function applySiteAnalyticsConfig(cfg: {
+  analyticsProvider?: string | null;
+  gaMeasurementId?: string | null;
+  plausibleDomain?: string | null;
+  plausibleScriptSrc?: string | null;
+  umamiWebsiteId?: string | null;
+  umamiScriptSrc?: string | null;
+}) {
+  const ga = (cfg.gaMeasurementId || '').trim() || ENV_GA;
+  const plausible = (cfg.plausibleDomain || '').trim() || ENV_PLAUSIBLE;
+  const umami = (cfg.umamiWebsiteId || '').trim() || ENV_UMAMI;
+  const raw = (cfg.analyticsProvider || '').trim().toLowerCase();
+  const explicit: AnalyticsProvider | '' =
+    raw === 'ga4' || raw === 'plausible' || raw === 'umami' ? raw : '';
+  // When API sends analyticsProvider (including ''), honor it — do not re-infer from IDs.
+  const provider =
+    cfg.analyticsProvider !== undefined && cfg.analyticsProvider !== null
+      ? explicit
+      : resolveProvider('', ga, plausible, umami);
+  runtime = {
+    analyticsProvider: provider,
+    gaMeasurementId: ga,
+    plausibleDomain: plausible,
+    plausibleScriptSrc:
+      (cfg.plausibleScriptSrc || '').trim() ||
+      process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT_SRC?.trim() ||
+      'https://plausible.io/js/script.js',
+    umamiWebsiteId: umami,
+    umamiScriptSrc:
+      (cfg.umamiScriptSrc || '').trim() ||
+      process.env.NEXT_PUBLIC_UMAMI_SRC?.trim() ||
+      'https://cloud.umami.is/script.js',
+  };
+}
+
+export function getAnalyticsRuntime(): Readonly<RuntimeAnalyticsConfig> {
+  return runtime;
+}
+
+/** Live getters — prefer these over snapshot exports after runtime apply. */
+export function getAnalyticsProvider(): AnalyticsProvider | '' {
+  return runtime.analyticsProvider;
+}
+export function getGaMeasurementId(): string {
+  return runtime.gaMeasurementId;
+}
+export function getPlausibleDomain(): string {
+  return runtime.plausibleDomain;
+}
+export function getPlausibleScriptSrc(): string {
+  return runtime.plausibleScriptSrc;
+}
+export function getUmamiWebsiteId(): string {
+  return runtime.umamiWebsiteId;
+}
+export function getUmamiScriptSrc(): string {
+  return runtime.umamiScriptSrc;
+}
+
+/** Env-time snapshot (build/SSR). Client scripts should use getters after apply. */
+export const PLAUSIBLE_DOMAIN = runtime.plausibleDomain;
+export const GA_MEASUREMENT_ID = runtime.gaMeasurementId;
+export const UMAMI_WEBSITE_ID = runtime.umamiWebsiteId;
+export const UMAMI_SCRIPT_SRC = runtime.umamiScriptSrc;
+export const ANALYTICS_PROVIDER: AnalyticsProvider | '' = runtime.analyticsProvider;
+export const PLAUSIBLE_SCRIPT_SRC = runtime.plausibleScriptSrc;
 
 export const analyticsEnabled =
   (ANALYTICS_PROVIDER === 'ga4' && Boolean(GA_MEASUREMENT_ID)) ||
   (ANALYTICS_PROVIDER === 'plausible' && Boolean(PLAUSIBLE_DOMAIN)) ||
   (ANALYTICS_PROVIDER === 'umami' && Boolean(UMAMI_WEBSITE_ID));
 
+export function isAnalyticsEnabled(): boolean {
+  return (
+    (runtime.analyticsProvider === 'ga4' && Boolean(runtime.gaMeasurementId)) ||
+    (runtime.analyticsProvider === 'plausible' && Boolean(runtime.plausibleDomain)) ||
+    (runtime.analyticsProvider === 'umami' && Boolean(runtime.umamiWebsiteId))
+  );
+}
+
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 export const GA_DEBUG_MODE =
   !IS_PRODUCTION || process.env.NEXT_PUBLIC_GA_DEBUG === 'true';
-
-/** Optional custom Plausible script host (self-hosted). Defaults to plausible.io. */
-export const PLAUSIBLE_SCRIPT_SRC =
-  process.env.NEXT_PUBLIC_PLAUSIBLE_SCRIPT_SRC?.trim() || 'https://plausible.io/js/script.js';
 
 declare global {
   interface Window {
@@ -143,7 +239,9 @@ export function trackPageView(path: string, customTitle?: string) {
   const cleanLocation = sanitizeUrl(window.location.href);
   const pageTitle = sanitizeText(customTitle || document.title);
 
-  if (ANALYTICS_PROVIDER === 'plausible' && PLAUSIBLE_DOMAIN && window.plausible) {
+  const provider = getAnalyticsProvider();
+
+  if (provider === 'plausible' && getPlausibleDomain() && window.plausible) {
     try {
       window.plausible('pageview', { props: { path: cleanPath } });
     } catch {
@@ -151,7 +249,7 @@ export function trackPageView(path: string, customTitle?: string) {
     }
   }
 
-  if (ANALYTICS_PROVIDER === 'umami' && UMAMI_WEBSITE_ID && window.umami) {
+  if (provider === 'umami' && getUmamiWebsiteId() && window.umami) {
     try {
       window.umami.track((props: Record<string, unknown>) => ({
         ...props,
@@ -163,7 +261,7 @@ export function trackPageView(path: string, customTitle?: string) {
     }
   }
 
-  if (ANALYTICS_PROVIDER === 'ga4' && GA_MEASUREMENT_ID && window.gtag) {
+  if (provider === 'ga4' && getGaMeasurementId() && window.gtag) {
     safeGtag('event', 'page_view', {
       page_path: cleanPath,
       page_location: cleanLocation,

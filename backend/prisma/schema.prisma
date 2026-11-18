@@ -608,6 +608,25 @@ model MailSetting {
   @@map("mail_settings")
 }
 
+/// Singleton public site SEO / analytics IDs (id = 1). Editable from Admin → Site.
+/// Prefer these over NEXT_PUBLIC_* so production does not need a rebuild to change IDs.
+model SiteSetting {
+  id                     Int      @id
+  /// ga4 | plausible | umami | empty (disabled)
+  analyticsProvider      String?  @map("analytics_provider") @db.VarChar(32)
+  gaMeasurementId        String?  @map("ga_measurement_id") @db.VarChar(32)
+  plausibleDomain        String?  @map("plausible_domain") @db.VarChar(255)
+  plausibleScriptSrc     String?  @map("plausible_script_src") @db.VarChar(500)
+  umamiWebsiteId         String?  @map("umami_website_id") @db.VarChar(64)
+  umamiScriptSrc         String?  @map("umami_script_src") @db.VarChar(500)
+  googleSiteVerification String?  @map("google_site_verification") @db.VarChar(255)
+  bingSiteVerification   String?  @map("bing_site_verification") @db.VarChar(255)
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
 /// Reusable admin email templates (layout + copy).
 model MailTemplate {
   id        Int      @id @default(autoincrement())

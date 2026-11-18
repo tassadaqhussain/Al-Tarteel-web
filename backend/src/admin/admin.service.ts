@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { SiteSettingsService } from '../site-settings/site-settings.service';
+import { UpsertSiteSettingsDto } from '../site-settings/dto/upsert-site-settings.dto';
 import { renderUserEmailHtml, renderUserEmailText, STARTER_MAIL_TEMPLATES, isEmailLayout } from '../mail/user-email.template';
 import { UpsertMotivationDto } from './dto/upsert-motivation.dto';
 import { SendUserEmailDto } from './dto/send-user-email.dto';
@@ -17,6 +19,7 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
     private readonly analytics: AnalyticsService,
+    private readonly siteSettings: SiteSettingsService,
   ) {}
 
   /** Prefer zeros over dashboard 500s when a local DB is missing optional tables. */
@@ -203,6 +206,14 @@ export class AdminService {
 
   saveMailSettings(dto: UpsertMailSettingsDto) {
     return this.mail.upsertSettings(dto);
+  }
+
+  getSiteSettings() {
+    return this.siteSettings.getPublicSettings();
+  }
+
+  saveSiteSettings(dto: UpsertSiteSettingsDto) {
+    return this.siteSettings.upsertSettings(dto);
   }
 
   async listMailTemplates() {
