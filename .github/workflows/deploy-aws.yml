@@ -42,22 +42,45 @@ jobs:
             if [ -z "${DEPLOY_BRANCH:-}" ]; then DEPLOY_BRANCH=main; fi
             if [ -z "${GH_REPO:-}" ]; then GH_REPO=tassadaqhussain/Al-Tarteel-web; fi
 
+            free_mb() {
+              df -Pm "${1:-/}" 2>/dev/null | awk 'NR==2 {print $4}'
+            }
+
+            echo "Disk before deploy: $(free_mb /) MB free on /"
+            # Previous audio mirrors can fill the root volume; free obvious waste before git writes.
+            if [ "$(free_mb /)" -lt 2048 ]; then
+              echo "Low disk — pruning Docker unused data and incomplete Farhat audio pack"
+              # Do NOT pass --volumes (would risk deleting Postgres data volumes).
+              sudo docker system prune -af 2>/dev/null || true
+              sudo rm -rf "${APP_DIR}/backend/storage/audio/ur-farhat-hashmi" 2>/dev/null || true
+              sudo rm -f "${APP_DIR}/.git/config.lock" 2>/dev/null || true
+              echo "Disk after cleanup: $(free_mb /) MB free on /"
+            fi
+            if [ "$(free_mb /)" -lt 512 ]; then
+              echo "FATAL: only $(free_mb /) MB free on /. Free disk on the EC2 host, then re-run deploy."
+              echo "  sudo rm -rf ${APP_DIR}/backend/storage/audio/ur-farhat-hashmi"
+              echo "  sudo docker system prune -af"
+              echo "  df -h /"
+              exit 1
+            fi
+
             sudo mkdir -p "$(dirname "$APP_DIR")"
             GIT_URL="https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+            # Never rewrite .git/config (fails with ENOSPC / config.lock on a full disk).
+            # Fetch the branch URL directly so Actions does not need a server SSH key.
             if [ ! -d "$APP_DIR/.git" ]; then
               echo "Cloning $GH_REPO into $APP_DIR ($DEPLOY_BRANCH)"
               sudo rm -rf "$APP_DIR"
               sudo git clone --branch "$DEPLOY_BRANCH" "$GIT_URL" "$APP_DIR"
             else
-              echo "Updating existing repo at $APP_DIR"
-              cd "$APP_DIR"
-              # Server remotes are often git@github.com (SSH). Actions has no server SSH key to GitHub.
-              sudo git remote set-url origin "$GIT_URL"
-              sudo git fetch origin "$DEPLOY_BRANCH"
-              sudo git checkout "$DEPLOY_BRANCH"
-              sudo git reset --hard "origin/$DEPLOY_BRANCH"
+              echo "Updating existing repo at $APP_DIR (no remote set-url)"
+              sudo rm -f "$APP_DIR/.git/config.lock"
+              sudo git -C "$APP_DIR" fetch --prune --force "$GIT_URL" \
+                "+refs/heads/${DEPLOY_BRANCH}:refs/remotes/origin/${DEPLOY_BRANCH}"
+              sudo git -C "$APP_DIR" checkout -f -B "$DEPLOY_BRANCH" "origin/${DEPLOY_BRANCH}"
+              sudo git -C "$APP_DIR" reset --hard "origin/${DEPLOY_BRANCH}"
+              sudo git -C "$APP_DIR" clean -fd
             fi
-            sudo git -C "$APP_DIR" remote set-url origin "https://github.com/${GH_REPO}.git"
 
             cd "$APP_DIR"
             export SITEMAP_LASTMOD="${SITEMAP_LASTMOD:-$(git log -1 --format=%cI)}"
