@@ -4,17 +4,15 @@ import { Amiri, Amiri_Quran, Figtree, Fredoka } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
-import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
 import { ScrollToHashAyah } from '@/components/reader/ScrollToHashAyah';
-import { AskAiFab } from '@/components/ai/AskAiFab';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
-import { DailyAyahSlideIn } from '@/components/lead/DailyAyahSubscribe';
+import { DeferredWidgets } from '@/components/DeferredWidgets';
 import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import { LocaleSync } from '@/components/LocaleSync';
 import { LocaleFromPath } from '@/components/LocaleFromPath';
@@ -130,7 +128,6 @@ export const viewport: Viewport = {
 };
 
 import { VoiceSearchProvider } from '@/providers/VoiceSearchProvider';
-import { GlobalVoiceSearch } from '@/components/GlobalVoiceSearch';
 
 export default async function RootLayout({
   children,
@@ -210,12 +207,9 @@ export default async function RootLayout({
                   <CampaignBanner />
                   {children}
                 </div>
-                <AudioBar />
                 <BackToTopButton />
-                <AskAiFab />
+                <DeferredWidgets />
                 <VisitTracker />
-                <GlobalVoiceSearch />
-                <DailyAyahSlideIn />
                 <Analytics />
               </VoiceSearchProvider>
             </AudioPlayerProvider>
