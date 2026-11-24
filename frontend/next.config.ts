@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return Array.from({ length: 114 }, (_, index) => {
       const number = index + 1;
-      return { source: `/surah/${number}`, destination: `/${getSurahSlug(number)}`, permanent: true };
+      return { source: `/surah/${number}`, destination: `/${getSurahSlug(number)}`, statusCode: 301 };
     });
   },
   async rewrites() {

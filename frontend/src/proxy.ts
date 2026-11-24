@@ -1,8 +1,59 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getSurahPath } from '@/lib/surah-meta';
+import { getAyahPath, getSurahPath } from '@/lib/surah-meta';
+import { parseAyahNumber } from '@/lib/surah-pagination';
 
 const MIN_SERVER_ACTION_ID_LENGTH = 40;
+const CANONICAL_HOST = 'quranpilot.com';
+const WWW_HOST = 'www.quranpilot.com';
+
+function canonicalOriginRedirect(request: NextRequest, pathname: string): NextResponse {
+  const search = request.nextUrl.search || '';
+  return NextResponse.redirect(`https://${CANONICAL_HOST}${pathname}${search}`, 301);
+}
+
+function redirectPath(request: NextRequest, targetPathname: string): NextResponse {
+  const target = request.nextUrl.clone();
+  target.pathname = targetPathname;
+  return NextResponse.redirect(target, 301);
+}
+
+function resolveNumericRedirect(pathname: string): string | null {
+  const localeMatch = /^\/(ur|ps|fa)(\/.*)$/.exec(pathname);
+  const localePrefix = localeMatch ? `/${localeMatch[1]}` : '';
+  const rest = localeMatch ? localeMatch[2] : pathname;
+
+  // /surah/{n} or /surah/{n}/{ayah} (including zero-padded)
+  const surahMatch = /^\/surah\/(\d+)(?:\/(\d+))?$/.exec(rest);
+  if (surahMatch) {
+    const surahNum = Number(surahMatch[1]);
+    if (Number.isInteger(surahNum) && surahNum >= 1 && surahNum <= 114) {
+      if (surahMatch[2] !== undefined) {
+        const ayahNum = parseAyahNumber(surahMatch[2], surahNum);
+        if (ayahNum) return `${localePrefix}${getAyahPath(surahNum, ayahNum)}`;
+      } else {
+        return `${localePrefix}${getSurahPath(surahNum)}`;
+      }
+    }
+    return null;
+  }
+
+  // /{n} or /{n}/{ayah} (including zero-padded)
+  const numericMatch = /^\/(\d+)(?:\/(\d+))?$/.exec(rest);
+  if (numericMatch) {
+    const surahNum = Number(numericMatch[1]);
+    if (Number.isInteger(surahNum) && surahNum >= 1 && surahNum <= 114) {
+      if (numericMatch[2] !== undefined) {
+        const ayahNum = parseAyahNumber(numericMatch[2], surahNum);
+        if (ayahNum) return `${localePrefix}${getAyahPath(surahNum, ayahNum)}`;
+      } else {
+        return `${localePrefix}${getSurahPath(surahNum)}`;
+      }
+    }
+  }
+
+  return null;
+}
 
 export function proxy(request: NextRequest) {
   if (request.method === 'POST') {
@@ -13,15 +64,27 @@ export function proxy(request: NextRequest) {
   }
 
   const { pathname, searchParams } = request.nextUrl;
-  // next.config handles /surah/1 through /surah/114. Normalize their
-  // zero-padded aliases too, preserving every query parameter and its encoding.
-  const paddedSurah = /^\/surah\/(0+\d+)$/.exec(pathname);
-  if (paddedSurah && (request.method === 'GET' || request.method === 'HEAD')) {
-    const number = Number(paddedSurah[1]);
-    if (Number.isInteger(number) && number >= 1 && number <= 114) {
-      const canonical = request.nextUrl.clone();
-      canonical.pathname = getSurahPath(number);
-      return NextResponse.redirect(canonical, 308);
+
+  if (request.method === 'GET' || request.method === 'HEAD') {
+    // 1. Single-hop canonical host + HTTPS enforcement (www → apex, http → https).
+    const rawHost = (request.headers.get('x-forwarded-host') || request.headers.get('host') || '')
+      .split(',')[0]
+      .trim()
+      .toLowerCase()
+      .replace(/:\d+$/, '');
+    const proto = (request.headers.get('x-forwarded-proto') || request.nextUrl.protocol.replace(/:$/, ''))
+      .split(',')[0]
+      .trim()
+      .toLowerCase();
+
+    const canonicalTargetPath = resolveNumericRedirect(pathname) ?? pathname;
+    if (rawHost === WWW_HOST || (rawHost === CANONICAL_HOST && proto === 'http')) {
+      return canonicalOriginRedirect(request, canonicalTargetPath);
+    }
+
+    // 2. Numeric and legacy /surah/{n}, /{n}, /{n}/{ayah}, /surah/{n}/{ayah} → canonical slug (301).
+    if (canonicalTargetPath !== pathname) {
+      return redirectPath(request, canonicalTargetPath);
     }
   }
 

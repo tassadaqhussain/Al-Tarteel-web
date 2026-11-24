@@ -141,17 +141,44 @@ for (let number = 1; number <= 114; number++) {
   for (const zeros of ['0', '00', '000']) {
     const request = new NextRequest(`https://quranpilot.com/surah/${zeros}${number}?page=2&trans=en-sahih-international&utm_source=seo`);
     const response = proxy(request);
-    assert.equal(response.status, 308);
+    assert.equal(response.status, 301);
     const destination = new URL(response.headers.get('location'));
     assert.equal(destination.pathname, getSurahPath(number));
     assert.equal(destination.search, request.nextUrl.search);
   }
 }
-assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', { method: 'HEAD' })).status, 308);
-for (const path of ['/surah/0', '/surah/000', '/surah/0115', '/surah/02junk', '/al-baqarah', '/surah/2']) {
+assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', { method: 'HEAD' })).status, 301);
+// Common alternate numeric routes → 301 canonical slug
+for (const [from, to] of [
+  ['/surah/67', '/al-mulk'],
+  ['/67', '/al-mulk'],
+  ['/2/255', '/al-baqarah/255'],
+  ['/surah/2/255', '/al-baqarah/255'],
+  ['/ur/67', '/ur/al-mulk'],
+  ['/ur/2/255', '/ur/al-baqarah/255'],
+]) {
+  const res = proxy(new NextRequest(`https://quranpilot.com${from}`));
+  assert.equal(res.status, 301, `${from} should 301`);
+  assert.equal(new URL(res.headers.get('location')).pathname, to, `${from} → ${to}`);
+}
+// www → apex and http → https in a single hop (even combined with legacy path)
+{
+  const wwwRes = proxy(new NextRequest('https://www.quranpilot.com/surah/67?page=2', {
+    headers: { host: 'www.quranpilot.com', 'x-forwarded-proto': 'https' },
+  }));
+  assert.equal(wwwRes.status, 301);
+  assert.equal(wwwRes.headers.get('location'), 'https://quranpilot.com/al-mulk?page=2');
+
+  const httpRes = proxy(new NextRequest('http://quranpilot.com/al-mulk', {
+    headers: { host: 'quranpilot.com', 'x-forwarded-proto': 'http' },
+  }));
+  assert.equal(httpRes.status, 301);
+  assert.equal(httpRes.headers.get('location'), 'https://quranpilot.com/al-mulk');
+}
+for (const path of ['/surah/0', '/surah/000', '/surah/0115', '/surah/02junk', '/al-baqarah']) {
   assert.equal(proxy(new NextRequest(`https://quranpilot.com${path}`)).headers.get('location'), null);
 }
 assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', {
   method: 'POST', headers: { 'next-action': 'invalid' },
 })).status, 400);
-console.log('All 114 zero-padded legacy surah redirects preserve query parameters; invalid paths and server-action checks remain unchanged.');
+console.log('All 301 canonical host, www/http, and legacy/numeric surah+ayah redirects passed.');
