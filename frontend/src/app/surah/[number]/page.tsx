@@ -31,12 +31,18 @@ import {
 } from '@/lib/i18n/content-locales';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
+import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import {
   endOfSurahLabel,
   navSurahLabel,
   startFromBeginningLabel,
+  surahBreadcrumbsLabels,
+  surahChapterMetaLabel,
+  surahHabitCardCopy,
   surahPageHeading,
   surahPageSubtitle,
+  surahReaderToolbarMeta,
+  surahVerseDirectoryCopy,
 } from '@/lib/i18n/surah-ui-strings';
 import { READER_BAR_SHELL, READER_SHELL } from '@/components/layout/MainContainer';
 import { ReadingProgressBar } from '@/components/reader/ReadingProgressBar';
@@ -158,6 +164,16 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
     initialAyahs[0]?.translations?.[0]?.translatorName?.trim() ||
     null;
 
+  const habitCopy = surahHabitCardCopy(activeLocale);
+  const crumbsCopy = surahBreadcrumbsLabels(activeLocale, surahNumber, surah.nameSimple);
+  const verseDirCopy = surahVerseDirectoryCopy(activeLocale, surahNumber, surah.nameSimple, ayahCount);
+  const toolbarMeta = surahReaderToolbarMeta(
+    activeLocale,
+    initialAyahs[0]?.page || '610',
+    initialAyahs[0]?.juz || '30',
+    initialAyahs[0]?.hizb || '60',
+  );
+
   const endOfChapter = (
     <div className="mt-14 border-t border-line pt-10">
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
@@ -166,10 +182,15 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
             href={localePath(activeLocale, getSurahPath(prevSurah.number))}
             className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-left shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
-            <ChevronLeft className="h-5 w-5 text-ink-faint" />
+            <ChevronLeft className="h-5 w-5 text-ink-faint rtl:rotate-180" />
             <div>
               <p className="text-xs text-ink-muted">{navSurahLabel(activeLocale, 'previous')}</p>
-              <p className="font-semibold text-ink">{prevSurah.number}. {prevSurah.nameSimple}</p>
+              <p className="font-semibold text-ink">
+                {prevSurah.number}.{' '}
+                {activeLocale === 'en'
+                  ? prevSurah.nameSimple
+                  : getSurahLocalizedName(prevSurah.number, activeLocale)}
+              </p>
             </div>
           </Link>
         ) : <div />}
@@ -186,33 +207,34 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           >
             <div>
               <p className="text-xs text-ink-muted">{navSurahLabel(activeLocale, 'next')}</p>
-              <p className="font-semibold text-ink">{nextSurah.number}. {nextSurah.nameSimple}</p>
+              <p className="font-semibold text-ink">
+                {nextSurah.number}.{' '}
+                {activeLocale === 'en'
+                  ? nextSurah.nameSimple
+                  : getSurahLocalizedName(nextSurah.number, activeLocale)}
+              </p>
             </div>
-            <ChevronRight className="h-5 w-5 text-ink-faint" />
+            <ChevronRight className="h-5 w-5 text-ink-faint rtl:rotate-180" />
           </Link>
         ) : <div />}
       </div>
 
-      <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
-
       <section
-        aria-label="Daily reading habit"
+        aria-label={habitCopy.heading}
         className="mt-10 flex flex-col items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-emerald-900 to-emerald-800 p-6 text-white sm:flex-row"
       >
         <div className="flex items-start gap-4">
           <Target className="mt-0.5 h-6 w-6 shrink-0 text-amber-300" />
           <div>
-            <h2 className="text-lg font-bold">Build a steady Quran habit</h2>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-emerald-50/75">
-              Save your place, set a reading goal, and return to the next chapter without losing momentum.
-            </p>
+            <h2 className="text-lg font-bold">{habitCopy.heading}</h2>
+            <p className="mt-1 max-w-xl text-sm leading-6 text-emerald-50/75">{habitCopy.body}</p>
           </div>
         </div>
         <Link
           href="/reading-goal"
           className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[4px] bg-amber-400 px-4 py-2.5 text-sm font-bold text-emerald-950 hover:bg-amber-300"
         >
-          Set a reading goal <ArrowRight className="h-4 w-4" />
+          {habitCopy.cta} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
         </Link>
       </section>
     </div>
@@ -251,8 +273,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
 
           <p className="hidden flex-1 items-center justify-center gap-1.5 text-sm text-ink-3 md:flex">
             <Bookmark className="h-4 w-4 text-ink-3" aria-hidden />
-            <span className="font-semibold text-ink-3">Page {initialAyahs[0]?.page || '610'}</span>
-            <span className="text-ink-faint">Juz {initialAyahs[0]?.juz || '30'} / Hizb {initialAyahs[0]?.hizb || '60'}</span>
+            <span className="font-semibold text-ink-3">{toolbarMeta.page}</span>
+            <span className="text-ink-faint">{toolbarMeta.juzHizb}</span>
           </p>
 
           <div className="flex shrink-0 items-center justify-end gap-2 md:flex-1">
@@ -272,11 +294,11 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
       <main className={cn(READER_SHELL, 'flex-1 py-4 sm:py-6 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] sm:pb-24')}>
         <Breadcrumbs
           items={[
-            { name: 'Home', path: localePath(activeLocale, '/') },
-            { name: 'Surahs', path: activeLocale === 'en' ? '/surahs' : localePath(activeLocale, '/') },
-            { name: `Surah ${surah.nameSimple}`, path: surahPath },
+            { name: crumbsCopy.home, path: localePath(activeLocale, '/') },
+            { name: crumbsCopy.surahs, path: activeLocale === 'en' ? '/surahs' : localePath(activeLocale, '/') },
+            { name: crumbsCopy.surah, path: surahPath },
             ...(page > 1
-              ? [{ name: `Verses ${range.start}–${range.end}`, path: `${surahPath}?page=${page}` }]
+              ? [{ name: `${range.start}–${range.end}`, path: `${surahPath}?page=${page}` }]
               : []),
           ]}
         />
@@ -294,15 +316,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--accent)]">
-                {[
-                  `Surah ${surahNumber}`,
-                  surah.revelationPlace
-                    ? `${surah.revelationPlace.charAt(0).toUpperCase()}${surah.revelationPlace.slice(1)}`
-                    : null,
-                  `${ayahCount} verses`,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
+                {surahChapterMetaLabel(activeLocale, surahNumber, ayahCount, surah.revelationPlace)}
               </p>
               <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
                 <h1 className="font-serif text-2xl font-bold text-ink sm:text-3xl">
@@ -375,19 +389,17 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
         </section>
 
         <nav
-          aria-label={`All verses in Surah ${surah.nameSimple}`}
+          aria-label={verseDirCopy.label}
           className="mt-8 rounded-lg border border-line bg-surface-2/50 px-4 py-3"
         >
           <details className="group">
             <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold text-ink-3 hover:text-ink [&::-webkit-details-marker]:hidden">
-              <span>
-                Verses in Surah {surah.nameSimple} (1–{ayahCount})
-              </span>
+              <span>{verseDirCopy.label}</span>
               <span className="text-[11px] font-medium text-ink-muted group-open:hidden">
-                Show all
+                {verseDirCopy.showAll}
               </span>
               <span className="hidden text-[11px] font-medium text-ink-muted group-open:inline">
-                Hide
+                {verseDirCopy.hide}
               </span>
             </summary>
             <div className="mt-2.5 flex flex-wrap gap-1.5 [&_a]:inline-flex [&_a]:min-w-[2rem] [&_a]:items-center [&_a]:justify-center [&_a]:rounded [&_a]:border [&_a]:border-line [&_a]:bg-surface [&_a]:px-1.5 [&_a]:py-0.5 [&_a]:text-xs [&_a]:tabular-nums [&_a]:text-ink-2 [&_a:hover]:border-[var(--accent)] [&_a:hover]:text-[var(--accent)]">
@@ -424,11 +436,19 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           locale={activeLocale}
         />
 
-        <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
+        <SurahLearningPlans
+          surahNumber={surahNumber}
+          surahName={surah.nameSimple}
+          locale={activeLocale}
+        />
         <div className="mt-6 flex justify-end">
-          <ReportMistakeButton surahNumber={surahNumber} />
+          <ReportMistakeButton surahNumber={surahNumber} locale={activeLocale} />
         </div>
-        <DailyAyahSubscribeCard source="surah_page" className="mt-6" />
+        <DailyAyahSubscribeCard
+          source="surah_page"
+          locale={activeLocale}
+          className="mt-6"
+        />
         </article>
 
       </main>

@@ -1,29 +1,36 @@
 import Link from 'next/link';
 import { GraduationCap } from 'lucide-react';
 import { getLearningPlansForSurah } from '@/lib/learning-plans';
+import { DEFAULT_CONTENT_LOCALE, type ContentLocale } from '@/lib/i18n/content-locales';
+import { surahLearningPlansCopy } from '@/lib/i18n/surah-ui-strings';
 
 interface Props {
   surahNumber: number;
   surahName: string;
+  locale?: ContentLocale;
 }
 
 /** Crawlable internal links from a surah reader page into relevant learning plans. */
-export function SurahLearningPlans({ surahNumber, surahName }: Props) {
+export function SurahLearningPlans({
+  surahNumber,
+  surahName,
+  locale = DEFAULT_CONTENT_LOCALE,
+}: Props) {
   const plans = getLearningPlansForSurah(surahNumber);
   if (plans.length === 0) return null;
 
+  const copy = surahLearningPlansCopy(locale, surahNumber, surahName);
+
   return (
     <section
-      aria-label={`Learning plans for Surah ${surahName}`}
+      aria-label={copy.heading}
       className="mt-10 rounded-xl border border-line bg-surface p-6"
     >
       <div className="flex items-start gap-3">
         <GraduationCap className="mt-0.5 h-5 w-5 shrink-0 text-[var(--accent)]" aria-hidden />
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-bold text-ink">Learning plans for Surah {surahName}</h2>
-          <p className="mt-1 text-sm leading-6 text-ink-3">
-            Structured daily lessons to study this surah with reflection and consistency.
-          </p>
+          <h2 className="text-lg font-bold text-ink">{copy.heading}</h2>
+          <p className="mt-1 text-sm leading-6 text-ink-3">{copy.subtitle}</p>
           <ul className="mt-4 space-y-2">
             {plans.map((plan) => (
               <li key={plan.slug}>
@@ -35,7 +42,7 @@ export function SurahLearningPlans({ surahNumber, surahName }: Props) {
                     {plan.title}
                   </span>
                   <span className="mt-0.5 block text-xs text-ink-3">
-                    {plan.days}-day plan · {plan.summary}
+                    {copy.daysLabel(plan.days)} · {plan.summary}
                   </span>
                 </Link>
               </li>
@@ -45,7 +52,7 @@ export function SurahLearningPlans({ surahNumber, surahName }: Props) {
             href="/learning-plans"
             className="mt-4 inline-block text-sm font-medium text-[var(--accent)] hover:underline"
           >
-            Browse all learning plans →
+            {copy.browseAll}
           </Link>
         </div>
       </div>

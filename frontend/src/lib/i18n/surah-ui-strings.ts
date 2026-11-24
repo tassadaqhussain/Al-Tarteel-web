@@ -76,3 +76,144 @@ export function startFromBeginningLabel(locale: ContentLocale): string {
   if (locale === 'fa') return 'از ابتدا بخوانید';
   return 'Start from beginning';
 }
+
+export function surahChapterMetaLabel(
+  locale: ContentLocale,
+  surahNumber: number,
+  ayahCount: number,
+  revelationPlace?: string,
+): string {
+  const rev = revelationPlace
+    ? `${revelationPlace.charAt(0).toUpperCase()}${revelationPlace.slice(1)}`
+    : null;
+  if (locale === 'ur') {
+    const revUr = revelationPlace === 'makkah' ? 'مکی' : revelationPlace === 'madinah' ? 'مدنی' : null;
+    return [`سورہ ${surahNumber}`, revUr, `${ayahCount} آیات`].filter(Boolean).join(' · ');
+  }
+  if (locale === 'ps') {
+    const revPs = revelationPlace === 'makkah' ? 'مکي' : revelationPlace === 'madinah' ? 'مدني' : null;
+    return [`سورت ${surahNumber}`, revPs, `${ayahCount} آیتونه`].filter(Boolean).join(' · ');
+  }
+  if (locale === 'fa') {
+    const revFa = revelationPlace === 'makkah' ? 'مکی' : revelationPlace === 'madinah' ? 'مدنی' : null;
+    return [`سوره ${surahNumber}`, revFa, `${ayahCount} آیه`].filter(Boolean).join(' · ');
+  }
+  return [`Surah ${surahNumber}`, rev, `${ayahCount} verses`].filter(Boolean).join(' · ');
+}
+
+export function surahBreadcrumbsLabels(
+  locale: ContentLocale,
+  surahNumber: number,
+  englishName: string,
+): { home: string; surahs: string; surah: string } {
+  const name = locale === 'en' ? englishName : getSurahLocalizedName(surahNumber, locale);
+  if (locale === 'ur') return { home: 'ہوم', surahs: 'سورتیں', surah: `سورہ ${name}` };
+  if (locale === 'ps') return { home: 'کور', surahs: 'سورتونه', surah: `سورت ${name}` };
+  if (locale === 'fa') return { home: 'خانه', surahs: 'سوره‌ها', surah: `سوره ${name}` };
+  return { home: 'Home', surahs: 'Surahs', surah: `Surah ${englishName}` };
+}
+
+export function surahHabitCardCopy(locale: ContentLocale) {
+  switch (locale) {
+    case 'ur':
+      return {
+        heading: 'قرآن پڑھنے کی مستقل عادت بنائیں',
+        body: 'اپنی جگہ محفوظ کریں، پڑھنے کا ہدف مقرر کریں اور تسلسل کے ساتھ اگلی سورہ پر جائیں۔',
+        cta: 'پڑھنے کا ہدف مقرر کریں',
+      };
+    case 'ps':
+      return {
+        heading: 'د قرآن لوستلو منظم عادت جوړ کړئ',
+        body: 'خپل ځای خوندي کړئ، د لوستلو هدف وټاکئ او په پرله‌پسې توګه بل سورت ته لاړ شئ.',
+        cta: 'د لوستلو هدف وټاکئ',
+      };
+    case 'fa':
+      return {
+        heading: 'عادت منظم خواندن قرآن بسازید',
+        body: 'جای خود را ذخیره کنید، هدف مطالعه تعیین کنید و با پیوستگی سوره بعدی را بخوانید.',
+        cta: 'تعیین هدف مطالعه',
+      };
+    default:
+      return {
+        heading: 'Build a steady Quran habit',
+        body: 'Save your place, set a reading goal, and return to the next chapter without losing momentum.',
+        cta: 'Set a reading goal',
+      };
+  }
+}
+
+export function surahVerseDirectoryCopy(
+  locale: ContentLocale,
+  surahNumber: number,
+  englishName: string,
+  ayahCount: number,
+) {
+  const name = locale === 'en' ? englishName : getSurahLocalizedName(surahNumber, locale);
+  switch (locale) {
+    case 'ur':
+      return { label: `سورہ ${name} کی تمام آیات (1–${ayahCount})`, showAll: 'سب دکھائیں', hide: 'چھپائیں' };
+    case 'ps':
+      return { label: `د سورت ${name} ټول آیتونه (1–${ayahCount})`, showAll: 'ټول وښایئ', hide: 'پټ کړئ' };
+    case 'fa':
+      return { label: `همه آیات سوره ${name} (1–${ayahCount})`, showAll: 'نمایش همه', hide: 'پنهان کردن' };
+    default:
+      return { label: `Verses in Surah ${englishName} (1–${ayahCount})`, showAll: 'Show all', hide: 'Hide' };
+  }
+}
+
+export function surahLearningPlansCopy(
+  locale: ContentLocale,
+  surahNumber: number,
+  englishName: string,
+) {
+  const name = locale === 'en' ? englishName : getSurahLocalizedName(surahNumber, locale);
+  switch (locale) {
+    case 'ur':
+      return {
+        heading: `سورہ ${name} کے تعلیمی منصوبے`,
+        subtitle: 'تدبر اور تسلسل کے ساتھ اس سورہ کو سمجھنے کے لیے روزانہ کے منظم اسباق۔',
+        browseAll: 'تمام تعلیمی منصوبے دیکھیں ←',
+        daysLabel: (days: number) => `${days} دن کا منصوبہ`,
+      };
+    case 'ps':
+      return {
+        heading: `د سورت ${name} د زده‌کړې پلانونه`,
+        subtitle: 'د تدبر او پرله‌پسې لوستلو سره د دې سورت د مطالعې لپاره منظم ورځني درسونه.',
+        browseAll: 'ټول د زده‌کړې پلانونه وګورئ ←',
+        daysLabel: (days: number) => `${days} ورځنی پلان`,
+      };
+    case 'fa':
+      return {
+        heading: `برنامه‌های آموزشی سوره ${name}`,
+        subtitle: 'درس‌های روزانه منظم برای مطالعه این سوره با تدبر و پیوستگی.',
+        browseAll: 'مشاهده همه برنامه‌های آموزشی ←',
+        daysLabel: (days: number) => `برنامه ${days} روزه`,
+      };
+    default:
+      return {
+        heading: `Learning plans for Surah ${englishName}`,
+        subtitle: 'Structured daily lessons to study this surah with reflection and consistency.',
+        browseAll: 'Browse all learning plans →',
+        daysLabel: (days: number) => `${days}-day plan`,
+      };
+  }
+}
+
+export function surahReaderToolbarMeta(
+  locale: ContentLocale,
+  page: number | string,
+  juz: number | string,
+  hizb: number | string,
+) {
+  if (locale === 'ur') return { page: `صفحہ ${page}`, juzHizb: `پارہ ${juz} / حزب ${hizb}` };
+  if (locale === 'ps') return { page: `پاڼه ${page}`, juzHizb: `جز ${juz} / حزب ${hizb}` };
+  if (locale === 'fa') return { page: `صفحه ${page}`, juzHizb: `جزء ${juz} / حزب ${hizb}` };
+  return { page: `Page ${page}`, juzHizb: `Juz ${juz} / Hizb ${hizb}` };
+}
+
+export function reportMistakeLabel(locale: ContentLocale): string {
+  if (locale === 'ur') return 'غلطی کی نشاندہی کریں';
+  if (locale === 'ps') return 'د تېروتنې راپور ورکړئ';
+  if (locale === 'fa') return 'گزارش خطا';
+  return 'Report a mistake';
+}

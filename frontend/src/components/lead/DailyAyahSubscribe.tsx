@@ -100,21 +100,54 @@ function SubscribeForm({
   );
 }
 
+const SUBSCRIBE_CARD_COPY: Record<
+  'en' | 'ur' | 'ps' | 'fa',
+  { heading: string; body: string; cta: string; submitting: string }
+> = {
+  en: {
+    heading: 'Get a daily ayah + reflection by email',
+    body: 'One short Quran verse and a thoughtful reflection in your inbox each morning. Free, no spam, unsubscribe anytime.',
+    cta: 'Subscribe',
+    submitting: 'Subscribing…',
+  },
+  ur: {
+    heading: 'روزانہ ایک آیت اور تدبر ای میل پر حاصل کریں',
+    body: 'ہر صبح قرآن کریم کی ایک مختصر آیت اور مختصر تدبر آپ کے ان باکس میں۔ بالکل مفت، کسی بھی وقت رکنیت ختم کریں۔',
+    cta: 'سبسکرائب کریں',
+    submitting: 'جاری ہے…',
+  },
+  ps: {
+    heading: 'هره ورځ یو آیت او تدبر په برېښنالیک کې ترلاسه کړئ',
+    body: 'هر سهار ستاسو انباکس ته د قرآن کریم یو لنډ آیت او تدبر. وړیا، له کوم سپیم پرته.',
+    cta: 'ګډون وکړئ',
+    submitting: 'لېږل کېږي…',
+  },
+  fa: {
+    heading: 'دریافت روزانه یک آیه و تدبر از طریق ایمیل',
+    body: 'هر صبح یک آیه کوتاه قرآن کریم همراه با تدبر در صندوق ایمیل شما. رایگان و بدون هرزنامه.',
+    cta: 'عضویت',
+    submitting: 'در حال ثبت…',
+  },
+};
+
 export function DailyAyahSubscribeCard({
   source,
+  locale = 'en',
   className = '',
 }: {
   source: string;
+  locale?: 'en' | 'ur' | 'ps' | 'fa';
   className?: string;
 }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const status = useAuthStore((s) => s.status);
+  const copy = SUBSCRIBE_CARD_COPY[locale] ?? SUBSCRIBE_CARD_COPY.en;
 
   if (status === 'loading' || isAuthenticated) return null;
 
   return (
     <section
-      aria-label="Daily ayah email subscription"
+      aria-label={copy.heading}
       className={`rounded-2xl border border-line bg-surface p-5 sm:p-6 ${className}`}
     >
       <div className="flex items-start gap-3">
@@ -122,12 +155,8 @@ export function DailyAyahSubscribeCard({
           <Mail className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-bold text-ink sm:text-lg">
-            Get a daily ayah + reflection by email
-          </h2>
-          <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">
-            One short Quran verse and a thoughtful reflection in your inbox each morning. Free, no spam, unsubscribe anytime.
-          </p>
+          <h2 className="text-base font-bold text-ink sm:text-lg">{copy.heading}</h2>
+          <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">{copy.body}</p>
           <SubscribeForm source={source} />
         </div>
       </div>
@@ -223,3 +252,4 @@ export function DailyAyahSlideIn() {
     </aside>
   );
 }
+
