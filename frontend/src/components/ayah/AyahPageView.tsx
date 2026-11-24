@@ -236,10 +236,10 @@ export async function renderAyahPage({
     .join(' ');
 
   const englishTranslation = (ayah.translations ?? []).find(
-    (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.en || tr.language === 'en',
+    (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.en || tr.translatorSlug.startsWith('en-'),
   );
   const urduTranslation = (ayah.translations ?? []).find(
-    (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.ur || tr.language === 'ur',
+    (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.ur || tr.translatorSlug.startsWith('ur-'),
   );
 
   const jsonLd = ayahJsonLd({
@@ -509,13 +509,13 @@ export async function renderAyahPage({
                     <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
                       Previous Ayah · {prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
                     </p>
-                    {prevAyahData?.textUthmani || prevAyahData?.textArabic ? (
+                    {prevAyahData?.textUthmani ? (
                       <p
                         dir="rtl"
                         lang="ar"
                         className="mt-2 font-arabic text-lg leading-loose text-ink"
                       >
-                        {prevAyahData.textUthmani || prevAyahData.textArabic}
+                        {prevAyahData.textUthmani}
                       </p>
                     ) : null}
                     {prevAyahData?.translations?.[0]?.text ? (
@@ -547,13 +547,13 @@ export async function renderAyahPage({
                     <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
                       Next Ayah · {nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
                     </p>
-                    {nextAyahData?.textUthmani || nextAyahData?.textArabic ? (
+                    {nextAyahData?.textUthmani ? (
                       <p
                         dir="rtl"
                         lang="ar"
                         className="mt-2 font-arabic text-lg leading-loose text-ink"
                       >
-                        {nextAyahData.textUthmani || nextAyahData.textArabic}
+                        {nextAyahData.textUthmani}
                       </p>
                     ) : null}
                     {nextAyahData?.translations?.[0]?.text ? (
