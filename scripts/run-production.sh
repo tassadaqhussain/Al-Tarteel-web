@@ -15,9 +15,10 @@
 #   --pull               git fetch + reset --hard to origin before building
 #   --no-build           start existing images only
 #   --import-content     after API is up, import translations/tafsir/study
-#   --import-audio       mirror compact spoken-translation audio (EN + Urdu Shamshad + Pashto)
+#   --import-audio       mirror compact spoken-translation audio in foreground
 #   --full-audio-import  all Arabic reciters + all translations + WBW (needs lots of disk)
 #   --all-translations   with --import-audio: all EN/UR/FA packs (not just compact)
+#   --skip-audio-import  skip automatic post-deploy translation audio download
 #   -y, --yes            non-interactive
 #   -h, --help
 #
@@ -32,6 +33,7 @@ DO_PULL=0
 NO_BUILD=0
 IMPORT_CONTENT=0
 IMPORT_AUDIO=0
+SKIP_AUDIO_IMPORT=0
 FULL_AUDIO_IMPORT=0
 ALL_TRANSLATIONS=0
 
@@ -53,7 +55,7 @@ while [[ $# -gt 0 ]]; do
     --import-audio) IMPORT_AUDIO=1; shift ;;
     --full-audio-import) FULL_AUDIO_IMPORT=1; IMPORT_AUDIO=1; shift ;;
     --all-translations) ALL_TRANSLATIONS=1; IMPORT_AUDIO=1; shift ;;
-    --skip-audio-import) IMPORT_AUDIO=0; shift ;;
+    --skip-audio-import) IMPORT_AUDIO=0; SKIP_AUDIO_IMPORT=1; shift ;;
     -y|--yes) ASSUME_YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unknown option: $1 (see --help)" ;;
@@ -198,8 +200,34 @@ if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   "${COMPOSE[@]}" restart api
 fi
 
+if [[ -f "${APP_DIR}/scripts/ensure-production-ssl.sh" ]]; then
+  bash "${APP_DIR}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL check failed (site may still work on apex)"
+fi
+
+NGINX_FILTER="${APP_DIR}/deploy/nginx/next-action-filter.conf"
+if [[ -f "${NGINX_FILTER}" ]] && command -v nginx >/dev/null 2>&1; then
+  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf \
+    || warn "Could not install nginx Next-Action filter (disk full?)"
+  nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1 || true
+fi
+
+PUBLIC_ORIGIN="${FRONTEND_URL:-https://${DOMAIN}}"
+
+if [[ -n "${INDEXNOW_KEY:-}" && "${SKIP_INDEXNOW:-0}" != "1" ]]; then
+  log "Submitting sitemaps to IndexNow"
+  if command -v node >/dev/null 2>&1; then
+    INDEXNOW_KEY="${INDEXNOW_KEY}" SITE_URL="${PUBLIC_ORIGIN}" \
+      node "${APP_DIR}/frontend/scripts/submit-indexnow.mjs" \
+      || warn "IndexNow submission failed (non-blocking)"
+  else
+    "${COMPOSE[@]}" exec -T -e "INDEXNOW_KEY=${INDEXNOW_KEY}" -e "SITE_URL=${PUBLIC_ORIGIN}" \
+      web node --input-type=module - < "${APP_DIR}/frontend/scripts/submit-indexnow.mjs" \
+      || warn "IndexNow submission failed (non-blocking)"
+  fi
+fi
+
 AUDIO_MARKER="${APP_DIR}/deploy/.audio-imported"
-# Opt-in only: multi-GB mirrors must not run on every redeploy (small VPS disks fill fast).
+AUDIO_LOG="${APP_DIR}/deploy/audio-import.log"
 if [[ "${IMPORT_AUDIO}" == "1" ]]; then
   mkdir -p "${APP_DIR}/backend/storage/audio"
   AUDIO_FREE_KB="$(df -Pk "${APP_DIR}/backend/storage/audio" 2>/dev/null | awk 'NR==2 {print $4}')"
@@ -228,31 +256,21 @@ if [[ "${IMPORT_AUDIO}" == "1" ]]; then
   else
     warn "Audio mirror failed — retry after freeing disk: sudo bash scripts/run-production.sh -y --import-audio"
   fi
-fi
-
-if [[ -f "${APP_DIR}/scripts/ensure-production-ssl.sh" ]]; then
-  bash "${APP_DIR}/scripts/ensure-production-ssl.sh" --env "${ENV_FILE}" || warn "SSL check failed (site may still work on apex)"
-fi
-
-NGINX_FILTER="${APP_DIR}/deploy/nginx/next-action-filter.conf"
-if [[ -f "${NGINX_FILTER}" ]] && command -v nginx >/dev/null 2>&1; then
-  cp "${NGINX_FILTER}" /etc/nginx/conf.d/00-next-action-filter.conf \
-    || warn "Could not install nginx Next-Action filter (disk full?)"
-  nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1 || true
-fi
-
-PUBLIC_ORIGIN="${FRONTEND_URL:-https://${DOMAIN}}"
-
-if [[ -n "${INDEXNOW_KEY:-}" && "${SKIP_INDEXNOW:-0}" != "1" ]]; then
-  log "Submitting sitemaps to IndexNow"
-  if command -v node >/dev/null 2>&1; then
-    INDEXNOW_KEY="${INDEXNOW_KEY}" SITE_URL="${PUBLIC_ORIGIN}" \
-      node "${APP_DIR}/frontend/scripts/submit-indexnow.mjs" \
-      || warn "IndexNow submission failed (non-blocking)"
+elif [[ "${SKIP_AUDIO_IMPORT}" != "1" && ! -f "${AUDIO_MARKER}" ]]; then
+  mkdir -p "${APP_DIR}/backend/storage/audio" "$(dirname "${AUDIO_MARKER}")"
+  AUDIO_FREE_KB="$(df -Pk "${APP_DIR}/backend/storage/audio" 2>/dev/null | awk 'NR==2 {print $4}')"
+  AUDIO_FREE_MB=$(( ${AUDIO_FREE_KB:-0} / 1024 ))
+  if [[ "${AUDIO_FREE_MB}" -lt 4000 ]]; then
+    warn "Skipping post-deploy translation audio download: need ≥ 4000 MB free, have ${AUDIO_FREE_MB} MB"
   else
-    "${COMPOSE[@]}" exec -T -e "INDEXNOW_KEY=${INDEXNOW_KEY}" -e "SITE_URL=${PUBLIC_ORIGIN}" \
-      web node --input-type=module - < "${APP_DIR}/frontend/scripts/submit-indexnow.mjs" \
-      || warn "IndexNow submission failed (non-blocking)"
+    log "Starting background translation audio download (EN + Urdu Shamshad + Pashto)"
+    nohup bash -c '
+      set -euo pipefail
+      if API_PORT="'"${API_PORT}"'" bash "'"${APP_DIR}"'/scripts/import-all-content.sh" --audio-only --translations-only --compact; then
+        date -u +%FT%TZ > "'"${AUDIO_MARKER}"'"
+      fi
+    ' > "${AUDIO_LOG}" 2>&1 &
+    ok "Translation audio downloading in background → ${AUDIO_LOG}"
   fi
 fi
 
