@@ -30,6 +30,11 @@ server {
         try_files $uri =404;
     }
 
+    # Single-hop 301 for /surah and /surah/ (avoids Next.js trailing-slash 308 hop)
+    location ~ ^/surah/?$ {
+        return 301 https://$host/surahs;
+    }
+
     # Backend API + audio + Stripe webhook
     location /api/ {
         proxy_http_version 1.1;
