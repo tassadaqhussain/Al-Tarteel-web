@@ -141,6 +141,8 @@ function coreEntries(): SitemapEntry[] {
     { url: `${SITE_URL}/learning-plans`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/quran-in-year`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.65 },
     { url: `${SITE_URL}/tajweed`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/about`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/contact`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.55 },
     ...Array.from({ length: 30 }, (_, i) => ({
       url: `${SITE_URL}/juz/${i + 1}`,
       lastModified: QURAN_CONTENT_UPDATED_AT,

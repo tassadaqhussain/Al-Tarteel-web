@@ -9,6 +9,9 @@ import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { SurahLearningPlans } from '@/components/learning/SurahLearningPlans';
+import { ReportMistakeButton } from '@/components/ReportMistakeButton';
+import { getSurahInfo } from '@/content/surah-info';
+import { cleanTranslationText } from '@/lib/clean-translation';
 import {
   CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
@@ -114,6 +117,21 @@ function getRelatedAyahs(
   return picks.slice(0, 5);
 }
 
+function positionLabel(ayahNumber: number, ayahCount: number): string {
+  if (ayahNumber === 1) return 'opening verse';
+  if (ayahNumber === ayahCount) return 'closing verse';
+  const ratio = ayahNumber / ayahCount;
+  if (ratio <= 0.25) return 'early passage';
+  if (ratio >= 0.75) return 'closing passage';
+  return 'central passage';
+}
+
+function truncateText(text: string, maxLen = 220): string {
+  const cleaned = cleanTranslationText(text).trim();
+  if (cleaned.length <= maxLen) return cleaned;
+  return `${cleaned.slice(0, maxLen).replace(/\s+\S*$/, '')}…`;
+}
+
 export async function renderAyahPage({
   surahNumber,
   ayahNumber,
@@ -137,11 +155,36 @@ export async function renderAyahPage({
     defaultSlug: defaultTranslations,
   });
 
-  const [surah, fetchedAyah] = await Promise.all([
+  const prevRef =
+    ayahNumber > 1
+      ? { surah: surahNumber, ayah: ayahNumber - 1 }
+      : surahNumber > 1
+        ? { surah: surahNumber - 1, ayah: getSurahAyahCount(surahNumber - 1) }
+        : null;
+  const nextRef =
+    ayahNumber < ayahCount
+      ? { surah: surahNumber, ayah: ayahNumber + 1 }
+      : surahNumber < 114
+        ? { surah: surahNumber + 1, ayah: 1 }
+        : null;
+
+  const snippetTranslation = localeConfig(activeLocale).translationSlug;
+
+  const [surah, fetchedAyah, prevAyahData, nextAyahData] = await Promise.all([
     quranApi.surah(surahNumber).catch(() => null),
     quranApi
       .ayah(surahNumber, ayahNumber, { translations: effectiveTranslations, words: true })
       .catch(() => null),
+    prevRef
+      ? quranApi
+          .ayah(prevRef.surah, prevRef.ayah, { translations: snippetTranslation, words: false })
+          .catch(() => null)
+      : Promise.resolve(null),
+    nextRef
+      ? quranApi
+          .ayah(nextRef.surah, nextRef.ayah, { translations: snippetTranslation, words: false })
+          .catch(() => null)
+      : Promise.resolve(null),
   ]);
 
   // Never treat a valid surah:ayah pair as 404 if the API is temporarily unreachable.
@@ -170,19 +213,18 @@ export async function renderAyahPage({
   const ayahPath = localePath(activeLocale, getAyahPath(surahNumber, ayahNumber));
   const surahPath = localePath(activeLocale, getSurahPath(surahNumber));
   const isAyatulKursi = surahNumber === 2 && ayahNumber === 255;
+  const surahInfo = getSurahInfo(surahNumber, 'en');
 
-  const prevHref =
-    ayahNumber > 1
-      ? localePath(activeLocale, getAyahPath(surahNumber, ayahNumber - 1))
-      : surahNumber > 1
-        ? localePath(activeLocale, getAyahPath(surahNumber - 1, getSurahAyahCount(surahNumber - 1)))
-        : null;
-  const nextHref =
-    ayahNumber < ayahCount
-      ? localePath(activeLocale, getAyahPath(surahNumber, ayahNumber + 1))
-      : surahNumber < 114
-        ? localePath(activeLocale, getAyahPath(surahNumber + 1, 1))
-        : null;
+  const revelationLabel =
+    surahInfo?.revelationPeriod ||
+    (surah?.revelationPlace
+      ? `${surah.revelationPlace.charAt(0).toUpperCase()}${surah.revelationPlace.slice(1)}`
+      : null);
+
+  const prevHref = prevRef ? localePath(activeLocale, getAyahPath(prevRef.surah, prevRef.ayah)) : null;
+  const nextHref = nextRef ? localePath(activeLocale, getAyahPath(nextRef.surah, nextRef.ayah)) : null;
+  const prevSurahMeta = prevRef ? getSurahMeta(prevRef.surah) : null;
+  const nextSurahMeta = nextRef ? getSurahMeta(nextRef.surah) : null;
 
   const relatedAyahs = getRelatedAyahs(surahNumber, ayahNumber, ayahCount);
   const wordsWithMeanings = (ayah.words ?? []).filter(
@@ -192,6 +234,13 @@ export async function renderAyahPage({
     .map((w) => w.transliteration?.trim())
     .filter(Boolean)
     .join(' ');
+
+  const englishTranslation = (ayah.translations ?? []).find(
+    (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.en || tr.translatorSlug.startsWith('en-'),
+  );
+  const urduTranslation = (ayah.translations ?? []).find(
+    (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.ur || tr.translatorSlug.startsWith('ur-'),
+  );
 
   const jsonLd = ayahJsonLd({
     surahNumber,
@@ -225,7 +274,7 @@ export async function renderAyahPage({
           ]}
         />
 
-        <header className="mt-6 border-b border-line pb-6">
+        <div className="mt-6 border-b border-line pb-6">
           <p className="font-arabic text-2xl font-bold text-ink sm:text-3xl" dir="rtl" lang="ar">
             {arabicName}
           </p>
@@ -235,18 +284,17 @@ export async function renderAyahPage({
           <p className="mt-2 text-sm text-ink-muted">
             Surah {meta.nameSimple} ({meta.meaning}) · Chapter {surahNumber} of 114 · Verse{' '}
             {ayahNumber} of {ayahCount}
-            {surah?.revelationPlace
-              ? ` · ${surah.revelationPlace.charAt(0).toUpperCase()}${surah.revelationPlace.slice(1)}`
-              : ''}
+            {revelationLabel ? ` · ${revelationLabel}` : ''}
             {ayah.juz ? ` · Juz ${ayah.juz}` : ''}
-            {ayah.page ? ` · Page ${ayah.page}` : ''}
+            {ayah.page ? ` · Mushaf Page ${ayah.page}` : ''}
           </p>
-          <p className="mt-2 text-sm text-ink-muted">
+          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-ink-muted">
             <Link href={surahPath} className="font-semibold text-brand hover:underline">
               {activeLocale === 'en' ? `Read full Surah ${meta.nameSimple}` : `Read full ${displayName}`}
             </Link>
-          </p>
-        </header>
+            <ReportMistakeButton surahNumber={surahNumber} ayahNumber={ayahNumber} />
+          </div>
+        </div>
 
         <div className="mt-8">
           <AyahBlock
@@ -258,13 +306,49 @@ export async function renderAyahPage({
           />
         </div>
 
+        {/* Server-rendered parallel translations (English & Urdu) */}
+        {(englishTranslation?.text || urduTranslation?.text) && (
+          <section
+            aria-label={`Translations of Surah ${meta.nameSimple} ${surahNumber}:${ayahNumber}`}
+            className="mt-6 space-y-4 rounded-xl border border-line bg-surface p-5 sm:p-6"
+          >
+            <h2 className="text-base font-bold text-ink">
+              Translations of Surah {meta.nameSimple} Ayah {ayahNumber} ({surahNumber}:{ayahNumber})
+            </h2>
+            {englishTranslation?.text && (
+              <div className="rounded-lg border border-line-subtle bg-surface-2/40 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  English Translation — {englishTranslation.translatorName || 'Saheeh International'}
+                </p>
+                <p className="mt-2 text-sm leading-7 text-ink-2 sm:text-base">
+                  {cleanTranslationText(englishTranslation.text)}
+                </p>
+              </div>
+            )}
+            {urduTranslation?.text && (
+              <div className="rounded-lg border border-line-subtle bg-surface-2/40 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Urdu Translation (اردو ترجمہ) — {urduTranslation.translatorName || 'Bayan-ul-Quran'}
+                </p>
+                <p
+                  dir="rtl"
+                  lang="ur"
+                  className="mt-2 text-right text-base leading-9 text-ink-2 sm:text-lg"
+                >
+                  {cleanTranslationText(urduTranslation.text)}
+                </p>
+              </div>
+            )}
+          </section>
+        )}
+
         {fullTransliteration && (
           <section
             aria-label="Transliteration"
             className="mt-6 rounded-xl border border-line bg-surface p-5"
           >
             <h2 className="text-sm font-bold uppercase tracking-wider text-ink-muted">
-              Transliteration
+              Arabic Transliteration ({meta.nameSimple} {surahNumber}:{ayahNumber})
             </h2>
             <p className="mt-2 text-sm leading-7 text-ink-2 sm:text-base">{fullTransliteration}</p>
           </section>
@@ -276,7 +360,7 @@ export async function renderAyahPage({
             className="mt-6 rounded-xl border border-line bg-surface p-5"
           >
             <h2 className="text-base font-bold text-ink">
-              Word-by-Word Breakdown ({meta.nameSimple} {surahNumber}:{ayahNumber})
+              Word-by-Word Meaning ({meta.nameSimple} {surahNumber}:{ayahNumber})
             </h2>
             <div className="mt-3 flex flex-wrap gap-2" dir="rtl">
               {wordsWithMeanings.map((word) => (
@@ -303,10 +387,68 @@ export async function renderAyahPage({
           </section>
         )}
 
+        {/* Server-rendered Verse & Surah Context */}
+        <section
+          aria-label={`Context for Surah ${meta.nameSimple} Ayah ${ayahNumber}`}
+          className="mt-6 space-y-3 rounded-xl border border-line bg-surface p-5 sm:p-6"
+        >
+          <h2 className="text-base font-bold text-ink">
+            Context: Surah {meta.nameSimple} ({meta.meaning}) — Ayah {ayahNumber}
+          </h2>
+          <p className="text-sm leading-7 text-ink-2">
+            Surah {meta.nameSimple} ({arabicName}, meaning &ldquo;{meta.meaning}&rdquo;) is chapter{' '}
+            {surahNumber} of the 114 chapters of the Holy Quran
+            {revelationLabel ? `, a ${revelationLabel} surah` : ''} containing {ayahCount}{' '}
+            {ayahCount === 1 ? 'verse' : 'verses'}. Ayah {ayahNumber} ({surahNumber}:{ayahNumber})
+            appears in the {positionLabel(ayahNumber, ayahCount)} of the chapter
+            {ayah.juz ? ` within Juz ${ayah.juz}` : ''}
+            {ayah.page ? ` on Mushaf page ${ayah.page}` : ''}.
+          </p>
+          {surahInfo?.overview?.[0] ? (
+            <p className="text-sm leading-7 text-ink-2">{surahInfo.overview[0]}</p>
+          ) : (
+            <p className="text-sm leading-7 text-ink-2">
+              On QuranPilot you can read Surah {meta.nameSimple} Ayah {ayahNumber} in clear Uthmani
+              Arabic script alongside English and Urdu translations, listen to verse-by-verse audio
+              from trusted reciters, inspect word-by-word meanings, and continue reading the
+              surrounding verses in full context.
+            </p>
+          )}
+          {surahInfo?.mainThemes?.length ? (
+            <div className="pt-1">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-ink-muted">
+                Main Themes of Surah {meta.nameSimple}
+              </h3>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-ink-2">
+                {surahInfo.mainThemes.map((theme, idx) => (
+                  <li key={idx}>{theme}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-sm leading-7 text-ink-3">
+              To understand Ayah {ayahNumber} in its broader flow, read the preceding and following
+              verses below or open the complete{' '}
+              <Link href={surahPath} className="font-semibold text-[var(--accent)] hover:underline">
+                Surah {meta.nameSimple}
+              </Link>{' '}
+              chapter page. You can also explore{' '}
+              <Link href="/tajweed" className="font-semibold text-[var(--accent)] hover:underline">
+                Tajweed pronunciation rules
+              </Link>{' '}
+              and{' '}
+              <Link href="/learning-plans" className="font-semibold text-[var(--accent)] hover:underline">
+                guided Quran learning plans
+              </Link>{' '}
+              to build a consistent daily study habit.
+            </p>
+          )}
+        </section>
+
         {isAyatulKursi && activeLocale === 'en' && (
           <section
             aria-label="About Ayatul Kursi"
-            className="mt-8 space-y-4 rounded-xl border border-line bg-surface p-6"
+            className="mt-6 space-y-4 rounded-xl border border-line bg-surface p-6"
           >
             <h2 className="text-lg font-bold text-ink">
               About Ayatul Kursi (Surah Al-Baqarah 2:255)
@@ -332,7 +474,7 @@ export async function renderAyahPage({
         {tafsirs.length > 0 && (
           <section
             aria-label={`Tafsir for ${meta.nameSimple} ${surahNumber}:${ayahNumber}`}
-            className="mt-8 space-y-4 rounded-xl border border-line bg-surface p-6"
+            className="mt-6 space-y-4 rounded-xl border border-line bg-surface p-6"
           >
             <h2 className="text-lg font-bold text-ink">
               Tafsir &amp; Commentary ({meta.nameSimple} {surahNumber}:{ayahNumber})
@@ -353,9 +495,94 @@ export async function renderAyahPage({
           </section>
         )}
 
+        {/* Surrounding Verses (Previous & Next Ayah with Arabic + Translation snippets) */}
+        {(prevRef || nextRef) && (
+          <section
+            aria-label="Surrounding verses"
+            className="mt-6 space-y-3 rounded-xl border border-line bg-surface p-5 sm:p-6"
+          >
+            <h2 className="text-base font-bold text-ink">Ayah Before &amp; After</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {prevRef && prevHref && prevSurahMeta ? (
+                <div className="flex flex-col justify-between rounded-xl border border-line-subtle bg-surface-2/40 p-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                      Previous Ayah · {prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
+                    </p>
+                    {prevAyahData?.textUthmani ? (
+                      <p
+                        dir="rtl"
+                        lang="ar"
+                        className="mt-2 font-arabic text-lg leading-loose text-ink"
+                      >
+                        {prevAyahData.textUthmani}
+                      </p>
+                    ) : null}
+                    {prevAyahData?.translations?.[0]?.text ? (
+                      <p className="mt-1.5 text-xs leading-6 text-ink-2 sm:text-sm">
+                        {truncateText(prevAyahData.translations[0].text)}
+                      </p>
+                    ) : (
+                      <p className="mt-1.5 text-xs leading-6 text-ink-muted">
+                        Read Surah {prevSurahMeta.nameSimple} verse {prevRef.ayah} ({prevRef.surah}:
+                        {prevRef.ayah}) with Arabic text, translation, and audio.
+                      </p>
+                    )}
+                  </div>
+                  <Link
+                    href={prevHref}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+                    Read {prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
+                  </Link>
+                </div>
+              ) : (
+                <div />
+              )}
+
+              {nextRef && nextHref && nextSurahMeta ? (
+                <div className="flex flex-col justify-between rounded-xl border border-line-subtle bg-surface-2/40 p-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                      Next Ayah · {nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
+                    </p>
+                    {nextAyahData?.textUthmani ? (
+                      <p
+                        dir="rtl"
+                        lang="ar"
+                        className="mt-2 font-arabic text-lg leading-loose text-ink"
+                      >
+                        {nextAyahData.textUthmani}
+                      </p>
+                    ) : null}
+                    {nextAyahData?.translations?.[0]?.text ? (
+                      <p className="mt-1.5 text-xs leading-6 text-ink-2 sm:text-sm">
+                        {truncateText(nextAyahData.translations[0].text)}
+                      </p>
+                    ) : (
+                      <p className="mt-1.5 text-xs leading-6 text-ink-muted">
+                        Continue to Surah {nextSurahMeta.nameSimple} verse {nextRef.ayah} (
+                        {nextRef.surah}:{nextRef.ayah}) with Arabic text, translation, and audio.
+                      </p>
+                    )}
+                  </div>
+                  <Link
+                    href={nextHref}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
+                  >
+                    Read {nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
+                    <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        )}
+
         <section
           aria-label="Related ayahs"
-          className="mt-8 rounded-xl border border-line bg-surface p-5"
+          className="mt-6 rounded-xl border border-line bg-surface p-5"
         >
           <h2 className="text-base font-bold text-ink">Related Ayahs to Explore</h2>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -390,32 +617,6 @@ export async function renderAyahPage({
             Explore Learning Plans
           </Link>
         </div>
-
-        <nav
-          aria-label="Ayah navigation"
-          className="mt-10 flex flex-col items-stretch justify-between gap-4 border-t border-line pt-8 sm:flex-row"
-        >
-          {prevHref ? (
-            <Link
-              href={prevHref}
-              className="inline-flex items-center gap-2 rounded-[4px] border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink shadow-xs transition hover:border-[var(--accent)]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous ayah
-            </Link>
-          ) : (
-            <span />
-          )}
-          {nextHref ? (
-            <Link
-              href={nextHref}
-              className="inline-flex items-center justify-end gap-2 rounded-[4px] border border-line bg-surface px-4 py-3 text-sm font-semibold text-ink shadow-xs transition hover:border-[var(--accent)] sm:ml-auto"
-            >
-              Next ayah
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          ) : null}
-        </nav>
 
         <nav
           aria-label="Other languages for this ayah"
