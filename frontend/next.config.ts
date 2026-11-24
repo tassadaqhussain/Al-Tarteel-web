@@ -4,10 +4,13 @@ import { getSurahSlug } from './src/lib/surah-meta';
 const nextConfig: NextConfig = {
   agentRules: false,
   async redirects() {
-    return Array.from({ length: 114 }, (_, index) => {
-      const number = index + 1;
-      return { source: `/surah/${number}`, destination: `/${getSurahSlug(number)}`, statusCode: 301 };
-    });
+    return [
+      { source: '/surah', destination: '/surahs', statusCode: 301 },
+      ...Array.from({ length: 114 }, (_, index) => {
+        const number = index + 1;
+        return { source: `/surah/${number}`, destination: `/${getSurahSlug(number)}`, statusCode: 301 };
+      }),
+    ];
   },
   async rewrites() {
     return {

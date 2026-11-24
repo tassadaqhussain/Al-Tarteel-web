@@ -13,12 +13,15 @@ function canonicalOriginRedirect(request: NextRequest, pathname: string): NextRe
 }
 
 function redirectPath(request: NextRequest, targetPathname: string): NextResponse {
-  const target = request.nextUrl.clone();
-  target.pathname = targetPathname;
-  return NextResponse.redirect(target, 301);
+  const search = request.nextUrl.search || '';
+  return NextResponse.redirect(new URL(`${targetPathname}${search}`, request.nextUrl.origin), 301);
 }
 
 function resolveNumericRedirect(pathname: string): string | null {
+  if (pathname === '/surah' || pathname === '/surah/') {
+    return '/surahs';
+  }
+
   const localeMatch = /^\/(ur|ps|fa)(\/.*)$/.exec(pathname);
   const localePrefix = localeMatch ? `/${localeMatch[1]}` : '';
   const rest = localeMatch ? localeMatch[2] : pathname;

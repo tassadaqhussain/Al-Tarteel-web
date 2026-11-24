@@ -150,6 +150,8 @@ for (let number = 1; number <= 114; number++) {
 assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', { method: 'HEAD' })).status, 301);
 // Common alternate numeric routes → 301 canonical slug
 for (const [from, to] of [
+  ['/surah', '/surahs'],
+  ['/surah/', '/surahs'],
   ['/surah/67', '/al-mulk'],
   ['/67', '/al-mulk'],
   ['/2/255', '/al-baqarah/255'],
