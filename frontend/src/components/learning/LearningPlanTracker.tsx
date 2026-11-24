@@ -2,8 +2,10 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CheckCircle2, Circle } from 'lucide-react';
 import type { LearningPlan } from '@/lib/learning-plans';
+import { registerHref } from '@/lib/auth-redirect';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { trackSelectContent, trackStartPlan } from '@/lib/analytics';
@@ -16,6 +18,7 @@ export function LearningPlanTracker({
   plan: LearningPlan;
   readerHref: string;
 }) {
+  const router = useRouter();
   const progressMap = useSettingsStore((s) => s.learningProgress);
   const toggleDay = useSettingsStore((s) => s.toggleLearningDay);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -58,13 +61,16 @@ export function LearningPlanTracker({
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-bold text-ink">Your daily lessons</h2>
           {authStatus !== 'loading' && !isAuthenticated && (
-            <Link
-              href={`/register?next=${encodeURIComponent(`/learning-plans/${plan.slug}`)}`}
-              onClick={() => trackStartPlan(plan.slug, plan.title)}
+            <button
+              type="button"
+              onClick={() => {
+                trackStartPlan(plan.slug, plan.title);
+                router.push(registerHref(`/learning-plans/${plan.slug}`));
+              }}
               className="rounded-full border border-white/30 bg-white/15 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/25"
             >
               Create free account to save progress
-            </Link>
+            </button>
           )}
         </div>
         <div className="space-y-2">

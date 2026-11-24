@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Bookmark, ChevronRight, Settings, Target } from 'lucide-react';
+import { registerHref } from '@/lib/auth-redirect';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
@@ -18,6 +20,7 @@ const DEFAULT_CONTINUE = {
 };
 
 export function ContinueReading() {
+  const router = useRouter();
   const { t } = useT();
   const lastRead = useSettingsStore((s) => s.lastRead);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -40,12 +43,13 @@ export function ContinueReading() {
         </h2>
         <div className="flex items-center gap-4">
           {authStatus !== 'loading' && !isAuthenticated && (
-            <Link
-              href="/register?next=/my-quran"
+            <button
+              type="button"
+              onClick={() => router.push(registerHref('/my-quran'))}
               className="hidden text-xs font-medium text-[var(--accent)] hover:underline sm:inline"
             >
               Create free account to save progress
-            </Link>
+            </button>
           )}
           <Link
             href="/my-quran"

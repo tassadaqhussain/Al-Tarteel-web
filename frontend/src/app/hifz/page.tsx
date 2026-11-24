@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BookOpenCheck, ChevronRight } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { HifzDailyChart } from '@/components/hifz/HifzDailyChart';
@@ -15,6 +16,7 @@ import { lastLocalDateKeys } from '@/lib/hifz/compare';
 const POPULAR = [1, 36, 55, 67, 112, 113, 114, 18, 2];
 
 export default function HifzHomePage() {
+  const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const status = useAuthStore((s) => s.status);
   const daysMap = useHifzStore((s) => s.days);
@@ -101,9 +103,13 @@ export default function HifzHomePage() {
           {status !== 'loading' && !isAuthenticated && (
             <p className="mt-3 text-sm text-[var(--muted)]">
               Signed-out progress stays on this device.{' '}
-              <Link href={loginHref('/hifz')} className="font-medium text-[var(--accent)] hover:underline">
+              <button
+                type="button"
+                onClick={() => router.push(loginHref('/hifz'))}
+                className="font-medium text-[var(--accent)] hover:underline"
+              >
                 Sign in
-              </Link>{' '}
+              </button>{' '}
               to sync daily accuracy across devices.
             </p>
           )}

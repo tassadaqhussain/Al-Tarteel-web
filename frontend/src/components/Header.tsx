@@ -327,14 +327,13 @@ export function Header() {
             </button>
 
             {!authLoading && !isAuthenticated && (
-              <>
-                <Link
-                  href={loginHref(pathname)}
-                  className="hidden h-10 items-center justify-center rounded-full border border-emerald-900/30 bg-surface px-4 text-sm font-bold text-brand transition hover:bg-emerald-900 hover:text-white sm:inline-flex"
-                >
-                  {t('signIn')}
-                </Link>
-              </>
+              <button
+                type="button"
+                onClick={() => router.push(loginHref(pathname))}
+                className="hidden h-10 items-center justify-center rounded-full border border-emerald-900/30 bg-surface px-4 text-sm font-bold text-brand transition hover:bg-emerald-900 hover:text-white sm:inline-flex"
+              >
+                {t('signIn')}
+              </button>
             )}
             {!authLoading && isAuthenticated && (
               <div className="relative hidden sm:block">
@@ -478,13 +477,16 @@ function MobileNav({
           <SheetTitle className="font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">QuranPilot</SheetTitle>
           <div className="flex items-center gap-2 sm:gap-3">
             {!isAuthenticated ? (
-              <Link
-                href={loginHref(pathname)}
-                onClick={() => onOpenChange(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenChange(false);
+                  router.push(loginHref(pathname));
+                }}
                 className="rounded-full border border-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)] hover:text-white sm:px-4 sm:py-2 sm:text-base"
               >
                 {t('signIn')}
-              </Link>
+              </button>
             ) : (
               <Link
                 href="/profile"
@@ -533,10 +535,7 @@ function MobileNav({
               ...(user?.isAdmin ? [{ label: 'Admin', href: '/admin', icon: Shield, id: 'admin' }] : []),
               ...(isAuthenticated
                 ? [{ label: t('profile'), href: '/profile', icon: Smile, id: 'profile' }]
-                : [
-                    { label: t('signIn'), href: loginHref(pathname), icon: Smile, id: 'login' },
-                    { label: t('createAccount'), href: registerHref(pathname), icon: Smile, id: 'register' },
-                  ]),
+                : []),
             ].map((item) => (
               <Link
                 key={item.id}
@@ -553,6 +552,32 @@ function MobileNav({
                 {item.label}
               </Link>
             ))}
+            {!isAuthenticated && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    router.push(loginHref(pathname));
+                  }}
+                  className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-lg font-semibold text-ink transition hover:bg-surface-2 sm:gap-6 sm:py-4 sm:text-xl"
+                >
+                  <Smile className="h-5 w-5 shrink-0 text-ink-faint sm:h-6 sm:w-6" />
+                  {t('signIn')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    router.push(registerHref(pathname));
+                  }}
+                  className="flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left text-lg font-semibold text-ink transition hover:bg-surface-2 sm:gap-6 sm:py-4 sm:text-xl"
+                >
+                  <Smile className="h-5 w-5 shrink-0 text-ink-faint sm:h-6 sm:w-6" />
+                  {t('createAccount')}
+                </button>
+              </>
+            )}
             {isAuthenticated && (
               <button
                 type="button"

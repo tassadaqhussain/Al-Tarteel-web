@@ -176,9 +176,13 @@ function RegisterForm() {
 
       <p className="mt-6 text-center text-sm text-ink-3">
         Already have an account?{' '}
-        <Link href={loginHref(returnUrl)} className="font-semibold text-[var(--accent)] hover:underline">
+        <button
+          type="button"
+          onClick={() => router.push(loginHref(returnUrl))}
+          className="font-semibold text-[var(--accent)] hover:underline"
+        >
           Sign in
-        </Link>
+        </button>
       </p>
     </main>
   );
