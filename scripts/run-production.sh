@@ -260,13 +260,13 @@ elif [[ "${SKIP_AUDIO_IMPORT}" != "1" && ! -f "${AUDIO_MARKER}" ]]; then
   mkdir -p "${APP_DIR}/backend/storage/audio" "$(dirname "${AUDIO_MARKER}")"
   AUDIO_FREE_KB="$(df -Pk "${APP_DIR}/backend/storage/audio" 2>/dev/null | awk 'NR==2 {print $4}')"
   AUDIO_FREE_MB=$(( ${AUDIO_FREE_KB:-0} / 1024 ))
-  if [[ "${AUDIO_FREE_MB}" -lt 4000 ]]; then
-    warn "Skipping post-deploy translation audio download: need ≥ 4000 MB free, have ${AUDIO_FREE_MB} MB"
+  if [[ "${AUDIO_FREE_MB}" -lt 10000 ]]; then
+    warn "Skipping post-deploy translation audio download: need ≥ 10000 MB free, have ${AUDIO_FREE_MB} MB"
   else
-    log "Starting background translation audio download (EN + Urdu Shamshad + Pashto)"
+    log "Starting background translation audio download (all EN/UR/FA + Pashto)"
     nohup bash -c '
       set -euo pipefail
-      if API_PORT="'"${API_PORT}"'" bash "'"${APP_DIR}"'/scripts/import-all-content.sh" --audio-only --translations-only --compact; then
+      if API_PORT="'"${API_PORT}"'" bash "'"${APP_DIR}"'/scripts/import-all-content.sh" --audio-only --translations-only; then
         date -u +%FT%TZ > "'"${AUDIO_MARKER}"'"
       fi
     ' > "${AUDIO_LOG}" 2>&1 &
