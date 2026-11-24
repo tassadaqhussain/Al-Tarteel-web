@@ -125,6 +125,10 @@ export function pathForUiLocale(pathname: string, targetLocale: UiLocale): strin
     }
   }
 
+  if (segments.length === 1 && (segments[0] === 'about' || segments[0] === 'contact')) {
+    return `${localePath(contentLocale, `/${segments[0]}`)}${search}`;
+  }
+
   // Articles, account pages and other shared tools do not have translated routes.
   return `/${segments.join('/')}${search}`;
 }

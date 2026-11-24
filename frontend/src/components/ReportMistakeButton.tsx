@@ -3,10 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DEFAULT_CONTENT_LOCALE, type ContentLocale } from '@/lib/i18n/content-locales';
+import { reportMistakeLabel } from '@/lib/i18n/surah-ui-strings';
 
 interface Props {
   surahNumber: number;
   ayahNumber?: number;
+  locale?: ContentLocale;
   className?: string;
 }
 
@@ -15,7 +18,12 @@ interface Props {
  * Rendered as a `<button>` rather than `<a href>` so crawlers do not waste
  * crawl budget on parameterized contact URLs across 6,000+ pages.
  */
-export function ReportMistakeButton({ surahNumber, ayahNumber, className }: Props) {
+export function ReportMistakeButton({
+  surahNumber,
+  ayahNumber,
+  locale = DEFAULT_CONTENT_LOCALE,
+  className,
+}: Props) {
   const router = useRouter();
   const ref = ayahNumber ? `${surahNumber}:${ayahNumber}` : String(surahNumber);
 
@@ -29,7 +37,7 @@ export function ReportMistakeButton({ surahNumber, ayahNumber, className }: Prop
       )}
     >
       <Flag className="h-3.5 w-3.5" aria-hidden />
-      Report a mistake
+      {reportMistakeLabel(locale)}
     </button>
   );
 }
