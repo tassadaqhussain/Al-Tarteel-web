@@ -4,28 +4,142 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, Loader2, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DEFAULT_CONTENT_LOCALE, type ContentLocale } from '@/lib/i18n/content-locales';
 
 type ContactType = 'mistake' | 'feature' | 'general';
 
-const TOPICS: { id: ContactType; label: string; hint: string }[] = [
+const FORM_COPY: Record<
+  ContentLocale,
   {
-    id: 'mistake',
-    label: 'Report a mistake in text / translation / audio',
-    hint: 'Typo, missing diacritic, misaligned audio, or source attribution issue',
+    legend: string;
+    topics: { id: ContactType; label: string; hint: string }[];
+    refLabel: string;
+    nameLabel: string;
+    emailLabel: string;
+    optional: string;
+    messageLabel: string;
+    submit: string;
+    sendAnother: string;
+    doneNote: string;
+  }
+> = {
+  en: {
+    legend: 'What is this about?',
+    topics: [
+      {
+        id: 'mistake',
+        label: 'Report a mistake in text / translation / audio',
+        hint: 'Typo, missing diacritic, misaligned audio, or source attribution issue',
+      },
+      {
+        id: 'feature',
+        label: 'Feature request',
+        hint: 'Suggest a new reading, audio, or learning capability',
+      },
+      {
+        id: 'general',
+        label: 'General inquiry',
+        hint: 'Questions, partnerships, or other notes',
+      },
+    ],
+    refLabel: 'Surah / Ayah reference',
+    nameLabel: 'Your name',
+    emailLabel: 'Email',
+    optional: '(optional)',
+    messageLabel: 'Message',
+    submit: 'Send message',
+    sendAnother: 'Send another message',
+    doneNote:
+      'We review every report carefully—especially reports about Quranic text, translations, or audio alignment.',
   },
-  {
-    id: 'feature',
-    label: 'Feature request',
-    hint: 'Suggest a new reading, audio, or learning capability',
+  ur: {
+    legend: 'آپ کا پیغام کس بارے میں ہے؟',
+    topics: [
+      {
+        id: 'mistake',
+        label: 'متن / ترجمہ / آڈیو میں غلطی کی نشاندہی',
+        hint: 'املا، اعراب، ترجمہ یا آڈیو کی ترتیب کا مسئلہ',
+      },
+      {
+        id: 'feature',
+        label: 'نئی سہولت کی تجویز',
+        hint: 'پڑھنے، آڈیو یا سیکھنے سے متعلق کوئی تجویز',
+      },
+      {
+        id: 'general',
+        label: 'عمومی سوال یا پیغام',
+        hint: 'سوالات یا دیگر پیغامات',
+      },
+    ],
+    refLabel: 'سورہ / آیت کا حوالہ',
+    nameLabel: 'آپ کا نام',
+    emailLabel: 'ای میل',
+    optional: '(اختیاری)',
+    messageLabel: 'پیغام',
+    submit: 'پیغام بھیجیں',
+    sendAnother: 'ایک اور پیغام بھیجیں',
+    doneNote: 'ہم ہر پیغام کا بغور جائزہ لیتے ہیں، بالخصوص قرآنی متن اور ترجمے سے متعلق رپورٹس کا۔',
   },
-  {
-    id: 'general',
-    label: 'General inquiry',
-    hint: 'Questions, partnerships, or other notes',
+  ps: {
+    legend: 'ستاسو پیغام د څه په اړه دی؟',
+    topics: [
+      {
+        id: 'mistake',
+        label: 'په متن / ژباړه / غږ کې د تېروتنې راپور',
+        hint: 'لیکدود، اعراب، ژباړه یا غږیزه ستونزه',
+      },
+      {
+        id: 'feature',
+        label: 'د نوې اسانتیا وړاندیز',
+        hint: 'د لوستلو، غږ یا زده‌کړې په اړه وړاندیز',
+      },
+      {
+        id: 'general',
+        label: 'عمومي پوښتنه یا پیغام',
+        hint: 'پوښتنې یا نور پیغامونه',
+      },
+    ],
+    refLabel: 'د سورت / آیت حواله',
+    nameLabel: 'ستاسو نوم',
+    emailLabel: 'برېښنالیک',
+    optional: '(اختیاري)',
+    messageLabel: 'پیغام',
+    submit: 'پیغام ولېږئ',
+    sendAnother: 'بل پیغام ولېږئ',
+    doneNote: 'موږ هر راپور په دقت سره ګورو، په ځانګړي ډول د قرآني متن او ژباړې اړوند راپورونه.',
   },
-];
+  fa: {
+    legend: 'موضوع پیام شما چیست؟',
+    topics: [
+      {
+        id: 'mistake',
+        label: 'گزارش خطا در متن / ترجمه / صوت',
+        hint: 'اشکال املایی، اعراب، ترجمه یا هماهنگی صوت',
+      },
+      {
+        id: 'feature',
+        label: 'پیشنهاد ویژگی جدید',
+        hint: 'پیشنهاد برای مطالعه، صوت یا یادگیری',
+      },
+      {
+        id: 'general',
+        label: 'پرسش عمومی',
+        hint: 'سوالات یا یادداشت‌های دیگر',
+      },
+    ],
+    refLabel: 'مرجع سوره / آیه',
+    nameLabel: 'نام شما',
+    emailLabel: 'ایمیل',
+    optional: '(اختیاری)',
+    messageLabel: 'پیام',
+    submit: 'ارسال پیام',
+    sendAnother: 'ارسال پیام دیگر',
+    doneNote: 'ما همه گزارش‌ها به‌ویژه گزارش‌های مربوط به متن قرآن، ترجمه و صوت را با دقت بررسی می‌کنیم.',
+  },
+};
 
-export function ContactForm() {
+export function ContactForm({ locale = DEFAULT_CONTENT_LOCALE }: { locale?: ContentLocale }) {
+  const copy = FORM_COPY[locale];
   const searchParams = useSearchParams();
   const [type, setType] = useState<ContactType>('general');
   const [reference, setReference] = useState('');
@@ -96,16 +210,13 @@ export function ContactForm() {
           <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-brand" aria-hidden />
           <div>
             <p className="font-semibold text-ink">{done}</p>
-            <p className="mt-1.5 text-sm text-ink-3">
-              We review every report carefully—especially reports about Quranic text, translations,
-              or audio alignment.
-            </p>
+            <p className="mt-1.5 text-sm text-ink-3">{copy.doneNote}</p>
             <button
               type="button"
               onClick={() => setDone(null)}
               className="mt-4 rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-brand-contrast transition hover:opacity-90"
             >
-              Send another message
+              {copy.sendAnother}
             </button>
           </div>
         </div>
@@ -133,9 +244,9 @@ export function ContactForm() {
       </div>
 
       <fieldset>
-        <legend className="text-sm font-semibold text-ink">What is this about?</legend>
+        <legend className="text-sm font-semibold text-ink">{copy.legend}</legend>
         <div className="mt-2.5 grid gap-2.5">
-          {TOPICS.map((topic) => (
+          {copy.topics.map((topic) => (
             <label
               key={topic.id}
               className={cn(
@@ -165,7 +276,7 @@ export function ContactForm() {
       {type === 'mistake' && (
         <div>
           <label htmlFor="contact-ref" className="block text-sm font-semibold text-ink">
-            Surah / Ayah reference <span className="font-normal text-ink-muted">(optional)</span>
+            {copy.refLabel} <span className="font-normal text-ink-muted">{copy.optional}</span>
           </label>
           <input
             id="contact-ref"
@@ -181,20 +292,20 @@ export function ContactForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="contact-name" className="block text-sm font-semibold text-ink">
-            Your name <span className="font-normal text-ink-muted">(optional)</span>
+            {copy.nameLabel} <span className="font-normal text-ink-muted">{copy.optional}</span>
           </label>
           <input
             id="contact-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={copy.nameLabel}
             className="mt-1.5 w-full rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-[var(--accent)] focus:outline-none"
           />
         </div>
         <div>
           <label htmlFor="contact-email" className="block text-sm font-semibold text-ink">
-            Email <span className="font-normal text-ink-muted">(optional, for replies)</span>
+            {copy.emailLabel} <span className="font-normal text-ink-muted">{copy.optional}</span>
           </label>
           <input
             id="contact-email"
@@ -209,7 +320,7 @@ export function ContactForm() {
 
       <div>
         <label htmlFor="contact-message" className="block text-sm font-semibold text-ink">
-          Message
+          {copy.messageLabel}
         </label>
         <textarea
           id="contact-message"
@@ -217,11 +328,6 @@ export function ContactForm() {
           rows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder={
-            type === 'mistake'
-              ? 'Describe the exact verse, translation, or audio reciter and what looks wrong...'
-              : 'How can we help?'
-          }
           className="mt-1.5 w-full rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:border-[var(--accent)] focus:outline-none"
         />
       </div>
@@ -241,7 +347,7 @@ export function ContactForm() {
         )}
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        Send message
+        {copy.submit}
       </button>
     </form>
   );

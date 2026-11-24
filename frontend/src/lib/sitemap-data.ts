@@ -141,8 +141,20 @@ function coreEntries(): SitemapEntry[] {
     { url: `${SITE_URL}/learning-plans`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/quran-in-year`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.65 },
     { url: `${SITE_URL}/tajweed`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${SITE_URL}/about`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${SITE_URL}/contact`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.55 },
+    {
+      url: `${SITE_URL}/about`,
+      lastModified: SITEMAP_LASTMOD,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+      alternates: buildAlternates('/about'),
+    },
+    {
+      url: `${SITE_URL}/contact`,
+      lastModified: SITEMAP_LASTMOD,
+      changeFrequency: 'monthly',
+      priority: 0.55,
+      alternates: buildAlternates('/contact'),
+    },
     ...Array.from({ length: 30 }, (_, i) => ({
       url: `${SITE_URL}/juz/${i + 1}`,
       lastModified: QURAN_CONTENT_UPDATED_AT,
@@ -197,6 +209,8 @@ function contentEntries(): SitemapEntry[] {
  */
 function localeEntries(): SitemapEntry[] {
   const homeAlternates = buildAlternates('/');
+  const aboutAlternates = buildAlternates('/about');
+  const contactAlternates = buildAlternates('/contact');
   return PREFIXED_LOCALES.flatMap((locale) => [
     {
       url: `${SITE_URL}${localePath(locale, '/')}`,
@@ -204,6 +218,20 @@ function localeEntries(): SitemapEntry[] {
       changeFrequency: 'weekly' as const,
       priority: 0.9,
       alternates: homeAlternates,
+    },
+    {
+      url: `${SITE_URL}${localePath(locale, '/about')}`,
+      lastModified: SITEMAP_LASTMOD,
+      changeFrequency: 'monthly' as const,
+      priority: 0.55,
+      alternates: aboutAlternates,
+    },
+    {
+      url: `${SITE_URL}${localePath(locale, '/contact')}`,
+      lastModified: SITEMAP_LASTMOD,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+      alternates: contactAlternates,
     },
     ...Array.from({ length: 114 }, (_, i) => {
       const number = i + 1;

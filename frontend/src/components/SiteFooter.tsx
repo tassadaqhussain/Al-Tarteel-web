@@ -4,11 +4,16 @@ import Link from 'next/link';
 import { SiteLogo } from '@/components/SiteLogo';
 import { useT } from '@/lib/i18n';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
-import { CONTENT_LOCALES, localeConfig, localePath } from '@/lib/i18n/content-locales';
+import { CONTENT_LOCALES, isPrefixedLocale, localeConfig, localePath, type ContentLocale } from '@/lib/i18n/content-locales';
 import { DONATE_ENABLED } from '@/lib/features';
 
 export function SiteFooter() {
-  const { t } = useT();
+  const { t, locale } = useT();
+  const contentLocale: ContentLocale = isPrefixedLocale(locale) ? locale : 'en';
+  const aboutLabel =
+    contentLocale === 'ur' ? 'تعارف' : contentLocale === 'ps' ? 'زموږ په اړه' : contentLocale === 'fa' ? 'درباره ما' : 'About';
+  const contactLabel =
+    contentLocale === 'ur' ? 'رابطہ' : contentLocale === 'ps' ? 'اړیکه' : contentLocale === 'fa' ? 'تماس' : 'Contact';
 
   return (
     <footer
@@ -68,13 +73,13 @@ export function SiteFooter() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/about" className="transition hover:text-white">
-                    About
+                  <Link href={localePath(contentLocale, '/about')} className="transition hover:text-white">
+                    {aboutLabel}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="transition hover:text-white">
-                    Contact
+                  <Link href={localePath(contentLocale, '/contact')} className="transition hover:text-white">
+                    {contactLabel}
                   </Link>
                 </li>
                 <li>
