@@ -7,9 +7,9 @@ const OVERRIDES: Partial<
 > = {
   1: {
     en: {
-      title: 'Surah Al-Fatihah – Read, Listen, English Translation & Audio',
+      title: 'Surah Al-Fatihah – Translation & Audio',
       description:
-        'Read Surah Al-Fatihah (The Opener) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Al-Fatihah (The Opener) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ الفاتحہ – اردو ترجمہ، تلاوت اور آڈیو',
@@ -24,9 +24,9 @@ const OVERRIDES: Partial<
   },
   18: {
     en: {
-      title: 'Surah Al-Kahf (Surah Kahf) – Read, Listen, English Translation & Audio',
+      title: 'Surah Al-Kahf – Translation & Audio',
       description:
-        'Read Surah Al-Kahf (Surah Kahf) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Al-Kahf (The Cave) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ الکہف – اردو ترجمہ، تلاوت اور آڈیو',
@@ -41,9 +41,9 @@ const OVERRIDES: Partial<
   },
   36: {
     en: {
-      title: 'Surah Ya-Sin (Surah Yaseen) – Read, Listen, English Translation & Audio',
+      title: 'Surah Ya-Sin (Yaseen) – Translation & Audio',
       description:
-        'Read Surah Ya-Sin (Surah Yaseen) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Ya-Sin (Yaseen) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ یٰسین – اردو ترجمہ، تلاوت اور آڈیو',
@@ -58,9 +58,9 @@ const OVERRIDES: Partial<
   },
   55: {
     en: {
-      title: 'Surah Ar-Rahman – Read, Listen, English Translation & Audio',
+      title: 'Surah Ar-Rahman – Translation & Audio',
       description:
-        'Read Surah Ar-Rahman (Surah Rahman) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Ar-Rahman (The Most Merciful) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ الرحمٰن – اردو ترجمہ، تلاوت اور آڈیو',
@@ -75,9 +75,9 @@ const OVERRIDES: Partial<
   },
   56: {
     en: {
-      title: 'Surah Al-Waqi\'ah – Read, Listen, English Translation & Audio',
+      title: "Surah Al-Waqi'ah – Translation & Audio",
       description:
-        'Read Surah Al-Waqi\'ah with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        "Read Surah Al-Waqi'ah (The Inevitable) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse audio on QuranPilot.",
     },
     ur: {
       title: 'سورہ الواقعہ – اردو ترجمہ، تلاوت اور آڈیو',
@@ -92,9 +92,9 @@ const OVERRIDES: Partial<
   },
   67: {
     en: {
-      title: 'Surah Al-Mulk (Surah Mulk) – Read, Listen, English Translation & Audio',
+      title: 'Surah Al-Mulk – Translation & Audio',
       description:
-        'Read Surah Al-Mulk (Surah Mulk) with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Al-Mulk (The Sovereignty) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ الملک – اردو ترجمہ، تلاوت اور آڈیو',
@@ -109,9 +109,9 @@ const OVERRIDES: Partial<
   },
   78: {
     en: {
-      title: 'Surah An-Naba – Read, Listen, English Translation & Audio',
+      title: 'Surah An-Naba – Translation & Audio',
       description:
-        'Read Surah An-Naba with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah An-Naba (The Tidings) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ النبأ – اردو ترجمہ، تلاوت اور آڈیو',
@@ -126,9 +126,9 @@ const OVERRIDES: Partial<
   },
   112: {
     en: {
-      title: 'Surah Al-Ikhlas – Read, Listen, English Translation & Audio',
+      title: 'Surah Al-Ikhlas – Translation & Audio',
       description:
-        'Read Surah Al-Ikhlas with Arabic Uthmani text, Saheeh International English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Al-Ikhlas (The Sincerity) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
       title: 'سورہ الاخلاص – اردو ترجمہ، تلاوت اور آڈیو',

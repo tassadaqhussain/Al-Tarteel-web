@@ -396,10 +396,6 @@ export function ayahJsonLd(input: {
   };
 }
 
-/**
- * WebSite JSON-LD without SearchAction — /search is noindex (hub + results).
- * Re-add SearchAction only when a crawlable, indexable search hub exists.
- */
 export function websiteJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -407,11 +403,24 @@ export function websiteJsonLd() {
     name: SITE_NAME,
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
-    inLanguage: ['en', 'ar'],
+    inLanguage: ['en', 'ar', 'ur', 'ps', 'fa'],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 
 export function organizationJsonLd() {
+  const sameAs = (process.env.NEXT_PUBLIC_SOCIAL_PROFILES || '')
+    .split(',')
+    .map((u) => u.trim())
+    .filter((u) => u.startsWith('https://'));
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -419,6 +428,7 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: absoluteUrl('/images/logo.png'),
     description: 'Free online Quran reader with translations and audio.',
+    ...(sameAs.length > 0 ? { sameAs } : {}),
   };
 }
 
