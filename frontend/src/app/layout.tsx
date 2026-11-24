@@ -177,7 +177,7 @@ export default async function RootLayout({
               // surah slug; ThemeProvider re-checks properly after hydration.
               "var p=location.pathname,seg=p.split('/').filter(Boolean);" +
               "var known=['search','surahs','bookmarks','settings','profile','my-quran','donate','admin'," +
-              "'feedback','articles','hifz','tajweed','learning-plans','quran-in-year','reading-goal'," +
+              "'feedback','about','contact','articles','hifz','tajweed','learning-plans','quran-in-year','reading-goal'," +
               "'quran-english-translation','quran-urdu-translation','quran-pashto-translation'," +
               "'login','register','forgot-password','reset-password','admin','ur','ps','fa'];" +
               "if(p.indexOf('/surah/')===0||p.indexOf('/juz/')===0||" +

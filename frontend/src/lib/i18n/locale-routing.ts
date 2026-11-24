@@ -33,6 +33,8 @@ const KNOWN_APP_SEGMENTS = new Set([
   'profile',
   'my-quran',
   'donate',
+  'about',
+  'contact',
   'feedback',
   'articles',
   'hifz',

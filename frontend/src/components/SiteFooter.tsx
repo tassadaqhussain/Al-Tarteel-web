@@ -68,6 +68,16 @@ export function SiteFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/about" className="transition hover:text-white">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="transition hover:text-white">
+                    Contact
+                  </Link>
+                </li>
+                <li>
                   <Link href="/feedback" className="transition hover:text-white">
                     {t('feedback')}
                   </Link>
