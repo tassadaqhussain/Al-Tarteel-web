@@ -14,6 +14,7 @@ import { ReaderToolbar } from '@/components/reader/ReaderToolbar';
 import { SurahPaginationNav } from '@/components/reader/SurahPaginationNav';
 import { SurahLearningPlans } from '@/components/learning/SurahLearningPlans';
 import { SurahAboutSection } from '@/components/surah/SurahAboutSection';
+import { ReportMistakeButton } from '@/components/ReportMistakeButton';
 import { DailyAyahSubscribeCard } from '@/components/lead/DailyAyahSubscribe';
 import { PinnedVersesBar } from '@/components/reader/PinnedVersesBar';
 import { CompareVerseModal } from '@/components/reader/CompareVerseModal';
@@ -424,7 +425,10 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
         />
 
         <SurahLearningPlans surahNumber={surahNumber} surahName={surah.nameSimple} />
-        <DailyAyahSubscribeCard source="surah_page" className="mt-8" />
+        <div className="mt-6 flex justify-end">
+          <ReportMistakeButton surahNumber={surahNumber} />
+        </div>
+        <DailyAyahSubscribeCard source="surah_page" className="mt-6" />
         </article>
 
       </main>
