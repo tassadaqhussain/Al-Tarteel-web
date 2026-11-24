@@ -215,6 +215,42 @@ export const ARTICLES: Article[] = [
         ],
       },
       {
+        heading: 'Timeline of the Kaaba: From Prophet Ibrahim to Modern Renovations',
+        paragraphs: [
+          'While no authentic Islamic source assigns a specific year-count to Prophet Ibrahim and Ismail\'s original building of the Kaaba, Islamic historical chronicles (including Ibn Ishaq, al-Azraqi\'s Akhbar Makkah, and Ibn Kathir\'s al-Bidayah wan-Nihayah) record the major reconstructions across the centuries:',
+          '• Prophet Ibrahim (AS) and Ismail (AS) — Raised the foundations of the House in Makkah as a sanctuary dedicated to the worship of Allah alone (Surah Al-Baqarah 2:127; Surah Ali \'Imran 3:96). Exact duration and calendar date are not stated in scripture.',
+          '• Quraysh Rebuild (c. 605 CE, ~5 years before prophethood) — After flash floods weakened the walls, the Makkan clans rebuilt the Kaaba using exclusively lawful funds. Short on funds, they left part of the northern foundation outside the roofed walls, marking it with the curved low wall known as al-Hatim (Hijr Ismail). The young Muhammad ﷺ resolved the clan dispute over placing the Black Stone (Hajar al-Aswad).',
+          '• Abdullah ibn al-Zubayr (64–65 AH / c. 683–685 CE) — Following siege and fire damage, Ibn al-Zubayr demolished the damaged walls and rebuilt the Kaaba on the full original foundations of Ibrahim, incorporating al-Hatim and creating two ground-level doors based on Aishah\'s narration from the Prophet ﷺ (Sahih al-Bukhari 1586; Sahih Muslim 1333).',
+          '• Al-Hajjaj ibn Yusuf (74 AH / c. 693 CE) — Under Umayyad Caliph Abd al-Malik ibn Marwan, al-Hajjaj dismantled the northern wall and restored the shorter Quraysh footprint with a single elevated eastern door, leaving al-Hatim outside the rectangle—the configuration preserved ever since.',
+          '• Ottoman Rebuild under Sultan Murad IV (1039–1040 AH / 1630 CE) — After torrential floods collapsed the northern, eastern, and western walls in 1629 CE, Ottoman architects and Makkan masons dismantled the compromised masonry and rebuilt the Kaaba from local granite stones over roughly six months. TODO: Verify exact start/end Hijri months of the 1630 CE rebuild against primary Ottoman archives if desired.',
+          '• Modern Structural Renovation (1996 CE) — A comprehensive conservation effort replaced the aging wooden roof and ceiling beams, reinforced the foundations, re-pointed the exterior granite stones, and renewed the interior marble over approximately five months without altering the historic dimensions.',
+        ],
+        links: [
+          { label: 'Read Surah Al-Baqarah 2:127', href: '/al-baqarah/127' },
+          { label: 'Read Surah Ali \'Imran 3:96', href: '/ali-imran/96' },
+        ],
+      },
+      {
+        heading: 'Key architectural elements of the Kaaba',
+        paragraphs: [
+          'Despite its global significance, the Kaaba\'s design is deliberately austere and free of figurative ornamentation—reinforcing that the building is a directional focal point for worshipping Allah rather than a monument to human rulers.',
+        ],
+        subsections: [
+          {
+            heading: 'The Black Stone (Hajar al-Aswad) and Yemeni Corner',
+            paragraphs: [
+              'Set into the eastern corner of the Kaaba, the Black Stone marks the starting and ending point of each circuit of tawaf (circumambulation). The southern corner facing Yemen is known as the Yemeni Corner (ar-Rukn al-Yamani). In Sahih al-Bukhari (1597), Umar ibn al-Khattab famously remarked when kissing the Black Stone that he knew it was merely a stone that can neither harm nor benefit, and he only kissed it following the example of the Prophet ﷺ.',
+            ],
+          },
+          {
+            heading: 'The Kiswah (Black Silk Covering) and Interior',
+            paragraphs: [
+              'The exterior of the Kaaba is draped in the Kiswah, a black silk cloth woven with Quranic verses in gold-plated silver thread, replaced annually on the Day of Arafah (9th of Dhul-Hijjah). Inside, the Kaaba is a quiet, unadorned chamber containing three wooden support pillars and hanging lamps, with marble flooring and walls.',
+            ],
+          },
+        ],
+      },
+      {
         heading: 'Why the Kaaba matters to Muslims today',
         paragraphs: [
           'Muslims do not worship the Kaaba itself; it is made of stone and mortar and can neither harm nor benefit. Rather, it is the Qiblah—the single unified focal point toward which more than a billion Muslims turn five times each day in prayer, and around which pilgrims walk in humility during Hajj and Umrah.',
