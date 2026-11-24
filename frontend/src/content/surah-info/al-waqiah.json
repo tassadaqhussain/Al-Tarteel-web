@@ -1,0 +1,48 @@
+{
+  "slug": "al-waqiah",
+  "surahNumber": 56,
+  "revelationPeriod": "Makki",
+  "verseCount": 96,
+  "juzNumbers": [27],
+  "overview": [
+    "Surah Al-Waqi'ah (The Inevitable) is the 56th chapter of the Holy Quran, revealed in Makkah and containing 96 verses in Juz 27. Its title refers to the Day of Resurrection—an event whose arrival is certain and unchangeable.",
+    "The opening half of the surah divides humanity on that Day into three distinct groups: the Foremost (as-sabiqun), who are brought nearest to Allah; the Companions of the Right (ashab al-yamin), who receive gardens of peace and security; and the Companions of the Left (ashab ash-shimal), who face the consequences of denying the Hereafter and persisting in arrogance.",
+    "In its second half, Surah Al-Waqi'ah presents four direct, everyday proofs of Allah's power and provision: human conception, the seeds farmers plant in the soil, the fresh rainwater that descends from clouds, and the fire kindled from trees. Each question reminds the reader that Allah alone sustains life and therefore has full power to recreate humanity after death. The surah concludes with a solemn oath affirming the nobility of the Quran and portraying the moment a soul departs this world."
+  ],
+  "mainThemes": [
+    "The certainty of the Day of Resurrection and the three categories of people in the Hereafter.",
+    "Everyday signs of Allah's sustenance: human creation, crops, fresh water, and fire.",
+    "The nobility and divine origin of the Holy Quran.",
+    "Reflection on the moment of death and each group's final destination."
+  ],
+  "virtues": [],
+  "virtuesTodo": "TODO: Add verified hadith reference for Surah Al-Waqi'ah after scholarly grading review (commonly quoted narrations about protection from poverty have debated chains).",
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Waqi'ah?",
+      "answer": "Surah Al-Waqi'ah has 96 verses (ayahs)."
+    },
+    {
+      "question": "Is Surah Al-Waqi'ah Makki or Madani?",
+      "answer": "Surah Al-Waqi'ah is a Makki surah, revealed in Makkah."
+    },
+    {
+      "question": "Which Juz is Surah Al-Waqi'ah in?",
+      "answer": "Surah Al-Waqi'ah is located in Juz 27, immediately following Surah Ar-Rahman."
+    },
+    {
+      "question": "What are the three groups mentioned in Surah Al-Waqi'ah?",
+      "answer": "The surah describes the Foremost (as-sabiqun), the Companions of the Right (ashab al-yamin), and the Companions of the Left (ashab ash-shimal)."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 55, "reason": "Surah Ar-Rahman precedes Al-Waqi'ah in Juz 27." },
+    { "surahNumber": 57, "reason": "Surah Al-Hadid follows Al-Waqi'ah in Juz 27." },
+    { "surahNumber": 67, "reason": "Surah Al-Mulk shares themes of sustenance, sovereignty, and the Hereafter." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 27", "href": "/juz/27" },
+    { "label": "How to Stay Consistent with Quran Daily", "href": "/articles/how-to-stay-consistent-with-quran-daily" },
+    { "label": "Browse Learning Plans", "href": "/learning-plans" }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "slug": "ar-rahman",
+  "surahNumber": 55,
+  "revelationPeriod": "Madani",
+  "verseCount": 78,
+  "juzNumbers": [27],
+  "overview": [
+    "Surah Ar-Rahman (The Most Merciful) is the 55th chapter of the Holy Quran, consisting of 78 verses in Juz 27. It is the only surah in the Quran named exclusively after one of Allah's Beautiful Names, opening immediately with 'Ar-Rahman'—the Most Merciful—Who taught the Quran, created humanity, and taught articulate speech.",
+    "Distinguished by its rhythmic cadence and symmetry, Surah Ar-Rahman repeats the reflective refrain 'So which of the favors of your Lord would you deny?' (Fabi-ayyi ala-i Rabbikuma tukadhdhiban) 31 times, addressing both humankind and jinn in the Arabic dual form. Each repetition invites the listener to pause and recognize another layer of divine mercy.",
+    "The chapter moves from cosmic balance—the calculated paths of the sun and moon, the sky raised with equity, and the command to uphold just weights—to earthly blessings like fruit-bearing palms, grains, sweet and salt seas separated by a barrier, and ships towering like mountains. It then turns to the transient nature of creation ('Everyone upon the earth will perish, and there will remain the Face of your Lord'), before contrasting the accountability of the Day of Judgment with vivid descriptions of the gardens of Paradise."
+  ],
+  "mainThemes": [
+    "The Quran as the highest expression of Allah's mercy, paired with the gift of human speech and intellect.",
+    "Cosmic harmony, natural abundance, and the moral obligation to maintain justice and balance.",
+    "The impermanence of all creation compared to the eternal majesty of Allah.",
+    "Gratitude for divine favors, accountability, and the rewards prepared for the righteous."
+  ],
+  "virtues": [],
+  "virtuesTodo": "TODO: Review and add any Sahih-verified hadith references for Surah Ar-Rahman if desired.",
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Ar-Rahman?",
+      "answer": "Surah Ar-Rahman contains 78 verses (ayahs) in Juz 27."
+    },
+    {
+      "question": "How many times is 'Fabi-ayyi ala-i Rabbikuma tukadhdhiban' repeated in Surah Ar-Rahman?",
+      "answer": "The refrain 'So which of the favors of your Lord would you deny?' is repeated 31 times throughout Surah Ar-Rahman."
+    },
+    {
+      "question": "Which Juz is Surah Ar-Rahman in?",
+      "answer": "Surah Ar-Rahman is located in Juz 27, right between Surah Al-Qamar (54) and Surah Al-Waqi'ah (56)."
+    },
+    {
+      "question": "Why does Surah Ar-Rahman address its audience in the dual form?",
+      "answer": "The Arabic dual pronoun addresses both humankind and jinn, both of whom are morally accountable creations mentioned explicitly in the surah."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 54, "reason": "Surah Al-Qamar immediately precedes Ar-Rahman in Juz 27." },
+    { "surahNumber": 56, "reason": "Surah Al-Waqi'ah follows Ar-Rahman with scenes of the Hereafter." },
+    { "surahNumber": 67, "reason": "Surah Al-Mulk also reflects on the order and beauty of Allah's creation." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 27", "href": "/juz/27" },
+    { "label": "Learn Tajweed: Madd (Elongation)", "href": "/tajweed/madd" },
+    { "label": "Benefits of Reading the Holy Quran", "href": "/articles/benefits-of-reading-the-holy-quran" }
+  ]
+}

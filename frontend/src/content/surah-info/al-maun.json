@@ -1,0 +1,47 @@
+{
+  "slug": "al-maun",
+  "surahNumber": 107,
+  "revelationPeriod": "Makki",
+  "verseCount": 7,
+  "juzNumbers": [30],
+  "overview": [
+    "Surah Al-Ma'un (Small Kindnesses) is the 107th chapter of the Holy Quran, located in Juz 30 (Juz Amma) and consisting of 7 concise verses. Its title comes from its final word, al-ma'un—everyday acts of neighborly help, lending simple necessities, or small charities.",
+    "The surah draws an inseparable connection between true belief in the Day of Judgment, sincere worship, and social compassion. It opens with a piercing question: 'Have you seen the one who denies the Recompense?' Rather than describing abstract disbelief, it identifies denial through callous behavior—pushing away the orphan and failing to encourage feeding the poor.",
+    "Surah Al-Ma'un then warns those who perform formal prayer carelessly, who pray only to be seen by others, and who withhold even minor kindnesses from those around them. In just seven verses, it teaches that genuine faith and valid salah must produce humility before Allah and tangible care for the vulnerable."
+  ],
+  "mainThemes": [
+    "True belief in the Day of Judgment is reflected in how we treat orphans and those in need.",
+    "Warning against heedlessness in prayer and performing worship to show off (riya).",
+    "The moral weight of everyday generosity and small acts of neighborly assistance (al-ma'un)."
+  ],
+  "virtues": [],
+  "virtuesTodo": "TODO: Add any verified hadith or authentic tafsir notes on Surah Al-Ma'un if desired.",
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Ma'un?",
+      "answer": "Surah Al-Ma'un has 7 verses (ayahs) and is in Juz 30 (Juz Amma)."
+    },
+    {
+      "question": "What does Al-Ma'un mean?",
+      "answer": "Al-Ma'un refers to small kindnesses, basic necessities lent between neighbors, or simple charitable assistance."
+    },
+    {
+      "question": "What is the main lesson of Surah Al-Ma'un?",
+      "answer": "Surah Al-Ma'un teaches that sincere worship of Allah cannot be separated from compassion for orphans, feeding the needy, and showing everyday generosity."
+    },
+    {
+      "question": "Which Juz is Surah Al-Ma'un in?",
+      "answer": "Surah Al-Ma'un is in Juz 30, right between Surah Quraysh (106) and Surah Al-Kawthar (108)."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 106, "reason": "Surah Quraysh immediately precedes Al-Ma'un in Juz 30." },
+    { "surahNumber": 108, "reason": "Surah Al-Kawthar follows Al-Ma'un with a call to sincere prayer and sacrifice." },
+    { "surahNumber": 103, "reason": "Surah Al-Asr similarly condenses faith and righteous action into a brief chapter." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 30", "href": "/juz/30" },
+    { "label": "Charity and Zakat in Islam", "href": "/articles/benefits-of-charity-and-zakat" },
+    { "label": "Why Good Character is Central in Islam", "href": "/articles/importance-of-good-character-in-islam" }
+  ]
+}

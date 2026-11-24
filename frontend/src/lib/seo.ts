@@ -313,7 +313,11 @@ export function ayahSeo(
   const localisedPath = localePath(locale, path);
 
   const heading = `${famousName ? `${famousName} — ` : ''}${localizedSurah} ${surahNumber}:${ayahNumber}`;
-  const title = `${heading}${famousName ? '' : ' — Quran Ayah'} | ${SITE_NAME}`;
+  const title = famousName
+    ? `${heading} | ${SITE_NAME}`
+    : locale === 'en'
+      ? `Surah ${englishSurah} Ayah ${ayahNumber} (${surahNumber}:${ayahNumber}) – Arabic, Translation & Audio | ${SITE_NAME}`
+      : `${heading} — Quran Ayah | ${SITE_NAME}`;
 
   const reference = `${localizedSurah} ${surahNumber}:${ayahNumber}`;
   const descriptions: Record<ContentLocale, string> = {
@@ -462,6 +466,21 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
       position: index + 1,
       name: item.name,
       item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+export function faqJsonLd(faqs: { question: string; answer: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
     })),
   };
 }

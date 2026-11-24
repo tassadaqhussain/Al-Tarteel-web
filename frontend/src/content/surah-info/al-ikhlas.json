@@ -1,0 +1,55 @@
+{
+  "slug": "al-ikhlas",
+  "surahNumber": 112,
+  "revelationPeriod": "Makki",
+  "verseCount": 4,
+  "juzNumbers": [30],
+  "overview": [
+    "Surah Al-Ikhlas (The Sincerity / Purity of Faith) is the 112th chapter of the Holy Quran, revealed in Makkah and consisting of 4 short verses in Juz 30. Although one of the briefest chapters in the Quran, it offers the clearest and most concise definition of Islamic monotheism (tawhid).",
+    "The surah affirms four foundational truths about Allah: He is One and Unique (Ahad); He is As-Samad—the Eternal Refuge upon Whom all creation depends while He depends on none; He neither begets nor was begotten; and there is nothing comparable to Him in any respect.",
+    "Because the Quran's message revolves around three broad domains—tawhid (knowledge of Allah), prophetic narratives, and practical laws—scholars explain that Surah Al-Ikhlas encapsulates the domain of tawhid in its purest form. Together with Surah Al-Falaq and Surah An-Nas, it is widely recited in daily prayers and morning and evening remembrances."
+  ],
+  "mainThemes": [
+    "Absolute oneness and uniqueness of Allah (Ahad).",
+    "Allah as As-Samad—self-sufficient, eternal, and the refuge of all creation.",
+    "Rejection of any lineage, partner, or likeness attributed to God."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet ﷺ stated that Surah Al-Ikhlas ('Qul Huwa Allahu Ahad') is equivalent in reward to one-third of the Quran.",
+      "source": "Sahih al-Bukhari 5013; Sahih Muslim 811"
+    },
+    {
+      "text": "Every night when the Prophet ﷺ went to bed, he would cup his hands together, blow into them, recite Surah Al-Ikhlas, Surah Al-Falaq, and Surah An-Nas, and wipe over his body three times.",
+      "source": "Sahih al-Bukhari 5017"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Ikhlas?",
+      "answer": "Surah Al-Ikhlas has 4 verses (ayahs) and is located in Juz 30."
+    },
+    {
+      "question": "Why is Surah Al-Ikhlas equal to one-third of the Quran?",
+      "answer": "Authentic narrations in Sahih al-Bukhari (5013) and Sahih Muslim (811) affirm that Surah Al-Ikhlas equals one-third of the Quran, as it completely summarizes tawhid—one of the three core themes of the Quran alongside laws and stories."
+    },
+    {
+      "question": "What does As-Samad mean in Surah Al-Ikhlas?",
+      "answer": "As-Samad means the Eternal, Self-Sufficient Master and Refuge upon Whom all creation depends for every need, while He needs nothing."
+    },
+    {
+      "question": "Is Surah Al-Ikhlas Makki or Madani?",
+      "answer": "Surah Al-Ikhlas is a Makki surah, revealed in Makkah."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 113, "reason": "Surah Al-Falaq is recited alongside Al-Ikhlas before sleep and in daily adhkar." },
+    { "surahNumber": 114, "reason": "Surah An-Nas completes the trio of closing surahs (the Quls)." },
+    { "surahNumber": 1, "reason": "Surah Al-Fatihah opens the Quran with praise and tawhid." }
+  ],
+  "relatedResources": [
+    { "label": "What is Tawhid? The Heart of Islamic Belief", "href": "/articles/what-is-tawhid-oneness-of-god" },
+    { "label": "Read Juz 30", "href": "/juz/30" },
+    { "label": "Learn Tajweed: Qalqalah", "href": "/tajweed/qalqalah" }
+  ]
+}

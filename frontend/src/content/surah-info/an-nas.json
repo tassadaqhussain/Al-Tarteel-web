@@ -1,0 +1,55 @@
+{
+  "slug": "an-nas",
+  "surahNumber": 114,
+  "revelationPeriod": "Makki",
+  "verseCount": 6,
+  "juzNumbers": [30],
+  "overview": [
+    "Surah An-Nas (Mankind) is the 114th and final chapter of the Holy Quran, consisting of 6 verses in Juz 30. Paired with Surah Al-Falaq (113) as Al-Mu'awwidhatayn, it completes the Quran with a direct appeal for spiritual protection.",
+    "While Surah Al-Falaq seeks refuge from external harms using one divine attribute (Lord of the daybreak), Surah An-Nas invokes three comprehensive attributes of Allah—Lord of mankind (Rabb), Sovereign of mankind (Malik), and God of mankind (Ilah)—to seek protection from one deeply internal threat: the retreating whisperer (al-waswas al-khannas) who whispers doubts and temptation into human hearts, whether from among jinn or people.",
+    "The surah reminds believers that spiritual whispering retreats when a person remembers Allah. Recited regularly before sleep, in daily prayers, and in morning and evening adhkar, Surah An-Nas anchors the heart in reliance on its Creator."
+  ],
+  "mainThemes": [
+    "Invoking Allah's lordship (Rabb), sovereignty (Malik), and sole right to worship (Ilah).",
+    "Seeking protection from internal whispering (waswasah) and spiritual temptation.",
+    "Recognizing that whispering retreats through remembrance of Allah."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet ﷺ described Surah Al-Falaq and Surah An-Nas as unmatched verses for seeking refuge in Allah.",
+      "source": "Sahih Muslim 814"
+    },
+    {
+      "text": "Every night before sleeping, the Prophet ﷺ recited Surah Al-Ikhlas, Surah Al-Falaq, and Surah An-Nas into his hands and wiped over his body three times.",
+      "source": "Sahih al-Bukhari 5017"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many verses are in Surah An-Nas?",
+      "answer": "Surah An-Nas has 6 verses (ayahs) and is the 114th and final chapter of the Holy Quran."
+    },
+    {
+      "question": "What does An-Nas mean?",
+      "answer": "An-Nas means 'Mankind' or 'Humankind.'"
+    },
+    {
+      "question": "How does Surah An-Nas differ from Surah Al-Falaq?",
+      "answer": "Surah Al-Falaq seeks refuge primarily from external harms (darkness, sorcery, envy), while Surah An-Nas seeks refuge from internal whispering (waswasah) into human hearts."
+    },
+    {
+      "question": "When is Surah An-Nas traditionally recited?",
+      "answer": "It is commonly recited alongside Surah Al-Ikhlas and Surah Al-Falaq before sleeping (Sahih al-Bukhari 5017), in daily prayers, and in morning and evening remembrances."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 113, "reason": "Surah Al-Falaq pairs with An-Nas as Al-Mu'awwidhatayn." },
+    { "surahNumber": 112, "reason": "Surah Al-Ikhlas is recited with Al-Falaq and An-Nas before sleep." },
+    { "surahNumber": 1, "reason": "Surah Al-Fatihah opens the Quran with guidance; An-Nas closes it with protection." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 30", "href": "/juz/30" },
+    { "label": "How to Start Reading the Quran as a Beginner", "href": "/articles/how-to-start-reading-quran-as-a-beginner" },
+    { "label": "Learn Tajweed: Ghunnah", "href": "/tajweed/ghunnah" }
+  ]
+}

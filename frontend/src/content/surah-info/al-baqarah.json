@@ -1,0 +1,64 @@
+{
+  "slug": "al-baqarah",
+  "surahNumber": 2,
+  "revelationPeriod": "Madani",
+  "verseCount": 286,
+  "juzNumbers": [1, 2, 3],
+  "overview": [
+    "Surah Al-Baqarah (The Cow) is the second and longest chapter of the Holy Quran, revealed in Madinah over an extended period after the Hijrah. Spanning 286 verses across Juz 1, Juz 2, and the opening of Juz 3, it takes its name from the account of the cow mentioned in verses 67–73 during the time of Prophet Musa (Moses).",
+    "Positioned immediately after Surah Al-Fatihah's prayer for guidance, Surah Al-Baqarah opens by declaring the Quran to be a Book free of doubt and a guide for the God-conscious (al-muttaqin). It categorizes human responses to revelation into believers, disbelievers, and hypocrites, before recounting the creation of Adam, the covenant with the Children of Israel, and the legacy of Prophet Ibrahim and Ismail in raising the foundations of the Kaaba.",
+    "Because it was revealed as the Muslim community was taking shape in Madinah, Surah Al-Baqarah lays down comprehensive practical guidance: the change of the Qiblah toward Makkah, fasting in Ramadan, pilgrimage (Hajj), family law, charity, the prohibition of usury (riba), and ethical commerce. It also contains Ayatul Kursi (2:255), the greatest verse in the Quran, and concludes with a timeless prayer of humility, forgiveness, and steadfastness (2:285–286)."
+  ],
+  "mainThemes": [
+    "Guidance for the God-conscious and the contrast between sincere faith, rejection, and hypocrisy.",
+    "Lessons from earlier nations and the covenant of Prophet Ibrahim at the Sacred House.",
+    "Foundational laws for worship and society: prayer, fasting, Hajj, charity, family ethics, and fair finance.",
+    "The majesty and knowledge of Allah expressed in Ayatul Kursi (2:255) and the closing supplication (2:285–286)."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet ﷺ encouraged reciting Surah Al-Baqarah in homes, stating that Shaytan flees from a house in which Surah Al-Baqarah is recited.",
+      "source": "Sahih Muslim 780"
+    },
+    {
+      "text": "Ayatul Kursi (Surah Al-Baqarah 2:255) was identified by the Prophet ﷺ as the greatest verse in the Book of Allah.",
+      "source": "Sahih Muslim 810"
+    },
+    {
+      "text": "Whoever recites the last two verses of Surah Al-Baqarah (2:285–286) at night, they will suffice him.",
+      "source": "Sahih al-Bukhari 5009; Sahih Muslim 807"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Baqarah?",
+      "answer": "Surah Al-Baqarah contains 286 verses, making it the longest surah in the Holy Quran."
+    },
+    {
+      "question": "Which Juz is Surah Al-Baqarah in?",
+      "answer": "Surah Al-Baqarah spans Juz 1, Juz 2, and the first part of Juz 3."
+    },
+    {
+      "question": "Where is Ayatul Kursi located in Surah Al-Baqarah?",
+      "answer": "Ayatul Kursi is verse 255 of Surah Al-Baqarah (2:255), found near the beginning of Juz 3."
+    },
+    {
+      "question": "Is Surah Al-Baqarah Makki or Madani?",
+      "answer": "Surah Al-Baqarah is a Madani surah, revealed in Madinah after the migration of the Prophet ﷺ."
+    },
+    {
+      "question": "What are the last two verses of Surah Al-Baqarah?",
+      "answer": "Verses 285 and 286 (Amanar-Rasul) affirm belief in Allah, His angels, His books, and His messengers, and conclude with a comprehensive supplication for forgiveness, mercy, and ease."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 1, "reason": "Opens the Quran with the prayer for guidance that Surah Al-Baqarah answers." },
+    { "surahNumber": 3, "reason": "Surah Ali 'Imran pairs with Al-Baqarah as the next major Madani chapter." },
+    { "surahNumber": 18, "reason": "Another widely recited chapter rich in narrative lessons and faith." }
+  ],
+  "relatedResources": [
+    { "label": "Read Ayatul Kursi (2:255)", "href": "/al-baqarah/255" },
+    { "label": "Read Surah Al-Baqarah 2:285–286", "href": "/al-baqarah/285" },
+    { "label": "What is Ramadan and Why Muslims Fast", "href": "/articles/what-is-ramadan-and-why-muslims-fast" }
+  ]
+}

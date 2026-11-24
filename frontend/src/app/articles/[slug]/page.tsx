@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Clock, HelpCircle } from 'lucide-react';
 import { Header } from '@/components/Header';
+import { SiteFooter } from '@/components/SiteFooter';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { ArticleCard } from '@/components/articles/ArticleCard';
 import {
@@ -13,7 +14,8 @@ import {
   getArticleBySlug,
   getDailyFeaturedArticles,
 } from '@/lib/articles';
-import { absoluteUrl, buildPageMetadata, SITE_NAME } from '@/lib/seo';
+import { absoluteUrl, buildPageMetadata, faqJsonLd, SITE_NAME } from '@/lib/seo';
+import { getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -55,9 +57,15 @@ export default async function ArticlePage({ params }: Props) {
     headline: article.title,
     description: article.description,
     datePublished: article.publishedAt,
+    ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
     image: absoluteUrl(article.image),
-    author: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/') },
-    publisher: { '@type': 'Organization', name: SITE_NAME, url: absoluteUrl('/'), logo: absoluteUrl('/images/logo.png') },
+    author: { '@type': 'Organization', name: article.author || `${SITE_NAME} Editorial`, url: absoluteUrl('/') },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: absoluteUrl('/'),
+      logo: absoluteUrl('/images/logo.png'),
+    },
     inLanguage: 'en',
     articleSection: article.category,
     isAccessibleForFree: true,
@@ -79,10 +87,14 @@ export default async function ArticlePage({ params }: Props) {
     ],
   };
 
+  const structuredData = article.faqs?.length
+    ? [jsonLd, breadcrumb, faqJsonLd(article.faqs)]
+    : [jsonLd, breadcrumb];
+
   return (
     <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
-      <JsonLd data={[jsonLd, breadcrumb]} />
+      <JsonLd data={structuredData} />
 
       <main lang="en" dir="ltr" className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
         <Link
@@ -103,11 +115,22 @@ export default async function ArticlePage({ params }: Props) {
             </span>
             <span className="text-ink-faint">·</span>
             <time dateTime={article.publishedAt} className="font-semibold normal-case tracking-normal text-ink-muted">
-              {formatArticleDate(article.publishedAt)}
+              Published {formatArticleDate(article.publishedAt)}
             </time>
+            {article.updatedAt && article.updatedAt !== article.publishedAt && (
+              <>
+                <span className="text-ink-faint">·</span>
+                <time dateTime={article.updatedAt} className="font-semibold normal-case tracking-normal text-ink-muted">
+                  Updated {formatArticleDate(article.updatedAt)}
+                </time>
+              </>
+            )}
           </div>
           <p className="mb-3 text-sm text-ink-muted">
-            By <Link href="/" rel="author" className="font-semibold text-brand hover:underline">{SITE_NAME}</Link>
+            By{' '}
+            <Link href="/" rel="author" className="font-semibold text-brand hover:underline">
+              {article.author || `${SITE_NAME} Editorial`}
+            </Link>
           </p>
           <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
             {article.title}
@@ -139,9 +162,91 @@ export default async function ArticlePage({ params }: Props) {
                   {paragraph}
                 </p>
               ))}
+              {section.subsections?.map((sub, k) => (
+                <div key={k} className="space-y-2.5 pt-2">
+                  <h3 className="text-base font-bold text-ink sm:text-lg">{sub.heading}</h3>
+                  {sub.paragraphs.map((p, m) => (
+                    <p key={m} className="text-[15px] leading-relaxed text-ink-3 sm:text-base">
+                      {p}
+                    </p>
+                  ))}
+                </div>
+              ))}
+              {section.links && section.links.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {section.links.map((lnk) => (
+                    <Link
+                      key={lnk.href}
+                      href={lnk.href}
+                      className="rounded-full border border-line bg-surface-2/60 px-3 py-1 text-xs font-medium text-[var(--accent)] transition hover:border-[var(--accent)]"
+                    >
+                      {lnk.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
           ))}
+
+          {article.sources && article.sources.length > 0 && (
+            <section className="border-t border-line-subtle pt-6">
+              <h2 className="text-base font-bold text-ink">Sources &amp; References</h2>
+              <ul className="mt-2.5 list-disc space-y-1 pl-5 text-sm text-ink-muted">
+                {article.sources.map((src, idx) => (
+                  <li key={idx}>{src}</li>
+                ))}
+              </ul>
+            </section>
+          )}
         </article>
+
+        {article.faqs && article.faqs.length > 0 && (
+          <section
+            aria-label="Frequently Asked Questions"
+            className="mt-8 rounded-3xl border border-line-subtle bg-surface p-6 shadow-sm sm:p-8"
+          >
+            <h2 className="flex items-center gap-2 text-xl font-bold text-ink">
+              <HelpCircle className="h-5 w-5 text-[var(--accent)]" aria-hidden />
+              Frequently Asked Questions
+            </h2>
+            <dl className="mt-4 space-y-3">
+              {article.faqs.map((faq, idx) => (
+                <div key={idx} className="rounded-2xl border border-line-subtle bg-surface-2/50 p-4">
+                  <dt className="text-sm font-semibold text-ink sm:text-base">{faq.question}</dt>
+                  <dd className="mt-1.5 text-sm leading-relaxed text-ink-3">{faq.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
+        {article.relatedSurahs && article.relatedSurahs.length > 0 && (
+          <section
+            aria-label="Related Surahs"
+            className="mt-8 rounded-3xl border border-line-subtle bg-surface p-6 shadow-sm sm:p-8"
+          >
+            <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
+              <BookOpen className="h-5 w-5 text-[var(--accent)]" aria-hidden />
+              Related Surahs to Read
+            </h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {article.relatedSurahs.map((surahNumber) => {
+                const meta = getSurahMeta(surahNumber);
+                return (
+                  <Link
+                    key={surahNumber}
+                    href={getSurahPath(surahNumber)}
+                    className="rounded-2xl border border-line bg-surface-2/50 p-4 transition hover:border-[var(--accent)]"
+                  >
+                    <p className="text-xs font-semibold text-[var(--accent)]">Surah {surahNumber}</p>
+                    <p className="mt-1 font-bold text-ink">{meta.nameSimple}</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">{meta.meaning}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <nav className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-between">
           {prev ? (
@@ -177,6 +282,7 @@ export default async function ArticlePage({ params }: Props) {
           </section>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }

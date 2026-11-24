@@ -182,7 +182,7 @@ function contentEntries(): SitemapEntry[] {
     })),
     ...ARTICLES.map((article) => ({
       url: `${SITE_URL}/articles/${article.slug}`,
-      lastModified: normalizeLastmod(article.publishedAt),
+      lastModified: normalizeLastmod(article.updatedAt || article.publishedAt),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     })),
