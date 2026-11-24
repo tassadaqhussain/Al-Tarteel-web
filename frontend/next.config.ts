@@ -36,6 +36,9 @@ const nextConfig: NextConfig = {
     // empty lets the client fall back to same-origin /api/v1.
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '',
   },
+  experimental: {
+    inlineCss: true,
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
@@ -54,6 +57,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/images/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/_next/static/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],

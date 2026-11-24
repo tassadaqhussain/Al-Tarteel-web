@@ -19,8 +19,9 @@ server {
     gzip on;
     gzip_vary on;
     gzip_proxied any;
+    gzip_min_length 256;
     gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/xml image/svg+xml;
+    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/xml application/wasm image/svg+xml font/woff2;
 
     client_max_body_size 20m;
 
@@ -64,6 +65,16 @@ server {
         proxy_set_header Connection "";
         proxy_read_timeout 120s;
         proxy_pass http://quranpilot_web;
+    }
+
+    # Immutable static assets — long cache, no Node hit
+    location /_next/static/ {
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "";
+        proxy_pass http://quranpilot_web;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
     }
 
     # Next.js frontend

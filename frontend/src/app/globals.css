@@ -146,7 +146,10 @@
 .tajweed-text tajweed.idgham_mutaqaribayn, .tajweed-text .tajweed-mark.idgham_mutaqaribayn { color: #b45309; }
 .tajweed-text tajweed.silent, .tajweed-text .tajweed-mark.silent { color: #6b7280; }
 .tajweed-text.tajweed-disabled tajweed,
-.tajweed-text.tajweed-disabled .tajweed-mark { color: inherit; }
+.tajweed-text.tajweed-disabled .tajweed-mark { color: inherit !important; }
+.tajweed-text .tajweed-mark.tajweed-interactive { cursor: pointer; border-radius: 0.15em; }
+.tajweed-text .tajweed-mark.tajweed-interactive:hover,
+.tajweed-text .tajweed-mark.tajweed-interactive:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
 /* Dark equivalents of the same fallback (mirrors colorDark in lib/tajweed/rules.ts) */
 .dark .tajweed-text tajweed.ham_wasl, .dark .tajweed-text .tajweed-mark.ham_wasl { color: #9ca3af; }

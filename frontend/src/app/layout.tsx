@@ -8,7 +8,6 @@ import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
 import { ScrollToHashAyah } from '@/components/reader/ScrollToHashAyah';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { AuthProvider } from '@/components/auth/AuthProvider';
-import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
@@ -193,7 +192,6 @@ export default async function RootLayout({
       </head>
       <body className={`${amiri.variable} ${amiriQuran.variable} ${figtree.variable} ${fredoka.variable} antialiased min-h-screen font-sans bg-[var(--bg)] text-[var(--fg)]`}>
         <JsonLd data={[websiteJsonLd(), organizationJsonLd()]} />
-        <TajweedStyles />
         <ThemeProvider>
           <AuthProvider>
             <AudioPlayerProvider>

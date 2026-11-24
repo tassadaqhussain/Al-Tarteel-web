@@ -148,8 +148,10 @@ export function SmartSearchBox({
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
             autoFocus={autoFocus}
             placeholder={placeholder}
+            aria-label={placeholder}
             className={cn(
               'min-w-0 flex-1 bg-transparent text-ink placeholder-ink-faint outline-none',
               variant === 'hero' ? 'px-3 py-2.5' : 'px-3',
