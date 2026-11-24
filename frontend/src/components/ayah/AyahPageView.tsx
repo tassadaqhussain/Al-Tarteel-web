@@ -137,16 +137,31 @@ export async function renderAyahPage({
     defaultSlug: defaultTranslations,
   });
 
-  const [surah, ayah] = await Promise.all([
+  const [surah, fetchedAyah] = await Promise.all([
     quranApi.surah(surahNumber).catch(() => null),
     quranApi
       .ayah(surahNumber, ayahNumber, { translations: effectiveTranslations, words: true })
       .catch(() => null),
   ]);
 
-  if (!ayah) notFound();
+  // Never treat a valid surah:ayah pair as 404 if the API is temporarily unreachable.
+  const ayah = fetchedAyah ?? {
+    id: surahNumber * 1000 + ayahNumber,
+    surahId: surahNumber,
+    number: ayahNumber,
+    numberInQuran: 0,
+    ruku: 0,
+    textArabic: '',
+    textUthmani: '',
+    textSimple: '',
+    juz: 0,
+    hizb: 0,
+    page: 0,
+    translations: [],
+    words: [],
+  };
 
-  const tafsirs = await quranApi.tafsir(ayah.id).catch(() => []);
+  const tafsirs = fetchedAyah ? await quranApi.tafsir(ayah.id).catch(() => []) : [];
 
   const meta = getSurahMeta(surahNumber, surah?.nameSimple);
   const arabicName = getSurahArabicName(surahNumber, surah?.nameArabic);
