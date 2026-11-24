@@ -56,5 +56,22 @@
     { "label": "Read Juz 29", "href": "/juz/29" },
     { "label": "Benefits of Reading the Holy Quran", "href": "/articles/benefits-of-reading-the-holy-quran" },
     { "label": "Learn Tajweed Rules", "href": "/tajweed" }
-  ]
+  ],
+  "locales": {
+    "ur": {
+      "overview": [],
+      "faqs": [],
+      "todo": "TODO: Add human-verified Urdu overview and FAQs for Surah Al-Mulk (do not machine-translate)."
+    },
+    "ps": {
+      "overview": [],
+      "faqs": [],
+      "todo": "TODO: Add human-verified Pashto overview and FAQs for Surah Al-Mulk."
+    },
+    "fa": {
+      "overview": [],
+      "faqs": [],
+      "todo": "TODO: Add human-verified Persian overview and FAQs for Surah Al-Mulk."
+    }
+  }
 }

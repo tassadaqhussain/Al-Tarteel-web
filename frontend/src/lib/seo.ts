@@ -480,10 +480,14 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
   };
 }
 
-export function faqJsonLd(faqs: { question: string; answer: string }[]) {
+export function faqJsonLd(
+  faqs: { question: string; answer: string }[],
+  inLanguage?: string,
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
+    ...(inLanguage ? { inLanguage } : {}),
     mainEntity: faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.question,

@@ -14,14 +14,15 @@ import alFalaq from './al-falaq.json';
 import anNas from './an-nas.json';
 
 /**
- * Structured editorial guides for surah pages (English).
+ * Structured editorial guides for surah pages (English + optional per-locale
+ * `locales.ur` / `locales.ps` / `locales.fa` fields).
  *
- * TODO: Expand with verified guides for the remaining 103 surahs, and add
- * localized registries (`ur/`, `ps/`, `fa/`) once human-verified translations
- * are ready. When a surah has no entry here, `getSurahInfo` returns `null`
- * and the "About this surah" section is omitted rather than rendering filler.
+ * TODO: Expand with verified guides for the remaining 103 surahs, and populate
+ * `locales.ur`, `locales.ps`, and `locales.fa` with human-verified translations
+ * (never machine-translate religious content). When a surah or locale has no
+ * verified content, `getSurahInfo` returns `null` so empty sections are never rendered.
  */
-const EN_SURAH_INFO: Record<number, SurahInfoContent> = {
+const SURAH_INFO: Record<number, SurahInfoContent> = {
   1: alFatihah as SurahInfoContent,
   2: alBaqarah as SurahInfoContent,
   18: alKahf as SurahInfoContent,
@@ -39,9 +40,28 @@ export function getSurahInfo(
   surahNumber: number,
   locale: ContentLocale = 'en',
 ): SurahInfoContent | null {
-  // TODO: Return localized surah-info JSON for 'ur' | 'ps' | 'fa' once translated.
-  if (locale !== 'en') return null;
-  return EN_SURAH_INFO[surahNumber] ?? null;
+  const base = SURAH_INFO[surahNumber];
+  if (!base) return null;
+
+  if (locale === 'en') {
+    return base.overview.length > 0 || base.faqs.length > 0 ? base : null;
+  }
+
+  const localized = base.locales?.[locale];
+  if (!localized) return null;
+
+  const hasContent =
+    (localized.overview && localized.overview.length > 0) ||
+    (localized.faqs && localized.faqs.length > 0);
+  if (!hasContent) return null;
+
+  return {
+    ...base,
+    overview: localized.overview ?? [],
+    mainThemes: localized.mainThemes ?? [],
+    virtues: localized.virtues ?? [],
+    faqs: localized.faqs ?? [],
+  };
 }
 
-export type { SurahInfoContent, SurahFaq, SurahVirtue } from './types';
+export type { SurahInfoContent, LocalizedSurahInfo, SurahFaq, SurahVirtue } from './types';

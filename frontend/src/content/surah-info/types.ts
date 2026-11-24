@@ -20,6 +20,17 @@ export interface SurahResourceLink {
   href: string;
 }
 
+export interface LocalizedSurahInfo {
+  /** Human-verified overview paragraphs in this language (leave empty until verified). */
+  overview: string[];
+  mainThemes?: string[];
+  virtues?: SurahVirtue[];
+  /** Human-verified FAQs in this language (rendered + FAQPage JSON-LD). */
+  faqs: SurahFaq[];
+  /** Editorial note when localized content is pending human translation. */
+  todo?: string;
+}
+
 export interface SurahInfoContent {
   slug: string;
   surahNumber: number;
@@ -36,4 +47,9 @@ export interface SurahInfoContent {
   faqs: SurahFaq[];
   relatedSurahs: RelatedSurahLink[];
   relatedResources: SurahResourceLink[];
+  /**
+   * Optional per-locale overrides for /ur, /ps, and /fa surah pages.
+   * Never machine-translate religious content; populate only with human-verified text.
+   */
+  locales?: Partial<Record<'ur' | 'ps' | 'fa', LocalizedSurahInfo>>;
 }
