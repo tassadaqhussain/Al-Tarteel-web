@@ -163,7 +163,7 @@ export function Analytics() {
           defer
           data-domain={plausibleDomain}
           src={plausibleScript}
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       ) : null}
 
@@ -173,7 +173,7 @@ export function Analytics() {
           src={umamiScript}
           data-website-id={umamiId}
           data-auto-track="false"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       ) : null}
 
@@ -182,7 +182,7 @@ export function Analytics() {
           <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="" />
           <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
-          <Script id="ga4-consent-default" strategy="beforeInteractive">
+          <Script id="ga4-consent-default" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -198,10 +198,10 @@ export function Analytics() {
 
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
           />
 
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="ga4-init" strategy="lazyOnload">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}

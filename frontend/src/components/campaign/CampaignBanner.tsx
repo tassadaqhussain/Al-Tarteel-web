@@ -47,24 +47,45 @@ export function CampaignBanner() {
     }
     const surface = surfaceForPath(pathname);
     let cancelled = false;
-    campaignApi
-      .active(surface)
-      .then((res) => {
-        if (cancelled) return;
-        const next = res.campaign;
-        if (!next || !matchesSurface(next, surface)) {
-          setCampaign(null);
-          return;
-        }
-        const key = `qp-campaign-dismissed-${next.id}`;
-        setDismissed(sessionStorage.getItem(key) === '1');
-        setCampaign(next);
-      })
-      .catch(() => {
-        if (!cancelled) setCampaign(null);
-      });
+
+    const loadCampaign = () => {
+      if (cancelled) return;
+      campaignApi
+        .active(surface)
+        .then((res) => {
+          if (cancelled) return;
+          const next = res.campaign;
+          if (!next || !matchesSurface(next, surface)) {
+            setCampaign(null);
+            return;
+          }
+          const key = `qp-campaign-dismissed-${next.id}`;
+          setDismissed(sessionStorage.getItem(key) === '1');
+          setCampaign(next);
+        })
+        .catch(() => {
+          if (!cancelled) setCampaign(null);
+        });
+    };
+
+    const win = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    let idleId: number | undefined;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+    if (typeof win.requestIdleCallback === 'function') {
+      idleId = win.requestIdleCallback(loadCampaign, { timeout: 2000 });
+    } else {
+      timerId = setTimeout(loadCampaign, 1200);
+    }
+
     return () => {
       cancelled = true;
+      if (idleId !== undefined && typeof win.cancelIdleCallback === 'function') {
+        win.cancelIdleCallback(idleId);
+      }
+      if (timerId !== undefined) clearTimeout(timerId);
     };
   }, [pathname]);
 
