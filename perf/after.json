@@ -1,0 +1,157 @@
+{
+  "generatedAt": "2026-11-24T10:23:35.766Z",
+  "baseUrl": "http://127.0.0.1:3099",
+  "runs": 3,
+  "results": {
+    "/": {
+      "url": "/",
+      "performance": 88,
+      "accessibility": 100,
+      "bestPractices": 96,
+      "seo": 100,
+      "fcpMs": 957,
+      "lcpMs": 3710,
+      "tbtMs": 159,
+      "cls": 0,
+      "siMs": 957,
+      "jsKb": 453.9,
+      "cssKb": 0,
+      "renderBlockingMs": 0,
+      "unusedJsKb": 97.3,
+      "unusedCssKb": 20.8,
+      "legacyJsKb": 0,
+      "bpFailures": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0
+        }
+      ]
+    },
+    "/al-mulk": {
+      "url": "/al-mulk",
+      "performance": 98,
+      "accessibility": 100,
+      "bestPractices": 96,
+      "seo": 100,
+      "fcpMs": 1155,
+      "lcpMs": 1155,
+      "tbtMs": 171,
+      "cls": 0.0038,
+      "siMs": 1488,
+      "jsKb": 487.5,
+      "cssKb": 0,
+      "renderBlockingMs": 0,
+      "unusedJsKb": 105.6,
+      "unusedCssKb": 19.4,
+      "legacyJsKb": 0,
+      "bpFailures": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0
+        }
+      ]
+    },
+    "/al-baqarah/255": {
+      "url": "/al-baqarah/255",
+      "performance": 89,
+      "accessibility": 100,
+      "bestPractices": 96,
+      "seo": 100,
+      "fcpMs": 975,
+      "lcpMs": 975,
+      "tbtMs": 163,
+      "cls": 0.1871,
+      "siMs": 975,
+      "jsKb": 468.9,
+      "cssKb": 0,
+      "renderBlockingMs": 0,
+      "unusedJsKb": 96.8,
+      "unusedCssKb": 22.2,
+      "legacyJsKb": 0,
+      "bpFailures": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0
+        }
+      ]
+    },
+    "/al-mulk/1": {
+      "url": "/al-mulk/1",
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 96,
+      "seo": 100,
+      "fcpMs": 952,
+      "lcpMs": 952,
+      "tbtMs": 123,
+      "cls": 0.0365,
+      "siMs": 952,
+      "jsKb": 468.9,
+      "cssKb": 0,
+      "renderBlockingMs": 0,
+      "unusedJsKb": 96.8,
+      "unusedCssKb": 22.2,
+      "legacyJsKb": 0,
+      "bpFailures": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0
+        }
+      ]
+    },
+    "/ur/al-mulk": {
+      "url": "/ur/al-mulk",
+      "performance": 99,
+      "accessibility": 100,
+      "bestPractices": 96,
+      "seo": 100,
+      "fcpMs": 952,
+      "lcpMs": 952,
+      "tbtMs": 128,
+      "cls": 0.0041,
+      "siMs": 1366,
+      "jsKb": 487.5,
+      "cssKb": 0,
+      "renderBlockingMs": 0,
+      "unusedJsKb": 118.4,
+      "unusedCssKb": 21.6,
+      "legacyJsKb": 0,
+      "bpFailures": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0
+        }
+      ]
+    },
+    "/articles/how-many-years-did-it-take-to-build": {
+      "url": "/articles/how-many-years-did-it-take-to-build",
+      "performance": 95,
+      "accessibility": 100,
+      "bestPractices": 96,
+      "seo": 100,
+      "fcpMs": 956,
+      "lcpMs": 2746,
+      "tbtMs": 139,
+      "cls": 0,
+      "siMs": 956,
+      "jsKb": 415.8,
+      "cssKb": 0,
+      "renderBlockingMs": 0,
+      "unusedJsKb": 97.3,
+      "unusedCssKb": 23,
+      "legacyJsKb": 0,
+      "bpFailures": [
+        {
+          "id": "errors-in-console",
+          "title": "Browser errors were logged to the console",
+          "score": 0
+        }
+      ]
+    }
+  }
+}
