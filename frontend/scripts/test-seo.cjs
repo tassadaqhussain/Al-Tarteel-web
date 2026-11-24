@@ -59,20 +59,34 @@ for (const locale of ['ur', 'ps', 'fa']) {
   assert.equal(routing.pathForUiLocale('/settings', locale), '/settings');
   assert.ok(!seo.ayahSeo(2, 255, { locale }).metadata.description.startsWith('Read '));
 }
-const entries = sitemap.SITEMAP_SHARD_IDS.flatMap(sitemap.sitemapShardEntries);
+const activeNames = sitemap.activeSitemapNames();
+assert.ok(activeNames.includes('core') && activeNames.includes('surahs') && activeNames.includes('ayahs-1'));
+const entries = activeNames.flatMap(sitemap.sitemapEntries);
 assert.equal(new Set(entries.map((e) => e.url)).size, entries.length);
 assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/al-baqarah/255`));
+for (const name of activeNames) {
+  const chunk = sitemap.sitemapEntries(name);
+  assert.ok(chunk.length > 0 && chunk.length <= 5000, `${name}: ${chunk.length} URLs (must be 1..5000)`);
+}
 for (const locale of ['ur', 'ps', 'fa']) {
   assert.equal(seo.isVersePageIndexed(locale), false);
   assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah`));
   assert.ok(!entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah/255`));
 }
 const rendered = xml.renderUrlset(entries);
-assert.ok(rendered.includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`), 'Every URL uses stable build-time lastmod');
+const isoUtcRe = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+for (const match of rendered.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)) {
+  assert.ok(isoUtcRe.test(match[1]), `Inconsistent lastmod format: ${match[1]}`);
+}
+assert.ok(rendered.includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`), 'Every URL uses normalized ISO UTC lastmod');
 assert.ok(xml.renderSitemapIndex(['https://example.com/sitemap.xml']).includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`));
 assert.ok(xml.renderUrlset([{ url: 'https://example.com/?a=1&b=2', changeFrequency: 'monthly', priority: 1 }]).includes('?a=1&amp;b=2'));
 assert.equal((rendered.match(/<url>/g) || []).length, entries.length);
-console.log(`SEO checks passed: ${slices} verse slices across all 114 surahs, four locales, URL validation and ${entries.length} sitemap URLs.`);
+// Verify hreflang alternates exist on homepage and surahs
+const surahXml = xml.renderUrlset(sitemap.sitemapEntries('surahs'));
+assert.ok(surahXml.includes('xmlns:xhtml="http://www.w3.org/1999/xhtml"'));
+assert.ok(surahXml.includes('hreflang="x-default"'));
+console.log(`SEO checks passed: ${slices} verse slices across all 114 surahs, four locales, URL validation and ${entries.length} sitemap URLs across ${activeNames.length} sitemaps.`);
 
 for (const value of ['abc', '2junk', '-1', '0', '1e2', '2.5', '', ['2', '3'], '9007199254740992']) {
   assert.equal(pagination.parsePositiveInteger(value), null);

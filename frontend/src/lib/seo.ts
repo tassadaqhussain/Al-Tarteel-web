@@ -324,6 +324,18 @@ export function ayahSeo(
   };
   const description = descriptions[locale];
 
+  const indexedAyahLocales = CONTENT_LOCALES.filter(isVersePageIndexed);
+  const ayahHreflang =
+    indexedAyahLocales.length > 1
+      ? Object.fromEntries([
+          ...indexedAyahLocales.map((loc) => [
+            localeConfig(loc).hreflang,
+            absoluteUrl(localePath(loc, path)),
+          ]),
+          ['x-default', absoluteUrl(localePath(DEFAULT_CONTENT_LOCALE, path))],
+        ])
+      : undefined;
+
   return {
     path,
     heading,
@@ -343,7 +355,7 @@ export function ayahSeo(
       type: 'article',
       noIndex: !isVersePageIndexed(locale),
       locale,
-      alternatePath: path,
+      hreflangLanguages: ayahHreflang,
     }),
   };
 }

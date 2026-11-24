@@ -1,6 +1,6 @@
-import { SITEMAP_LASTMOD, type SitemapEntry } from '@/lib/sitemap-data';
+import { SITEMAP_LASTMOD, normalizeLastmod, type SitemapEntry } from '@/lib/sitemap-data';
 
-/** XML-escape a URL before embedding it in `<loc>`. */
+/** XML-escape a URL or attribute value before embedding it in XML. */
 function escapeXml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -17,7 +17,7 @@ export function renderUrlset(entries: SitemapEntry[]): string {
   const hasAlternates = entries.some((entry) => entry.alternates && entry.alternates.length > 0);
   const urls = entries
     .map((entry) => {
-      const lastmod = `<lastmod>${escapeXml(entry.lastModified || SITEMAP_LASTMOD)}</lastmod>`;
+      const lastmod = `<lastmod>${escapeXml(normalizeLastmod(entry.lastModified || SITEMAP_LASTMOD))}</lastmod>`;
       const alts = entry.alternates?.length
         ? entry.alternates
             .map(
@@ -41,7 +41,8 @@ export function renderSitemapIndex(
   const sitemaps = items
     .map((item) => {
       const loc = typeof item === 'string' ? item : item.loc;
-      const lastmod = typeof item === 'string' ? SITEMAP_LASTMOD : item.lastModified || SITEMAP_LASTMOD;
+      const rawLastmod = typeof item === 'string' ? SITEMAP_LASTMOD : item.lastModified || SITEMAP_LASTMOD;
+      const lastmod = normalizeLastmod(rawLastmod);
       return `<sitemap><loc>${escapeXml(loc)}</loc><lastmod>${escapeXml(lastmod)}</lastmod></sitemap>`;
     })
     .join('');
