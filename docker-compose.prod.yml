@@ -39,6 +39,19 @@ services:
     networks:
       - internal
 
+  tts:
+    build:
+      context: ./services/tts
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "5062"
+    environment:
+      VOICE_DIR: /voices
+      PORT: 5062
+    networks:
+      - internal
+
   api:
     build:
       context: ./backend
@@ -59,6 +72,8 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-https://quranpilot.com}
       AUDIO_STORAGE_PATH: /app/storage/audio
       AUDIO_PUBLIC_BASE_URL: ${AUDIO_PUBLIC_BASE_URL:-https://quranpilot.com/api/v1/audio/files}
+      TTS_URL: http://tts:5062
+      TTS_CACHE_PATH: /app/storage/tts
       SKIP_QURAN_DOWNLOAD: ${SKIP_QURAN_DOWNLOAD:-0}
       # Set 1 only on a high-RAM host; otherwise seed manually after API is up
       ENABLE_BOOT_SEED: ${ENABLE_BOOT_SEED:-0}
@@ -70,7 +85,10 @@ services:
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     volumes:
       - ./backend/storage/audio:/app/storage/audio:ro
+      - ./backend/storage/tts:/app/storage/tts
     depends_on:
+      tts:
+        condition: service_started
       postgres:
         condition: service_healthy
       redis:
