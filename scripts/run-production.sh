@@ -139,9 +139,15 @@ COMPOSE=(docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
 mkdir -p "${APP_DIR}/backend/storage/audio" "${APP_DIR}/backend/storage/tts"
 
 if [[ "${NO_BUILD}" != "1" ]]; then
-  log "Build images (api, then web)"
+  log "Build and update api image first (reclaim build cache before web build)"
   "${COMPOSE[@]}" build api
+  "${COMPOSE[@]}" up -d --no-deps api
+  docker image prune -f >/dev/null 2>&1 || true
+  docker builder prune -af >/dev/null 2>&1 || true
+
+  log "Build web image"
   "${COMPOSE[@]}" build web
+  docker builder prune -f --keep-storage=500MB >/dev/null 2>&1 || true
 fi
 
 log "Start stack"
