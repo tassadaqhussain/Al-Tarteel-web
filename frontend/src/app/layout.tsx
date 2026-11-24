@@ -4,20 +4,19 @@ import { Amiri, Amiri_Quran, Figtree, Fredoka } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AudioPlayerProvider } from '@/components/audio/AudioPlayerProvider';
-import { AudioBar } from '@/components/audio/AudioBar';
 import { ScrollToCurrentAyah } from '@/components/audio/ScrollToCurrentAyah';
 import { ScrollToHashAyah } from '@/components/reader/ScrollToHashAyah';
-import { AskAiFab } from '@/components/ai/AskAiFab';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { TajweedStyles } from '@/components/tajweed/TajweedStyles';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BackToTopButton } from '@/components/BackToTopButton';
 import { Analytics } from '@/components/analytics/Analytics';
-import { DailyAyahSlideIn } from '@/components/lead/DailyAyahSubscribe';
+import { DeferredWidgets } from '@/components/DeferredWidgets';
 import { CampaignBanner } from '@/components/campaign/CampaignBanner';
 import { LocaleSync } from '@/components/LocaleSync';
 import { LocaleFromPath } from '@/components/LocaleFromPath';
+import { LocaleSuggestionBanner } from '@/components/LocaleSuggestionBanner';
 import { fetchPublicSiteConfig } from '@/lib/site-config';
 import {
   DEFAULT_DESCRIPTION,
@@ -129,7 +128,6 @@ export const viewport: Viewport = {
 };
 
 import { VoiceSearchProvider } from '@/providers/VoiceSearchProvider';
-import { GlobalVoiceSearch } from '@/components/GlobalVoiceSearch';
 
 export default async function RootLayout({
   children,
@@ -186,12 +184,9 @@ export default async function RootLayout({
               "(seg.length===1&&known.indexOf(seg[0])<0&&seg[0].indexOf('.')<0))e='default';" +
               "r.classList.add('experience-'+e);" +
               "r.classList.add('view-mode-'+(s.readerViewMode||'verse'));" +
-              "if(s.uiLocale){r.lang=s.uiLocale;" +
-              // keep in sync with RTL_LOCALES in lib/i18n/messages.ts
-              "r.dir=['ar','fa','ur','ps'].indexOf(s.uiLocale)>-1?'rtl':'ltr';}" +
-              // Locale-prefixed routes (/ur, /ps, /fa) are written in that
-              // language, so it wins over the UI locale for lang and dir.
-              "if(['ur','ps','fa'].indexOf(seg[0])>-1){r.lang=seg[0];r.dir='rtl';}" +
+              // Locale is decided strictly by URL prefix (/ = en, /ur, /ps, /fa).
+              // Never swap a canonical URL's lang/dir based on localStorage or cookies.
+              "if(['ur','ps','fa'].indexOf(seg[0])>-1){r.lang=seg[0];r.dir='rtl';}else{r.lang='en';r.dir='ltr';}" +
               "}catch(e){}})();",
           }}
         />
@@ -208,15 +203,13 @@ export default async function RootLayout({
                 <div className="relative flex min-h-screen flex-col">
                   <LocaleSync />
                   <LocaleFromPath />
+                  <LocaleSuggestionBanner />
                   <CampaignBanner />
                   {children}
                 </div>
-                <AudioBar />
                 <BackToTopButton />
-                <AskAiFab />
+                <DeferredWidgets />
                 <VisitTracker />
-                <GlobalVoiceSearch />
-                <DailyAyahSlideIn />
                 <Analytics />
               </VoiceSearchProvider>
             </AudioPlayerProvider>

@@ -186,12 +186,13 @@ function MyQuranContent() {
                     </Link>
                   </p>
                 )}
-                <Link
-                  href={loginHref('/my-quran')}
+                <button
+                  type="button"
+                  onClick={() => router.push(loginHref('/my-quran'))}
                   className="mt-6 inline-flex rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90"
                 >
                   Sign in
-                </Link>
+                </button>
               </div>
             </section>
           </div>

@@ -132,7 +132,7 @@ function LoginForm() {
             />
             Remember me
           </label>
-          <Link href="/forgot-password" className="font-medium text-[var(--accent)] hover:underline">
+          <Link href="/forgot-password" rel="nofollow" className="font-medium text-[var(--accent)] hover:underline">
             Forgot password?
           </Link>
         </div>
@@ -158,9 +158,13 @@ function LoginForm() {
 
       <p className="mt-6 text-center text-sm text-ink-3">
         Don&apos;t have an account?{' '}
-        <Link href={registerHref(returnUrl)} className="font-semibold text-[var(--accent)] hover:underline">
+        <button
+          type="button"
+          onClick={() => router.push(registerHref(returnUrl))}
+          className="font-semibold text-[var(--accent)] hover:underline"
+        >
           Create account
-        </Link>
+        </button>
       </p>
     </main>
   );

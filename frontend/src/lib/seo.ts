@@ -313,7 +313,11 @@ export function ayahSeo(
   const localisedPath = localePath(locale, path);
 
   const heading = `${famousName ? `${famousName} — ` : ''}${localizedSurah} ${surahNumber}:${ayahNumber}`;
-  const title = `${heading}${famousName ? '' : ' — Quran Ayah'} | ${SITE_NAME}`;
+  const title = famousName
+    ? `${heading} | ${SITE_NAME}`
+    : locale === 'en'
+      ? `Surah ${englishSurah} Ayah ${ayahNumber} (${surahNumber}:${ayahNumber}) – Arabic, Translation & Audio | ${SITE_NAME}`
+      : `${heading} — Quran Ayah | ${SITE_NAME}`;
 
   const reference = `${localizedSurah} ${surahNumber}:${ayahNumber}`;
   const descriptions: Record<ContentLocale, string> = {
@@ -323,6 +327,18 @@ export function ayahSeo(
     fa: `${famousName ? `${famousName} — ` : ''}${reference} را با متن عربی عثمانی، ترجمه فارسی و تلاوت آیه به آیه در QuranPilot بخوانید و بشنوید.`,
   };
   const description = descriptions[locale];
+
+  const indexedAyahLocales = CONTENT_LOCALES.filter(isVersePageIndexed);
+  const ayahHreflang =
+    indexedAyahLocales.length > 1
+      ? Object.fromEntries([
+          ...indexedAyahLocales.map((loc) => [
+            localeConfig(loc).hreflang,
+            absoluteUrl(localePath(loc, path)),
+          ]),
+          ['x-default', absoluteUrl(localePath(DEFAULT_CONTENT_LOCALE, path))],
+        ])
+      : undefined;
 
   return {
     path,
@@ -343,7 +359,7 @@ export function ayahSeo(
       type: 'article',
       noIndex: !isVersePageIndexed(locale),
       locale,
-      alternatePath: path,
+      hreflangLanguages: ayahHreflang,
     }),
   };
 }
@@ -380,10 +396,6 @@ export function ayahJsonLd(input: {
   };
 }
 
-/**
- * WebSite JSON-LD without SearchAction — /search is noindex (hub + results).
- * Re-add SearchAction only when a crawlable, indexable search hub exists.
- */
 export function websiteJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -391,11 +403,24 @@ export function websiteJsonLd() {
     name: SITE_NAME,
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
-    inLanguage: ['en', 'ar'],
+    inLanguage: ['en', 'ar', 'ur', 'ps', 'fa'],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 
 export function organizationJsonLd() {
+  const sameAs = (process.env.NEXT_PUBLIC_SOCIAL_PROFILES || '')
+    .split(',')
+    .map((u) => u.trim())
+    .filter((u) => u.startsWith('https://'));
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -403,6 +428,7 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: absoluteUrl('/images/logo.png'),
     description: 'Free online Quran reader with translations and audio.',
+    ...(sameAs.length > 0 ? { sameAs } : {}),
   };
 }
 
@@ -450,6 +476,21 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
       position: index + 1,
       name: item.name,
       item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+export function faqJsonLd(faqs: { question: string; answer: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
     })),
   };
 }

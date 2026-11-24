@@ -1,0 +1,57 @@
+{
+  "slug": "al-kahf",
+  "surahNumber": 18,
+  "revelationPeriod": "Makki",
+  "verseCount": 110,
+  "juzNumbers": [15, 16],
+  "overview": [
+    "Surah Al-Kahf (The Cave) is the 18th chapter of the Holy Quran, revealed in Makkah and comprising 110 verses across Juz 15 and the start of Juz 16. Its name comes from the opening narrative of the People of the Cave (Ashab al-Kahf), a group of believing youths who sought refuge in a cave to preserve their faith under an oppressive ruler.",
+    "The surah is structured around four major narratives that address four enduring human trials: the trial of faith (the Companions of the Cave), the trial of wealth and arrogance (the owner of the two gardens), the trial of knowledge and humility (Prophet Musa and Al-Khidr), and the trial of power and leadership (Dhul-Qarnayn). Woven between these stories are reminders of the temporary nature of worldly adornment, the certainty of the Day of Resurrection, and the importance of keeping righteous company.",
+    "Surah Al-Kahf closes by emphasizing humility in worship and clarity of creed: that the words of Allah can never be exhausted, and that whoever hopes to meet their Lord should do righteous deeds and associate no partner in worship with Him."
+  ],
+  "mainThemes": [
+    "Steadfastness in faith when facing social pressure or persecution (Companions of the Cave).",
+    "Gratitude versus arrogance in wealth (the parable of the two gardens).",
+    "Humility in seeking knowledge and trusting Allah's wisdom beyond human perception (Musa and Al-Khidr).",
+    "Just, accountable leadership and remembrance of the Hereafter (Dhul-Qarnayn)."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet ﷺ said that whoever memorizes ten verses from the beginning of Surah Al-Kahf will be protected from the trial of the Dajjal.",
+      "source": "Sahih Muslim 809"
+    }
+  ],
+  "virtuesTodo": "TODO: Review and add verified reference for reciting Surah Al-Kahf on Fridays (e.g., al-Mustadrak / Sunan al-Kubra of al-Bayhaqi) if desired.",
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Kahf?",
+      "answer": "Surah Al-Kahf has 110 verses and spans the second half of Juz 15 into the beginning of Juz 16."
+    },
+    {
+      "question": "Is Surah Al-Kahf Makki or Madani?",
+      "answer": "Surah Al-Kahf is a Makki surah, revealed in Makkah."
+    },
+    {
+      "question": "What are the four main stories in Surah Al-Kahf?",
+      "answer": "The four central narratives are the People of the Cave (faith), the Owner of the Two Gardens (wealth), Prophet Musa and Al-Khidr (knowledge), and Dhul-Qarnayn (power and justice)."
+    },
+    {
+      "question": "Which verses of Surah Al-Kahf are mentioned in Sahih Muslim for protection from the Dajjal?",
+      "answer": "In Sahih Muslim (809), the Prophet ﷺ mentioned memorizing the first ten verses of Surah Al-Kahf (and in another narration in the same chapter, the last ten verses)."
+    },
+    {
+      "question": "Which Juz is Surah Al-Kahf in?",
+      "answer": "Surah Al-Kahf starts in Juz 15 (verses 1–74) and finishes in Juz 16 (verses 75–110)."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 17, "reason": "Surah Al-Isra immediately precedes Al-Kahf in Juz 15." },
+    { "surahNumber": 19, "reason": "Surah Maryam follows Al-Kahf with further prophetic narratives." },
+    { "surahNumber": 67, "reason": "Another widely memorized Makki surah centered on faith and reflection." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 15", "href": "/juz/15" },
+    { "label": "Read Juz 16", "href": "/juz/16" },
+    { "label": "How to Stay Consistent with Quran Daily", "href": "/articles/how-to-stay-consistent-with-quran-daily" }
+  ]
+}

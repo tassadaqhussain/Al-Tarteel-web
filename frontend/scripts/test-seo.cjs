@@ -59,20 +59,34 @@ for (const locale of ['ur', 'ps', 'fa']) {
   assert.equal(routing.pathForUiLocale('/settings', locale), '/settings');
   assert.ok(!seo.ayahSeo(2, 255, { locale }).metadata.description.startsWith('Read '));
 }
-const entries = sitemap.SITEMAP_SHARD_IDS.flatMap(sitemap.sitemapShardEntries);
+const activeNames = sitemap.activeSitemapNames();
+assert.ok(activeNames.includes('core') && activeNames.includes('surahs') && activeNames.includes('ayahs-1'));
+const entries = activeNames.flatMap(sitemap.sitemapEntries);
 assert.equal(new Set(entries.map((e) => e.url)).size, entries.length);
 assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/al-baqarah/255`));
+for (const name of activeNames) {
+  const chunk = sitemap.sitemapEntries(name);
+  assert.ok(chunk.length > 0 && chunk.length <= 5000, `${name}: ${chunk.length} URLs (must be 1..5000)`);
+}
 for (const locale of ['ur', 'ps', 'fa']) {
   assert.equal(seo.isVersePageIndexed(locale), false);
   assert.ok(entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah`));
   assert.ok(!entries.some((e) => e.url === `${seo.SITE_URL}/${locale}/al-baqarah/255`));
 }
 const rendered = xml.renderUrlset(entries);
-assert.ok(rendered.includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`), 'Every URL uses stable build-time lastmod');
+const isoUtcRe = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+for (const match of rendered.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)) {
+  assert.ok(isoUtcRe.test(match[1]), `Inconsistent lastmod format: ${match[1]}`);
+}
+assert.ok(rendered.includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`), 'Every URL uses normalized ISO UTC lastmod');
 assert.ok(xml.renderSitemapIndex(['https://example.com/sitemap.xml']).includes(`<lastmod>${sitemap.SITEMAP_LASTMOD}</lastmod>`));
 assert.ok(xml.renderUrlset([{ url: 'https://example.com/?a=1&b=2', changeFrequency: 'monthly', priority: 1 }]).includes('?a=1&amp;b=2'));
 assert.equal((rendered.match(/<url>/g) || []).length, entries.length);
-console.log(`SEO checks passed: ${slices} verse slices across all 114 surahs, four locales, URL validation and ${entries.length} sitemap URLs.`);
+// Verify hreflang alternates exist on homepage and surahs
+const surahXml = xml.renderUrlset(sitemap.sitemapEntries('surahs'));
+assert.ok(surahXml.includes('xmlns:xhtml="http://www.w3.org/1999/xhtml"'));
+assert.ok(surahXml.includes('hreflang="x-default"'));
+console.log(`SEO checks passed: ${slices} verse slices across all 114 surahs, four locales, URL validation and ${entries.length} sitemap URLs across ${activeNames.length} sitemaps.`);
 
 for (const value of ['abc', '2junk', '-1', '0', '1e2', '2.5', '', ['2', '3'], '9007199254740992']) {
   assert.equal(pagination.parsePositiveInteger(value), null);
@@ -127,17 +141,44 @@ for (let number = 1; number <= 114; number++) {
   for (const zeros of ['0', '00', '000']) {
     const request = new NextRequest(`https://quranpilot.com/surah/${zeros}${number}?page=2&trans=en-sahih-international&utm_source=seo`);
     const response = proxy(request);
-    assert.equal(response.status, 308);
+    assert.equal(response.status, 301);
     const destination = new URL(response.headers.get('location'));
     assert.equal(destination.pathname, getSurahPath(number));
     assert.equal(destination.search, request.nextUrl.search);
   }
 }
-assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', { method: 'HEAD' })).status, 308);
-for (const path of ['/surah/0', '/surah/000', '/surah/0115', '/surah/02junk', '/al-baqarah', '/surah/2']) {
+assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', { method: 'HEAD' })).status, 301);
+// Common alternate numeric routes → 301 canonical slug
+for (const [from, to] of [
+  ['/surah/67', '/al-mulk'],
+  ['/67', '/al-mulk'],
+  ['/2/255', '/al-baqarah/255'],
+  ['/surah/2/255', '/al-baqarah/255'],
+  ['/ur/67', '/ur/al-mulk'],
+  ['/ur/2/255', '/ur/al-baqarah/255'],
+]) {
+  const res = proxy(new NextRequest(`https://quranpilot.com${from}`));
+  assert.equal(res.status, 301, `${from} should 301`);
+  assert.equal(new URL(res.headers.get('location')).pathname, to, `${from} → ${to}`);
+}
+// www → apex and http → https in a single hop (even combined with legacy path)
+{
+  const wwwRes = proxy(new NextRequest('https://www.quranpilot.com/surah/67?page=2', {
+    headers: { host: 'www.quranpilot.com', 'x-forwarded-proto': 'https' },
+  }));
+  assert.equal(wwwRes.status, 301);
+  assert.equal(wwwRes.headers.get('location'), 'https://quranpilot.com/al-mulk?page=2');
+
+  const httpRes = proxy(new NextRequest('http://quranpilot.com/al-mulk', {
+    headers: { host: 'quranpilot.com', 'x-forwarded-proto': 'http' },
+  }));
+  assert.equal(httpRes.status, 301);
+  assert.equal(httpRes.headers.get('location'), 'https://quranpilot.com/al-mulk');
+}
+for (const path of ['/surah/0', '/surah/000', '/surah/0115', '/surah/02junk', '/al-baqarah']) {
   assert.equal(proxy(new NextRequest(`https://quranpilot.com${path}`)).headers.get('location'), null);
 }
 assert.equal(proxy(new NextRequest('https://quranpilot.com/surah/02', {
   method: 'POST', headers: { 'next-action': 'invalid' },
 })).status, 400);
-console.log('All 114 zero-padded legacy surah redirects preserve query parameters; invalid paths and server-action checks remain unchanged.');
+console.log('All 301 canonical host, www/http, and legacy/numeric surah+ayah redirects passed.');

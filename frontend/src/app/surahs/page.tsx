@@ -107,6 +107,63 @@ export default async function SurahsPage() {
         </header>
         <SurahDirectorySections surahs={list} />
         <SurahGrid surahs={list} embedded sectionTitle="Complete surah list" />
+
+        <section
+          aria-labelledby="surahs-guide-heading"
+          className="mt-10 rounded-2xl border border-line bg-surface p-6 sm:p-8"
+        >
+          <h2 id="surahs-guide-heading" className="font-serif text-xl font-bold text-ink sm:text-2xl">
+            How the 114 Surahs of the Holy Quran Are Organized
+          </h2>
+          <div className="mt-3 space-y-3 text-sm leading-7 text-ink-2 sm:text-[15px]">
+            <p>
+              The Holy Quran consists of 114 chapters (surahs) comprising 6,236 verses (ayahs),
+              arranged in a fixed order from{' '}
+              <Link href="/al-fatihah" className="font-medium text-[var(--accent)] hover:underline">
+                Surah Al-Fatihah
+              </Link>{' '}
+              (The Opener) to{' '}
+              <Link href="/an-nas" className="font-medium text-[var(--accent)] hover:underline">
+                Surah An-Nas
+              </Link>{' '}
+              (Mankind). Chapters revealed before the Prophet Muhammad&apos;s ﷺ migration to Madinah
+              are classified as Makki surahs and often emphasize monotheism, the Hereafter, and
+              steadfastness in faith. Chapters revealed after the migration are Madani surahs and
+              frequently address worship, community ethics, family life, and social justice.
+            </p>
+            <p>
+              For daily recitation, the Quran is also divided into 30 roughly equal parts called{' '}
+              <Link href="/juz" className="font-medium text-[var(--accent)] hover:underline">
+                Juz (paras)
+              </Link>
+              , making it practical to complete one full reading over a month or follow a steady{' '}
+              <Link href="/quran-in-year" className="font-medium text-[var(--accent)] hover:underline">
+                Quran in a Year
+              </Link>{' '}
+              schedule. Beginners often start with{' '}
+              <Link href="/al-fatihah" className="font-medium text-[var(--accent)] hover:underline">
+                Al-Fatihah
+              </Link>
+              ,{' '}
+              <Link href="/al-ikhlas" className="font-medium text-[var(--accent)] hover:underline">
+                Al-Ikhlas
+              </Link>
+              ,{' '}
+              <Link href="/al-falaq" className="font-medium text-[var(--accent)] hover:underline">
+                Al-Falaq
+              </Link>
+              ,{' '}
+              <Link href="/an-nas" className="font-medium text-[var(--accent)] hover:underline">
+                An-Nas
+              </Link>
+              , and{' '}
+              <Link href="/al-mulk" className="font-medium text-[var(--accent)] hover:underline">
+                Al-Mulk
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>

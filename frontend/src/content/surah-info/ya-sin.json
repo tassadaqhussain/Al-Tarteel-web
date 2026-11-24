@@ -1,0 +1,48 @@
+{
+  "slug": "ya-sin",
+  "surahNumber": 36,
+  "revelationPeriod": "Makki",
+  "verseCount": 83,
+  "juzNumbers": [22, 23],
+  "overview": [
+    "Surah Ya-Sin is the 36th chapter of the Holy Quran, revealed in Makkah and consisting of 83 verses spanning the end of Juz 22 and the beginning of Juz 23. Named after the Arabic disconnected letters (Ya, Sin) that open its first verse, it is one of the most widely read and memorized surahs across the Muslim world.",
+    "The surah centers on three pillars of Islamic belief: the truth of prophethood, the oneness of Allah evidenced throughout nature, and the reality of resurrection and accountability. It opens by swearing by the Wise Quran to affirm the messengership of Prophet Muhammad ﷺ, then presents the parable of the inhabitants of a town who rejected three messengers—contrasting their stubbornness with the courage of a sincere believer who hurried from the farthest part of the city to call his people to truth.",
+    "In its middle passages, Surah Ya-Sin draws attention to everyday signs of Allah's power: reviving dead land with rain, the alternation of night and day, the orbits of the sun and moon, and ships sailing across the sea. Its closing verses address skepticism about life after death directly, reminding humanity that the One Who created them the first time has complete power to bring them back to life."
+  ],
+  "mainThemes": [
+    "Affirmation of the Quran as divine revelation and the truthfulness of Prophet Muhammad ﷺ.",
+    "The story of the three messengers and the sincere believer from the farthest edge of the town.",
+    "Signs of Allah's creative power in agriculture, night and day, celestial orbits, and human creation.",
+    "The certainty of the Day of Resurrection and Allah's command 'Be, and it is.'"
+  ],
+  "virtues": [],
+  "virtuesTodo": "TODO: Add authentic hadith references for Surah Ya-Sin after scholarly grading review (widely cited narrations such as 'heart of the Quran' have debated chains).",
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Ya-Sin?",
+      "answer": "Surah Ya-Sin has 83 verses (ayahs)."
+    },
+    {
+      "question": "Is Surah Ya-Sin Makki or Madani?",
+      "answer": "Surah Ya-Sin is a Makki surah, revealed in Makkah."
+    },
+    {
+      "question": "Which Juz is Surah Ya-Sin in?",
+      "answer": "Surah Ya-Sin begins near the end of Juz 22 (verses 1–27) and continues into Juz 23 (verses 28–83)."
+    },
+    {
+      "question": "What are the main themes of Surah Ya-Sin?",
+      "answer": "Its primary themes are prophethood, signs of Allah's power in the natural world, and rational and spiritual proofs of the resurrection."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 35, "reason": "Surah Fatir immediately precedes Ya-Sin in Juz 22." },
+    { "surahNumber": 37, "reason": "Surah As-Saffat follows Ya-Sin in Juz 23." },
+    { "surahNumber": 67, "reason": "Surah Al-Mulk similarly highlights Allah's signs in creation and accountability." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 22", "href": "/juz/22" },
+    { "label": "Read Juz 23", "href": "/juz/23" },
+    { "label": "How to Start Reading the Quran as a Beginner", "href": "/articles/how-to-start-reading-quran-as-a-beginner" }
+  ]
+}

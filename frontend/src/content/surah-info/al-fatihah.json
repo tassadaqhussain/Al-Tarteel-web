@@ -1,0 +1,60 @@
+{
+  "slug": "al-fatihah",
+  "surahNumber": 1,
+  "revelationPeriod": "Makki",
+  "verseCount": 7,
+  "juzNumbers": [1],
+  "overview": [
+    "Surah Al-Fatihah (The Opener) is the first chapter of the Holy Quran, revealed in Makkah and consisting of 7 verses. Known also as Umm al-Kitab (the Mother of the Book) and As-Sab' al-Mathani (the Seven Oft-Repeated Verses), it serves as both the introduction to the entire Quran and the foundational recitation in every unit (rak'ah) of the five daily prayers.",
+    "Although brief, Surah Al-Fatihah summarizes the core relationship between humanity and Allah. Its opening verses establish praise and gratitude to the Lord of all worlds, affirm His encompassing mercy (Ar-Rahman, Ar-Rahim), and acknowledge His sovereignty on the Day of Judgment. The central verse marks a turning point from praise to direct address: affirming exclusive worship of Allah and exclusive reliance on Him for help.",
+    "The closing verses form the most frequently repeated supplication in a Muslim's life: asking Allah for guidance to the straight path (as-sirat al-mustaqim), the path of those upon whom He has bestowed favor rather than those who have earned anger or gone astray. Classical scholars note that the rest of the Quran answers this very supplication by detailing what that straight path looks like in belief, worship, ethics, and community life."
+  ],
+  "mainThemes": [
+    "Praise and gratitude belong solely to Allah, the Lord and Sustainer of all creation.",
+    "Divine mercy (Ar-Rahman, Ar-Rahim) paired with accountability on the Day of Judgment.",
+    "Pure monotheism (tawhid) in worship and complete reliance on Allah for aid.",
+    "Constant human need for divine guidance to stay on the straight path."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet Muhammad ﷺ told Abu Sa'id ibn al-Mu'alla that Surah Al-Fatihah is the greatest surah in the Quran.",
+      "source": "Sahih al-Bukhari 4474"
+    },
+    {
+      "text": "Reciting Surah Al-Fatihah is an essential pillar of prayer; the Prophet ﷺ said there is no prayer for the one who does not recite the Opening of the Book.",
+      "source": "Sahih al-Bukhari 756; Sahih Muslim 394"
+    },
+    {
+      "text": "In a Hadith Qudsi, Allah divides the prayer (Al-Fatihah) into two halves between Himself and His servant, responding to each verse as the believer recites it.",
+      "source": "Sahih Muslim 395"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Fatihah?",
+      "answer": "Surah Al-Fatihah has 7 verses (ayahs) and is located at the beginning of Juz 1."
+    },
+    {
+      "question": "Is Surah Al-Fatihah Makki or Madani?",
+      "answer": "Surah Al-Fatihah is a Makki surah, revealed in Makkah before the migration (Hijrah) to Madinah."
+    },
+    {
+      "question": "Why is Surah Al-Fatihah recited in every prayer?",
+      "answer": "Reciting Al-Fatihah in every unit (rak'ah) of salah is an obligation established in authentic prophetic tradition (Sahih al-Bukhari 756; Sahih Muslim 394). It combines praise of Allah, affirmation of tawhid, and a direct supplication for guidance."
+    },
+    {
+      "question": "What does Al-Fatihah mean?",
+      "answer": "Al-Fatihah means 'The Opening' or 'The Opener,' because it opens the written order of the Quran and opens every formal prayer."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 2, "reason": "Follows Al-Fatihah immediately as the Quran's answer to the prayer for guidance." },
+    { "surahNumber": 112, "reason": "Summarizes pure monotheism (tawhid) in four concise verses." },
+    { "surahNumber": 114, "reason": "Closes the Quran with a supplication seeking Allah's protection." }
+  ],
+  "relatedResources": [
+    { "label": "Understanding Surah Al-Fatihah (Article)", "href": "/articles/understanding-surah-al-fatihah" },
+    { "label": "Learn Tajweed Rules", "href": "/tajweed" },
+    { "label": "Browse Learning Plans", "href": "/learning-plans" }
+  ]
+}

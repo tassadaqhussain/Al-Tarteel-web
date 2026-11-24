@@ -1,0 +1,60 @@
+{
+  "slug": "al-mulk",
+  "surahNumber": 67,
+  "revelationPeriod": "Makki",
+  "verseCount": 30,
+  "juzNumbers": [29],
+  "overview": [
+    "Surah Al-Mulk (The Sovereignty) is the 67th chapter of the Holy Quran and the opening surah of Juz 29 (Juz Tabarak). Revealed in Makkah and consisting of 30 verses, it takes its name from the opening declaration that all dominion and sovereignty belong to Allah, Who has power over all things.",
+    "The surah invites the reader to look upward at the seven heavens and outward across the earth as clear signs of intentional, flawless creation. It reminds humanity that life and death were created to test who is best in deeds, and contrasts the regret of those who ignored warning with the forgiveness and great reward promised to those who fear their Lord unseen.",
+    "Throughout its 30 concise verses, Surah Al-Mulk balances awe with reassurance: Allah knows every whispered secret and every open word, He made the earth manageable for human travel and provision, and He sustains the birds in flight. It ends with a sobering question about the source of fresh water—reminding believers of their complete daily dependence on the Creator."
+  ],
+  "mainThemes": [
+    "Allah's absolute sovereignty over creation, life, and death.",
+    "Reflection on the harmony of the heavens and the earth as signs of the Creator.",
+    "Accountability in the Hereafter and the reward for God-consciousness in private and public.",
+    "Human dependence on Allah for provision, security, and life itself."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet ﷺ said there is a surah in the Quran of thirty verses which intercedes for a person until they are forgiven: Surah Tabarak (Al-Mulk).",
+      "source": "Sunan Abi Dawud 1400; Jami at-Tirmidhi 2891"
+    },
+    {
+      "text": "Jabir (may Allah be pleased with him) narrated that the Prophet ﷺ would not sleep until he had recited Alif-Lam-Mim Tanzil (Surah As-Sajdah) and Tabarakalladhi bi-yadihil-Mulk (Surah Al-Mulk).",
+      "source": "Jami at-Tirmidhi 2892"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Mulk?",
+      "answer": "Surah Al-Mulk has 30 verses (ayahs) and is the first chapter of Juz 29."
+    },
+    {
+      "question": "When is Surah Al-Mulk traditionally recited?",
+      "answer": "Many Muslims recite Surah Al-Mulk every night before sleeping, following the narrated practice of the Prophet ﷺ (Jami at-Tirmidhi 2892)."
+    },
+    {
+      "question": "Is Surah Al-Mulk Makki or Madani?",
+      "answer": "Surah Al-Mulk is a Makki surah, revealed in Makkah."
+    },
+    {
+      "question": "What does Al-Mulk mean?",
+      "answer": "Al-Mulk means 'The Sovereignty' or 'The Dominion,' referring to Allah's complete ownership and authority over all creation."
+    },
+    {
+      "question": "Which Juz is Surah Al-Mulk in?",
+      "answer": "Surah Al-Mulk is the opening surah of Juz 29 (often called Juz Tabarak after its opening word)."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 68, "reason": "Surah Al-Qalam immediately follows Al-Mulk in Juz 29." },
+    { "surahNumber": 32, "reason": "Surah As-Sajdah was also recited by the Prophet ﷺ before sleep (Jami at-Tirmidhi 2892)." },
+    { "surahNumber": 56, "reason": "Another Makki surah frequently recited in the evening for reflection on the Hereafter." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 29", "href": "/juz/29" },
+    { "label": "Benefits of Reading the Holy Quran", "href": "/articles/benefits-of-reading-the-holy-quran" },
+    { "label": "Learn Tajweed Rules", "href": "/tajweed" }
+  ]
+}

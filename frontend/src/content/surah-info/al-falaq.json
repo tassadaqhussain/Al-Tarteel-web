@@ -1,0 +1,55 @@
+{
+  "slug": "al-falaq",
+  "surahNumber": 113,
+  "revelationPeriod": "Makki",
+  "verseCount": 5,
+  "juzNumbers": [30],
+  "overview": [
+    "Surah Al-Falaq (The Daybreak) is the 113th chapter of the Holy Quran, consisting of 5 verses in Juz 30. Together with Surah An-Nas (114), it is known as Al-Mu'awwidhatayn—the two surahs of seeking refuge in Allah.",
+    "The surah teaches believers to turn directly to the Lord of the daybreak—the One Who splits the darkness of night with dawn—for protection from external harms: the harm of created beings, the darkness of night as it settles, those who practice sorcery, and the envy of an envier when they act upon it.",
+    "By placing Surah Al-Falaq and Surah An-Nas at the very end of the Quran, the scripture closes on a note of humble reliance on Allah alone for safety and peace of mind. Muslims commonly recite it in daily prayers, after obligatory salah, and before sleeping."
+  ],
+  "mainThemes": [
+    "Seeking refuge exclusively in Allah, the Lord of the daybreak.",
+    "Protection from external harms: creation, darkness, sorcery, and active envy.",
+    "Reliance on Allah rather than fear or superstition."
+  ],
+  "virtues": [
+    {
+      "text": "The Prophet ﷺ told Uqbah ibn Amir about Surah Al-Falaq and Surah An-Nas: 'No seeker of refuge can seek refuge with anything like these two.'",
+      "source": "Sahih Muslim 814"
+    },
+    {
+      "text": "The Prophet ﷺ used to recite Surah Al-Ikhlas, Surah Al-Falaq, and Surah An-Nas every night before sleeping, blowing into his cupped hands and wiping over his body three times.",
+      "source": "Sahih al-Bukhari 5017"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How many verses are in Surah Al-Falaq?",
+      "answer": "Surah Al-Falaq has 5 verses (ayahs) and is the second-to-last chapter of the Quran in Juz 30."
+    },
+    {
+      "question": "What does Al-Falaq mean?",
+      "answer": "Al-Falaq means 'The Daybreak' or 'The Dawn,' referring to Allah splitting open the darkness with morning light."
+    },
+    {
+      "question": "What are Al-Mu'awwidhatayn?",
+      "answer": "Al-Mu'awwidhatayn refers to Surah Al-Falaq (113) and Surah An-Nas (114), the two closing surahs in which believers seek refuge in Allah."
+    },
+    {
+      "question": "When is Surah Al-Falaq recited?",
+      "answer": "Following prophetic practice, Surah Al-Falaq is recited alongside Surah Al-Ikhlas and Surah An-Nas before sleep (Sahih al-Bukhari 5017), in daily prayers, and in morning and evening remembrances."
+    }
+  ],
+  "relatedSurahs": [
+    { "surahNumber": 114, "reason": "Surah An-Nas pairs with Al-Falaq as Al-Mu'awwidhatayn." },
+    { "surahNumber": 112, "reason": "Surah Al-Ikhlas completes the three closing Quls." },
+    { "surahNumber": 1, "reason": "Surah Al-Fatihah opens the Quran just as Al-Falaq and An-Nas close it." }
+  ],
+  "relatedResources": [
+    { "label": "Read Juz 30", "href": "/juz/30" },
+    { "label": "How to Make Dua That Feels Real", "href": "/articles/how-to-make-dua-that-feels-real" },
+    { "label": "Learn Tajweed: Qalqalah", "href": "/tajweed/qalqalah" }
+  ]
+}

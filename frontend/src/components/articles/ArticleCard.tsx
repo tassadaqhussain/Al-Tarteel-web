@@ -64,8 +64,9 @@ export function ArticleCard({ article, badge, className, priority = false }: Pro
             href={`/articles/${article.slug}`}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand"
           >
-            Read More
-            <ArrowRight className="h-3 w-3" />
+            Read article
+            <span className="sr-only">: {article.title}</span>
+            <ArrowRight className="h-3 w-3" aria-hidden />
           </Link>
           <time
             dateTime={article.publishedAt}

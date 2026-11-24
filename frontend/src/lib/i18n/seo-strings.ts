@@ -25,18 +25,18 @@ export type SurahCopy = { title: string; description: string };
 type SurahCopyBuilder = (input: SurahCopyInput, range: PageRange) => SurahCopy;
 
 const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
-  en: ({ name, meaning, arabic, ayahCount }, range) =>
+  en: ({ name, meaning, ayahCount }, range) =>
     range
       ? {
-          title: `Surah ${name} – Verses ${range.start}–${range.end}, English Translation & Audio`,
-          description: `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, Saheeh International English translation, and verse-by-verse audio.`,
+          title: `Surah ${name} (${range.start}–${range.end}) – Audio & Translation`,
+          description: `Read Surah ${name} verses ${range.start}–${range.end} with Arabic Uthmani text, English translation, and verse-by-verse Quran audio on QuranPilot.`,
         }
       : {
-          title: `Surah ${name} – Read, Listen, English Translation & Audio`,
+          title: `Surah ${name} – Translation & Audio`,
           description: [
-            `Read Surah ${name}${meaning ? ` (${meaning})` : ''}${arabic ? ` · ${arabic}` : ''} online`,
+            `Read Surah ${name}${meaning ? ` (${meaning})` : ''}`,
             ayahCount ? `— ${ayahCount} verses` : '',
-            'with Arabic Uthmani text, Saheeh International English translation, and verse-by-verse audio.',
+            'with Arabic Uthmani text, English translation, and verse-by-verse audio on QuranPilot.',
           ]
             .filter(Boolean)
             .join(' '),

@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           '/admin',
           '/api/',
           ...(DONATE_ENABLED ? ['/donate/checkout'] : ['/donate']),
+          '/*?returnUrl=',
         ],
       },
     ],

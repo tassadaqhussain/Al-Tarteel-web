@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Bookmarks',
-  robots: { index: false, follow: false, googleBot: { index: false, follow: false } },
+  robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
 };
 
 export default function BookmarksLayout({ children }: { children: React.ReactNode }) {
