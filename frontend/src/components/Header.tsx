@@ -181,9 +181,9 @@ export function Header() {
       <header className={cn(
         'w-full border-b border-line bg-[var(--header-bg)] shadow-sm shadow-black/[0.03] backdrop-blur-xl',
         'dark:shadow-none',
-        // On reader routes the surah/juz sub-bar is sticky; keep site header
-        // in normal flow so it scrolls away instead of covering that bar.
-        pathname && isQuranReaderPath(pathname) ? 'relative' : 'sticky top-0 z-50'
+        // On reader routes the surah/juz sub-bar is sticky (z-40); keep site header
+        // in normal flow with z-50 so its dropdowns layer above the sub-bar.
+        pathname && isQuranReaderPath(pathname) ? 'relative z-50' : 'sticky top-0 z-50'
       )}>
         <div className={cn(CHROME_SHELL, 'flex h-16 items-center justify-between gap-3')}>
           <div className="flex min-w-0 items-center gap-5 xl:gap-7">

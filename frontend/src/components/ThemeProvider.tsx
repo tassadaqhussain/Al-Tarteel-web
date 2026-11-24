@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, useCallback, useMemo } 
 import { usePathname } from 'next/navigation';
 import { useSettingsStore, type ExperienceMode } from '@/stores/settingsStore';
 import { isQuranReaderPath } from '@/lib/reader-path';
-import { isRtlLocale } from '@/lib/i18n/messages';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -22,7 +21,6 @@ function experienceForPath(pathname: string, preferred: ExperienceMode): Experie
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const uiLocale = useSettingsStore((state) => state.uiLocale);
   const experienceMode = useSettingsStore((state) => state.experienceMode);
   const readerViewMode = useSettingsStore((state) => state.readerViewMode);
   const [theme, setThemeState] = useState<Theme>('system');
@@ -59,13 +57,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     media.addEventListener('change', apply);
     return () => media.removeEventListener('change', apply);
   }, [theme, mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const root = document.documentElement;
-    root.lang = uiLocale;
-    root.dir = isRtlLocale(uiLocale) ? 'rtl' : 'ltr';
-  }, [mounted, uiLocale]);
 
   useEffect(() => {
     if (!mounted) return;
