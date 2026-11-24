@@ -30,6 +30,14 @@ server {
         try_files $uri =404;
     }
 
+    # Serve robots.txt directly from static dir when present (fast, immune to Node restarts),
+    # falling back to Next.js /robots.txt if not yet provisioned.
+    location = /robots.txt {
+        root /var/www/quranpilot-static;
+        add_header Cache-Control "public, max-age=3600";
+        try_files /robots.txt @quranpilot_web;
+    }
+
     # Single-hop 301 for /surah and /surah/ (avoids Next.js trailing-slash 308 hop)
     location ~ ^/surah/?$ {
         return 301 https://$host/surahs;
@@ -45,6 +53,17 @@ server {
         proxy_set_header Connection "";
         proxy_read_timeout 120s;
         proxy_pass http://quranpilot_api/api/;
+    }
+
+    location @quranpilot_web {
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_read_timeout 120s;
+        proxy_pass http://quranpilot_web;
     }
 
     # Next.js frontend
