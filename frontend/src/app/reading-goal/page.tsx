@@ -84,7 +84,7 @@ export default function ReadingGoalPage() {
     <div className="flex min-h-screen flex-col bg-surface-app text-ink">
       <Header />
 
-      <main lang="en" dir="ltr" className="relative flex-1 overflow-x-clip">
+      <main lang="en" dir="ltr" className="relative flex flex-1 flex-col justify-center overflow-x-clip">
         {/* Soft ambient backdrop matching QuranPilot emerald & warm gold palette */}
         <div
           aria-hidden

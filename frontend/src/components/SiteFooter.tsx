@@ -6,9 +6,11 @@ import { useT } from '@/lib/i18n';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
 import { CONTENT_LOCALES, isPrefixedLocale, localeConfig, localePath, type ContentLocale } from '@/lib/i18n/content-locales';
 import { DONATE_ENABLED } from '@/lib/features';
+import { useAudioStore } from '@/stores/audioStore';
 
 export function SiteFooter() {
   const { t, locale } = useT();
+  const hasAudioBar = useAudioStore((s) => s.playlist.length > 0);
   const contentLocale: ContentLocale = isPrefixedLocale(locale) ? locale : 'en';
   const aboutLabel =
     contentLocale === 'ur' ? 'تعارف' : contentLocale === 'ps' ? 'زموږ په اړه' : contentLocale === 'fa' ? 'درباره ما' : 'About';
@@ -18,10 +20,12 @@ export function SiteFooter() {
   return (
     <footer
       data-site-footer
-      className="w-full border-t border-white/10 bg-[#064E3B] pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] text-white sm:pb-20"
+      className={`w-full border-t border-white/10 bg-[#064E3B] text-white ${
+        hasAudioBar ? 'pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-20' : 'pb-[env(safe-area-inset-bottom,0px)]'
+      }`}
     >
       <div className={SITE_SHELL}>
-        <div className="flex flex-col gap-6 py-8 sm:py-10">
+        <div className="flex flex-col gap-5 py-6 sm:py-7">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <Link href="/" className="flex items-center gap-3 font-serif text-xl font-bold">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white shadow-sm">
@@ -98,7 +102,7 @@ export function SiteFooter() {
             </nav>
           </div>
 
-          <div className="flex flex-col gap-4 border-t border-white/10 pt-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 border-t border-white/10 pt-4 md:flex-row md:items-center md:justify-between md:pe-14">
             <nav aria-label="Quran translation languages">
               <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs sm:text-sm">
                 {CONTENT_LOCALES.map((locale) => (
