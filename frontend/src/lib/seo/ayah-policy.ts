@@ -5,8 +5,8 @@ import { SURAH_AYAH_COUNTS } from '@/lib/surah-pagination';
  * Single source of truth for which single-ayah pages are indexable.
  *
  * Data-driven: flip a flag here, never hardcode per URL. Rules:
- *  1. `allAyahs` — every ayah of that language is indexable. English only for now: it is the
- *     language with a full translation + audio behind every verse.
+ *  1. `allAyahs` — every ayah of that language is indexable. English and Urdu: both have a full
+ *     translation, Roman transliteration and audio behind every verse.
  *  2. Featured ayahs (below) are indexable in EVERY language, because each carries a localized
  *     title and intro and is a real search target (Ayatul Kursi, Yasin 36:1, Al-Mulk 67:1, …).
  *  3. Everything else stays `noindex, follow` and out of sitemaps, but remains crawlable and linked
@@ -14,7 +14,7 @@ import { SURAH_AYAH_COUNTS } from '@/lib/surah-pagination';
  */
 export const AYAH_INDEX_POLICY: Record<ContentLocale, { allAyahs: boolean }> = {
   en: { allAyahs: true },
-  ur: { allAyahs: false },
+  ur: { allAyahs: true }, // Urdu: translation + Roman transliteration + localized position/context
   ps: { allAyahs: false },
   fa: { allAyahs: false },
 };

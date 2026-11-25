@@ -24,6 +24,7 @@ import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import { FAMOUS_AYAHS, ayahJsonLd, ayahLabel, ayahSeo, faqJsonLd, isFeaturedAyah } from '@/lib/seo';
 import { truncateAtWord } from '@/lib/seo/ayah-snippet';
 import { ayahIntro, ayahUi, ayahWord } from '@/lib/i18n/ayah-intros';
+import { getSurahIntro, getSurahRevelationType } from '@/lib/i18n/surah-intros';
 import { juzPath, hasJuzLocale } from '@/lib/i18n/juz-copy';
 import { surahBreadcrumbsLabels } from '@/lib/i18n/surah-ui-strings';
 import {
@@ -174,7 +175,7 @@ export async function renderAyahPage({
 
   const snippetTranslation = localeConfig(activeLocale).translationSlug;
 
-  const [surah, fetchedAyah, prevAyahData, nextAyahData] = await Promise.all([
+  const [surah, fetchedAyah, prevAyahData, nextAyahData, romanAyah] = await Promise.all([
     quranApi.surah(surahNumber).catch(() => null),
     quranApi
       .ayah(surahNumber, ayahNumber, { translations: effectiveTranslations, words: true })
@@ -189,6 +190,10 @@ export async function renderAyahPage({
           .ayah(nextRef.surah, nextRef.ayah, { translations: snippetTranslation, words: false })
           .catch(() => null)
       : Promise.resolve(null),
+    // Roman transliteration is its own "translator" in the database (slug `transliteration`).
+    quranApi
+      .ayah(surahNumber, ayahNumber, { translations: 'transliteration', words: false })
+      .catch(() => null),
   ]);
 
   // Never treat a valid surah:ayah pair as 404 if the API is temporarily unreachable.
@@ -227,17 +232,28 @@ export async function renderAyahPage({
 
   const prevHref = prevRef ? localePath(activeLocale, getAyahPath(prevRef.surah, prevRef.ayah)) : null;
   const nextHref = nextRef ? localePath(activeLocale, getAyahPath(nextRef.surah, nextRef.ayah)) : null;
-  const prevSurahMeta = prevRef ? getSurahMeta(prevRef.surah) : null;
-  const nextSurahMeta = nextRef ? getSurahMeta(nextRef.surah) : null;
+  const surahNm = (n: number) =>
+    activeLocale === 'en' ? getSurahMeta(n).nameSimple : getSurahLocalizedName(n, activeLocale);
+  const prevSurahMeta = prevRef ? { nameSimple: surahNm(prevRef.surah) } : null;
+  const nextSurahMeta = nextRef ? { nameSimple: surahNm(nextRef.surah) } : null;
 
   const relatedAyahs = getRelatedAyahs(surahNumber, ayahNumber, ayahCount);
+  // Word-by-word meaning: English uses `translation`; other languages only show a word when the
+  // data really has a meaning in that language (`translations[locale]`). Nothing is machine-made.
+  const wordMeaning = (w: NonNullable<typeof ayah.words>[number]): string | null =>
+    activeLocale === 'en' ? w.translation || null : w.translations?.[activeLocale] || null;
   const wordsWithMeanings = (ayah.words ?? []).filter(
-    (w) => w.textArabic && (w.translation || w.transliteration),
+    (w) => w.textArabic && (activeLocale === 'en' ? w.translation || w.transliteration : wordMeaning(w)),
   );
-  const fullTransliteration = (ayah.words ?? [])
+  const wordTransliteration = (ayah.words ?? [])
     .map((w) => w.transliteration?.trim())
     .filter(Boolean)
     .join(' ');
+  const romanTransliteration = (romanAyah?.translations ?? [])
+    .find((t) => t.translatorSlug === 'transliteration')
+    ?.text?.replace(/\s+/g, ' ')
+    .trim();
+  const fullTransliteration = wordTransliteration || romanTransliteration || '';
 
   const englishTranslation = (ayah.translations ?? []).find(
     (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.en || tr.translatorSlug.startsWith('en-'),
@@ -265,7 +281,9 @@ export async function renderAyahPage({
     page: ayah.page,
     ruku: ayah.ruku,
     manzil: 'manzil' in ayah ? ayah.manzil : null,
+    revelation: getSurahRevelationType(surahNumber),
   });
+  const surahContext = activeLocale === 'en' ? null : getSurahIntro(surahNumber, activeLocale).summary;
   const juzHref = ayah.juz
     ? juzPath(hasJuzLocale(activeLocale) ? activeLocale : 'en', ayah.juz)
     : null;
@@ -416,13 +434,30 @@ export async function renderAyahPage({
 
         {fullTransliteration && (
           <section
-            aria-label="Transliteration"
+            aria-label={ui.translitHeading}
             className="mt-6 rounded-xl border border-line bg-surface p-5"
           >
             <h2 className="text-sm font-bold uppercase tracking-wider text-ink-muted">
-              Arabic Transliteration ({meta.nameSimple} {surahNumber}:{ayahNumber})
+              {activeLocale === 'en'
+                ? `Arabic Transliteration (${meta.nameSimple} ${surahNumber}:${ayahNumber})`
+                : ui.translitHeading}
             </h2>
-            <p className="mt-2 text-sm leading-7 text-ink-2 sm:text-base">{fullTransliteration}</p>
+            <p dir="ltr" lang="en-Latn" className="mt-2 text-start text-sm leading-7 text-ink-2 sm:text-base">
+              {fullTransliteration}
+            </p>
+          </section>
+        )}
+
+        {surahContext && (
+          <section
+            aria-label={ui.contextHeading}
+            className="mt-6 space-y-2 rounded-xl border border-line bg-surface p-5 sm:p-6"
+          >
+            <h2 className="text-base font-bold text-ink">{ui.contextHeading}</h2>
+            <p className="text-sm leading-7 text-ink-2">{surahContext}</p>
+            <Link href={surahPath} className="text-xs font-semibold text-[var(--accent)] hover:underline">
+              {ui.fullSurah}
+            </Link>
           </section>
         )}
 
@@ -432,7 +467,9 @@ export async function renderAyahPage({
             className="mt-6 rounded-xl border border-line bg-surface p-5"
           >
             <h2 className="text-base font-bold text-ink">
-              Word-by-Word Meaning ({meta.nameSimple} {surahNumber}:{ayahNumber})
+              {activeLocale === 'en'
+                ? `Word-by-Word Meaning (${meta.nameSimple} ${surahNumber}:${ayahNumber})`
+                : ui.wordHeading}
             </h2>
             <div className="mt-3 flex flex-wrap gap-2" dir="rtl">
               {wordsWithMeanings.map((word) => (
@@ -448,9 +485,9 @@ export async function renderAyahPage({
                       {word.transliteration}
                     </span>
                   )}
-                  {word.translation && (
-                    <span className="mt-0.5 text-xs text-ink-2" dir="ltr">
-                      {word.translation}
+                  {wordMeaning(word) && (
+                    <span className="mt-0.5 text-xs text-ink-2" dir={activeLocale === 'en' ? 'ltr' : 'rtl'}>
+                      {wordMeaning(word)}
                     </span>
                   )}
                 </div>
@@ -581,7 +618,7 @@ export async function renderAyahPage({
                 <div className="flex flex-col justify-between rounded-xl border border-line-subtle bg-surface-2/40 p-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                      Previous Ayah · {prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
+                      {activeLocale === 'en' ? 'Previous Ayah' : ui.prev} · {prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
                     </p>
                     {prevAyahData?.textUthmani ? (
                       <p
@@ -608,7 +645,7 @@ export async function renderAyahPage({
                     className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
-                    Read {prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
+                    {activeLocale === 'en' ? 'Read ' : ''}{prevSurahMeta.nameSimple} {prevRef.surah}:{prevRef.ayah}
                   </Link>
                 </div>
               ) : (
@@ -619,7 +656,7 @@ export async function renderAyahPage({
                 <div className="flex flex-col justify-between rounded-xl border border-line-subtle bg-surface-2/40 p-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                      Next Ayah · {nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
+                      {activeLocale === 'en' ? 'Next Ayah' : ui.next} · {nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
                     </p>
                     {nextAyahData?.textUthmani ? (
                       <p
@@ -645,7 +682,7 @@ export async function renderAyahPage({
                     href={nextHref}
                     className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--accent)] hover:underline"
                   >
-                    Read {nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
+                    {activeLocale === 'en' ? 'Read ' : ''}{nextSurahMeta.nameSimple} {nextRef.surah}:{nextRef.ayah}
                     <ChevronRight className="h-3.5 w-3.5" aria-hidden />
                   </Link>
                 </div>
@@ -666,7 +703,7 @@ export async function renderAyahPage({
                 href={localePath(activeLocale, getAyahPath(rel.surah, rel.ayah))}
                 className="rounded-lg border border-line bg-surface-2/50 px-3 py-1.5 text-xs font-medium text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
               >
-                {rel.label}
+                {activeLocale === 'en' ? rel.label : `${ayahLabel(activeLocale, rel.surah, rel.ayah)} (${rel.surah}:${rel.ayah})`}
               </Link>
             ))}
           </div>

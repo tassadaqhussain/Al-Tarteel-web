@@ -1,7 +1,7 @@
 import {
   activeSitemapNames,
   isSitemapName,
-  sitemapEntries,
+  sitemapEntriesWithDates,
 } from '@/lib/sitemap-data';
 import { renderUrlset, xmlResponse } from '@/lib/sitemap-xml';
 
@@ -31,7 +31,7 @@ export async function GET(
     return new Response('Not found', { status: 404 });
   }
 
-  const entries = sitemapEntries(name);
+  const entries = await sitemapEntriesWithDates(name);
   if (entries.length === 0) {
     return new Response('Not found', { status: 404 });
   }

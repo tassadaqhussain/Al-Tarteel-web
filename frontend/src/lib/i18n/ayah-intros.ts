@@ -60,6 +60,7 @@ export type AyahPosition = {
   page?: number | null;
   ruku?: number | null;
   manzil?: number | null;
+  revelation?: 'makki' | 'madani';
 };
 
 /** Localized UI strings for the ayah page (headings + position block). */
@@ -78,7 +79,10 @@ export function ayahUi(locale: ContentLocale, pos: AyahPosition) {
     const where = extras('، ', { juz: 'پارہ', page: 'مصحف کا صفحہ', ruku: 'رکوع', manzil: 'منزل' });
     return {
       positionHeading: 'اس آیت کا مقام',
-      positionText: `یہ آیت سورہ ${pos.surahName} (سورت نمبر ${pos.surahNumber}، کل ${pos.ayahCount} آیات) کی آیت نمبر ${pos.ayahNumber} ہے${where ? `؛ ${where}` : ''}۔`,
+      positionText: `یہ آیت سورہ ${pos.surahName} (سورت نمبر ${pos.surahNumber}${pos.revelation ? `، ${pos.revelation === 'makki' ? 'مکی' : 'مدنی'} سورت` : ''}، کل ${pos.ayahCount} آیات) کی آیت نمبر ${pos.ayahNumber} ہے${where ? `؛ ${where}` : ''}۔`,
+      translitHeading: 'رومن حروف میں تلفظ (ٹرانسلٹریشن)',
+      wordHeading: 'لفظ بہ لفظ معنی',
+      contextHeading: 'سورت کا تعارف',
       translations: 'ترجمہ',
       surrounding: 'پچھلی اور اگلی آیت',
       related: 'متعلقہ آیات',
@@ -93,7 +97,10 @@ export function ayahUi(locale: ContentLocale, pos: AyahPosition) {
     const where = extras('، ', { juz: 'سپاره', page: 'د مصحف مخ', ruku: 'رکوع', manzil: 'منزل' });
     return {
       positionHeading: 'د دې آیت ځای',
-      positionText: `دا د سورت ${pos.surahName} (د سورت شمېره ${pos.surahNumber}، ټول ${pos.ayahCount} آیتونه) ${pos.ayahNumber} آیت دی${where ? `؛ ${where}` : ''}.`,
+      positionText: `دا د سورت ${pos.surahName} (د سورت شمېره ${pos.surahNumber}${pos.revelation ? `، ${pos.revelation === 'makki' ? 'مکي' : 'مدني'} سورت` : ''}، ټول ${pos.ayahCount} آیتونه) ${pos.ayahNumber} آیت دی${where ? `؛ ${where}` : ''}.`,
+      translitHeading: 'په لاتیني توري کې تلفظ (ټرانسلیټریشن)',
+      wordHeading: 'کلمه په کلمه معنا',
+      contextHeading: 'د سورت پېژندنه',
       translations: 'ژباړه',
       surrounding: 'مخکینی او راتلونکی آیت',
       related: 'اړوند آیتونه',
@@ -108,7 +115,10 @@ export function ayahUi(locale: ContentLocale, pos: AyahPosition) {
     const where = extras('، ', { juz: 'جزء', page: 'صفحه مصحف', ruku: 'رکوع', manzil: 'منزل' });
     return {
       positionHeading: 'جایگاه این آیه',
-      positionText: `این آیه ${pos.ayahNumber} سوره ${pos.surahName} (سوره شماره ${pos.surahNumber}، مجموعاً ${pos.ayahCount} آیه) است${where ? `؛ ${where}` : ''}.`,
+      positionText: `این آیه ${pos.ayahNumber} سوره ${pos.surahName} (سوره شماره ${pos.surahNumber}${pos.revelation ? `، سوره ${pos.revelation === 'makki' ? 'مکی' : 'مدنی'}` : ''}، مجموعاً ${pos.ayahCount} آیه) است${where ? `؛ ${where}` : ''}.`,
+      translitHeading: 'آوانگاری به حروف لاتین',
+      wordHeading: 'معنی کلمه به کلمه',
+      contextHeading: 'معرفی سوره',
       translations: 'ترجمه',
       surrounding: 'آیه قبل و بعد',
       related: 'آیه‌های مرتبط',
@@ -122,7 +132,10 @@ export function ayahUi(locale: ContentLocale, pos: AyahPosition) {
   const where = extras(' · ', { juz: 'Juz', page: 'Mushaf page', ruku: 'Ruku', manzil: 'Manzil' });
   return {
     positionHeading: 'Where this ayah sits',
-    positionText: `This is verse ${pos.ayahNumber} of ${pos.ayahCount} in Surah ${pos.surahName} (chapter ${pos.surahNumber} of 114)${where ? ` — ${where}` : ''}.`,
+    positionText: `This is verse ${pos.ayahNumber} of ${pos.ayahCount} in Surah ${pos.surahName} (chapter ${pos.surahNumber} of 114${pos.revelation ? `, ${pos.revelation === 'makki' ? 'Makki' : 'Madani'}` : ''})${where ? ` — ${where}` : ''}.`,
+    translitHeading: 'Transliteration',
+    wordHeading: 'Word-by-Word Meaning',
+    contextHeading: `About Surah ${pos.surahName}`,
     translations: 'Translations',
     surrounding: 'Ayah Before & After',
     related: 'Related Ayahs to Explore',

@@ -407,8 +407,10 @@ export function ayahSeo(
   const description = snippet ? snippetDescriptions[locale] : descriptions[locale];
 
   const indexedAyahLocales = indexableAyahLocales(surahNumber, ayahNumber);
+  // A noindex page must not advertise itself in a hreflang cluster, and the indexable versions
+  // never list it either (they only list indexable locales).
   const ayahHreflang =
-    indexedAyahLocales.length > 1
+    isAyahPageIndexed(locale, surahNumber, ayahNumber) && indexedAyahLocales.length > 1
       ? Object.fromEntries([
           ...indexedAyahLocales.map((loc) => [
             localeConfig(loc).hreflang,

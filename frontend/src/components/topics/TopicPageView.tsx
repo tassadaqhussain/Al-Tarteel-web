@@ -16,7 +16,6 @@ import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import { absoluteUrl, buildPageMetadata, SITE_NAME } from '@/lib/seo';
 import { getAyahPath, getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { getSurahAyahCount } from '@/lib/surah-pagination';
-import { SITEMAP_LASTMOD } from '@/lib/sitemap-data';
 import {
   MANZILS,
   TOPICS,
@@ -129,7 +128,6 @@ export async function renderTopicPage(locale: TopicLocale, { params }: Props) {
           description: copy.description,
           url: absoluteUrl(path),
           inLanguage: cfg.hreflang,
-          dateModified: SITEMAP_LASTMOD,
           isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: absoluteUrl('/') },
         }}
       />

@@ -5,7 +5,7 @@ import { SURAH_AYAH_COUNTS } from '@/lib/surah-pagination';
 import { SITE_URL, absoluteUrl, isAyahPageIndexed } from '@/lib/seo';
 import { JUZ_LOCALES } from '@/lib/i18n/juz-copy';
 import { TOPICS, TOPIC_LOCALES, topicPath } from '@/lib/topics';
-import { AYAH_PAGE_UPDATED_AT } from '@/lib/content-dates';
+import { loadQuranDates, resolveDateKey } from '@/lib/content-lastmod';
 import { isFeaturedAyah } from '@/lib/seo/ayah-policy';
 import {
   CONTENT_LOCALES,
@@ -16,37 +16,15 @@ import {
   type ContentLocale,
 } from '@/lib/i18n/content-locales';
 
-const FALLBACK_CONTENT_UPDATED_AT = '2026-11-14T00:00:00.000Z';
-
 /**
- * Normalize any date input to a single consistent ISO 8601 UTC timestamp
- * (`YYYY-MM-DDTHH:mm:ss.000Z`) so the sitemap index and every child sitemap
- * never mix timezone offsets or date formats.
+ * Normalize a date to ISO 8601 UTC, or return undefined. There is deliberately NO fallback date:
+ * a URL without a reliable content-change date gets no `<lastmod>` (a made-up one is worse than none).
  */
-export function normalizeLastmod(value?: string): string {
-  if (!value) return FALLBACK_CONTENT_UPDATED_AT;
-  const trimmed = value.trim();
-  if (!trimmed) return FALLBACK_CONTENT_UPDATED_AT;
-  const parsed = new Date(trimmed);
-  if (Number.isNaN(parsed.getTime())) return FALLBACK_CONTENT_UPDATED_AT;
-  return parsed.toISOString();
+export function normalizeLastmod(value?: string): string | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value.trim());
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
-
-/**
- * Real content-modified date for static hub/guide pages (not build time).
- * Bump when static hub or tajweed content materially changes.
- */
-export const SITEMAP_LASTMOD = normalizeLastmod(
-  process.env.STATIC_CONTENT_UPDATED_AT || FALLBACK_CONTENT_UPDATED_AT,
-);
-
-/**
- * Real content-modified date for Quran text, surah, juz, and ayah pages.
- * Bump when Quran translations, tafsir, or audio change.
- */
-export const QURAN_CONTENT_UPDATED_AT = normalizeLastmod(
-  process.env.QURAN_CONTENT_UPDATED_AT || '2026-11-01T00:00:00.000Z',
-);
 
 /**
  * Surah ranges used to split ayah sitemaps into compact files (~2,000 URLs each,
@@ -96,6 +74,8 @@ export type SitemapAlternate = {
 export type SitemapEntry = {
   url: string;
   lastModified?: string;
+  /** Resolved to a real `lastModified` from the Quran database (see content-lastmod.ts). */
+  dateKey?: string;
   changeFrequency: ChangeFrequency;
   priority: number;
   alternates?: SitemapAlternate[];
@@ -131,44 +111,40 @@ function coreEntries(): SitemapEntry[] {
   return [
     {
       url: SITE_URL,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'weekly',
       priority: 1,
       alternates: buildAlternates('/'),
     },
-    { url: `${SITE_URL}/surahs`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'weekly', priority: 0.95 },
-    { url: `${SITE_URL}/juz`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${SITE_URL}/quran-english-translation`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'weekly', priority: 0.92 },
-    { url: `${SITE_URL}/quran-urdu-translation`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'weekly', priority: 0.92 },
-    { url: `${SITE_URL}/quran-pashto-translation`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'weekly', priority: 0.92 },
-    { url: `${SITE_URL}/articles`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'daily', priority: 0.75 },
-    { url: `${SITE_URL}/learning-plans`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${SITE_URL}/quran-in-year`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.65 },
-    { url: `${SITE_URL}/tajweed`, lastModified: SITEMAP_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}/surahs`, changeFrequency: 'weekly', priority: 0.95 },
+    { url: `${SITE_URL}/juz`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/quran-english-translation`, changeFrequency: 'weekly', priority: 0.92 },
+    { url: `${SITE_URL}/quran-urdu-translation`, changeFrequency: 'weekly', priority: 0.92 },
+    { url: `${SITE_URL}/quran-pashto-translation`, changeFrequency: 'weekly', priority: 0.92 },
+    { url: `${SITE_URL}/articles`, changeFrequency: 'daily', priority: 0.75 },
+    { url: `${SITE_URL}/learning-plans`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${SITE_URL}/quran-in-year`, changeFrequency: 'monthly', priority: 0.65 },
+    { url: `${SITE_URL}/tajweed`, changeFrequency: 'monthly', priority: 0.6 },
     {
       url: `${SITE_URL}/about`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly',
       priority: 0.6,
       alternates: buildAlternates('/about'),
     },
     {
       url: `${SITE_URL}/contact`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly',
       priority: 0.55,
       alternates: buildAlternates('/contact'),
     },
     ...Array.from({ length: 30 }, (_, i) => ({
       url: `${SITE_URL}/juz/${i + 1}`,
-      lastModified: QURAN_CONTENT_UPDATED_AT,
+      dateKey: `juz:${i + 1}`,
       changeFrequency: 'monthly' as const,
       priority: 0.7,
       alternates: buildAlternates(`/juz/${i + 1}`, JUZ_LOCALES),
     })),
     ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
       url: `${SITE_URL}/tajweed/${slug}`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly' as const,
       priority: 0.55,
     })),
@@ -182,7 +158,7 @@ function surahEntries(): SitemapEntry[] {
     const basePath = getSurahPath(number);
     return {
       url: `${SITE_URL}${basePath}`,
-      lastModified: QURAN_CONTENT_UPDATED_AT,
+      dateKey: `surah:${number}`,
       changeFrequency: 'monthly' as const,
       priority: number <= 10 ? 0.9 : 0.8,
       alternates: buildAlternates(basePath),
@@ -195,7 +171,7 @@ function topicEntries(): SitemapEntry[] {
   return TOPICS.flatMap((topic) =>
     TOPIC_LOCALES.map((locale) => ({
       url: `${SITE_URL}${topicPath(locale, topic.slug)}`,
-      lastModified: SITEMAP_LASTMOD,
+      dateKey: `topic:${topic.slug}`,
       changeFrequency: 'monthly' as const,
       priority: 0.7,
       alternates: buildAlternates(`/${topic.slug}`, TOPIC_LOCALES),
@@ -209,7 +185,6 @@ function contentEntries(): SitemapEntry[] {
     ...topicEntries(),
     ...LEARNING_PLANS.map((plan) => ({
       url: `${SITE_URL}/learning-plans/${plan.slug}`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly' as const,
       priority: plan.featured ? 0.65 : 0.55,
     })),
@@ -232,7 +207,7 @@ function localeJuzEntries(): SitemapEntry[] {
       const basePath = `/juz/${i + 1}`;
       return {
         url: `${SITE_URL}${localePath(locale, basePath)}`,
-        lastModified: QURAN_CONTENT_UPDATED_AT,
+        dateKey: `juz:${i + 1}`,
         changeFrequency: 'monthly' as const,
         priority: 0.65,
         alternates: buildAlternates(basePath, JUZ_LOCALES),
@@ -248,21 +223,18 @@ function localeEntries(): SitemapEntry[] {
   const surahAndHubEntries = PREFIXED_LOCALES.flatMap((locale) => [
     {
       url: `${SITE_URL}${localePath(locale, '/')}`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'weekly' as const,
       priority: 0.9,
       alternates: homeAlternates,
     },
     {
       url: `${SITE_URL}${localePath(locale, '/about')}`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly' as const,
       priority: 0.55,
       alternates: aboutAlternates,
     },
     {
       url: `${SITE_URL}${localePath(locale, '/contact')}`,
-      lastModified: SITEMAP_LASTMOD,
       changeFrequency: 'monthly' as const,
       priority: 0.5,
       alternates: contactAlternates,
@@ -272,7 +244,7 @@ function localeEntries(): SitemapEntry[] {
       const basePath = getSurahPath(number);
       return {
         url: `${SITE_URL}${localePath(locale, basePath)}`,
-        lastModified: QURAN_CONTENT_UPDATED_AT,
+        dateKey: `surah:${number}`,
         changeFrequency: 'monthly' as const,
         priority: number <= 10 ? 0.8 : 0.7,
         alternates: buildAlternates(basePath),
@@ -297,7 +269,7 @@ function ayahEntriesForGroup(
       const basePath = getAyahPath(surahNumber, ayah);
       entries.push({
         url: `${SITE_URL}${localePath(locale, basePath)}`,
-        lastModified: AYAH_PAGE_UPDATED_AT[locale],
+        dateKey: `ayah:${surahNumber}:${ayah}`,
         changeFrequency: 'monthly',
         priority: isFeaturedAyah(surahNumber, ayah) ? 0.7 : 0.6,
         alternates: buildAlternates(basePath, indexedLocales),
@@ -327,12 +299,25 @@ export function activeSitemapNames(): SitemapName[] {
   return SITEMAP_NAMES.filter((name) => sitemapEntries(name).length > 0);
 }
 
-export function sitemapLastmod(name: SitemapName): string {
+/** Entries with real `lastModified` filled in from the Quran database. */
+export async function sitemapEntriesWithDates(name: SitemapName): Promise<SitemapEntry[]> {
   const entries = sitemapEntries(name);
-  let newest = '';
-  for (const entry of entries) {
-    const lm = normalizeLastmod(entry.lastModified || SITEMAP_LASTMOD);
-    if (!newest || lm > newest) newest = lm;
+  if (!entries.some((e) => e.dateKey)) return entries;
+  const dates = await loadQuranDates();
+  return entries.map((entry) => {
+    if (entry.lastModified || !entry.dateKey) return entry;
+    const { dateKey, ...rest } = entry;
+    const resolved = resolveDateKey(dates, dateKey);
+    return resolved ? { ...rest, lastModified: resolved } : rest;
+  });
+}
+
+/** Newest real lastmod among a sitemap's URLs, or undefined when none has one. */
+export async function sitemapLastmod(name: SitemapName): Promise<string | undefined> {
+  let newest: string | undefined;
+  for (const entry of await sitemapEntriesWithDates(name)) {
+    const lm = normalizeLastmod(entry.lastModified);
+    if (lm && (!newest || lm > newest)) newest = lm;
   }
-  return newest || SITEMAP_LASTMOD;
+  return newest;
 }

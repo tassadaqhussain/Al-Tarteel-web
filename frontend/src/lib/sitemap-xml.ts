@@ -1,4 +1,4 @@
-import { SITEMAP_LASTMOD, normalizeLastmod, type SitemapEntry } from '@/lib/sitemap-data';
+import { normalizeLastmod, type SitemapEntry } from '@/lib/sitemap-data';
 
 /** XML-escape a URL or attribute value before embedding it in XML. */
 function escapeXml(value: string): string {
@@ -17,7 +17,8 @@ export function renderUrlset(entries: SitemapEntry[]): string {
   const hasAlternates = entries.some((entry) => entry.alternates && entry.alternates.length > 0);
   const urls = entries
     .map((entry) => {
-      const lastmod = `<lastmod>${escapeXml(normalizeLastmod(entry.lastModified || SITEMAP_LASTMOD))}</lastmod>`;
+      const lm = normalizeLastmod(entry.lastModified);
+      const lastmod = lm ? `<lastmod>${escapeXml(lm)}</lastmod>` : '';
       const alts = entry.alternates?.length
         ? entry.alternates
             .map(
@@ -41,9 +42,8 @@ export function renderSitemapIndex(
   const sitemaps = items
     .map((item) => {
       const loc = typeof item === 'string' ? item : item.loc;
-      const rawLastmod = typeof item === 'string' ? SITEMAP_LASTMOD : item.lastModified || SITEMAP_LASTMOD;
-      const lastmod = normalizeLastmod(rawLastmod);
-      return `<sitemap><loc>${escapeXml(loc)}</loc><lastmod>${escapeXml(lastmod)}</lastmod></sitemap>`;
+      const lm = typeof item === 'string' ? undefined : normalizeLastmod(item.lastModified);
+      return `<sitemap><loc>${escapeXml(loc)}</loc>${lm ? `<lastmod>${escapeXml(lm)}</lastmod>` : ''}</sitemap>`;
     })
     .join('');
   return `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="${URLSET_NS}">${sitemaps}</sitemapindex>`;

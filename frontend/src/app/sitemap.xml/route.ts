@@ -13,10 +13,12 @@ import { renderSitemapIndex, xmlResponse } from '@/lib/sitemap-xml';
 export const dynamic = 'force-static';
 export const revalidate = 86400;
 
-export function GET(): Response {
-  const items = activeSitemapNames().map((name) => ({
-    loc: `${SITE_URL}${sitemapPath(name)}`,
-    lastModified: sitemapLastmod(name),
-  }));
+export async function GET(): Promise<Response> {
+  const items = await Promise.all(
+    activeSitemapNames().map(async (name) => ({
+      loc: `${SITE_URL}${sitemapPath(name)}`,
+      lastModified: await sitemapLastmod(name),
+    })),
+  );
   return xmlResponse(renderSitemapIndex(items));
 }
