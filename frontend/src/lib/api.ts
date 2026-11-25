@@ -874,6 +874,7 @@ export interface AyahWithRelations {
   juz: number | null;
   hizb: number | null;
   ruku: number | null;
+  manzil?: number | null;
   page: number | null;
   textUthmani: string;
   textTajweed?: string | null;

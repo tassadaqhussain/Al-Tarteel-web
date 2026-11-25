@@ -33,6 +33,7 @@ import {
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
+import { isTopicLocale, topicPath, topicsForSurah } from '@/lib/topics';
 import { getRelatedSurahNumbers, getSurahIntro } from '@/lib/i18n/surah-intros';
 import {
   endOfSurahLabel,
@@ -250,6 +251,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   // this is present in the server HTML for crawlers and assistive technology.
   const surahIntro = getSurahIntro(surahNumber, activeLocale);
   const relatedSurahs = getRelatedSurahNumbers(surahNumber, 6);
+  const relatedTopics = isTopicLocale(activeLocale) ? topicsForSurah(surahNumber) : [];
   const contentLocale = localeConfig(activeLocale);
 
   return (
@@ -594,6 +596,29 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
             </Link>
           ) : <span className="flex-1" />}
         </nav>
+
+        {relatedTopics.length > 0 && isTopicLocale(activeLocale) ? (
+          <nav
+            aria-label={activeLocale === 'ur' ? 'متعلقہ موضوعات' : 'Related topics'}
+            className="mt-6 rounded-2xl border border-line bg-surface p-5"
+          >
+            <h2 className="text-base font-bold text-ink">
+              {activeLocale === 'ur' ? 'متعلقہ موضوعات' : 'Related topics'}
+            </h2>
+            <ul className="mt-3 flex flex-wrap gap-2 text-sm font-medium">
+              {relatedTopics.map((t) => (
+                <li key={t.slug}>
+                  <Link
+                    href={topicPath(activeLocale, t.slug)}
+                    className="rounded-lg border border-line px-3 py-1.5 text-ink transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    {t.copy[activeLocale].label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
 
         <SurahLearningPlans
           surahNumber={surahNumber}

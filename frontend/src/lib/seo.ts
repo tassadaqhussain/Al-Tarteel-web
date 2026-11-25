@@ -4,6 +4,13 @@ import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 import { surahCopy } from '@/lib/i18n/seo-strings';
 import { getJuzMeta } from '@/lib/juz-meta';
 import { JUZ_LOCALES, juzPath, juzUrCopy } from '@/lib/i18n/juz-copy';
+import {
+  featuredAyahList,
+  indexableAyahLocales,
+  isAyahIndexable,
+  isFeaturedAyah,
+  languageIndexesAllAyahs,
+} from '@/lib/seo/ayah-policy';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import { popularSurahSeoOverride } from '@/lib/i18n/surah-seo-overrides';
 import {
@@ -291,26 +298,8 @@ export function juzSeo(juzNumber: number, page = 1, locale: ContentLocale = DEFA
   });
 }
 
-/** High-intent ayahs with search-friendly names (used for sitemap + static generation). */
-export const FAMOUS_AYAHS: { surah: number; ayah: number }[] = [
-  { surah: 2, ayah: 255 },
-  { surah: 2, ayah: 285 },
-  { surah: 2, ayah: 286 },
-  { surah: 1, ayah: 1 },
-  { surah: 2, ayah: 1 },
-  { surah: 18, ayah: 1 },
-  { surah: 36, ayah: 1 },
-  { surah: 55, ayah: 1 },
-  { surah: 56, ayah: 1 },
-  { surah: 67, ayah: 1 },
-  { surah: 78, ayah: 1 },
-  { surah: 112, ayah: 1 },
-  { surah: 113, ayah: 1 },
-  { surah: 114, ayah: 1 },
-  { surah: 97, ayah: 1 },
-  { surah: 24, ayah: 35 },
-  { surah: 3, ayah: 18 },
-];
+/** Featured ayahs (see `seo/ayah-policy`) — used for static generation. */
+export const FAMOUS_AYAHS: { surah: number; ayah: number }[] = featuredAyahList();
 
 const AYAH_SEO_NAMES: Partial<Record<string, Partial<Record<ContentLocale, string>>>> = {
   '2:255': {
@@ -350,33 +339,38 @@ function ayahSeoName(surah: number, ayah: number, locale: ContentLocale): string
 }
 
 export function isVersePageIndexed(locale: ContentLocale): boolean {
-  const raw = process.env.INDEX_VERSE_PAGES?.trim().toLowerCase();
-  if (!raw) return locale === 'en';
-  if (raw === 'true' || raw === '1' || raw === 'all') return true;
-  if (raw === 'false' || raw === '0' || raw === 'none') return false;
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .includes(locale);
+  return languageIndexesAllAyahs(locale);
 }
 
-/**
- * Featured ayahs (Ayatul Kursi, 2:285–286, …) are fully localized and indexable in every
- * content locale; every other verse follows `isVersePageIndexed` (INDEX_VERSE_PAGES).
- */
-export function isFeaturedAyah(surah: number, ayah: number): boolean {
-  const names = AYAH_SEO_NAMES[`${surah}:${ayah}`];
-  return CONTENT_LOCALES.every((loc) => Boolean(names?.[loc]));
-}
+export { isFeaturedAyah };
 
 export function isAyahPageIndexed(locale: ContentLocale, surah: number, ayah: number): boolean {
-  return isFeaturedAyah(surah, ayah) || isVersePageIndexed(locale);
+  return isAyahIndexable(locale, surah, ayah);
+}
+
+/** Localized "Surah X Ayah N" label — also the page name when an ayah has no special name. */
+export function ayahLabel(
+  locale: ContentLocale,
+  surahNumber: number,
+  ayahNumber: number,
+): string {
+  const en = SURAH_SIMPLE_NAMES[surahNumber] || `Surah ${surahNumber}`;
+  const name = locale === 'en' ? en : getSurahLocalizedName(surahNumber, locale);
+  if (locale === 'ur') return `سورہ ${name} آیت ${ayahNumber}`;
+  if (locale === 'ps') return `د سورت ${name} آیت ${ayahNumber}`;
+  if (locale === 'fa') return `سوره ${name} آیه ${ayahNumber}`;
+  return `Surah ${en} Ayah ${ayahNumber}`;
 }
 
 export function ayahSeo(
   surahNumber: number,
   ayahNumber: number,
-  opts?: { arabicName?: string; locale?: ContentLocale },
+  opts?: {
+    arabicName?: string;
+    locale?: ContentLocale;
+    /** First ~120 chars of this ayah's translation in the page language (never invented). */
+    translationSnippet?: string;
+  },
 ) {
   const locale = opts?.locale ?? DEFAULT_CONTENT_LOCALE;
   const englishSurah = SURAH_SIMPLE_NAMES[surahNumber] || `Surah ${surahNumber}`;
@@ -385,12 +379,16 @@ export function ayahSeo(
   const path = getAyahPath(surahNumber, ayahNumber);
   const localisedPath = localePath(locale, path);
 
-  const heading = `${famousName ? `${famousName} — ` : ''}${localizedSurah} ${surahNumber}:${ayahNumber}`;
-  const title = famousName
-    ? `${heading} | ${SITE_NAME}`
-    : locale === 'en'
-      ? `Surah ${englishSurah} Ayah ${ayahNumber} (${surahNumber}:${ayahNumber}) – Arabic, Translation & Audio | ${SITE_NAME}`
-      : `${heading} — Quran Ayah | ${SITE_NAME}`;
+  const heading = famousName
+    ? `${famousName} — ${localizedSurah} ${surahNumber}:${ayahNumber}`
+    : `${ayahLabel(locale, surahNumber, ayahNumber)} (${surahNumber}:${ayahNumber})`;
+  const titles: Record<ContentLocale, string> = {
+    en: `Surah ${englishSurah} Ayah ${ayahNumber} (${surahNumber}:${ayahNumber}) – Arabic, Translation & Audio`,
+    ur: `${ayahLabel('ur', surahNumber, ayahNumber)} اردو ترجمہ کے ساتھ`,
+    ps: `${ayahLabel('ps', surahNumber, ayahNumber)} له پښتو ژباړې سره`,
+    fa: `${ayahLabel('fa', surahNumber, ayahNumber)} با ترجمه فارسی`,
+  };
+  const title = `${famousName ? heading : titles[locale]} | ${SITE_NAME}`;
 
   const reference = `${localizedSurah} ${surahNumber}:${ayahNumber}`;
   const descriptions: Record<ContentLocale, string> = {
@@ -399,11 +397,16 @@ export function ayahSeo(
     ps: `${famousName ? `${famousName} — ` : ''}${reference} په QuranPilot کې له عربي عثماني متن، پښتو ژباړې او د آیت له تلاوت سره ولولئ او واورئ.`,
     fa: `${famousName ? `${famousName} — ` : ''}${reference} را با متن عربی عثمانی، ترجمه فارسی و تلاوت آیه به آیه در QuranPilot بخوانید و بشنوید.`,
   };
-  const description = descriptions[locale];
+  const snippet = opts?.translationSnippet?.trim();
+  const snippetDescriptions: Record<ContentLocale, string> = {
+    en: `${famousName ? `${famousName} — ` : ''}${reference}: ${snippet} Read with Arabic Uthmani text and verse audio on QuranPilot.`,
+    ur: `${famousName ? `${famousName} — ` : ''}${reference}: ${snippet} عربی متن اور آیت کی تلاوت کے ساتھ QuranPilot پر پڑھیں۔`,
+    ps: `${famousName ? `${famousName} — ` : ''}${reference}: ${snippet} له عربي متن او د آیت له تلاوت سره په QuranPilot کې ولولئ.`,
+    fa: `${famousName ? `${famousName} — ` : ''}${reference}: ${snippet} با متن عربی و تلاوت آیه در QuranPilot بخوانید.`,
+  };
+  const description = snippet ? snippetDescriptions[locale] : descriptions[locale];
 
-  const indexedAyahLocales = CONTENT_LOCALES.filter((loc) =>
-    isAyahPageIndexed(loc, surahNumber, ayahNumber),
-  );
+  const indexedAyahLocales = indexableAyahLocales(surahNumber, ayahNumber);
   const ayahHreflang =
     indexedAyahLocales.length > 1
       ? Object.fromEntries([

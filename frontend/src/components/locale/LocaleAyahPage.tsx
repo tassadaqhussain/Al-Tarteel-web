@@ -1,6 +1,7 @@
 import { notFound, permanentRedirect } from 'next/navigation';
 import { ayahStaticParams, renderAyahPage } from '@/components/ayah/AyahPageView';
 import { ayahSeo } from '@/lib/seo';
+import { fetchAyahSnippet } from '@/lib/seo/ayah-snippet';
 import { localePath, type PrefixedLocale } from '@/lib/i18n/content-locales';
 import { getSurahArabicName, getSurahNumberFromSlug, getSurahSlug } from '@/lib/surah-meta';
 import { parseAyahNumber } from '@/lib/surah-pagination';
@@ -25,6 +26,7 @@ export async function localeAyahMetadata(
   return ayahSeo(surahNumber, ayahNumber, {
     arabicName: getSurahArabicName(surahNumber),
     locale,
+    translationSnippet: await fetchAyahSnippet(surahNumber, ayahNumber, locale),
   }).metadata;
 }
 

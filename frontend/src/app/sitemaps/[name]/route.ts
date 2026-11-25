@@ -11,7 +11,7 @@ import { renderUrlset, xmlResponse } from '@/lib/sitemap-xml';
  * - `/sitemaps/surahs.xml`
  * - `/sitemaps/content.xml`
  * - `/sitemaps/locales.xml`
- * - `/sitemaps/ayahs-1.xml` … `/sitemaps/ayahs-3.xml`
+ * - `/sitemaps/ayahs-<lang>-1.xml` … `-3.xml` per language (en, ur, ps, fa); only indexable ayahs are listed
  */
 export const dynamic = 'force-static';
 export const revalidate = 86400;

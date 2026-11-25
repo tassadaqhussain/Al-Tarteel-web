@@ -40,7 +40,7 @@ function extractMainVisibleText(html) {
 
 async function main() {
   const ayahUrls = [];
-  for (const shard of ['ayahs-1', 'ayahs-2', 'ayahs-3']) {
+  for (const shard of ['ayahs-en-1', 'ayahs-en-2', 'ayahs-en-3']) {
     const res = await fetch(`${baseUrl}/sitemaps/${shard}.xml`);
     if (!res.ok) throw new Error(`Failed to fetch /sitemaps/${shard}.xml: ${res.status}`);
     const xml = await res.text();

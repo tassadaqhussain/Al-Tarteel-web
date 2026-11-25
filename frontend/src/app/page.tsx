@@ -1,3 +1,4 @@
+import { TOPICS, topicPath } from '@/lib/topics';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/home/Hero';
@@ -114,6 +115,22 @@ export default function HomePage() {
                 .
               </p>
             </div>
+
+            <nav aria-label="Popular Quran topics" className="pt-2">
+              <h2 className="text-sm font-bold text-ink">Popular topics</h2>
+              <ul className="mt-2 flex flex-wrap gap-2 text-xs font-medium">
+                {TOPICS.map((t) => (
+                  <li key={t.slug}>
+                    <Link
+                      href={topicPath('en', t.slug)}
+                      className="rounded-lg border border-line bg-surface px-3 py-1.5 text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                    >
+                      {t.copy.en.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
             <div className="grid gap-4 pt-2 sm:grid-cols-2">
               <details className="rounded-xl border border-line bg-surface p-4">

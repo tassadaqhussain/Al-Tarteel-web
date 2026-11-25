@@ -4,6 +4,9 @@ import { getSurahPath, getAyahPath } from '@/lib/surah-meta';
 import { SURAH_AYAH_COUNTS } from '@/lib/surah-pagination';
 import { SITE_URL, absoluteUrl, isAyahPageIndexed } from '@/lib/seo';
 import { JUZ_LOCALES } from '@/lib/i18n/juz-copy';
+import { TOPICS, TOPIC_LOCALES, topicPath } from '@/lib/topics';
+import { AYAH_PAGE_UPDATED_AT } from '@/lib/content-dates';
+import { isFeaturedAyah } from '@/lib/seo/ayah-policy';
 import {
   CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
@@ -60,9 +63,9 @@ export const SITEMAP_NAMES = [
   'surahs',
   'content',
   'locales',
-  'ayahs-1',
-  'ayahs-2',
-  'ayahs-3',
+  'ayahs-en-1',
+  'ayahs-en-2',
+  'ayahs-en-3',
   'ayahs-ur-1',
   'ayahs-ur-2',
   'ayahs-ur-3',
@@ -187,9 +190,23 @@ function surahEntries(): SitemapEntry[] {
   });
 }
 
-/** Learning plans + articles. */
+/** Topic landing pages (en + ur) with reciprocal alternates. */
+function topicEntries(): SitemapEntry[] {
+  return TOPICS.flatMap((topic) =>
+    TOPIC_LOCALES.map((locale) => ({
+      url: `${SITE_URL}${topicPath(locale, topic.slug)}`,
+      lastModified: SITEMAP_LASTMOD,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+      alternates: buildAlternates(`/${topic.slug}`, TOPIC_LOCALES),
+    })),
+  );
+}
+
+/** Learning plans + articles + topic pages. */
 function contentEntries(): SitemapEntry[] {
   return [
+    ...topicEntries(),
     ...LEARNING_PLANS.map((plan) => ({
       url: `${SITE_URL}/learning-plans/${plan.slug}`,
       lastModified: SITEMAP_LASTMOD,
@@ -280,9 +297,9 @@ function ayahEntriesForGroup(
       const basePath = getAyahPath(surahNumber, ayah);
       entries.push({
         url: `${SITE_URL}${localePath(locale, basePath)}`,
-        lastModified: QURAN_CONTENT_UPDATED_AT,
+        lastModified: AYAH_PAGE_UPDATED_AT[locale],
         changeFrequency: 'monthly',
-        priority: 0.6,
+        priority: isFeaturedAyah(surahNumber, ayah) ? 0.7 : 0.6,
         alternates: buildAlternates(basePath, indexedLocales),
       });
     }
@@ -296,13 +313,7 @@ export function sitemapEntries(name: SitemapName): SitemapEntry[] {
   if (name === 'content') return contentEntries();
   if (name === 'locales') return localeEntries();
 
-  const enMatch = /^ayahs-(\d+)$/.exec(name);
-  if (enMatch) {
-    const group = AYAH_SURAH_GROUPS.find((g) => g.id === Number(enMatch[1]));
-    return group ? ayahEntriesForGroup('en', group.start, group.end) : [];
-  }
-
-  const localeMatch = /^ayahs-(ur|ps|fa)-(\d+)$/.exec(name);
+  const localeMatch = /^ayahs-(en|ur|ps|fa)-(\d+)$/.exec(name);
   if (localeMatch) {
     const locale = localeMatch[1] as ContentLocale;
     const group = AYAH_SURAH_GROUPS.find((g) => g.id === Number(localeMatch[2]));

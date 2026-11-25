@@ -50,3 +50,86 @@ export function ayahWord(locale: ContentLocale): string {
   if (locale === 'fa') return 'آیه';
   return 'Ayah';
 }
+
+export type AyahPosition = {
+  surahName: string;
+  surahNumber: number;
+  ayahNumber: number;
+  ayahCount: number;
+  juz?: number | null;
+  page?: number | null;
+  ruku?: number | null;
+  manzil?: number | null;
+};
+
+/** Localized UI strings for the ayah page (headings + position block). */
+export function ayahUi(locale: ContentLocale, pos: AyahPosition) {
+  const extras = (sep: string, labels: { juz: string; page: string; ruku: string; manzil: string }) =>
+    [
+      pos.juz ? `${labels.juz} ${pos.juz}` : '',
+      pos.page ? `${labels.page} ${pos.page}` : '',
+      pos.ruku ? `${labels.ruku} ${pos.ruku}` : '',
+      pos.manzil ? `${labels.manzil} ${pos.manzil}` : '',
+    ]
+      .filter(Boolean)
+      .join(sep);
+
+  if (locale === 'ur') {
+    const where = extras('، ', { juz: 'پارہ', page: 'مصحف کا صفحہ', ruku: 'رکوع', manzil: 'منزل' });
+    return {
+      positionHeading: 'اس آیت کا مقام',
+      positionText: `یہ آیت سورہ ${pos.surahName} (سورت نمبر ${pos.surahNumber}، کل ${pos.ayahCount} آیات) کی آیت نمبر ${pos.ayahNumber} ہے${where ? `؛ ${where}` : ''}۔`,
+      translations: 'ترجمہ',
+      surrounding: 'پچھلی اور اگلی آیت',
+      related: 'متعلقہ آیات',
+      prev: 'پچھلی آیت',
+      next: 'اگلی آیت',
+      fullSurah: `پوری سورہ ${pos.surahName} پڑھیں`,
+      juzLink: (n: number) => `پارہ ${n}`,
+      subline: `سورہ ${pos.surahName} · سورت ${pos.surahNumber} از 114 · آیت ${pos.ayahNumber} از ${pos.ayahCount}`,
+    };
+  }
+  if (locale === 'ps') {
+    const where = extras('، ', { juz: 'سپاره', page: 'د مصحف مخ', ruku: 'رکوع', manzil: 'منزل' });
+    return {
+      positionHeading: 'د دې آیت ځای',
+      positionText: `دا د سورت ${pos.surahName} (د سورت شمېره ${pos.surahNumber}، ټول ${pos.ayahCount} آیتونه) ${pos.ayahNumber} آیت دی${where ? `؛ ${where}` : ''}.`,
+      translations: 'ژباړه',
+      surrounding: 'مخکینی او راتلونکی آیت',
+      related: 'اړوند آیتونه',
+      prev: 'مخکینی آیت',
+      next: 'راتلونکی آیت',
+      fullSurah: `بشپړ سورت ${pos.surahName} ولولئ`,
+      juzLink: (n: number) => `سپاره ${n}`,
+      subline: `سورت ${pos.surahName} · ${pos.surahNumber} له 114 · آیت ${pos.ayahNumber} له ${pos.ayahCount}`,
+    };
+  }
+  if (locale === 'fa') {
+    const where = extras('، ', { juz: 'جزء', page: 'صفحه مصحف', ruku: 'رکوع', manzil: 'منزل' });
+    return {
+      positionHeading: 'جایگاه این آیه',
+      positionText: `این آیه ${pos.ayahNumber} سوره ${pos.surahName} (سوره شماره ${pos.surahNumber}، مجموعاً ${pos.ayahCount} آیه) است${where ? `؛ ${where}` : ''}.`,
+      translations: 'ترجمه',
+      surrounding: 'آیه قبل و بعد',
+      related: 'آیه‌های مرتبط',
+      prev: 'آیه قبلی',
+      next: 'آیه بعدی',
+      fullSurah: `خواندن کل سوره ${pos.surahName}`,
+      juzLink: (n: number) => `جزء ${n}`,
+      subline: `سوره ${pos.surahName} · سوره ${pos.surahNumber} از 114 · آیه ${pos.ayahNumber} از ${pos.ayahCount}`,
+    };
+  }
+  const where = extras(' · ', { juz: 'Juz', page: 'Mushaf page', ruku: 'Ruku', manzil: 'Manzil' });
+  return {
+    positionHeading: 'Where this ayah sits',
+    positionText: `This is verse ${pos.ayahNumber} of ${pos.ayahCount} in Surah ${pos.surahName} (chapter ${pos.surahNumber} of 114)${where ? ` — ${where}` : ''}.`,
+    translations: 'Translations',
+    surrounding: 'Ayah Before & After',
+    related: 'Related Ayahs to Explore',
+    prev: 'Previous ayah',
+    next: 'Next ayah',
+    fullSurah: `Read full Surah ${pos.surahName}`,
+    juzLink: (n: number) => `Juz ${n}`,
+    subline: '',
+  };
+}

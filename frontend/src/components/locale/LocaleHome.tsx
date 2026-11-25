@@ -12,6 +12,7 @@ import {
   type PrefixedLocale,
 } from '@/lib/i18n/content-locales';
 import { hasJuzLocale, juzPath as buildJuzPath } from '@/lib/i18n/juz-copy';
+import { TOPICS, topicPath } from '@/lib/topics';
 import { LOCALE_LANDING } from '@/lib/i18n/locale-landing';
 
 /**
@@ -79,6 +80,24 @@ export function LocaleHome({ locale }: { locale: PrefixedLocale }) {
             })}
           </ul>
         </section>
+
+        {locale === 'ur' ? (
+          <nav aria-label="موضوعات" className="mt-10">
+            <h2 className="text-xl font-bold text-ink">مقبول موضوعات</h2>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {TOPICS.map((t) => (
+                <li key={t.slug}>
+                  <Link
+                    href={topicPath('ur', t.slug)}
+                    className="rounded-lg border border-line px-3 py-1.5 text-sm font-medium text-ink transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    {t.copy.ur.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
 
         <section aria-labelledby="juz-index" className="mt-10">
           <h2 id="juz-index" className="text-xl font-bold text-ink">

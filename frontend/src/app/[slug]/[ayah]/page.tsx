@@ -1,6 +1,7 @@
 import { notFound, permanentRedirect } from 'next/navigation';
 import { ayahStaticParams, renderAyahPage } from '@/components/ayah/AyahPageView';
 import { ayahSeo } from '@/lib/seo';
+import { fetchAyahSnippet } from '@/lib/seo/ayah-snippet';
 import { getSurahArabicName, getSurahNumberFromSlug, getSurahSlug } from '@/lib/surah-meta';
 import { parseAyahNumber } from '@/lib/surah-pagination';
 
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: Props) {
   if (!surahNumber || !ayahNumber) return {};
   return ayahSeo(surahNumber, ayahNumber, {
     arabicName: getSurahArabicName(surahNumber),
+    translationSnippet: await fetchAyahSnippet(surahNumber, ayahNumber, 'en'),
   }).metadata;
 }
 
