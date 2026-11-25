@@ -11,6 +11,7 @@ import {
   PREFIXED_LOCALES,
   type PrefixedLocale,
 } from '@/lib/i18n/content-locales';
+import { hasJuzLocale, juzPath as buildJuzPath } from '@/lib/i18n/juz-copy';
 import { LOCALE_LANDING } from '@/lib/i18n/locale-landing';
 
 /**
@@ -94,7 +95,7 @@ export function LocaleHome({ locale }: { locale: PrefixedLocale }) {
               return (
                 <li key={juz}>
                   <Link
-                    href={`/juz/${juz}`}
+                    href={hasJuzLocale(locale) ? buildJuzPath(locale, juz) : buildJuzPath('en', juz)}
                     className="flex items-center justify-center rounded-lg border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
                   >
                     {prefix} {juz}

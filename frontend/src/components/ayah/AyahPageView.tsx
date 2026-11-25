@@ -21,7 +21,9 @@ import {
 } from '@/lib/i18n/content-locales';
 import { LOCALE_TEXT_TRANSLATION_SLUG } from '@/lib/i18n/locale-translation-slugs';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
-import { FAMOUS_AYAHS, ayahJsonLd, ayahSeo, faqJsonLd } from '@/lib/seo';
+import { FAMOUS_AYAHS, ayahJsonLd, ayahSeo, faqJsonLd, isFeaturedAyah } from '@/lib/seo';
+import { ayahIntro, ayahWord } from '@/lib/i18n/ayah-intros';
+import { surahBreadcrumbsLabels } from '@/lib/i18n/surah-ui-strings';
 import {
   getAyahPath,
   getSurahArabicName,
@@ -242,18 +244,25 @@ export async function renderAyahPage({
     (tr) => tr.translatorSlug === LOCALE_TEXT_TRANSLATION_SLUG.ur || tr.translatorSlug.startsWith('ur-'),
   );
 
+  const seo = ayahSeo(surahNumber, ayahNumber, { locale: activeLocale });
   const jsonLd = ayahJsonLd({
     surahNumber,
     ayahNumber,
     surahName: meta.nameSimple,
     path: getAyahPath(surahNumber, ayahNumber),
     locale: activeLocale,
+    description: typeof seo.metadata.description === 'string' ? seo.metadata.description : undefined,
+    pageName: seo.heading,
   });
 
   const structuredData =
     isAyatulKursi && activeLocale === 'en'
-      ? [jsonLd, faqJsonLd(AYATUL_KURSI_FAQS)]
+      ? [...jsonLd, faqJsonLd(AYATUL_KURSI_FAQS)]
       : jsonLd;
+
+  const featured = isFeaturedAyah(surahNumber, ayahNumber);
+  const intro = featured ? ayahIntro(activeLocale, surahNumber, ayahNumber, seo.heading.split(' — ')[0]) : null;
+  const crumbs = surahBreadcrumbsLabels(activeLocale, surahNumber, meta.nameSimple);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-app">
@@ -267,10 +276,10 @@ export async function renderAyahPage({
       >
         <Breadcrumbs
           items={[
-            { name: 'Home', path: localePath(activeLocale, '/') },
-            { name: 'Quran', path: activeLocale === 'en' ? '/surahs' : localePath(activeLocale, '/') },
-            { name: displayName, path: surahPath },
-            { name: `Ayah ${ayahNumber}`, path: ayahPath },
+            { name: crumbs.home, path: localePath(activeLocale, '/') },
+            { name: activeLocale === 'en' ? 'Quran' : crumbs.surahs, path: activeLocale === 'en' ? '/surahs' : localePath(activeLocale, '/') },
+            { name: activeLocale === 'en' ? displayName : crumbs.surah, path: surahPath },
+            { name: `${ayahWord(activeLocale)} ${ayahNumber}`, path: ayahPath },
           ]}
         />
 
@@ -279,8 +288,14 @@ export async function renderAyahPage({
             {arabicName}
           </p>
           <h1 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">
-            {ayahSeo(surahNumber, ayahNumber, { locale: activeLocale }).heading}
+            {seo.heading}
           </h1>
+          {intro ? (
+            <section aria-label={intro.heading} className="mt-3">
+              <h2 className="sr-only">{intro.heading}</h2>
+              <p className="text-sm leading-7 text-ink-2 sm:text-base">{intro.body}</p>
+            </section>
+          ) : null}
           <p className="mt-2 text-sm text-ink-muted">
             Surah {meta.nameSimple} ({meta.meaning}) · Chapter {surahNumber} of 114 · Verse{' '}
             {ayahNumber} of {ayahCount}

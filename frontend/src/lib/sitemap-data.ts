@@ -2,7 +2,8 @@ import { ARTICLES } from '@/lib/articles';
 import { LEARNING_PLANS } from '@/lib/learning-plans';
 import { getSurahPath, getAyahPath } from '@/lib/surah-meta';
 import { SURAH_AYAH_COUNTS } from '@/lib/surah-pagination';
-import { SITE_URL, absoluteUrl, isVersePageIndexed } from '@/lib/seo';
+import { SITE_URL, absoluteUrl, isAyahPageIndexed } from '@/lib/seo';
+import { JUZ_LOCALES } from '@/lib/i18n/juz-copy';
 import {
   CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
@@ -160,6 +161,7 @@ function coreEntries(): SitemapEntry[] {
       lastModified: QURAN_CONTENT_UPDATED_AT,
       changeFrequency: 'monthly' as const,
       priority: 0.7,
+      alternates: buildAlternates(`/juz/${i + 1}`, JUZ_LOCALES),
     })),
     ...['ghunnah', 'ikhfa', 'idgham', 'iqlab', 'qalqalah', 'madd'].map((slug) => ({
       url: `${SITE_URL}/tajweed/${slug}`,
@@ -207,11 +209,26 @@ function contentEntries(): SitemapEntry[] {
  * Locale hubs + all 114 surahs in each prefixed locale (/ur, /ps, /fa),
  * with reciprocal hreflang alternates matching the HTML `<head>`.
  */
+function localeJuzEntries(): SitemapEntry[] {
+  return JUZ_LOCALES.filter((loc) => loc !== DEFAULT_CONTENT_LOCALE).flatMap((locale) =>
+    Array.from({ length: 30 }, (_, i) => {
+      const basePath = `/juz/${i + 1}`;
+      return {
+        url: `${SITE_URL}${localePath(locale, basePath)}`,
+        lastModified: QURAN_CONTENT_UPDATED_AT,
+        changeFrequency: 'monthly' as const,
+        priority: 0.65,
+        alternates: buildAlternates(basePath, JUZ_LOCALES),
+      };
+    }),
+  );
+}
+
 function localeEntries(): SitemapEntry[] {
   const homeAlternates = buildAlternates('/');
   const aboutAlternates = buildAlternates('/about');
   const contactAlternates = buildAlternates('/contact');
-  return PREFIXED_LOCALES.flatMap((locale) => [
+  const surahAndHubEntries = PREFIXED_LOCALES.flatMap((locale) => [
     {
       url: `${SITE_URL}${localePath(locale, '/')}`,
       lastModified: SITEMAP_LASTMOD,
@@ -245,6 +262,7 @@ function localeEntries(): SitemapEntry[] {
       };
     }),
   ]);
+  return [...surahAndHubEntries, ...localeJuzEntries()];
 }
 
 function ayahEntriesForGroup(
@@ -252,12 +270,13 @@ function ayahEntriesForGroup(
   startSurah: number,
   endSurah: number,
 ): SitemapEntry[] {
-  if (!isVersePageIndexed(locale)) return [];
-  const indexedLocales = CONTENT_LOCALES.filter(isVersePageIndexed);
   const entries: SitemapEntry[] = [];
   for (let surahNumber = startSurah; surahNumber <= endSurah; surahNumber += 1) {
     const count = SURAH_AYAH_COUNTS[surahNumber - 1] ?? 0;
     for (let ayah = 1; ayah <= count; ayah += 1) {
+      // Per-ayah: featured ayahs (Ayatul Kursi etc.) are indexable in every locale.
+      if (!isAyahPageIndexed(locale, surahNumber, ayah)) continue;
+      const indexedLocales = CONTENT_LOCALES.filter((loc) => isAyahPageIndexed(loc, surahNumber, ayah));
       const basePath = getAyahPath(surahNumber, ayah);
       entries.push({
         url: `${SITE_URL}${localePath(locale, basePath)}`,

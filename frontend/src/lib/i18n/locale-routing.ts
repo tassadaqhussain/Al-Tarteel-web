@@ -1,10 +1,12 @@
 import type { UiLocale } from '@/stores/settingsStore';
 import {
+  DEFAULT_CONTENT_LOCALE,
   isPrefixedLocale,
   localePath,
   type ContentLocale,
   type PrefixedLocale,
 } from '@/lib/i18n/content-locales';
+import { hasJuzLocale } from '@/lib/i18n/juz-copy';
 import { parseAyahNumber } from '@/lib/surah-pagination';
 import { getSurahNumberFromSlug, getSurahPath, getAyahPath } from '@/lib/surah-meta';
 
@@ -106,7 +108,9 @@ export function pathForUiLocale(pathname: string, targetLocale: UiLocale): strin
   }
 
   if (segments[0] === 'juz' && segments[1]) {
-    return `/juz/${segments[1]}${search}`;
+    // Only languages with a real localized juz page (JUZ_LOCALES) get a prefixed URL.
+    const juzLocale = hasJuzLocale(contentLocale) ? contentLocale : DEFAULT_CONTENT_LOCALE;
+    return `${localePath(juzLocale, `/juz/${segments[1]}`)}${search}`;
   }
 
   if (segments.length === 0) {

@@ -56,10 +56,17 @@ export function paginationStrings(locale: ContentLocale) {
 }
 
 export function navSurahLabel(locale: ContentLocale, kind: 'previous' | 'next'): string {
-  if (locale === 'ur') return kind === 'previous' ? 'پچھلی سورہ' : 'اگلی سورہ';
-  if (locale === 'ps') return kind === 'previous' ? 'مخکینۍ سورت' : 'راتلونکې سورت';
+  if (locale === 'ur') return kind === 'previous' ? 'پچھلی سورت' : 'اگلی سورت';
+  if (locale === 'ps') return kind === 'previous' ? 'مخکینۍ سورت' : 'بله سورت';
   if (locale === 'fa') return kind === 'previous' ? 'سوره قبلی' : 'سوره بعدی';
   return kind === 'previous' ? 'Previous Surah' : 'Next Surah';
+}
+
+export function surahNavAriaLabel(locale: ContentLocale): string {
+  if (locale === 'ur') return 'سورتوں کے درمیان رہنمائی';
+  if (locale === 'ps') return 'د سورتونو ترمنځ ناوبري';
+  if (locale === 'fa') return 'ناوبری میان سوره‌ها';
+  return 'Surah navigation';
 }
 
 export function endOfSurahLabel(locale: ContentLocale, name: string, ayahCount: number, surahNumber: number): string {

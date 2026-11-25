@@ -37,6 +37,7 @@ import { getRelatedSurahNumbers, getSurahIntro } from '@/lib/i18n/surah-intros';
 import {
   endOfSurahLabel,
   navSurahLabel,
+  surahNavAriaLabel,
   startFromBeginningLabel,
   surahBreadcrumbsLabels,
   surahChapterMetaLabel,
@@ -138,18 +139,20 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
     permanentRedirect(trans ? `${target}${page > 1 ? '&' : '?'}trans=${encodeURIComponent(trans)}` : target);
   }
 
-  const [ayahs, prevSurah, nextSurah] = await Promise.all([
-    quranApi
-      .ayahsBySurah(surahNumber, {
-        page,
-        limit,
-        translations: effectiveTranslations,
-        words: false,
-      })
-      .catch(() => []),
-    surahNumber > 1 ? quranApi.surah(surahNumber - 1).catch(() => null) : Promise.resolve(null),
-    surahNumber < 114 ? quranApi.surah(surahNumber + 1).catch(() => null) : Promise.resolve(null),
-  ]);
+  const ayahs = await quranApi
+    .ayahsBySurah(surahNumber, {
+      page,
+      limit,
+      translations: effectiveTranslations,
+      words: false,
+    })
+    .catch(() => []);
+
+  // Prev/next come from static metadata (not the API) so the links are always in the server HTML.
+  const prevSurah = surahNumber > 1 ? getSurahMeta(surahNumber - 1) : null;
+  const nextSurah = surahNumber < 114 ? getSurahMeta(surahNumber + 1) : null;
+  const prevSurahNumber = surahNumber > 1 ? surahNumber - 1 : null;
+  const nextSurahNumber = surahNumber < 114 ? surahNumber + 1 : null;
 
   const arabicName = getSurahArabicName(surahNumber, surah.nameArabic);
   const initialAyahs = (Array.isArray(ayahs) ? ayahs : []).map(
@@ -179,19 +182,19 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   const endOfChapter = (
     <div className="mt-14 border-t border-line pt-10">
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-        {prevSurah ? (
+        {prevSurah && prevSurahNumber ? (
           <Link
-            href={localePath(activeLocale, getSurahPath(prevSurah.number))}
+            href={localePath(activeLocale, getSurahPath(prevSurahNumber))}
             className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-left shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
             <ChevronLeft className="h-5 w-5 text-ink-faint rtl:rotate-180" />
             <div>
               <p className="text-xs text-ink-muted">{navSurahLabel(activeLocale, 'previous')}</p>
               <p className="font-semibold text-ink">
-                {prevSurah.number}.{' '}
+                {prevSurahNumber}.{' '}
                 {activeLocale === 'en'
                   ? prevSurah.nameSimple
-                  : getSurahLocalizedName(prevSurah.number, activeLocale)}
+                  : getSurahLocalizedName(prevSurahNumber, activeLocale)}
               </p>
             </div>
           </Link>
@@ -202,18 +205,18 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           <p className="mt-1 text-xs text-ink-muted">{endOfSurahLabel(activeLocale, surah.nameSimple, ayahCount, surahNumber)}</p>
         </div>
 
-        {nextSurah ? (
+        {nextSurah && nextSurahNumber ? (
           <Link
-            href={localePath(activeLocale, getSurahPath(nextSurah.number))}
+            href={localePath(activeLocale, getSurahPath(nextSurahNumber))}
             className="flex items-center gap-3 rounded-[4px] border border-line bg-surface px-5 py-4 text-right shadow-xs transition hover:border-[var(--accent)] hover:shadow-md"
           >
             <div>
               <p className="text-xs text-ink-muted">{navSurahLabel(activeLocale, 'next')}</p>
               <p className="font-semibold text-ink">
-                {nextSurah.number}.{' '}
+                {nextSurahNumber}.{' '}
                 {activeLocale === 'en'
                   ? nextSurah.nameSimple
-                  : getSurahLocalizedName(nextSurah.number, activeLocale)}
+                  : getSurahLocalizedName(nextSurahNumber, activeLocale)}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 text-ink-faint rtl:rotate-180" />
@@ -554,6 +557,42 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
               );
             })}
           </ul>
+        </nav>
+
+        <nav
+          aria-label={surahNavAriaLabel(activeLocale)}
+          className="mt-8 flex items-stretch justify-between gap-3"
+        >
+          {prevSurahNumber ? (
+            <Link
+              href={localePath(activeLocale, getSurahPath(prevSurahNumber))}
+              className="flex flex-1 items-center gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-sm transition hover:border-[var(--accent)]"
+            >
+              <ChevronLeft className="h-4 w-4 shrink-0 text-ink-faint rtl:rotate-180" aria-hidden />
+              <span>
+                <span className="block text-xs text-ink-muted">{navSurahLabel(activeLocale, 'previous')}</span>
+                <span className="font-semibold text-ink">
+                  {prevSurahNumber}.{' '}
+                  {activeLocale === 'en' ? getSurahMeta(prevSurahNumber).nameSimple : getSurahLocalizedName(prevSurahNumber, activeLocale)}
+                </span>
+              </span>
+            </Link>
+          ) : <span className="flex-1" />}
+          {nextSurahNumber ? (
+            <Link
+              href={localePath(activeLocale, getSurahPath(nextSurahNumber))}
+              className="flex flex-1 items-center justify-end gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-end text-sm transition hover:border-[var(--accent)]"
+            >
+              <span>
+                <span className="block text-xs text-ink-muted">{navSurahLabel(activeLocale, 'next')}</span>
+                <span className="font-semibold text-ink">
+                  {nextSurahNumber}.{' '}
+                  {activeLocale === 'en' ? getSurahMeta(nextSurahNumber).nameSimple : getSurahLocalizedName(nextSurahNumber, activeLocale)}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-ink-faint rtl:rotate-180" aria-hidden />
+            </Link>
+          ) : <span className="flex-1" />}
         </nav>
 
         <SurahLearningPlans

@@ -3,6 +3,7 @@ import { getSurahPath, SURAH_MEANINGS, SURAH_SIMPLE_NAMES, getAyahPath } from '@
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 import { surahCopy } from '@/lib/i18n/seo-strings';
 import { getJuzMeta } from '@/lib/juz-meta';
+import { JUZ_LOCALES, juzPath, juzUrCopy } from '@/lib/i18n/juz-copy';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import { popularSurahSeoOverride } from '@/lib/i18n/surah-seo-overrides';
 import {
@@ -225,12 +226,43 @@ export function surahSeo(
   };
 }
 
-/** Unique metadata for Juz pages — ?page=N is consistently noindex, follow. */
-export function juzSeo(juzNumber: number, page = 1) {
+/**
+ * Unique metadata for Juz pages — ?page=N is consistently noindex, follow.
+ * hreflang lists only the languages that really have a juz page (see JUZ_LOCALES).
+ */
+export function juzSeo(juzNumber: number, page = 1, locale: ContentLocale = DEFAULT_CONTENT_LOCALE) {
   const p = page > 1 ? page : 1;
   const meta = getJuzMeta(juzNumber);
-  const basePath = `/juz/${juzNumber}`;
+  const basePath = juzPath(locale, juzNumber);
   const path = p > 1 ? `${basePath}?page=${p}` : basePath;
+
+  const hreflang: Record<string, string> = {};
+  for (const loc of JUZ_LOCALES) {
+    hreflang[localeConfig(loc).hreflang] = absoluteUrl(juzPath(loc, juzNumber));
+  }
+  hreflang['x-default'] = absoluteUrl(juzPath(DEFAULT_CONTENT_LOCALE, juzNumber));
+  const hreflangLanguages = p > 1 ? undefined : hreflang;
+
+  if (locale === 'ur') {
+    const copy = juzUrCopy(juzNumber, p);
+    return buildPageMetadata({
+      title: copy.title,
+      description: copy.description,
+      path,
+      noIndex: p > 1,
+      hreflangLanguages,
+      locale,
+      keywords: [
+        `پارہ ${juzNumber}`,
+        `${copy.label} اردو ترجمہ`,
+        meta.nameArabic,
+        'قرآن پارے',
+        `Para ${juzNumber}`,
+      ].filter(Boolean),
+      type: 'article',
+    });
+  }
+
   const span = meta.startRef && meta.endRef ? `${meta.startRef} to ${meta.endRef}` : '';
   const title =
     p > 1
@@ -240,14 +272,13 @@ export function juzSeo(juzNumber: number, page = 1) {
     p > 1
       ? `Continue reading Juz ${juzNumber} (${meta.name}, ${span}) — page ${p} with Uthmani Arabic text, English translation, and audio on QuranPilot.`
       : `Read Juz ${juzNumber} (${meta.name}, Para ${juzNumber}) of the Holy Quran, from ${span}, with Uthmani Arabic script, English translation, and verse-by-verse audio on QuranPilot.`;
-  const canonicalUrl = absoluteUrl(basePath);
 
   return buildPageMetadata({
     title,
     description,
     path,
     noIndex: p > 1,
-    hreflangLanguages: p > 1 ? undefined : { en: canonicalUrl, 'x-default': canonicalUrl },
+    hreflangLanguages,
     keywords: [
       `Juz ${juzNumber}`,
       `Para ${juzNumber}`,
@@ -285,8 +316,8 @@ const AYAH_SEO_NAMES: Partial<Record<string, Partial<Record<ContentLocale, strin
   '2:255': {
     en: 'Ayatul Kursi (Verse of the Throne)',
     ur: 'آیت الکرسی اردو ترجمہ کے ساتھ',
-    ps: 'آیت الکرسی له پښتو ژباړې سره',
-    fa: 'آیة الکرسی با ترجمه فارسی',
+    ps: 'آیت الکرسي له پښتو ژباړې سره',
+    fa: 'آیت الکرسی با ترجمه فارسی',
   },
   '2:285': {
     en: 'Last 2 Ayahs of Surah Al-Baqarah (Amanar-Rasul)',
@@ -304,11 +335,13 @@ const AYAH_SEO_NAMES: Partial<Record<string, Partial<Record<ContentLocale, strin
     en: 'Light Verse (Ayat an-Nur)',
     ur: 'آیت نور',
     ps: 'د نور آیت',
+    fa: 'آیه نور',
   },
   '3:18': {
     en: 'Shahada Verse',
     ur: 'آیت شہادت',
     ps: 'د شهادت آیت',
+    fa: 'آیه شهادت',
   },
 };
 
@@ -325,6 +358,19 @@ export function isVersePageIndexed(locale: ContentLocale): boolean {
     .split(',')
     .map((s) => s.trim())
     .includes(locale);
+}
+
+/**
+ * Featured ayahs (Ayatul Kursi, 2:285–286, …) are fully localized and indexable in every
+ * content locale; every other verse follows `isVersePageIndexed` (INDEX_VERSE_PAGES).
+ */
+export function isFeaturedAyah(surah: number, ayah: number): boolean {
+  const names = AYAH_SEO_NAMES[`${surah}:${ayah}`];
+  return CONTENT_LOCALES.every((loc) => Boolean(names?.[loc]));
+}
+
+export function isAyahPageIndexed(locale: ContentLocale, surah: number, ayah: number): boolean {
+  return isFeaturedAyah(surah, ayah) || isVersePageIndexed(locale);
 }
 
 export function ayahSeo(
@@ -355,7 +401,9 @@ export function ayahSeo(
   };
   const description = descriptions[locale];
 
-  const indexedAyahLocales = CONTENT_LOCALES.filter(isVersePageIndexed);
+  const indexedAyahLocales = CONTENT_LOCALES.filter((loc) =>
+    isAyahPageIndexed(loc, surahNumber, ayahNumber),
+  );
   const ayahHreflang =
     indexedAyahLocales.length > 1
       ? Object.fromEntries([
@@ -384,7 +432,7 @@ export function ayahSeo(
         'read Quran online',
       ].filter(Boolean) as string[],
       type: 'article',
-      noIndex: !isVersePageIndexed(locale),
+      noIndex: !isAyahPageIndexed(locale, surahNumber, ayahNumber),
       locale,
       hreflangLanguages: ayahHreflang,
     }),
@@ -397,30 +445,49 @@ export function ayahJsonLd(input: {
   surahName: string;
   path: string;
   locale?: ContentLocale;
+  /** Localized page description (same text as the meta description). */
+  description?: string;
+  /** Localized page name (e.g. «آیت الکرسی اردو ترجمہ کے ساتھ — البقرہ 2:255»). */
+  pageName?: string;
 }) {
   const locale = input.locale ?? DEFAULT_CONTENT_LOCALE;
   const famousName = ayahSeoName(input.surahNumber, input.ayahNumber, locale);
   const url = absoluteUrl(localePath(locale, input.path));
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'CreativeWork',
-    name: famousName || `${input.surahName} ${input.surahNumber}:${input.ayahNumber}`,
-    description: `Verse ${input.ayahNumber} of Surah ${input.surahName} in the Holy Quran.`,
-    inLanguage: locale === 'en' ? 'ar' : locale,
-    isPartOf: {
-      '@type': 'Book',
-      name: 'The Holy Quran',
-      inLanguage: 'ar',
+  const name = famousName || `${input.surahName} ${input.surahNumber}:${input.ayahNumber}`;
+  const lang = localeConfig(locale).hreflang;
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: input.pageName || name,
+      description:
+        input.description ||
+        `Verse ${input.ayahNumber} of Surah ${input.surahName} in the Holy Quran.`,
+      url,
+      inLanguage: lang,
+      isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
     },
-    position: input.ayahNumber,
-    url,
-    mainEntityOfPage: url,
-    publisher: {
-      '@type': 'Organization',
-      name: SITE_NAME,
-      url: SITE_URL,
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      name,
+      description: `Verse ${input.ayahNumber} of Surah ${input.surahName} in the Holy Quran.`,
+      inLanguage: locale === 'en' ? 'ar' : locale,
+      isPartOf: {
+        '@type': 'Book',
+        name: 'The Holy Quran',
+        inLanguage: 'ar',
+      },
+      position: input.ayahNumber,
+      url,
+      mainEntityOfPage: url,
+      publisher: {
+        '@type': 'Organization',
+        name: SITE_NAME,
+        url: SITE_URL,
+      },
     },
-  };
+  ];
 }
 
 export function websiteJsonLd() {

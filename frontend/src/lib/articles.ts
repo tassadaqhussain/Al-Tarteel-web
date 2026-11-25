@@ -701,7 +701,7 @@ export const ARTICLES: Article[] = [
         ],
         links: [
           { label: 'Read Surah Al-Ahzab 33:21', href: '/al-ahzab/21' },
-          { label: 'Read Surah Al-Anbiya 21:107', href: '/al-anbiya/107' },
+          { label: 'Read Surah Al-Anbiya 21:107', href: '/al-anbya/107' },
         ],
       },
       {
