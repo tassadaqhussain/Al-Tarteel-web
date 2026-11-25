@@ -12,10 +12,13 @@ import { ReaderBismillah } from '@/components/reader/ReaderBismillah';
 import { StudyPanel } from '@/components/reader/StudyPanel';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
+import { getJuzMeta } from '@/lib/juz-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
 import { parsePositiveInteger, readerPage, needsPageRedirect, surahPageHref } from '@/lib/surah-pagination';
-import { juzSeo } from '@/lib/seo';
+import { absoluteUrl, juzSeo, SITE_NAME } from '@/lib/seo';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { SiteFooter } from '@/components/SiteFooter';
 
 interface Props {
   params: Promise<{ number: string }>;
@@ -88,8 +91,21 @@ export default async function JuzPage({ params, searchParams }: Props) {
     }
   }
 
+  const juzMeta = getJuzMeta(juzNumber);
+
   return (
     <div className="min-h-screen flex flex-col bg-surface text-ink">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: `Juz ${juzNumber} (${juzMeta.name})`,
+          description: `Read Juz ${juzNumber} (${juzMeta.name}) of the Holy Quran from ${juzMeta.startRef} to ${juzMeta.endRef} with Uthmani Arabic text, English translation, and audio.`,
+          url: absoluteUrl(`/juz/${juzNumber}`),
+          inLanguage: 'en',
+          isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: absoluteUrl('/') },
+        }}
+      />
       <Header />
 
       {/* Sticky sub-header — stays pinned while site Header scrolls away */}
@@ -139,11 +155,21 @@ export default async function JuzPage({ params, searchParams }: Props) {
         {/* Juz heading */}
         <div className="mb-8 rounded-2xl border border-line bg-surface px-6 py-5 text-center shadow-sm">
           <h1>
-            <span lang="ar" dir="rtl" className="block font-arabic text-4xl font-bold text-ink">الجزء {juzNumber}</span>
-            <span className="mt-2 block text-sm font-normal text-ink-3">
-              Juz {juzNumber} · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
+            <span lang="ar" dir="rtl" className="block font-arabic text-4xl font-bold text-ink">
+              الجزء {juzNumber} · {juzMeta.nameArabic}
+            </span>
+            <span className="mt-2 block text-base font-semibold text-ink">
+              Juz {juzNumber} ({juzMeta.name}) · Part {juzNumber} of 30{page > 1 ? ` · Page ${page}` : ''}
             </span>
           </h1>
+          {juzMeta.startRef && juzMeta.endRef && (
+            <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-ink-3">
+              Juz {juzNumber} (Para {juzNumber}, known as {juzMeta.name}) covers{' '}
+              <strong className="font-medium text-ink-2">{juzMeta.startRef}</strong> through{' '}
+              <strong className="font-medium text-ink-2">{juzMeta.endRef}</strong>. Read online with
+              clear Uthmani Arabic script, English translation, and synchronized verse-by-verse audio.
+            </p>
+          )}
         </div>
 
         <div className="lg:flex lg:items-start lg:gap-6">
@@ -210,6 +236,7 @@ export default async function JuzPage({ params, searchParams }: Props) {
           </div>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }

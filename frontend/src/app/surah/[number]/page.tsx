@@ -24,6 +24,7 @@ import { getAyahPath, getSurahArabicName, getSurahMeta, getSurahPath, SURAH_MEAN
 import { resolveTranslations } from '@/lib/translation-preference';
 import { JsonLd } from '@/components/seo/JsonLd';
 import {
+  CONTENT_LOCALES,
   DEFAULT_CONTENT_LOCALE,
   localeConfig,
   localePath,
@@ -353,10 +354,45 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
               primaryTranslatorName={primaryTranslatorName}
             />
           </div>
+
+          <nav
+            aria-label={
+              activeLocale === 'fa'
+                ? 'زبان‌های دیگر این سوره'
+                : activeLocale === 'ps'
+                  ? 'د دې سورت نورې ژبې'
+                  : activeLocale === 'ur'
+                    ? 'اس سورت کی دیگر زبانیں'
+                    : 'Read this surah in other languages'
+            }
+            className="mt-3.5 flex flex-wrap items-center gap-1.5 border-t border-line-subtle pt-3 text-xs"
+          >
+            {CONTENT_LOCALES.map((code) => {
+              const cfg = localeConfig(code);
+              const isCurrent = code === activeLocale;
+              return (
+                <Link
+                  key={code}
+                  href={localePath(code, getSurahPath(surahNumber))}
+                  hrefLang={cfg.hreflang}
+                  lang={cfg.hreflang}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={cn(
+                    'rounded-full border px-2.5 py-1 font-medium transition',
+                    isCurrent
+                      ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                      : 'border-line text-ink-3 hover:border-[var(--accent)] hover:text-[var(--accent)]',
+                  )}
+                >
+                  {cfg.nativeName}
+                </Link>
+              );
+            })}
+          </nav>
         </header>
 
         {/* ── Bismillah ────────────────────────────────────────────────── */}
-        {surahNumber !== 9 && surahNumber !== 1 && page === 1 && <ReaderBismillah />}
+        {surahNumber !== 9 && surahNumber !== 1 && page === 1 && <ReaderBismillah locale={activeLocale} />}
 
         {page > 1 && (
           <div className="mb-6 flex justify-center">

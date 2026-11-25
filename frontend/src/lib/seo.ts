@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getSurahPath, SURAH_MEANINGS, SURAH_SIMPLE_NAMES, getAyahPath } from '@/lib/surah-meta';
 import { SURAH_PAGE_SIZE } from '@/lib/surah-pagination';
 import { surahCopy } from '@/lib/i18n/seo-strings';
+import { getJuzMeta } from '@/lib/juz-meta';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import { popularSurahSeoOverride } from '@/lib/i18n/surah-seo-overrides';
 import {
@@ -217,30 +218,44 @@ export function surahSeo(
       ].filter(Boolean) as string[],
       type: 'article',
       locale,
-      // Each slice contains different verses and has its own canonical and language siblings.
-      alternatePath: page > 1 ? `${path}?page=${page}` : path,
+      noIndex: page > 1,
+      // Only page 1 is indexed and carries reciprocal language alternates; ?page=N is noindex, follow.
+      alternatePath: page > 1 ? undefined : path,
     }),
   };
 }
 
-/** Unique metadata for Juz slices — self-canonical when page > 1. */
+/** Unique metadata for Juz pages — ?page=N is consistently noindex, follow. */
 export function juzSeo(juzNumber: number, page = 1) {
   const p = page > 1 ? page : 1;
-  const path = p > 1 ? `/juz/${juzNumber}?page=${p}` : `/juz/${juzNumber}`;
+  const meta = getJuzMeta(juzNumber);
+  const basePath = `/juz/${juzNumber}`;
+  const path = p > 1 ? `${basePath}?page=${p}` : basePath;
+  const span = meta.startRef && meta.endRef ? `${meta.startRef} to ${meta.endRef}` : '';
   const title =
     p > 1
-      ? `Juz ${juzNumber} – Page ${p} | ${SITE_NAME}`
-      : `Juz ${juzNumber} – Read the Holy Quran | ${SITE_NAME}`;
+      ? `Juz ${juzNumber} (${meta.name}) – Page ${p} | ${SITE_NAME}`
+      : `Juz ${juzNumber} (${meta.name})${span ? ` – ${span}` : ''} | ${SITE_NAME}`;
   const description =
     p > 1
-      ? `Continue Juz (para) ${juzNumber} of the Holy Quran — page ${p} with Arabic text, translation, and audio on QuranPilot.`
-      : `Read Juz (para) ${juzNumber} of the Holy Quran with Uthmani script, English translation, and verse-by-verse audio on QuranPilot.`;
+      ? `Continue reading Juz ${juzNumber} (${meta.name}, ${span}) — page ${p} with Uthmani Arabic text, English translation, and audio on QuranPilot.`
+      : `Read Juz ${juzNumber} (${meta.name}, Para ${juzNumber}) of the Holy Quran, from ${span}, with Uthmani Arabic script, English translation, and verse-by-verse audio on QuranPilot.`;
+  const canonicalUrl = absoluteUrl(basePath);
 
   return buildPageMetadata({
     title,
     description,
     path,
-    keywords: [`Juz ${juzNumber}`, `Para ${juzNumber}`, 'Quran juz', 'Quran para'],
+    noIndex: p > 1,
+    hreflangLanguages: p > 1 ? undefined : { en: canonicalUrl, 'x-default': canonicalUrl },
+    keywords: [
+      `Juz ${juzNumber}`,
+      `Para ${juzNumber}`,
+      meta.name,
+      meta.nameArabic,
+      'Quran juz',
+      'Quran para',
+    ].filter(Boolean),
     type: 'article',
   });
 }

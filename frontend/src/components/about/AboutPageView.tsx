@@ -294,8 +294,8 @@ export function AboutPageView({ locale = DEFAULT_CONTENT_LOCALE }: { locale?: Co
                   <code>ps-zakaria-abulsalam-118</code>)
                 </li>
                 <li>
-                  <strong>Persian (فارسی):</strong> Quran Foundation Persian translation (
-                  <code>qf-translation-135</code>){/* TODO: verify exact Persian translator name from DB */}
+                  <strong>Persian (فارسی):</strong> IslamHouse.com Persian translation (
+                  <code>fa-islamhouse-com-135</code>)
                 </li>
               </ul>
             </div>

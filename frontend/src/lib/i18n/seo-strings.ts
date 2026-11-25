@@ -42,7 +42,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
             .join(' '),
         },
 
-  ur: ({ name, arabic, ayahCount }, range) =>
+  ur: ({ name, ayahCount }, range) =>
     range
       ? {
           title: `سورہ ${name} – آیات ${range.start}–${range.end}، اردو ترجمہ، تلاوت اور آڈیو`,
@@ -51,7 +51,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
       : {
           title: `سورہ ${name} – اردو ترجمہ، تلاوت اور آڈیو`,
           description: [
-            `سورہ ${name}${arabic ? ` · ${arabic}` : ''} آن لائن پڑھیں`,
+            `سورہ ${name} آن لائن پڑھیں`,
             ayahCount ? `— ${ayahCount} آیات` : '',
             'عربی عثمانی متن، اردو ترجمہ اور آیت بہ آیت آڈیو کے ساتھ۔',
           ]
@@ -59,7 +59,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
             .join(' '),
         },
 
-  ps: ({ name, arabic, ayahCount }, range) =>
+  ps: ({ name, ayahCount }, range) =>
     range
       ? {
           title: `سورت ${name} – آیتونه ${range.start}–${range.end}، پښتو ژباړه، تلاوت او غږ`,
@@ -68,7 +68,7 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
       : {
           title: `سورت ${name} – پښتو ژباړه، تلاوت او غږ`,
           description: [
-            `سورت ${name}${arabic ? ` · ${arabic}` : ''} آنلاین ولولئ`,
+            `سورت ${name} آنلاین ولولئ`,
             ayahCount ? `— ${ayahCount} آیتونه` : '',
             'د عربي عثماني متن، پښتو ژباړې او آیت په آیت غږ سره.',
           ]
@@ -76,16 +76,16 @@ const BUILDERS: Record<ContentLocale, SurahCopyBuilder> = {
             .join(' '),
         },
 
-  fa: ({ name, arabic, ayahCount }, range) =>
+  fa: ({ name, ayahCount }, range) =>
     range
       ? {
           title: `سوره ${name} – آیات ${range.start}–${range.end}، ترجمه فارسی، تلاوت و صوت`,
           description: `آیات ${range.start}–${range.end} سوره ${name} را با متن عربی، ترجمه فارسی و صوت آیه به آیه بخوانید.`,
         }
       : {
-          title: `سوره ${name} – ترجمه فارسی، تلاوت و صوت`,
+          title: `سوره ${name} با ترجمه فارسی، تلاوت و صوت`,
           description: [
-            `سوره ${name}${arabic ? ` · ${arabic}` : ''} را آنلاین بخوانید`,
+            `سوره ${name} را آنلاین بخوانید`,
             ayahCount ? `— ${ayahCount} آیه` : '',
             'همراه با متن عثمانی عربی، ترجمه فارسی و صوت آیه به آیه.',
           ]

@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { SiteFooter } from '@/components/SiteFooter';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { getSurahArabicName, getSurahPath, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
+import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
 import { absoluteUrl, SITE_NAME } from '@/lib/seo';
 import {
   localeConfig,
@@ -57,19 +58,20 @@ export function LocaleHome({ locale }: { locale: PrefixedLocale }) {
           <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 114 }, (_, index) => {
               const number = index + 1;
-              const name = SURAH_SIMPLE_NAMES[number] || `Surah ${number}`;
+              const localized = getSurahLocalizedName(number, locale);
+              const english = SURAH_SIMPLE_NAMES[number] || `Surah ${number}`;
               return (
                 <li key={number}>
                   <Link
                     href={localePath(locale, getSurahPath(number))}
-                    className="flex items-center justify-between rounded-lg border border-line px-3 py-2 text-sm hover:bg-surface-2"
+                    className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm hover:bg-surface-2"
                   >
                     <span className="font-medium text-ink">
-                      <bdi dir="ltr">
-                        {number}. {name}
-                      </bdi>
+                      {number}. {localized}
                     </span>
-                    <span className="text-ink-3">{getSurahArabicName(number)}</span>
+                    <span className="text-xs text-ink-3" dir="ltr">
+                      {english}
+                    </span>
                   </Link>
                 </li>
               );
