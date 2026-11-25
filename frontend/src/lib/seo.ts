@@ -283,10 +283,22 @@ export const FAMOUS_AYAHS: { surah: number; ayah: number }[] = [
 
 const AYAH_SEO_NAMES: Partial<Record<string, Partial<Record<ContentLocale, string>>>> = {
   '2:255': {
-    en: 'Ayatul Kursi',
-    ur: 'آیت الکرسی',
-    ps: 'آیت الکرسی',
-    fa: 'آیة الکرسی',
+    en: 'Ayatul Kursi (Verse of the Throne)',
+    ur: 'آیت الکرسی اردو ترجمہ کے ساتھ',
+    ps: 'آیت الکرسی له پښتو ژباړې سره',
+    fa: 'آیة الکرسی با ترجمه فارسی',
+  },
+  '2:285': {
+    en: 'Last 2 Ayahs of Surah Al-Baqarah (Amanar-Rasul)',
+    ur: 'سورہ البقرہ کی آخری دو آیات (آمن الرسول)',
+    ps: 'د سورت البقرې وروستي دوه آیتونه (آمن الرسول)',
+    fa: 'دو آیه پایانی سوره بقره (آمن الرسول)',
+  },
+  '2:286': {
+    en: 'Last Ayah of Surah Al-Baqarah (La Yukallifullahu)',
+    ur: 'سورہ البقرہ کی آخری آیت (لا یکلف اللہ)',
+    ps: 'د سورت البقرې وروستی آیت',
+    fa: 'آخرین آیه سوره بقره (لا یکلف الله)',
   },
   '24:35': {
     en: 'Light Verse (Ayat an-Nur)',
@@ -455,31 +467,51 @@ export function surahJsonLd(input: {
   ayahCount?: number;
   path: string;
   locale?: ContentLocale;
+  description?: string;
 }) {
   const locale = input.locale ?? DEFAULT_CONTENT_LOCALE;
   const localizedName = getSurahLocalizedName(input.number, locale);
+  const displayName = locale === 'en' ? `Surah ${input.name}` : localizedName;
   const url = absoluteUrl(input.path);
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'CreativeWork',
-    name: locale === 'en' ? `Surah ${input.name}` : localizedName,
-    alternateName: [input.arabic, input.meaning, localizedName].filter(Boolean),
-    description: `Chapter ${input.number} of the Holy Quran${input.ayahCount ? ` with ${input.ayahCount} verses` : ''}.`,
-    inLanguage: locale === 'en' ? 'ar' : locale,
-    isPartOf: {
-      '@type': 'Book',
-      name: 'The Holy Quran',
-      inLanguage: 'ar',
+  const desc =
+    input.description ||
+    `Chapter ${input.number} of the Holy Quran${input.ayahCount ? ` with ${input.ayahCount} verses` : ''}.`;
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: displayName,
+      description: desc,
+      url,
+      inLanguage: localeConfig(locale).hreflang,
+      isPartOf: {
+        '@type': 'WebSite',
+        name: SITE_NAME,
+        url: SITE_URL,
+      },
     },
-    position: input.number,
-    url,
-    mainEntityOfPage: url,
-    publisher: {
-      '@type': 'Organization',
-      name: SITE_NAME,
-      url: SITE_URL,
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CreativeWork',
+      name: displayName,
+      alternateName: [input.arabic, input.meaning, localizedName].filter(Boolean),
+      description: desc,
+      inLanguage: localeConfig(locale).hreflang,
+      isPartOf: {
+        '@type': 'Book',
+        name: 'The Holy Quran',
+        inLanguage: 'ar',
+      },
+      position: input.number,
+      url,
+      mainEntityOfPage: url,
+      publisher: {
+        '@type': 'Organization',
+        name: SITE_NAME,
+        url: SITE_URL,
+      },
     },
-  };
+  ];
 }
 
 export function breadcrumbJsonLd(items: { name: string; path: string }[]) {

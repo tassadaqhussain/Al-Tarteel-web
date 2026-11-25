@@ -42,7 +42,7 @@ const amiriQuran = Amiri_Quran({
   subsets: ['arabic', 'latin'],
   variable: '--font-amiri-quran',
   display: 'swap',
-  preload: false,
+  preload: true,
 });
 
 /** Kids experience only. Self-hosted, so no render-blocking third-party CSS. */

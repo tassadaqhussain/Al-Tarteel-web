@@ -11,7 +11,7 @@ import { CleanTranslationUrl } from '@/components/reader/CleanTranslationUrl';
 import { ReaderBismillah } from '@/components/reader/ReaderBismillah';
 import { StudyPanel } from '@/components/reader/StudyPanel';
 import { ChevronLeft, ArrowRight } from 'lucide-react';
-import { getSurahArabicName, getSurahPath } from '@/lib/surah-meta';
+import { getSurahArabicName, getSurahMeta, getSurahPath } from '@/lib/surah-meta';
 import { getJuzMeta } from '@/lib/juz-meta';
 import { resolveTranslations } from '@/lib/translation-preference';
 import { parsePositiveInteger, readerPage, needsPageRedirect, surahPageHref } from '@/lib/surah-pagination';
@@ -163,12 +163,28 @@ export default async function JuzPage({ params, searchParams }: Props) {
             </span>
           </h1>
           {juzMeta.startRef && juzMeta.endRef && (
-            <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-ink-3">
-              Juz {juzNumber} (Para {juzNumber}, known as {juzMeta.name}) covers{' '}
-              <strong className="font-medium text-ink-2">{juzMeta.startRef}</strong> through{' '}
-              <strong className="font-medium text-ink-2">{juzMeta.endRef}</strong>. Read online with
-              clear Uthmani Arabic script, English translation, and synchronized verse-by-verse audio.
-            </p>
+            <>
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-ink-3">
+                Juz {juzNumber} (Para {juzNumber}, known as {juzMeta.name}) covers{' '}
+                <strong className="font-medium text-ink-2">{juzMeta.startRef}</strong> through{' '}
+                <strong className="font-medium text-ink-2">{juzMeta.endRef}</strong>. Read online with
+                clear Uthmani Arabic script, English translation, and synchronized verse-by-verse audio.
+              </p>
+              <nav aria-label={`Surahs in Juz ${juzNumber}`} className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+                {Array.from(
+                  { length: Math.max(1, juzMeta.endSurah - juzMeta.startSurah + 1) },
+                  (_, idx) => juzMeta.startSurah + idx,
+                ).map((sNum) => (
+                  <Link
+                    key={sNum}
+                    href={getSurahPath(sNum)}
+                    className="rounded-full border border-line bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    {sNum}. {getSurahMeta(sNum).nameSimple}
+                  </Link>
+                ))}
+              </nav>
+            </>
           )}
         </div>
 

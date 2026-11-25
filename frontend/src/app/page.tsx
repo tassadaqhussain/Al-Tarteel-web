@@ -9,6 +9,7 @@ import { StartLearning } from '@/components/home/StartLearning';
 import { buildPageMetadata, DEFAULT_DESCRIPTION } from '@/lib/seo';
 import { SiteFooter } from '@/components/SiteFooter';
 import { SITE_SHELL } from '@/components/layout/MainContainer';
+import { getSurahPath, SURAH_SIMPLE_NAMES } from '@/lib/surah-meta';
 
 export const revalidate = 3600;
 
@@ -112,6 +113,68 @@ export default function HomePage() {
                 </Link>
                 .
               </p>
+            </div>
+
+            <div className="grid gap-4 pt-2 sm:grid-cols-2">
+              <details className="rounded-xl border border-line bg-surface p-4">
+                <summary className="cursor-pointer text-sm font-bold text-ink">
+                  All 114 Surahs of the Quran
+                </summary>
+                <nav aria-label="All 114 Surahs" className="mt-3 flex flex-wrap gap-1.5 text-xs">
+                  {Array.from({ length: 114 }, (_, i) => {
+                    const num = i + 1;
+                    return (
+                      <Link
+                        key={num}
+                        href={getSurahPath(num)}
+                        prefetch={false}
+                        className="rounded-md border border-line px-2 py-1 text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                      >
+                        {num}. {SURAH_SIMPLE_NAMES[num]}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </details>
+
+              <details className="rounded-xl border border-line bg-surface p-4">
+                <summary className="cursor-pointer text-sm font-bold text-ink">
+                  All 30 Juz (Para) &amp; Popular Verses
+                </summary>
+                <nav aria-label="All 30 Juz" className="mt-3 flex flex-wrap gap-1.5 text-xs">
+                  {Array.from({ length: 30 }, (_, i) => {
+                    const juz = i + 1;
+                    return (
+                      <Link
+                        key={juz}
+                        href={`/juz/${juz}`}
+                        prefetch={false}
+                        className="rounded-md border border-line px-2.5 py-1 text-ink-2 transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                      >
+                        Juz {juz}
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    href="/al-baqarah/255"
+                    className="rounded-md border border-[var(--accent)]/40 px-2.5 py-1 font-medium text-[var(--accent)] hover:border-[var(--accent)]"
+                  >
+                    Ayatul Kursi (2:255)
+                  </Link>
+                  <Link
+                    href="/al-baqarah/285"
+                    className="rounded-md border border-[var(--accent)]/40 px-2.5 py-1 font-medium text-[var(--accent)] hover:border-[var(--accent)]"
+                  >
+                    Al-Baqarah 2:285
+                  </Link>
+                  <Link
+                    href="/al-baqarah/286"
+                    className="rounded-md border border-[var(--accent)]/40 px-2.5 py-1 font-medium text-[var(--accent)] hover:border-[var(--accent)]"
+                  >
+                    Al-Baqarah 2:286
+                  </Link>
+                </nav>
+              </details>
             </div>
           </div>
         </section>

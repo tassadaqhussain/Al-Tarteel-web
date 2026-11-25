@@ -33,6 +33,7 @@ import {
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { surahJsonLd, surahSeo } from '@/lib/seo';
 import { getSurahLocalizedName } from '@/lib/i18n/surah-localized-names';
+import { getRelatedSurahNumbers, getSurahIntro } from '@/lib/i18n/surah-intros';
 import {
   endOfSurahLabel,
   navSurahLabel,
@@ -244,6 +245,8 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
   // The root layout is English because it also serves the unprefixed site.
   // Scope the rendered reader to its actual content language for locale URLs;
   // this is present in the server HTML for crawlers and assistive technology.
+  const surahIntro = getSurahIntro(surahNumber, activeLocale);
+  const relatedSurahs = getRelatedSurahNumbers(surahNumber, 6);
   const contentLocale = localeConfig(activeLocale);
 
   return (
@@ -261,6 +264,7 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           ayahCount,
           path: surahPath,
           locale: activeLocale,
+          description: surahIntro.summary,
         })}
       />
       <Header />
@@ -391,6 +395,39 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           </nav>
         </header>
 
+        {/* Server-rendered localized intro block above the ayahs */}
+        {page === 1 && (
+          <section
+            data-surah-intro
+            aria-label={surahIntro.heading}
+            className="mb-5 rounded-xl border border-line-subtle bg-surface-2/60 px-5 py-4"
+          >
+            <div className="flex flex-wrap items-center gap-2 text-xs text-ink-3">
+              <span className="font-semibold text-ink">{surahIntro.heading}</span>
+              <span aria-hidden>·</span>
+              <span>{surahIntro.revelationLabel}</span>
+              <span aria-hidden>·</span>
+              <span>{surahIntro.ayahsLabel}</span>
+              {surahIntro.meaningLabel && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>{surahIntro.meaningLabel}</span>
+                </>
+              )}
+              {surahIntro.juzNumbers.map((juz) => (
+                <Link
+                  key={juz}
+                  href={`/juz/${juz}`}
+                  className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11px] font-medium text-[var(--accent)] hover:border-[var(--accent)]"
+                >
+                  {surahIntro.juzLabelPrefix} {juz}
+                </Link>
+              ))}
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-ink-2">{surahIntro.summary}</p>
+          </section>
+        )}
+
         {/* ── Bismillah ────────────────────────────────────────────────── */}
         {surahNumber !== 9 && surahNumber !== 1 && page === 1 && <ReaderBismillah locale={activeLocale} />}
 
@@ -471,6 +508,53 @@ export default async function SurahPage({ params, searchParams, locale }: Props)
           surahName={surah.nameSimple}
           locale={activeLocale}
         />
+
+        <nav
+          aria-label={
+            activeLocale === 'fa'
+              ? 'سوره‌های مرتبط'
+              : activeLocale === 'ps'
+                ? 'اړوند سورتونه'
+                : activeLocale === 'ur'
+                  ? 'متعلقہ سورتیں'
+                  : 'Related Surahs'
+          }
+          className="mt-8 rounded-2xl border border-line bg-surface p-5"
+        >
+          <h2 className="text-base font-bold text-ink">
+            {activeLocale === 'fa'
+              ? 'سوره‌های مرتبط و پربازدید'
+              : activeLocale === 'ps'
+                ? 'اړوند او مشهور سورتونه'
+                : activeLocale === 'ur'
+                  ? 'متعلقہ اور معروف سورتیں'
+                  : 'Related & Frequently Read Surahs'}
+          </h2>
+          <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {relatedSurahs.map((relNum) => {
+              const relMeta = getSurahMeta(relNum);
+              const relLabel =
+                activeLocale === 'en'
+                  ? relMeta.nameSimple
+                  : getSurahLocalizedName(relNum, activeLocale);
+              return (
+                <li key={relNum}>
+                  <Link
+                    href={localePath(activeLocale, getSurahPath(relNum))}
+                    className="flex items-center justify-between gap-2 rounded-xl border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    <span className="truncate">
+                      {relNum}. {relLabel}
+                    </span>
+                    <span className="font-arabic text-base text-ink-3" dir="rtl" lang="ar">
+                      {getSurahArabicName(relNum, relMeta.nameArabic)}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
         <SurahLearningPlans
           surahNumber={surahNumber}

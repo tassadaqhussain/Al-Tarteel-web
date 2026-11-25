@@ -79,6 +79,32 @@ export function LocaleHome({ locale }: { locale: PrefixedLocale }) {
           </ul>
         </section>
 
+        <section aria-labelledby="juz-index" className="mt-10">
+          <h2 id="juz-index" className="text-xl font-bold text-ink">
+            {locale === 'fa'
+              ? '۳۰ جزء قرآن کریم'
+              : locale === 'ps'
+                ? 'د قرآن کریم ۳۰ سپارې'
+                : 'قرآن مجید کے 30 پارے'}
+          </h2>
+          <ul className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6">
+            {Array.from({ length: 30 }, (_, index) => {
+              const juz = index + 1;
+              const prefix = locale === 'fa' ? 'جزء' : locale === 'ps' ? 'سپاره' : 'پارہ';
+              return (
+                <li key={juz}>
+                  <Link
+                    href={`/juz/${juz}`}
+                    className="flex items-center justify-center rounded-lg border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                  >
+                    {prefix} {juz}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
         <nav aria-labelledby="other-languages" className="mt-10">
           <h2 id="other-languages" className="text-xl font-bold text-ink">
             {copy.otherLanguagesHeading}

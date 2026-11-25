@@ -24,87 +24,112 @@ const OVERRIDES: Partial<
   },
   18: {
     en: {
-      title: 'Surah Al-Kahf – Translation & Audio',
+      title: 'Surah Al-Kahf – Read with English Translation & Audio',
       description:
         'Read Surah Al-Kahf (The Cave) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
-      title: 'سورہ الکہف – اردو ترجمہ، تلاوت اور آڈیو',
+      title: 'سورہ الکہف اردو ترجمہ کے ساتھ – تلاوت اور آڈیو',
       description:
         'سورہ الکہف (کہف) عربی متن، اردو ترجمہ، تلاوت اور آیت بہ آیت آڈیو کے ساتھ آن لائن پڑھیں۔',
     },
     ps: {
-      title: 'سورت الکهف – پښتو ژباړه، تلاوت او غږ',
+      title: 'سورت الکهف له پښتو ژباړې سره – تلاوت او غږ',
       description:
         'د سورت الکهف عربي متن، پښتو ژباړه، تلاوت او آیت په آیت غږ د QuranPilot کې ولولئ.',
+    },
+    fa: {
+      title: 'سوره کهف با ترجمه فارسی – تلاوت و صوت',
+      description:
+        'سوره کهف (۱۱۰ آیه) را با متن عربی عثمانی، ترجمه فارسی و صوت آیه به آیه آنلاین در QuranPilot بخوانید.',
     },
   },
   36: {
     en: {
-      title: 'Surah Ya-Sin (Yaseen) – Translation & Audio',
+      title: 'Surah Yasin (Ya-Sin) – Read with Translation & Audio',
       description:
-        'Read Surah Ya-Sin (Yaseen) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
+        'Read Surah Yasin (Ya-Sin) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
-      title: 'سورہ یٰسین – اردو ترجمہ، تلاوت اور آڈیو',
+      title: 'سورہ یٰسین اردو ترجمہ کے ساتھ – تلاوت اور آڈیو',
       description:
         'سورہ یٰسین عربی متن، اردو ترجمہ، تلاوت اور آیت بہ آیت آڈیو کے ساتھ آن لائن پڑھیں۔',
     },
     ps: {
-      title: 'سورت یس – پښتو ژباړه، تلاوت او غږ',
+      title: 'سورت یس له پښتو ژباړې سره – تلاوت او غږ',
       description:
         'د سورت یس عربي متن، پښتو ژباړه، تلاوت او آیت په آیت غږ د QuranPilot کې ولولئ.',
+    },
+    fa: {
+      title: 'سوره یس با ترجمه فارسی – تلاوت و صوت',
+      description:
+        'سوره یس (۸۳ آیه) را با متن عربی عثمانی، ترجمه فارسی و صوت آیه به آیه آنلاین در QuranPilot بخوانید.',
     },
   },
   55: {
     en: {
-      title: 'Surah Ar-Rahman – Translation & Audio',
+      title: 'Surah Ar-Rahman – Read with Translation & Audio',
       description:
         'Read Surah Ar-Rahman (The Most Merciful) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse audio on QuranPilot.',
     },
     ur: {
-      title: 'سورہ الرحمٰن – اردو ترجمہ، تلاوت اور آڈیو',
+      title: 'سورہ الرحمٰن اردو ترجمہ کے ساتھ – تلاوت اور آڈیو',
       description:
         'سورہ الرحمٰن عربی متن، اردو ترجمہ، تلاوت اور آیت بہ آیت آڈیو کے ساتھ آن لائن پڑھیں۔',
     },
     ps: {
-      title: 'سورت الرحمن – پښتو ژباړه، تلاوت او غږ',
+      title: 'سورت الرحمن له پښتو ژباړې سره – تلاوت او غږ',
       description:
         'د سورت الرحمن عربي متن، پښتو ژباړه، تلاوت او آیت په آیت غږ د QuranPilot کې ولولئ.',
+    },
+    fa: {
+      title: 'سوره الرحمن با ترجمه فارسی – تلاوت و صوت',
+      description:
+        'سوره الرحمن (۷۸ آیه) را با متن عربی عثمانی، ترجمه فارسی و صوت آیه به آیه آنلاین در QuranPilot بخوانید.',
     },
   },
   56: {
     en: {
-      title: "Surah Al-Waqi'ah – Translation & Audio",
+      title: "Surah Al-Waqiah (Al-Waqi'ah) – Read with Translation & Audio",
       description:
-        "Read Surah Al-Waqi'ah (The Inevitable) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse audio on QuranPilot.",
+        "Read Surah Al-Waqiah (The Inevitable) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse audio on QuranPilot.",
     },
     ur: {
-      title: 'سورہ الواقعہ – اردو ترجمہ، تلاوت اور آڈیو',
+      title: 'سورہ الواقعہ اردو ترجمہ کے ساتھ – تلاوت اور آڈیو',
       description:
         'سورہ الواقعہ عربی متن، اردو ترجمہ، تلاوت اور آیت بہ آیت آڈیو کے ساتھ آن لائن پڑھیں۔',
     },
     ps: {
-      title: 'سورت الواقعه – پښتو ژباړه، تلاوت او غږ',
+      title: 'سورت الواقعه له پښتو ژباړې سره – تلاوت او غږ',
       description:
         'د سورت الواقعه عربي متن، پښتو ژباړه، تلاوت او آیت په آیت غږ د QuranPilot کې ولولئ.',
+    },
+    fa: {
+      title: 'سوره واقعه با ترجمه فارسی – تلاوت و صوت',
+      description:
+        'سوره واقعه (۹۶ آیه) را با متن عربی عثمانی، ترجمه فارسی و صوت آیه به آیه آنلاین در QuranPilot بخوانید.',
     },
   },
   67: {
     en: {
-      title: 'Surah Al-Mulk – Translation & Audio',
+      title: 'Surah Al-Mulk – Read with Translation & Audio',
       description:
         'Read Surah Al-Mulk (The Sovereignty) with Arabic Uthmani text, English translation, transliteration, and verse-by-verse Quran audio on QuranPilot.',
     },
     ur: {
-      title: 'سورہ الملک – اردو ترجمہ، تلاوت اور آڈیو',
+      title: 'سورہ الملک اردو ترجمہ کے ساتھ – تلاوت اور آڈیو',
       description:
-        'سورہ الملک (ملک) عربی متن، اردو ترجمہ، تلاوت اور آیت بہ آیت آڈیو کے ساتھ آن لائن پڑھیں۔',
+        'سورہ الملک عربی متن، اردو ترجمہ، تلاوت اور آیت بہ آیت آڈیو کے ساتھ آن لائن پڑھیں۔',
     },
     ps: {
-      title: 'سورت الملك – پښتو ژباړه، تلاوت او غږ',
+      title: 'سورت الملک له پښتو ژباړې سره – تلاوت او غږ',
       description:
-        'د سورت الملك عربي متن، پښتو ژباړه، تلاوت او آیت په آیت غږ د QuranPilot کې ولولئ.',
+        'د سورت الملک عربي متن، پښتو ژباړه، تلاوت او آیت په آیت غږ د QuranPilot کې ولولئ.',
+    },
+    fa: {
+      title: 'سوره ملک با ترجمه فارسی – تلاوت و صوت',
+      description:
+        'سوره ملک (۳۰ آیه) را با متن عربی عثمانی، ترجمه فارسی و صوت آیه به آیه آنلاین در QuranPilot بخوانید.',
     },
   },
   78: {
