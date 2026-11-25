@@ -200,6 +200,12 @@ if [[ "${NO_BUILD}" != "1" ]]; then
     ok "Skipping api build (no backend changes)"
   fi
   if [[ "${BUILD_WEB}" == "1" ]]; then
+    ROOT_FREE_MB=$(( $(df -Pk / 2>/dev/null | awk 'NR==2 {print $4}') / 1024 ))
+    if [[ "${ROOT_FREE_MB}" -lt 3500 ]]; then
+      warn "Low disk (${ROOT_FREE_MB} MB free) — reclaiming Docker cache before web build"
+      docker image prune -f >/dev/null 2>&1 || true
+      docker builder prune -af >/dev/null 2>&1 || true
+    fi
     log "Build web image"
     "${COMPOSE[@]}" build web
   else

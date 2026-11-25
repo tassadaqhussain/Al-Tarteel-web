@@ -2,18 +2,13 @@
 FROM node:22-slim AS deps
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y libc6 && rm -rf /var/lib/apt/lists/*
-
 COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --prefer-offline --no-audit --legacy-peer-deps 2>/dev/null || \
     npm install --prefer-offline --no-audit --legacy-peer-deps
 
-# Rebuild the source code only when necessary
-FROM node:22-slim AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Inherit deps directly instead of copying node_modules (~600 MB disk & time saved)
+FROM deps AS builder
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
