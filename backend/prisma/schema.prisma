@@ -643,3 +643,19 @@ model MailTemplate {
   @@index([updatedAt(sort: Desc)])
   @@map("mail_templates")
 }
+
+/// Daily Quran reflection email subscribers (double opt-in).
+model DailySubscriber {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique @db.VarChar(254)
+  locale       String    @default("en") @db.VarChar(10)
+  source       String    @default("inline") @db.VarChar(60)
+  status       String    @default("pending") @db.VarChar(20)
+  confirmToken String    @unique @map("confirm_token") @db.VarChar(64)
+  confirmedAt  DateTime? @map("confirmed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("daily_subscribers")
+}

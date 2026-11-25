@@ -12,11 +12,17 @@ const SUBSCRIBED_KEY = 'quranpilot-subscribed';
 
 function SubscribeForm({
   source,
+  locale = 'en',
   compact = false,
+  cta = 'Subscribe',
+  submittingLabel = 'Subscribing…',
   onSuccess,
 }: {
   source: string;
+  locale?: string;
   compact?: boolean;
+  cta?: string;
+  submittingLabel?: string;
   onSuccess?: () => void;
 }) {
   const [email, setEmail] = useState('');
@@ -34,7 +40,7 @@ function SubscribeForm({
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), website, source }),
+        body: JSON.stringify({ email: email.trim(), website, source, locale }),
       });
       const data = (await res.json()) as { ok?: boolean; message?: string; error?: string };
       if (!res.ok || !data.ok) {
@@ -65,7 +71,10 @@ function SubscribeForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className={compact ? 'mt-3 space-y-2' : 'mt-4 flex flex-col gap-2 sm:flex-row'}>
+    <form
+      onSubmit={handleSubmit}
+      className={compact ? 'mt-3 flex flex-col gap-2 sm:flex-row' : 'mt-4 flex flex-col gap-2 sm:flex-row'}
+    >
       {/* Honeypot field for bots */}
       <input
         type="text"
@@ -91,10 +100,10 @@ function SubscribeForm({
         disabled={status === 'submitting'}
         className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-brand-contrast transition hover:bg-[var(--accent)]/90 disabled:opacity-60"
       >
-        {status === 'submitting' ? 'Subscribing…' : 'Subscribe'}
+        {status === 'submitting' ? submittingLabel : cta}
       </button>
       {status === 'error' && message && (
-        <p className="text-xs text-red-600 dark:text-red-400 sm:col-span-2">{message}</p>
+        <p className="text-xs text-red-600 dark:text-red-400 sm:basis-full">{message}</p>
       )}
     </form>
   );
@@ -157,7 +166,7 @@ export function DailyAyahSubscribeCard({
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-bold text-ink sm:text-lg">{copy.heading}</h2>
           <p className="mt-1 text-xs leading-relaxed text-ink-muted sm:text-sm">{copy.body}</p>
-          <SubscribeForm source={source} />
+          <SubscribeForm source={source} locale={locale} cta={copy.cta} submittingLabel={copy.submitting} />
         </div>
       </div>
     </section>
@@ -220,7 +229,7 @@ export function DailyAyahSlideIn() {
   return (
     <aside
       aria-label="Daily ayah email signup"
-      className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-md rounded-2xl border border-line bg-surface p-4 shadow-xl sm:left-auto sm:right-6 sm:bottom-6"
+      className="fixed bottom-20 left-4 right-4 z-[55] mx-auto max-w-sm rounded-2xl border border-line bg-surface p-4 shadow-xl sm:bottom-6 sm:left-6 sm:right-auto sm:mx-0"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[var(--accent)]">

@@ -12,6 +12,7 @@ import { DonationsModule } from './donations/donations.module';
 import { AiModule } from './ai/ai.module';
 import { HifzModule } from './hifz/hifz.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { SubscribeModule } from './subscribe/subscribe.module';
 import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AiKnowledgeModule } from './ai-knowledge/ai-knowledge.module';
@@ -41,6 +42,7 @@ import { SiteSettingsModule } from './site-settings/site-settings.module';
     AiModule,
     HifzModule,
     FeedbackModule,
+    SubscribeModule,
     AnalyticsModule,
     AdminModule,
     CampaignsModule,

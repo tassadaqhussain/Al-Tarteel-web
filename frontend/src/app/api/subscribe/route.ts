@@ -29,6 +29,14 @@ function getClientIp(req: NextRequest): string {
   return req.headers.get('x-real-ip') || 'unknown';
 }
 
+function backendApiBase(): string {
+  const internal = process.env.API_URL?.trim() || process.env.INTERNAL_API_URL?.trim();
+  if (internal) return internal.replace(/\/$/, '');
+  const pub = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (pub && /^https?:\/\//i.test(pub)) return pub.replace(/\/$/, '');
+  return 'http://127.0.0.1:4010/api/v1';
+}
+
 function getStorePath(): string {
   return (
     process.env.SUBSCRIBE_STORE_PATH?.trim() ||
@@ -72,6 +80,33 @@ export async function POST(req: NextRequest) {
 
   const source = typeof body.source === 'string' ? body.source.slice(0, 60) : 'inline';
   const locale = typeof body.locale === 'string' ? body.locale.slice(0, 10) : 'en';
+
+  try {
+    const upstream = await fetch(`${backendApiBase()}/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: rawEmail, source, locale }),
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = (await upstream.json().catch(() => null)) as {
+      ok?: boolean;
+      status?: string;
+      message?: string;
+      error?: string;
+    } | null;
+    if (upstream.ok && data?.ok) {
+      return NextResponse.json(data);
+    }
+    if (upstream.status >= 400 && upstream.status < 500 && data) {
+      return NextResponse.json(
+        { ok: false, error: data.message || data.error || 'Could not subscribe.' },
+        { status: upstream.status },
+      );
+    }
+  } catch {
+    // Backend unavailable; fall back to local JSONL store.
+  }
+
   const confirmToken = randomBytes(24).toString('hex');
 
   const storePath = getStorePath();
@@ -90,7 +125,7 @@ export async function POST(req: NextRequest) {
         email: rawEmail,
         source,
         locale,
-        status: 'pending_confirmation',
+        status: 'saved',
         doubleOptInReady: true,
         confirmToken,
         createdAt: new Date().toISOString(),
@@ -107,7 +142,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    status: 'pending_confirmation',
-    message: 'You are subscribed! Please check your inbox to confirm your daily ayah.',
+    status: 'saved',
+    message: 'You are subscribed for Daily Quran Reflection!',
   });
 }
+
