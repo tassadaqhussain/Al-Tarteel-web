@@ -14,6 +14,9 @@
 #   --env PATH           deploy env file (default: deploy/production.env)
 #   --pull               git fetch + reset --hard to origin before building
 #   --no-build           start existing images only
+#   --web-only           rebuild and restart only the web (frontend) service
+#   --api-only           rebuild and restart only the api (backend) service
+#   --force-build        rebuild all images even if git diff shows no changes
 #   --import-content     after API is up, import translations/tafsir/study
 #   --import-audio       mirror compact spoken-translation audio in foreground
 #   --full-audio-import  all Arabic reciters + all translations + WBW (needs lots of disk)
@@ -31,6 +34,9 @@ ENV_FILE="${REPO_ROOT}/deploy/production.env"
 ASSUME_YES=0
 DO_PULL=0
 NO_BUILD=0
+WEB_ONLY=0
+API_ONLY=0
+FORCE_BUILD=0
 IMPORT_CONTENT=0
 IMPORT_AUDIO=0
 SKIP_AUDIO_IMPORT=0
@@ -51,6 +57,9 @@ while [[ $# -gt 0 ]]; do
     --env) ENV_FILE="${2:-}"; shift 2 ;;
     --pull) DO_PULL=1; shift ;;
     --no-build) NO_BUILD=1; shift ;;
+    --web-only) WEB_ONLY=1; shift ;;
+    --api-only) API_ONLY=1; shift ;;
+    --force-build) FORCE_BUILD=1; shift ;;
     --import-content) IMPORT_CONTENT=1; shift ;;
     --import-audio) IMPORT_AUDIO=1; shift ;;
     --full-audio-import) FULL_AUDIO_IMPORT=1; IMPORT_AUDIO=1; shift ;;
@@ -115,11 +124,22 @@ fi
 
 cd "${APP_DIR}"
 
+LAST_SHA_FILE="${APP_DIR}/deploy/.last-deployed-sha"
+DB_SYNC_MARKER="${APP_DIR}/deploy/.db-synced"
+PREV_SHA=""
+if [[ -f "${LAST_SHA_FILE}" ]]; then
+  PREV_SHA="$(cat "${LAST_SHA_FILE}" 2>/dev/null || true)"
+elif command -v git >/dev/null 2>&1; then
+  PREV_SHA="$(git -C "${APP_DIR}" rev-parse HEAD 2>/dev/null || true)"
+fi
+
 if [[ "${DO_PULL}" == "1" ]]; then
   log "git fetch + reset --hard to origin"
   git fetch origin
   git reset --hard "@{u}"
 fi
+
+CURR_SHA="$(git -C "${APP_DIR}" rev-parse HEAD 2>/dev/null || true)"
 
 log "Sync public URLs"
 bash "${APP_DIR}/scripts/sync-public-env.sh"
@@ -140,16 +160,55 @@ COMPOSE=(docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
 
 mkdir -p "${APP_DIR}/backend/storage/audio" "${APP_DIR}/backend/storage/tts"
 
-if [[ "${NO_BUILD}" != "1" ]]; then
-  log "Build and update api image first (reclaim build cache before web build)"
-  "${COMPOSE[@]}" build api
-  "${COMPOSE[@]}" up -d --no-deps api
-  docker image prune -f >/dev/null 2>&1 || true
-  docker builder prune -af >/dev/null 2>&1 || true
+BUILD_API=0
+BUILD_WEB=0
+BUILD_TTS=0
+RUN_DB_SYNC=0
 
-  log "Build web image"
-  "${COMPOSE[@]}" build web
-  docker builder prune -f --keep-storage=500MB >/dev/null 2>&1 || true
+if [[ "${NO_BUILD}" != "1" ]]; then
+  if [[ "${WEB_ONLY}" == "1" ]]; then
+    BUILD_WEB=1
+  elif [[ "${API_ONLY}" == "1" ]]; then
+    BUILD_API=1
+    RUN_DB_SYNC=1
+  elif [[ "${FORCE_BUILD}" == "1" || -z "${PREV_SHA}" || -z "${CURR_SHA}" || "${PREV_SHA}" == "${CURR_SHA}" ]]; then
+    BUILD_API=1
+    BUILD_WEB=1
+    RUN_DB_SYNC=1
+  else
+    CHANGED_FILES="$(git -C "${APP_DIR}" diff --name-only "${PREV_SHA}" "${CURR_SHA}" 2>/dev/null || true)"
+    echo "${CHANGED_FILES}" | grep -qE '^(backend/|docker-compose\.prod\.yml)' && BUILD_API=1
+    echo "${CHANGED_FILES}" | grep -qE '^(frontend/|docker-compose\.prod\.yml)' && BUILD_WEB=1
+    echo "${CHANGED_FILES}" | grep -qE '^(services/tts/|docker-compose\.prod\.yml)' && BUILD_TTS=1
+    echo "${CHANGED_FILES}" | grep -qE '^backend/prisma/' && RUN_DB_SYNC=1
+  fi
+
+  # Ensure images exist on first deploy even if diff didn't touch them
+  docker image inspect quranpilot-api >/dev/null 2>&1 || BUILD_API=1
+  docker image inspect quranpilot-web >/dev/null 2>&1 || BUILD_WEB=1
+  docker image inspect quranpilot-tts >/dev/null 2>&1 || BUILD_TTS=1
+
+  if [[ "${BUILD_TTS}" == "1" ]]; then
+    log "Build tts image"
+    "${COMPOSE[@]}" build tts
+  fi
+  if [[ "${BUILD_API}" == "1" ]]; then
+    log "Build and update api image"
+    "${COMPOSE[@]}" build api
+    "${COMPOSE[@]}" up -d --no-deps api
+  else
+    ok "Skipping api build (no backend changes)"
+  fi
+  if [[ "${BUILD_WEB}" == "1" ]]; then
+    log "Build web image"
+    "${COMPOSE[@]}" build web
+  else
+    ok "Skipping web build (no frontend changes)"
+  fi
+
+  # Keep recent BuildKit layers warm (apt/npm ci) instead of wiping all cache
+  docker image prune -f >/dev/null 2>&1 || true
+  docker builder prune -f --keep-storage=1GB >/dev/null 2>&1 || true
 fi
 
 log "Start stack"
@@ -184,15 +243,22 @@ if [[ "${ready_api}" -ne 1 ]]; then
   die "API not ready on 127.0.0.1:${API_PORT}"
 fi
 
-log "Sync Prisma schema (creates new analytics tables if needed)"
-"${COMPOSE[@]}" exec -T api npx prisma db push --skip-generate || warn "Prisma db push skipped"
+if [[ "${RUN_DB_SYNC}" == "1" || ! -f "${DB_SYNC_MARKER}" ]]; then
+  log "Sync Prisma schema (creates new tables if needed)"
+  "${COMPOSE[@]}" exec -T api npx prisma db push --skip-generate || warn "Prisma db push skipped"
 
-log "Download all 6236 ayahs into Postgres (skips if already complete)"
-"${COMPOSE[@]}" exec -T api npm run quran:download
-"${COMPOSE[@]}" exec -T api npm run reciters:import
+  log "Download all 6236 ayahs into Postgres (skips if already complete)"
+  "${COMPOSE[@]}" exec -T api npm run quran:download
+  "${COMPOSE[@]}" exec -T api npm run reciters:import
 
-log "Backfill IndoPak script text (skips if already complete)"
-bash "${APP_DIR}/scripts/import-indopak.sh" || warn "IndoPak import failed (Uthmani fallback still works)"
+  log "Backfill IndoPak script text (skips if already complete)"
+  bash "${APP_DIR}/scripts/import-indopak.sh" || warn "IndoPak import failed (Uthmani fallback still works)"
+
+  mkdir -p "$(dirname "${DB_SYNC_MARKER}")"
+  date -u +%FT%TZ > "${DB_SYNC_MARKER}" || true
+else
+  ok "Skipping Prisma/seed sync (no backend/prisma changes)"
+fi
 
 if [[ "${IMPORT_CONTENT}" == "1" ]]; then
   log "Import translations, tafsir, and study content"
@@ -272,6 +338,11 @@ elif [[ "${SKIP_AUDIO_IMPORT}" != "1" && ! -f "${AUDIO_MARKER}" ]]; then
     ' > "${AUDIO_LOG}" 2>&1 &
     ok "Translation audio downloading in background → ${AUDIO_LOG}"
   fi
+fi
+
+if [[ -n "${CURR_SHA}" ]]; then
+  mkdir -p "$(dirname "${LAST_SHA_FILE}")"
+  printf '%s\n' "${CURR_SHA}" > "${LAST_SHA_FILE}" || true
 fi
 
 log "Production is running — ${DOMAIN}"
