@@ -46,6 +46,9 @@ jobs:
               df -Pm "${1:-/}" 2>/dev/null | awk 'NR==2 {print $4}'
             }
 
+            echo "Cleaning dangling Docker resources before deploy"
+            sudo docker system prune -f 2>/dev/null || true
+            df -h /
             echo "Disk before deploy: $(free_mb /) MB free on /"
             # Docker BuildKit cache + previous images can silently fill the root volume;
             # keep at least ~5 GB free before building Next.js + NestJS images.
@@ -58,6 +61,7 @@ jobs:
               sudo apt-get clean 2>/dev/null || true
               sudo rm -rf "${APP_DIR}/backend/storage/audio/ur-farhat-hashmi" 2>/dev/null || true
               sudo rm -f "${APP_DIR}/.git/config.lock" 2>/dev/null || true
+              df -h /
               echo "Disk after cleanup: $(free_mb /) MB free on /"
             fi
             if [ "$(free_mb /)" -lt 1024 ]; then
@@ -83,7 +87,7 @@ jobs:
                 "+refs/heads/${DEPLOY_BRANCH}:refs/remotes/origin/${DEPLOY_BRANCH}"
               sudo git -C "$APP_DIR" checkout -f -B "$DEPLOY_BRANCH" "origin/${DEPLOY_BRANCH}"
               sudo git -C "$APP_DIR" reset --hard "origin/${DEPLOY_BRANCH}"
-              sudo git -C "$APP_DIR" clean -fd
+              sudo git -C "$APP_DIR" clean -fd -e deploy/.last-deployed-sha -e deploy/.db-synced -e deploy/.audio-imported -e deploy/audio-import.log
             fi
 
             cd "$APP_DIR"

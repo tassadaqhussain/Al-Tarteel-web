@@ -160,6 +160,10 @@ COMPOSE=(docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}")
 
 mkdir -p "${APP_DIR}/backend/storage/audio" "${APP_DIR}/backend/storage/tts"
 
+log "Prune dangling Docker resources & check disk space"
+docker system prune -f >/dev/null 2>&1 || true
+df -h / || true
+
 BUILD_API=0
 BUILD_WEB=0
 BUILD_TTS=0
