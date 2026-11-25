@@ -39,7 +39,7 @@ export function FeaturedLearningPlans() {
             <Link
               key={plan.slug}
               href={`/learning-plans/${plan.slug}`}
-              className="group overflow-hidden rounded-2xl border border-line bg-surface transition hover:border-[var(--accent)]"
+              className="group overflow-hidden rounded-2xl border border-line bg-surface shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-md"
             >
               <div
                 className="relative flex h-32 items-center justify-center overflow-hidden px-5"
@@ -47,7 +47,7 @@ export function FeaturedLearningPlans() {
               >
                 <svg
                   viewBox="0 0 200 120"
-                  className="pointer-events-none absolute inset-0 h-full w-full text-white/35"
+                  className="pointer-events-none absolute inset-0 h-full w-full text-[#E8C97A]/40"
                   fill="none"
                   aria-hidden
                 >
@@ -73,9 +73,14 @@ export function FeaturedLearningPlans() {
               </div>
 
               <div className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                  {plan.days}-day plan
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#8A5E14] dark:text-amber-300">
+                    {plan.days}-day plan
+                  </p>
+                  <span className="text-xs font-semibold text-[var(--accent)] opacity-80 transition group-hover:opacity-100">
+                    Start →
+                  </span>
+                </div>
                 <h3 className="mt-1.5 font-serif text-lg font-bold leading-snug text-ink group-hover:text-[var(--accent)]">
                   {plan.title}
                 </h3>

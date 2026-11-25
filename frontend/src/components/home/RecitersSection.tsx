@@ -81,12 +81,21 @@ export function RecitersSection() {
             <article
               key={r.id}
               className={cn(
-                'flex flex-col justify-between rounded-2xl border bg-surface p-5 transition',
-                isThisActive ? 'border-[var(--accent)]' : 'border-line hover:border-[var(--accent)]/60',
+                'group flex flex-col justify-between rounded-2xl border bg-surface p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md',
+                isThisActive
+                  ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]/25'
+                  : 'border-line hover:border-[var(--accent)]/60',
               )}
             >
               <div className="flex items-center gap-3.5">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10 text-sm font-bold text-[var(--accent)]">
+                <span
+                  className={cn(
+                    'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors',
+                    isThisActive
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-brand-contrast'
+                      : 'border-[#B4832E]/25 bg-[#FAF6EC] text-[#8A5E14] dark:border-amber-400/20 dark:bg-surface-2 dark:text-amber-300',
+                  )}
+                >
                   {r.initials}
                 </span>
                 <div className="min-w-0">
